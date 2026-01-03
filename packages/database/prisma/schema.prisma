@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  tenantId  String
+
+  // Relations
+  conversations Conversation[]
+  agents        Agent[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clerkId])
+  @@index([tenantId])
+}
+
+// ============================================
+// AI Agents
+// ============================================
+
+model Agent {
+  id          String  @id @default(cuid())
+  name        String
+  provider    String  // openai, anthropic, google, xai
+  modelId     String
+  description String?
+  isActive    Boolean @default(true)
+  tenantId    String
+
+  // Relations
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses AgentResponse[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+// ============================================
+// Conversations & Messages
+// ============================================
+
+model Conversation {
+  id       String @id @default(cuid())
+  title    String
+  mode     String @default("visible") // blind, visible
+  tenantId String
+
+  // Relations
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model Message {
+  id      String @id @default(cuid())
+  role    String // user, assistant, system
+  content String @db.Text
+
+  // Relations
+  conversationId String
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  responses      AgentResponse[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+}
+
+model AgentResponse {
+  id         String @id @default(cuid())
+  content    String @db.Text
+  tokensUsed Int    @default(0)
+  latencyMs  Int    @default(0)
+  cost       Float  @default(0)
+
+  // Relations
+  agentId   String
+  agent     Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([messageId])
+}
+
+// ============================================
+// Council Sessions
+// ============================================
+
+model CouncilSession {
+  id               String  @id @default(cuid())
+  query            String  @db.Text
+  mode             String  @default("visible")
+  consensusScore   Float?
+  selectedResponse String?
+  tenantId         String
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// ============================================
+// Usage & Analytics
+// ============================================
+
+model UsageRecord {
+  id         String   @id @default(cuid())
+  tenantId   String
+  agentId    String?
+  tokens     Int
+  cost       Float
+  recordedAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([recordedAt])
+}
