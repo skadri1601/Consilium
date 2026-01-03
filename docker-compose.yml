@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  # PostgreSQL for local development
+  postgres:
+    image: postgres:16-alpine
+    container_name: consilium-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: consilium
+      POSTGRES_PASSWORD: consilium_dev_password
+      POSTGRES_DB: consilium
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consilium"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for local development
+  redis:
+    image: redis:7-alpine
+    container_name: consilium-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Commander (optional - for viewing Redis data)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: consilium-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+  # Mailhog for local email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: consilium-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: consilium-network
