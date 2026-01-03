@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  tenantId  String
+
+  conversations Conversation[]
+  agents        Agent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clerkId])
+  @@index([tenantId])
+}
+
+model Agent {
+  id          String  @id @default(cuid())
+  name        String
+  provider    String  // openai, anthropic, google, xai
+  modelId     String
+  description String?
+  isActive    Boolean @default(true)
+  tenantId    String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  responses AgentResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model Conversation {
+  id       String @id @default(cuid())
+  title    String
+  mode     String @default("visible") // blind, visible
+  tenantId String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model Message {
+  id      String @id @default(cuid())
+  role    String // user, assistant, system
+  content String
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  responses AgentResponse[]
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+}
+
+model AgentResponse {
+  id         String @id @default(cuid())
+  content    String
+  tokensUsed Int    @default(0)
+  latencyMs  Int    @default(0)
+  cost       Float  @default(0)
+
+  agentId String
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([messageId])
+}
+
+model CouncilSession {
+  id               String  @id @default(cuid())
+  query            String
+  mode             String  @default("visible")
+  consensusScore   Float?
+  selectedResponse String?
+  tenantId         String
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
