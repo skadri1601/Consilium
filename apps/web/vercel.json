@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm build --filter=@consilium/web",
-  "installCommand": "cd ../.. && pnpm install"
+  "buildCommand": "corepack enable && pnpm install && pnpm --filter @consilium/web build",
+  "installCommand": "corepack enable && pnpm install"
 }
 
