@@ -131,6 +131,7 @@ apps/api/
 
 ### Prerequisites
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 node >= 20.x
 pnpm >= 9.x
@@ -138,6 +139,7 @@ pnpm >= 9.x
 
 ### Installation
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # From monorepo root
 pnpm install
@@ -150,6 +152,22 @@ pnpm install
 ### Environment Variables
 
 Create `apps/api/.env`:
+
+**Windows (PowerShell):**
+```powershell
+# Create the file (if .env.example exists, copy it first)
+# Copy-Item .env.example .env
+# Then edit .env with your values
+```
+
+**macOS/Linux (Bash):**
+```bash
+# Create the file (if .env.example exists, copy it first)
+# cp .env.example .env
+# Then edit .env with your values
+```
+
+**Environment Variables:**
 
 ```bash
 # Application
@@ -178,6 +196,7 @@ SENTRY_DSN=https://...
 
 ### Database Setup
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Generate Prisma client
 pnpm prisma generate
@@ -194,6 +213,7 @@ pnpm prisma studio
 
 ### Development
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Start development server (with hot reload)
 pnpm dev
@@ -316,12 +336,15 @@ export * from './agents.service';
 3. Create an `index.ts` for public exports
 4. Import the module in `app.module.ts`
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Using NestJS CLI
-nest g module features/new-feature
-nest g controller features/new-feature
-nest g service features/new-feature
+npx nest g module features/new-feature
+npx nest g controller features/new-feature
+npx nest g service features/new-feature
 ```
+
+> **Note:** Use `npx nest` instead of `nest` to ensure the CLI is available. Alternatively, install NestJS CLI globally: `pnpm add -g @nestjs/cli`
 
 ## Database: Neon PostgreSQL
 
@@ -346,6 +369,7 @@ CREATE POLICY tenant_isolation ON conversations
 
 ## Testing
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Unit tests
 pnpm test
@@ -364,6 +388,7 @@ pnpm test:cov
 
 ### Production Build
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 pnpm build
 pnpm start:prod
@@ -373,9 +398,11 @@ pnpm start:prod
 
 1. Connect GitHub repository
 2. Add environment variables
-3. Configure build: `pnpm install && pnpm build`
+3. Configure build: `pnpm install; pnpm build` (PowerShell) or `pnpm install && pnpm build` (Bash)
 4. Configure start: `pnpm start:prod`
 5. Automatic deployments on push
+
+> **Note:** Railway uses Linux containers, so bash syntax works in deployment. For local Windows development, use PowerShell syntax (`;` instead of `&&`).
 
 ## Cost Analysis
 

@@ -104,13 +104,17 @@ apps/agents/
 
 ### Prerequisites
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
-python >= 3.11
+python >= 3.11 (or python3 on Linux/macOS)
 poetry >= 1.7
 ```
 
+> **Note:** On Windows, use `python` command. On Linux/macOS, you may need `python3`. Poetry works identically on all platforms.
+
 ### Installation
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Navigate to agents directory
 cd apps/agents
@@ -120,11 +124,28 @@ poetry install
 
 # Or with pip
 pip install -e .
+# On Linux/macOS, you may need: pip3 install -e .
 ```
 
 ### Environment Variables
 
 Create `apps/agents/.env`:
+
+**Windows (PowerShell):**
+```powershell
+# Create the file (if .env.example exists, copy it first)
+# Copy-Item .env.example .env
+# Then edit .env with your values
+```
+
+**macOS/Linux (Bash):**
+```bash
+# Create the file (if .env.example exists, copy it first)
+# cp .env.example .env
+# Then edit .env with your values
+```
+
+**Environment Variables:**
 
 ```bash
 # Application
@@ -151,12 +172,14 @@ CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001"]
 
 ### Development
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Start development server
 poetry run uvicorn src.main:app --reload --port 8000
 
 # Or using the main entry point
 poetry run python -m src.main
+# On Linux/macOS, you may need: poetry run python3 -m src.main
 
 # Type checking
 poetry run mypy src/
@@ -355,6 +378,7 @@ src/features/new_feature/
 
 ## Testing
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Run all tests
 poetry run pytest
@@ -373,6 +397,16 @@ poetry run pytest -v
 
 ### Production
 
+**Windows (PowerShell):**
+```powershell
+# Build with Poetry
+poetry build
+
+# Run production server (use $env:PORT on PowerShell)
+poetry run uvicorn src.main:app --host 0.0.0.0 --port $env:PORT
+```
+
+**macOS/Linux (Bash):**
 ```bash
 # Build with Poetry
 poetry build
@@ -386,8 +420,10 @@ poetry run uvicorn src.main:app --host 0.0.0.0 --port $PORT
 1. Connect GitHub repository
 2. Set Python version: `3.11`
 3. Add environment variables
-4. Build command: `pip install poetry && poetry install`
+4. Build command: `pip install poetry; poetry install` (PowerShell) or `pip install poetry && poetry install` (Bash)
 5. Start command: `poetry run uvicorn src.main:app --host 0.0.0.0 --port $PORT`
+
+> **Note:** Railway uses Linux containers, so bash syntax works in deployment. For local Windows development, use PowerShell syntax (`;` instead of `&&`, `$env:PORT` instead of `$PORT`).
 
 ### Docker
 

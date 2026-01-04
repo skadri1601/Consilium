@@ -151,7 +151,7 @@ node >= 20.x
 pnpm >= 9.x
 python >= 3.11
 docker >= 24.x
-docker-compose >= 2.x
+docker-compose >= 2.x (or docker compose for newer Docker Desktop)
 
 # Optional but recommended
 just (command runner)
@@ -160,6 +160,31 @@ direnv (environment management)
 
 ### Installation
 
+**Windows (PowerShell):**
+```powershell
+# Clone repository
+git clone https://github.com/yourusername/ai-council.git
+cd ai-council
+
+# Install dependencies (all workspaces)
+pnpm install
+
+# Setup environment variables
+Copy-Item .env.example .env.local
+# Edit .env.local with your API keys and configuration
+
+# Start infrastructure (PostgreSQL, Redis)
+docker-compose up -d
+# Or with newer Docker Desktop: docker compose up -d
+
+# Run database migrations
+pnpm db:migrate
+
+# Start development servers (all apps in parallel)
+pnpm dev
+```
+
+**macOS/Linux (Bash):**
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/ai-council.git
@@ -172,7 +197,7 @@ pnpm install
 cp .env.example .env.local
 # Edit .env.local with your API keys and configuration
 
-# Start infrastructure (PostgreSQL, Redis, Temporal)
+# Start infrastructure (PostgreSQL, Redis)
 docker-compose up -d
 
 # Run database migrations
@@ -190,14 +215,15 @@ This starts:
 
 ### Development Workflow
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Run all workspaces in dev mode
 pnpm dev
 
 # Run specific workspace
-pnpm --filter @ai-council/web dev
-pnpm --filter @ai-council/api dev
-pnpm --filter @ai-council/agents dev
+pnpm --filter @consilium/web dev
+pnpm --filter @consilium/api dev
+pnpm --filter @consilium/agents dev
 
 # Type checking
 pnpm type-check
@@ -211,6 +237,8 @@ pnpm test
 # Build all apps
 pnpm build
 ```
+
+> **Note:** `pnpm` commands work identically on Windows, macOS, and Linux.
 
 ## 📁 Project Structure
 
@@ -282,6 +310,22 @@ consilium/
 
 Create `.env.local` in the root directory:
 
+**Windows (PowerShell):**
+```powershell
+# Copy the example file
+Copy-Item .env.example .env.local
+# Then edit .env.local with your API keys and configuration
+```
+
+**macOS/Linux (Bash):**
+```bash
+# Copy the example file
+cp .env.example .env.local
+# Then edit .env.local with your API keys and configuration
+```
+
+**Environment Variables:**
+
 ```bash
 # Database (Neon PostgreSQL)
 # Get from: https://console.neon.tech → Project → Connect
@@ -328,6 +372,7 @@ See `.env.example` for complete list with all variables.
 
 ## 🧪 Testing
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Unit tests
 pnpm test:unit
@@ -346,12 +391,13 @@ pnpm test:coverage
 
 ### Production Build
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Build all applications
 pnpm build
 
 # Build specific app
-pnpm --filter @ai-council/web build
+pnpm --filter @consilium/web build
 ```
 
 ### Deployment Targets
@@ -363,6 +409,7 @@ pnpm --filter @ai-council/web build
 
 ### Quick Deploy to Production
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # 1. Push to GitHub
 git push origin main
@@ -400,11 +447,22 @@ See deployment guides in `docs/deployment/`.
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+**Windows (PowerShell) / macOS/Linux (Bash):**
+```bash
+# 1. Fork the repository
+# 2. Create feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Commit changes
+git commit -m 'Add amazing feature'
+
+# 4. Push to branch
+git push origin feature/amazing-feature
+
+# 5. Open Pull Request
+```
+
+> **Note:** Git commands work identically on Windows, macOS, and Linux.
 
 ## 📄 License
 

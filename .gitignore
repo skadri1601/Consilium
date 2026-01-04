@@ -80,3 +80,12 @@ prisma/*.db-journal
 .cache/
 tmp/
 temp/
+
+#Markdown files
+agents-README.md
+backend-README.md
+frontend-README.md
+README.md
+tasks.md
+consilium.md
+updated- consilium.md

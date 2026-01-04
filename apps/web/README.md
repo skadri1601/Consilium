@@ -126,6 +126,7 @@ apps/web/
 
 ### Prerequisites
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 node >= 20.x
 pnpm >= 9.x
@@ -133,6 +134,7 @@ pnpm >= 9.x
 
 ### Installation
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # From monorepo root
 pnpm install
@@ -145,6 +147,22 @@ pnpm install
 ### Environment Variables
 
 Create `apps/web/.env.local`:
+
+**Windows (PowerShell):**
+```powershell
+# Create the file (if .env.example exists, copy it first)
+# Copy-Item .env.example .env.local
+# Then edit .env.local with your values
+```
+
+**macOS/Linux (Bash):**
+```bash
+# Create the file (if .env.example exists, copy it first)
+# cp .env.example .env.local
+# Then edit .env.local with your values
+```
+
+**Environment Variables:**
 
 ```bash
 # API Configuration
@@ -165,6 +183,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Development
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Start development server
 pnpm dev
@@ -281,6 +300,7 @@ src/features/new-feature/
 
 ## Adding shadcn/ui Components
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Add individual components
 pnpm dlx shadcn@latest add button
@@ -291,6 +311,7 @@ pnpm dlx shadcn@latest add dialog
 
 ## Testing
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # Unit tests
 pnpm test
@@ -306,6 +327,7 @@ pnpm test:coverage
 
 ### Production Build
 
+**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 pnpm build
 pnpm start
