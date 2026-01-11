@@ -11,7 +11,7 @@ export class AuthService {
     });
   }
 
-  async verifyToken(token: string) {
+  async verifyToken(token: string): Promise<any | null> {
     try {
       const session = await this.clerk.verifyToken(token);
       return session;

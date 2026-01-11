@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 
 @Injectable()
 export class AuthService {
   private clerk;
+  private readonly logger = new Logger(AuthService.name);
 
   constructor() {
     this.clerk = createClerkClient({
@@ -11,11 +12,20 @@ export class AuthService {
     });
   }
 
-  async verifyToken(token: string) {
+  async verifyToken(token: string): Promise<any | null> {
     try {
+      if (!token || token.trim() === "") {
+        this.logger.warn("verifyToken called with empty token");
+        return null;
+      }
+
       const session = await this.clerk.verifyToken(token);
       return session;
     } catch (error) {
+      // Log error details for debugging (but don't expose sensitive info)
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      this.logger.warn(`Token verification failed: ${errorMessage}`);
       return null;
     }
   }
@@ -26,6 +36,54 @@ export class AuthService {
       return user;
     } catch (error) {
       return null;
+    }
+  }
+
+  /**
+   * Revoke a specific session in Clerk
+   */
+  async revokeSession(sessionId: string): Promise<boolean> {
+    try {
+      await this.clerk.sessions.revokeSession(sessionId);
+      this.logger.log(`Session revoked: ${sessionId}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to revoke session ${sessionId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Revoke all sessions for a user (e.g., on password change or security event)
+   */
+  async revokeAllUserSessions(userId: string): Promise<boolean> {
+    try {
+      const sessions = await this.clerk.sessions.getSessionList({ userId });
+      
+      for (const session of sessions.data) {
+        if (session.status === "active") {
+          await this.clerk.sessions.revokeSession(session.id);
+        }
+      }
+      
+      this.logger.log(`All sessions revoked for user: ${userId}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to revoke all sessions for user ${userId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get all active sessions for a user
+   */
+  async getUserSessions(userId: string) {
+    try {
+      const sessions = await this.clerk.sessions.getSessionList({ userId });
+      return sessions.data.filter((s: any) => s.status === "active");
+    } catch (error) {
+      this.logger.error(`Failed to get sessions for user ${userId}:`, error);
+      return [];
     }
   }
 }
