@@ -4,6 +4,7 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: "standalone", // Enable standalone output for Docker
 
   // Webpack config for path alias resolution
   webpack: (config) => {
