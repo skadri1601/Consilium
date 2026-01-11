@@ -1,0 +1,52 @@
+import { Injectable } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+
+export interface DebateJobData {
+  debateId: string;
+  topic: string;
+  models: string[];
+  userId: string;
+  apiKeys?: {
+    openaiKey?: string;
+    anthropicKey?: string;
+    googleKey?: string;
+    groqKey?: string;
+  };
+}
+
+@Injectable()
+export class DebateQueueService {
+  constructor(
+    @InjectQueue("debate-jobs") private debateQueue: Queue<DebateJobData>,
+  ) {}
+
+  async addDebateJob(data: DebateJobData) {
+    return this.debateQueue.add("process-debate", data, {
+      jobId: data.debateId,
+    });
+  }
+
+  async getJobStatus(jobId: string) {
+    const job = await this.debateQueue.getJob(jobId);
+    if (!job) {
+      return null;
+    }
+
+    return {
+      id: job.id,
+      state: await job.getState(),
+      progress: job.progress,
+      data: job.data,
+      failedReason: job.failedReason,
+    };
+  }
+
+  async removeJob(jobId: string) {
+    const job = await this.debateQueue.getJob(jobId);
+    if (job) {
+      await job.remove();
+    }
+  }
+}
+
