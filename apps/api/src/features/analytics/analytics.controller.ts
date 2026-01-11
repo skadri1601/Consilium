@@ -11,6 +11,12 @@ import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.de
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @Get()
+  @ApiOperation({ summary: "Get analytics data" })
+  getAnalytics(@CurrentUser() user: CurrentUserData) {
+    return this.analyticsService.getStats(user.userId);
+  }
+
   @Get("stats")
   @ApiOperation({ summary: "Get usage statistics" })
   getStats(@CurrentUser() user: CurrentUserData) {
