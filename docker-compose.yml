@@ -1,14 +1,14 @@
 version: "3.8"
 
 services:
-  # PostgreSQL for local development
+  # PostgreSQL for local development and self-hosting
   postgres:
     image: postgres:16-alpine
     container_name: consilium-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: consilium
-      POSTGRES_PASSWORD: consilium_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: consilium
     ports:
       - "5432:5432"
@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for local development
+  # Redis for local development and self-hosting
   redis:
     image: redis:7-alpine
     container_name: consilium-redis
@@ -35,6 +35,73 @@ services:
       timeout: 5s
       retries: 5
 
+  # NestJS Backend API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: consilium-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://consilium:${POSTGRES_PASSWORD}@postgres:5432/consilium
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      PORT: 4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - consilium-network
+
+  # Python AI Workers (FastAPI)
+  agents:
+    build:
+      context: .
+      dockerfile: apps/agents/Dockerfile
+    container_name: consilium-agents
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379
+      BACKEND_API_URL: ${BACKEND_API_URL:-http://api:4000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      - consilium-network
+
+  # Next.js Frontend
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: consilium-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - consilium-network
+
   # Redis Commander (optional - for viewing Redis data)
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -46,6 +113,8 @@ services:
       - "8081:8081"
     depends_on:
       - redis
+    networks:
+      - consilium-network
 
   # Mailhog for local email testing
   mailhog:
@@ -55,11 +124,13 @@ services:
     ports:
       - "1025:1025"  # SMTP
       - "8025:8025"  # Web UI
+    networks:
+      - consilium-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  default:
+  consilium-network:
     name: consilium-network
