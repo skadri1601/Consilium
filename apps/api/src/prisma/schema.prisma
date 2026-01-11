@@ -111,3 +111,15 @@ model CouncilSession {
 
   @@index([tenantId])
 }
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?  // landing_page, producthunt, etc.
+  metadata  Json?    // Additional data like referrer, etc.
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([notified])
+}
