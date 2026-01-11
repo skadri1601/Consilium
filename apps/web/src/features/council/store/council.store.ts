@@ -16,7 +16,7 @@ interface CouncilState {
 
 export const useCouncilStore = create<CouncilState>((set) => ({
   messages: [],
-  selectedAgents: ["gpt-4o-mini", "claude-3-5-haiku", "gemini-2.0-flash"],
+  selectedAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
   mode: "visible",
   isLoading: false,
 

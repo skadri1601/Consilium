@@ -1,4 +1,4 @@
-export type AgentProvider = "openai" | "anthropic" | "google" | "xai";
+export type AgentProvider = "openai" | "anthropic" | "google" | "groq" | "xai";
 
 export interface Agent {
   id: string;

@@ -1,74 +1,165 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { UsageChart } from "./usage-chart";
-import { CostBreakdown } from "./cost-breakdown";
-import { useAnalytics } from "../hooks/use-analytics";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { TrendingUp, DollarSign, MessageSquare, Zap } from "lucide-react";
+
+interface AnalyticsData {
+  totalDebates: number;
+  totalCost: number;
+  debatesThisMonth: number;
+  costThisMonth: number;
+  debatesByDay: Array<{ date: string; count: number }>;
+  modelUsage: Array<{ model: string; count: number }>;
+}
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export function AnalyticsDashboard() {
-  const { stats, isLoading } = useAnalytics();
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/analytics");
+      if (response.ok) {
+        const analyticsData = await response.json();
+        setData(analyticsData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !data) {
+    return (
+      <div className="container mx-auto p-6">
+        <p>Loading analytics...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="container mx-auto p-6 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Analytics</h1>
+        <p className="text-muted-foreground">
+          Track your debate usage and costs
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Queries
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Debates</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {isLoading ? "..." : stats?.totalQueries || 0}
+            <div className="text-2xl font-bold">{data.totalDebates}</div>
+            <p className="text-xs text-muted-foreground">
+              {data.debatesThisMonth} this month
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Tokens
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {isLoading ? "..." : stats?.totalTokens?.toLocaleString() || 0}
+            <div className="text-2xl font-bold">${data.totalCost.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              ${data.costThisMonth.toFixed(2)} this month
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Estimated Cost
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              ${isLoading ? "..." : stats?.totalCost?.toFixed(2) || "0.00"}
+            <div className="text-2xl font-bold">{data.debatesThisMonth}</div>
+            <p className="text-xs text-muted-foreground">
+              debates completed
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Avg Response Time
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Cost</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {isLoading ? "..." : stats?.avgLatency || 0}ms
+            <div className="text-2xl font-bold">
+              ${data.totalDebates > 0 ? (data.totalCost / data.totalDebates).toFixed(4) : "0.0000"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              per debate
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <UsageChart />
-        <CostBreakdown />
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Debates by Day</CardTitle>
+            <CardDescription>Last 7 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data.debatesByDay.slice(-7)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#0088FE" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Model Usage</CardTitle>
+            <CardDescription>Most used models</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={data.modelUsage}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ model, percent }) => `${model} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {data.modelUsage.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

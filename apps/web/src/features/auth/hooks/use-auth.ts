@@ -3,7 +3,7 @@
 import { useAuth as useClerkAuth, useUser } from "@clerk/nextjs";
 
 export function useAuth() {
-  const { isLoaded, isSignedIn, signOut } = useClerkAuth();
+  const { isLoaded, isSignedIn, signOut, getToken } = useClerkAuth();
   const { user } = useUser();
 
   return {
@@ -19,5 +19,6 @@ export function useAuth() {
         }
       : null,
     signOut,
+    getToken,
   };
 }

@@ -27,6 +27,18 @@ export const AGENTS = [
     description: "Fast multimodal model from Google",
   },
   {
+    id: "llama-3.1-8b-instant",
+    name: "Llama 3.1 8B Instant",
+    provider: "Groq",
+    description: "Fast Groq-hosted Llama 3.1 model",
+  },
+  {
+    id: "llama-3.1-70b-versatile",
+    name: "Llama 3.1 70B Versatile",
+    provider: "Groq",
+    description: "High-capacity Groq-hosted Llama 3.1 model",
+  },
+  {
     id: "grok-2",
     name: "Grok-2",
     provider: "xAI",
