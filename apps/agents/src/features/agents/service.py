@@ -4,6 +4,8 @@ from .base_agent import BaseAgent
 from .openai_agent import OpenAIAgent
 from .anthropic_agent import AnthropicAgent
 from .google_agent import GoogleAgent
+from .groq_agent import GroqAgent
+from .xai_agent import XAIAgent
 
 
 class AgentsService:
@@ -14,6 +16,8 @@ class AgentsService:
             "gpt-4": OpenAIAgent(),
             "claude": AnthropicAgent(),
             "gemini": GoogleAgent(),
+            "groq": GroqAgent(),
+            "xai": XAIAgent(),
         }
 
         self.agent_info = {
@@ -35,12 +39,28 @@ class AgentsService:
             },
             "gemini": {
                 "id": "gemini",
-                "name": "Gemini Pro",
+                "name": "Gemini 3.0 Flash",
                 "provider": "Google",
-                "model": "gemini-pro",
-                "description": "Google's multimodal AI model",
+                "model": "gemini-3-flash-preview",
+                "description": "Google's latest experimental multimodal AI model",
                 "is_available": True
-            }
+            },
+            "groq": {
+                "id": "groq",
+                "name": "Groq Llama 3.1",
+                "provider": "Groq",
+                "model": "llama-3.1-8b-instant",
+                "description": "Groq's fast inference models",
+                "is_available": True
+            },
+            "xai": {
+                "id": "xai",
+                "name": "Grok",
+                "provider": "X.AI",
+                "model": "grok-beta",
+                "description": "X.AI's Grok language model",
+                "is_available": True
+            },
         }
 
     def get_all_agents(self) -> List[dict]:
