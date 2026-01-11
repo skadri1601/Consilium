@@ -1,22 +1,105 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { Sidebar } from "@/shared/components/layout";
+"use client";
 
-export default async function DashboardLayout({
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/shared/components/ui/button";
+import { Menu, X, Settings, History, BarChart3, Users } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
+import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
+
+const navItems = [
+  { href: "/council", label: "Council" },
+  { href: "/history", label: "History", icon: History },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/personas", label: "Personas", icon: Users },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in");
-  }
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div className="min-h-screen lg:flex">
+      {/* Mobile Navigation */}
+      <nav className="lg:hidden border-b bg-background sticky top-0 z-50">
+        <div className="flex items-center justify-between p-4">
+          <Link href="/" className="font-bold text-xl">
+            Consilium
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+        {mobileMenuOpen && (
+          <div className="border-t bg-background">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-3 border-b last:border-b-0",
+                    pathname === item.href && "bg-muted font-semibold"
+                  )}
+                >
+                  {Icon && <Icon className="h-4 w-4" />}
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </nav>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex border-r bg-background w-64 min-h-screen sticky top-0 shrink-0">
+        <div className="flex flex-col w-full p-4">
+          <Link href="/" className="font-bold text-xl mb-6">
+            Consilium
+          </Link>
+          <div className="flex flex-col gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
+                    pathname === item.href
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
+                  )}
+                >
+                  {Icon && <Icon className="h-4 w-4" />}
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="mt-auto pt-4 border-t">
+            <KeyboardShortcutsHelp />
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        <main>{children}</main>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,11 @@
-import { CouncilChat } from "@/features/council";
+"use client";
+
+import { CouncilChat } from "@/features/council/components/council-chat";
 
 export default function CouncilPage() {
   return (
-    <div className="h-full">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">AI Council</h1>
-        <p className="text-muted-foreground">
-          Get collaborative insights from multiple AI agents
-        </p>
-      </div>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">AI Council</h1>
       <CouncilChat />
     </div>
   );
