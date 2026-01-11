@@ -4,25 +4,29 @@ from .base_agent import BaseAgent
 
 
 class OpenAIAgent(BaseAgent):
-    """OpenAI GPT-4 agent implementation."""
+    """OpenAI GPT agent implementation."""
 
-    def __init__(self):
+    def __init__(self, model_id: str = "gpt-4o-mini", api_key: str | None = None):
         super().__init__(
-            name="GPT-4",
+            name="OpenAI",
             provider="OpenAI",
-            model="gpt-4-turbo"
+            model=model_id
         )
-        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.model_id = model_id
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
 
     async def generate_response(self, query: str) -> Tuple[str, int]:
         """Generate a response using OpenAI's API."""
         try:
             import openai
+            import httpx
 
-            client = openai.AsyncOpenAI(api_key=self.api_key)
+            # Create custom HTTP client to avoid proxy detection issues in older SDK versions
+            http_client = httpx.AsyncClient()
+            client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
 
             response = await client.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model=self.model_id,
                 messages=[
                     {"role": "system", "content": self.get_system_prompt()},
                     {"role": "user", "content": query}
@@ -43,11 +47,14 @@ class OpenAIAgent(BaseAgent):
         """Stream a response using OpenAI's API."""
         try:
             import openai
+            import httpx
 
-            client = openai.AsyncOpenAI(api_key=self.api_key)
+            # Create custom HTTP client to avoid proxy detection issues in older SDK versions
+            http_client = httpx.AsyncClient()
+            client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
 
             stream = await client.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model=self.model_id,
                 messages=[
                     {"role": "system", "content": self.get_system_prompt()},
                     {"role": "user", "content": query}
@@ -71,7 +78,11 @@ class OpenAIAgent(BaseAgent):
 
         try:
             import openai
-            client = openai.AsyncOpenAI(api_key=self.api_key)
+            import httpx
+
+            # Create custom HTTP client to avoid proxy detection issues in older SDK versions
+            http_client = httpx.AsyncClient()
+            client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
             await client.models.list()
             return True
         except Exception:

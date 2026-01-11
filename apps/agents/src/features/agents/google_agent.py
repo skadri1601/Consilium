@@ -6,13 +6,14 @@ from .base_agent import BaseAgent
 class GoogleAgent(BaseAgent):
     """Google Gemini agent implementation."""
 
-    def __init__(self):
+    def __init__(self, model_id: str = "gemini-3-flash-preview", api_key: str | None = None):
         super().__init__(
-            name="Gemini Pro",
+            name="Gemini",
             provider="Google",
-            model="gemini-pro"
+            model=model_id
         )
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.model_id = model_id
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
 
     async def generate_response(self, query: str) -> Tuple[str, int]:
         """Generate a response using Google's Gemini API."""
@@ -20,7 +21,7 @@ class GoogleAgent(BaseAgent):
             import google.generativeai as genai
 
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel("gemini-pro")
+            model = genai.GenerativeModel(self.model_id)
 
             # Combine system prompt with query
             full_prompt = f"{self.get_system_prompt()}\n\nUser Query: {query}"
@@ -42,7 +43,7 @@ class GoogleAgent(BaseAgent):
             import google.generativeai as genai
 
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel("gemini-pro")
+            model = genai.GenerativeModel(self.model_id)
 
             full_prompt = f"{self.get_system_prompt()}\n\nUser Query: {query}"
 
@@ -66,7 +67,7 @@ class GoogleAgent(BaseAgent):
         try:
             import google.generativeai as genai
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel("gemini-pro")
+            model = genai.GenerativeModel(self.model_id)
             await model.generate_content_async("ping")
             return True
         except Exception:

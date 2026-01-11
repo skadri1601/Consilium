@@ -5,3 +5,5 @@ from .base_agent import BaseAgent
 from .openai_agent import OpenAIAgent
 from .anthropic_agent import AnthropicAgent
 from .google_agent import GoogleAgent
+from .groq_agent import GroqAgent
+from .xai_agent import XAIAgent

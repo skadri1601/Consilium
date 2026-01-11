@@ -6,13 +6,14 @@ from .base_agent import BaseAgent
 class AnthropicAgent(BaseAgent):
     """Anthropic Claude agent implementation."""
 
-    def __init__(self):
+    def __init__(self, model_id: str = "claude-3-5-haiku-latest", api_key: str | None = None):
         super().__init__(
-            name="Claude 3",
+            name="Claude",
             provider="Anthropic",
-            model="claude-3-opus"
+            model=model_id
         )
-        self.api_key = os.getenv("ANTHROPIC_API_KEY")
+        self.model_id = model_id
+        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
 
     async def generate_response(self, query: str) -> Tuple[str, int]:
         """Generate a response using Anthropic's API."""
@@ -22,7 +23,7 @@ class AnthropicAgent(BaseAgent):
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
 
             response = await client.messages.create(
-                model="claude-3-opus-20240229",
+                model=self.model_id,
                 max_tokens=2000,
                 system=self.get_system_prompt(),
                 messages=[
@@ -46,7 +47,7 @@ class AnthropicAgent(BaseAgent):
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
 
             async with client.messages.stream(
-                model="claude-3-opus-20240229",
+                model=self.model_id,
                 max_tokens=2000,
                 system=self.get_system_prompt(),
                 messages=[
