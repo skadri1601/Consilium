@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
-import { Menu, X, Settings, History, BarChart3, Users } from "lucide-react";
+import { Menu, X, Settings, History, BarChart3, Users, CreditCard, Key } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 const navItems = [
   { href: "/council", label: "Council" },
@@ -23,6 +24,7 @@ export default function DashboardLayout({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useUser();
 
   return (
     <div className="min-h-screen lg:flex">
@@ -32,14 +34,17 @@ export default function DashboardLayout({
           <Link href="/" className="font-bold text-xl">
             Consilium
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-2">
+            <UserButton afterSignOutUrl="/" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
         {mobileMenuOpen && (
           <div className="border-t bg-background">
@@ -90,7 +95,23 @@ export default function DashboardLayout({
               );
             })}
           </div>
-          <div className="mt-auto pt-4 border-t">
+          
+          <div className="mt-auto pt-4 border-t space-y-4">
+             <div className="flex items-center gap-3 px-2">
+                <UserButton 
+                  afterSignOutUrl="/"
+                  userProfileMode="navigation"
+                  userProfileUrl="/settings"
+                />
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-sm font-medium truncate">
+                    {user?.fullName || user?.username || "User"}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </span>
+                </div>
+             </div>
             <KeyboardShortcutsHelp />
           </div>
         </div>
