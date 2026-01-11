@@ -23,9 +23,17 @@ model User {
   imageUrl  String?
   tenantId  String
 
+  // API Keys (encrypted, for BYOK)
+  openaiKey    String? // Encrypted
+  anthropicKey String? // Encrypted
+  googleKey    String? // Encrypted
+  groqKey      String? // Encrypted
+
   // Relations
-  conversations Conversation[]
-  agents        Agent[]
+  conversations  Conversation[]
+  agents         Agent[]
+  debateSessions DebateSession[]
+  personas       AgentPersona[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -121,7 +129,59 @@ model AgentResponse {
 }
 
 // ============================================
-// Council Sessions
+// Debate Sessions
+// ============================================
+
+model DebateSession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        String   @db.Text
+  status       String   @default("pending") // pending, processing, completed, failed
+  modelsUsed   Json     @default("[]")
+  totalCost    Float    @default(0)
+  goldenPrompt String?  @db.Text
+
+  rounds       DebateRound[]
+
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model DebateRound {
+  id          String          @id @default(cuid())
+  sessionId   String
+  session     DebateSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  roundNumber Int
+  status      String          @default("pending")
+  messages    DebateMessage[]
+
+  createdAt   DateTime        @default(now())
+
+  @@index([sessionId])
+}
+
+model DebateMessage {
+  id               String      @id @default(cuid())
+  roundId          String
+  round            DebateRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  agentId          String
+  modelUsed        String
+  content          String      @db.Text
+  promptTokens     Int         @default(0)
+  completionTokens Int         @default(0)
+  cost             Float        @default(0)
+  latencyMs        Int         @default(0)
+
+  createdAt        DateTime    @default(now())
+
+  @@index([roundId])
+}
+
+// ============================================
+// Council Sessions (Legacy - kept for backward compatibility)
 // ============================================
 
 model CouncilSession {
@@ -152,4 +212,42 @@ model UsageRecord {
 
   @@index([tenantId])
   @@index([recordedAt])
+}
+
+// ============================================
+// Audit Logging
+// ============================================
+
+model AuthLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  event     String   // login_success, login_failed, logout, etc.
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  severity  String   @default("low") // low, medium, high, critical
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
+  @@index([severity])
+}
+
+// ============================================
+// Custom Agent Personas
+// ============================================
+
+model AgentPersona {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  systemPrompt String  @db.Text
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
