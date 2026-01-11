@@ -1,20 +1,27 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Any
 from ..config import settings
+
+if TYPE_CHECKING:
+    from upstash_redis import Redis
+    RedisType = Redis
+else:
+    RedisType = Any
 
 try:
     from upstash_redis import Redis
     HAS_UPSTASH = True
 except ImportError:
     HAS_UPSTASH = False
+    Redis = None  # type: ignore
 
 
 class RedisClient:
     """Redis client wrapper for Upstash Redis."""
 
     def __init__(self):
-        self._client: Optional[Redis] = None
+        self._client: Optional[RedisType] = None
 
-    def connect(self) -> Optional[Redis]:
+    def connect(self) -> Optional[RedisType]:
         """Establish connection to Upstash Redis."""
         if not HAS_UPSTASH:
             print("Warning: upstash-redis not installed")
@@ -33,7 +40,7 @@ class RedisClient:
         return self._client
 
     @property
-    def client(self) -> Optional[Redis]:
+    def client(self) -> Optional[RedisType]:
         """Get the Redis client, connecting if necessary."""
         if self._client is None:
             self.connect()

@@ -1,5 +1,6 @@
 """FastAPI application for Consilium AI Agents."""
 
+import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -17,6 +18,11 @@ from src.shared.config import settings
 
 # API prefix constant
 API_V1_PREFIX = "/api/v1"
+
+# Windows-specific event loop policy fix
+if sys.platform == "win32":
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 @asynccontextmanager
@@ -52,12 +58,48 @@ app.include_router(agents_router, prefix=API_V1_PREFIX)
 app.include_router(streaming_router, prefix=API_V1_PREFIX)
 
 
+@app.get("/")
+async def root():
+    """Root endpoint with API information."""
+    return {
+        "service": settings.app_name,
+        "version": "0.1.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "health": "/health",
+            "ready": "/ready",
+            "live": "/live",
+            "providers": "/providers",
+            "council": f"{API_V1_PREFIX}/council",
+            "agents": f"{API_V1_PREFIX}/agents",
+            "streaming": f"{API_V1_PREFIX}/streaming",
+        },
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        "src.main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-    )
+    # Windows-specific uvicorn configuration to prevent socket buffer exhaustion
+    uvicorn_config = {
+        "app": "src.main:app",
+        "host": settings.host,
+        "port": settings.port,
+        "reload": settings.debug,
+        "log_level": "info",
+    }
+
+    # Windows-specific optimizations
+    if sys.platform == "win32":
+        # Limit connection backlog to prevent buffer exhaustion
+        uvicorn_config["backlog"] = 128
+        # Reduce reload delay on Windows (can cause socket issues)
+        if settings.debug:
+            uvicorn_config["reload_delay"] = 0.25
+        # Limit the number of reload watchers on Windows
+        uvicorn_config["reload_includes"] = ["*.py"]
+        uvicorn_config["reload_excludes"] = ["*.pyc", "__pycache__", "*.log"]
+
+    uvicorn.run(**uvicorn_config)
