@@ -45,6 +45,18 @@ class GoogleAgent(BaseAgent):
         )
 
 
+class GroqAgent(BaseAgent):
+    """Groq-based agent."""
+
+    def _create_llm(self) -> Any:
+        return ChatOpenAI(
+            model=self.model_id,
+            api_key=settings.groq_api_key,
+            base_url="https://api.groq.com/openai/v1",
+            temperature=0.7,
+        )
+
+
 # Agent registry
 AGENT_REGISTRY: Dict[str, Dict] = {
     "gpt-4o-mini": {
@@ -65,6 +77,18 @@ AGENT_REGISTRY: Dict[str, Dict] = {
         "provider": "google",
         "model_id": "gemini-2.0-flash-exp",
     },
+    "llama-3.1-8b-instant": {
+        "class": GroqAgent,
+        "name": "Llama 3.1 8B Instant",
+        "provider": "groq",
+        "model_id": "llama-3.1-8b-instant",
+    },
+    "llama-3.1-70b-versatile": {
+        "class": GroqAgent,
+        "name": "Llama 3.1 70B Versatile",
+        "provider": "groq",
+        "model_id": "llama-3.1-70b-versatile",
+    },
 }
 
 
@@ -84,6 +108,7 @@ class CouncilAgent:
                 "openai": settings.openai_api_key,
                 "anthropic": settings.anthropic_api_key,
                 "google": settings.google_api_key,
+                "groq": settings.groq_api_key,
             }
 
             if api_key_map.get(provider):
