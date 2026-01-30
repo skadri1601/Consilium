@@ -15,8 +15,6 @@ Built for bootstrapped founders with **99% gross margins** at scale.
 - 🚀 Real-time streaming of agent responses via Server-Sent Events
 - 🔐 Multi-tenancy with Row-Level Security
 - 📈 Usage analytics and per-model cost tracking
-- 💰 **$5-107/month** infrastructure costs for 100 paying users
-- ⚡ Scales from 100 to 1,000+ users on free/cheap tiers
 
 ## 🏗️ Architecture
 
@@ -47,9 +45,9 @@ Built for bootstrapped founders with **99% gross margins** at scale.
                   │
 ┌─────────────────▼───────────────────────────────────────┐
 │  DATA LAYER                                             │
-│  - Neon PostgreSQL (Free tier → $19/month)             │
-│  - Upstash Redis (Free tier)                            │
-│  - 10,000 pooled connections (no pooler config!)        │
+│  - Neon PostgreSQL            
+│  - Upstash Redis                           
+│  - 10,000 pooled connections       │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -87,57 +85,6 @@ Built for bootstrapped founders with **99% gross margins** at scale.
 - **Email**: Resend Free (3K emails/month)
 - **Payments**: Stripe (2.9% + $0.30)
 - **Monorepo**: Turborepo + pnpm
-
-## 💰 Cost Breakdown by User Milestone
-
-### 100 Paying Users ($2,000 MRR)
-
-| Service | Cost/Month |
-|---------|------------|
-| Railway Hobby (backend) | $5 |
-| Neon Free (database) | $0 |
-| Vercel Hobby (frontend) | $0 |
-| Upstash Redis (cache) | $0 |
-| LLM APIs (5K queries) | $8.63 |
-| Clerk (auth) | $0 |
-| Sentry (monitoring) | $0 |
-| Resend (email) | $0 |
-| Domain (.ai) | $6/month |
-| Stripe fees | $88 |
-| **Total** | **$107.63** |
-| **Revenue** | **$2,000** |
-| **Gross Margin** | **94.6%** |
-
-### 500 Paying Users ($10,000 MRR)
-
-| Service | Cost/Month |
-|---------|------------|
-| Railway Hobby | $5-8 |
-| Neon Launch | $19 |
-| Vercel Hobby | $0 |
-| Upstash Redis | $0-5 |
-| LLM APIs (25K queries) | $43 |
-| Other services | $6 |
-| Stripe fees | $440 |
-| **Total** | **$518-527** |
-| **Gross Margin** | **95.2%** |
-
-### 1,000 Paying Users ($20,000 MRR)
-
-| Service | Cost/Month |
-|---------|------------|
-| Railway Pro | $20 |
-| Neon Launch | $19 |
-| Vercel Pro | $20 |
-| Upstash Redis | $10-15 |
-| LLM APIs (50K queries) | $86 |
-| Sentry Team | $26 |
-| Other | $6 |
-| Stripe fees | $880 |
-| **Total** | **$1,067-1,072** |
-| **Gross Margin** | **94.7%** |
-
-**Key insight**: Infrastructure costs stay below 6% of revenue across all scales.
 
 ##
 
@@ -477,9 +424,7 @@ This project is licensed under the MIT License - see [LICENSE](./LICENSE) file.
 
 ## 💬 Support
 
-- GitHub Issues: [Create an issue](https://github.com/yourusername/ai-council/issues)
-- Discord: [Join our community](https://discord.gg/...)
-- Email: support@aicouncil.dev
+- Email: er.saadk16@gmail.com
 
 ---
 
