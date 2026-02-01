@@ -7,6 +7,9 @@ import {
 import { AuthService } from "../auth.service";
 import { AuditLoggerService } from "../../../shared/services/audit-logger.service";
 import { SessionService } from "../../../shared/services/session.service";
+import { CliTokenService } from "../services/cli-token.service";
+
+const CLI_TOKEN_PREFIX = "consilium_";
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
@@ -14,6 +17,7 @@ export class ClerkAuthGuard implements CanActivate {
     private readonly authService: AuthService,
     private readonly auditLogger: AuditLoggerService,
     private readonly sessionService: SessionService,
+    private readonly cliTokenService: CliTokenService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,7 +28,7 @@ export class ClerkAuthGuard implements CanActivate {
 
     // Support both Authorization header and token query parameter (for SSE)
     let token: string | undefined;
-    
+
     if (authHeader?.startsWith("Bearer ")) {
       token = authHeader.substring(7);
     } else if (request.query?.token) {
@@ -47,6 +51,16 @@ export class ClerkAuthGuard implements CanActivate {
         metadata: { reason: "Empty token" },
       });
       throw new UnauthorizedException("Token cannot be empty");
+    }
+
+    // CLI long-lived token: validate and set user (skip Clerk + session checks)
+    if (token.startsWith(CLI_TOKEN_PREFIX)) {
+      const cliUser = await this.cliTokenService.validate(token);
+      if (cliUser) {
+        request.user = { userId: cliUser.clerkId };
+        return true;
+      }
+      throw new UnauthorizedException("Invalid or expired CLI token. Run: consilium login");
     }
 
     const session = await this.authService.verifyToken(token);
