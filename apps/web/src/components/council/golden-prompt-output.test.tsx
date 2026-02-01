@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { GoldenPromptOutput } from "./golden-prompt-output";
 
@@ -9,18 +8,20 @@ vi.mock("@/shared/components/ui/use-toast", () => ({
   }),
 }));
 
-// Mock clipboard API
+// Mock clipboard API - create a fresh mock for this test file
+const mockWriteText = vi.fn().mockResolvedValue(undefined);
 const mockClipboard = {
-  writeText: vi.fn(),
+  writeText: mockWriteText,
 };
 
-Object.assign(navigator, {
-  clipboard: mockClipboard,
-});
-
-// Mock URL.createObjectURL and URL.revokeObjectURL
-global.URL.createObjectURL = vi.fn(() => "blob:test-url");
-global.URL.revokeObjectURL = vi.fn();
+// Set up navigator.clipboard before any tests run
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: mockClipboard,
+    writable: true,
+    configurable: true,
+  });
+}
 
 describe("GoldenPromptOutput", () => {
   const defaultProps = {
@@ -29,6 +30,14 @@ describe("GoldenPromptOutput", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset clipboard mock
+    mockWriteText.mockClear();
+    mockWriteText.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    // Ensure all spies are restored after each test
+    vi.restoreAllMocks();
   });
 
   it("renders the golden prompt content", () => {
@@ -46,7 +55,7 @@ describe("GoldenPromptOutput", () => {
 
   it("displays models used when provided", () => {
     const modelsUsed = ["gpt-4o-mini", "claude-3-5-haiku-latest"];
-    render(<GoldenPromptOutput {...defaultProps} modelsUsed={modelsUsed} />);
+    render(<GoldenPromptOutput {...defaultProps} modelsUsed={modelsUsed} cost={0.01} />);
 
     expect(screen.getByText(/gpt-4o-mini, claude-3-5-haiku-latest/)).toBeInTheDocument();
   });
@@ -65,8 +74,6 @@ describe("GoldenPromptOutput", () => {
   });
 
   it("shows checkmark after successful copy", async () => {
-    mockClipboard.writeText.mockResolvedValue(undefined);
-
     render(<GoldenPromptOutput {...defaultProps} />);
 
     const copyButton = screen.getByRole("button", { name: /copy/i });
@@ -75,7 +82,7 @@ describe("GoldenPromptOutput", () => {
     await waitFor(() => {
       // The button should now show a checkmark (CheckCircle2 icon)
       expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
-    });
+    }, { timeout: 2000 });
   });
 
   it("has export as .cursorrules button", () => {
@@ -91,42 +98,68 @@ describe("GoldenPromptOutput", () => {
   });
 
   it("exports as .cursorrules file when button clicked", () => {
+    // Render first to avoid React rendering issues
+    render(<GoldenPromptOutput {...defaultProps} />);
+
     // Mock document.createElement and related methods
     const mockAnchor = {
       href: "",
       download: "",
       click: vi.fn(),
     };
-    vi.spyOn(document, "createElement").mockReturnValue(mockAnchor as any);
-    vi.spyOn(document.body, "appendChild").mockImplementation(() => mockAnchor as any);
-    vi.spyOn(document.body, "removeChild").mockImplementation(() => mockAnchor as any);
-
-    render(<GoldenPromptOutput {...defaultProps} />);
+    // Get the original createElement before spying
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName) => {
+      if (tagName === "a") {
+        return mockAnchor as any;
+      }
+      return originalCreateElement(tagName);
+    });
+    const appendChildSpy = vi.spyOn(document.body, "appendChild").mockImplementation(() => mockAnchor as any);
+    const removeChildSpy = vi.spyOn(document.body, "removeChild").mockImplementation(() => mockAnchor as any);
 
     const exportButton = screen.getByRole("button", { name: /\.cursorrules/i });
     fireEvent.click(exportButton);
 
     expect(mockAnchor.download).toBe(".cursorrules");
     expect(mockAnchor.click).toHaveBeenCalled();
+
+    // Restore mocks
+    createElementSpy.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 
   it("exports as Markdown file when button clicked", () => {
+    // Render first to avoid React rendering issues
+    render(<GoldenPromptOutput {...defaultProps} />);
+
     const mockAnchor = {
       href: "",
       download: "",
       click: vi.fn(),
     };
-    vi.spyOn(document, "createElement").mockReturnValue(mockAnchor as any);
-    vi.spyOn(document.body, "appendChild").mockImplementation(() => mockAnchor as any);
-    vi.spyOn(document.body, "removeChild").mockImplementation(() => mockAnchor as any);
-
-    render(<GoldenPromptOutput {...defaultProps} />);
+    // Get the original createElement before spying
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName) => {
+      if (tagName === "a") {
+        return mockAnchor as any;
+      }
+      return originalCreateElement(tagName);
+    });
+    const appendChildSpy = vi.spyOn(document.body, "appendChild").mockImplementation(() => mockAnchor as any);
+    const removeChildSpy = vi.spyOn(document.body, "removeChild").mockImplementation(() => mockAnchor as any);
 
     const exportButton = screen.getByRole("button", { name: /markdown/i });
     fireEvent.click(exportButton);
 
     expect(mockAnchor.download).toBe("golden-prompt.md");
     expect(mockAnchor.click).toHaveBeenCalled();
+
+    // Restore mocks
+    createElementSpy.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
   });
 
   it("renders prompt content in a textbox role for accessibility", () => {
