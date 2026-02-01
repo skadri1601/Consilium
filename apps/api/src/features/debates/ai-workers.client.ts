@@ -2,6 +2,7 @@ import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 export interface DebateStartRequest {
+  debateId?: string;
   topic: string;
   models: string[];
   apiKeys: {
@@ -44,6 +45,7 @@ export class AiWorkersClient {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          debate_id: request.debateId,
           topic: request.topic,
           models: request.models,
           api_keys: request.apiKeys,

@@ -13,6 +13,17 @@ export class DebatesService {
   ) {}
 
   async createDebate(userId: string, dto: CreateDebateDto) {
+    // Ensure test user exists for CLI testing
+    const user = await this.prisma.user.upsert({
+      where: { clerkId: userId },
+      update: {},
+      create: {
+        clerkId: userId,
+        email: `${userId}@test.com`,
+        tenantId: 'default-tenant',
+      },
+    });
+
     // Get user's API keys (BYOK or from env)
     const apiKeys = await this.apiKeysService.getUserApiKeys(userId);
 
@@ -25,10 +36,10 @@ export class DebatesService {
       );
     }
 
-    // Create debate session
+    // Create debate session (use user.id, not clerkId)
     const debate = await (this.prisma as any).debateSession.create({
       data: {
-        userId,
+        userId: user.id,
         topic: dto.topic,
         status: "pending",
         modelsUsed: dto.models,
@@ -39,6 +50,7 @@ export class DebatesService {
     // Start debate workflow in AI workers (async, will update status via SSE)
     try {
       await this.aiWorkersClient.startDebate({
+        debateId: debate.id,
         topic: dto.topic,
         models: dto.models,
         apiKeys: {
@@ -60,9 +72,18 @@ export class DebatesService {
     return debate;
   }
 
-  async findAll(userId: string, limit: number = 20, offset: number = 0) {
+  async findAll(clerkId: string, limit: number = 20, offset: number = 0) {
+    // Resolve clerkId to internal user.id
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      return [];
+    }
+
     return (this.prisma as any).debateSession.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
@@ -76,9 +97,18 @@ export class DebatesService {
     });
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, clerkId: string) {
+    // Resolve clerkId to internal user.id
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
     const debate = await (this.prisma as any).debateSession.findFirst({
-      where: { id, userId },
+      where: { id, userId: user.id },
       include: {
         rounds: {
           include: {

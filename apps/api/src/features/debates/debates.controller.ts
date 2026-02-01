@@ -61,12 +61,10 @@ export class DebatesController {
   @ApiOperation({ summary: "Stream debate session progress" })
   @ApiResponse({ status: 200, description: "SSE stream of debate events" })
   stream(@CurrentUser() user: any, @Param("id") id: string): Observable<MessageEvent> {
-    // Verify user owns this debate and proxy SSE stream
     return new Observable((subscriber) => {
       this.debatesService
         .findOne(id, user.userId)
         .then(() => {
-          // User owns debate, proxy the stream
           const proxyStream = this.sseProxy.proxyStream(id);
           proxyStream.subscribe({
             next: (event) => subscriber.next(event),
