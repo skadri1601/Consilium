@@ -28,7 +28,8 @@ import { HealthController } from "./health.controller";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [".env.local", ".env"],
+      // Look for .env.local in root directory (../../ from apps/api/src)
+      envFilePath: ["../../.env.local", "../../.env", ".env.local", ".env"],
       load: [appConfig, databaseConfig, redisConfig],
     }),
     RedisModule.forRootAsync({

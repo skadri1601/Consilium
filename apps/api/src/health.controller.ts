@@ -3,20 +3,22 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import {
   HealthCheckService,
   HealthCheck,
-  PrismaHealthIndicator,
+  HealthIndicator,
+  HealthIndicatorResult,
   MemoryHealthIndicator,
 } from "@nestjs/terminus";
 import { PrismaService } from "./shared/database/prisma.service";
 
 @ApiTags("health")
 @Controller("health")
-export class HealthController {
+export class HealthController extends HealthIndicator {
   constructor(
     private health: HealthCheckService,
-    private prisma: PrismaHealthIndicator,
     private memory: MemoryHealthIndicator,
     private prismaService: PrismaService,
-  ) {}
+  ) {
+    super();
+  }
 
   @Get()
   @ApiOperation({ summary: "Comprehensive health check endpoint" })
@@ -25,7 +27,17 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      () => this.prisma.pingCheck("database", this.prismaService),
+      async (): Promise<HealthIndicatorResult> => {
+        try {
+          await this.prismaService.$queryRaw`SELECT 1`;
+          return this.getStatus("database", true, { status: "up" });
+        } catch (error) {
+          return this.getStatus("database", false, {
+            status: "down",
+            error: error.message
+          });
+        }
+      },
       () =>
         this.memory.checkHeap("memory_heap", 150 * 1024 * 1024), // 150MB
       () =>
