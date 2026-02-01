@@ -28,6 +28,10 @@ model User {
   anthropicKey String? // Encrypted
   googleKey    String? // Encrypted
   groqKey      String? // Encrypted
+  xaiKey       String? // Encrypted
+
+  // CLI access: hash of long-lived token (user generates in Settings)
+  cliTokenHash String? @unique
 
   // Relations
   conversations  Conversation[]
@@ -250,4 +254,20 @@ model AgentPersona {
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ============================================
+// Waitlist
+// ============================================
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  metadata  Json?
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
