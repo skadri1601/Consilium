@@ -28,3 +28,16 @@ export function useUsageHistory(days: number = 30) {
     error: error?.message,
   };
 }
+
+export function useCostByModel() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["analytics", "costs"],
+    queryFn: () => analyticsApi.getCostByModel(),
+  });
+
+  return {
+    costByModel: data,
+    isLoading,
+    error: error?.message,
+  };
+}
