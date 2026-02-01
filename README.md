@@ -6,8 +6,6 @@
 
 AI Council is a production-grade platform that orchestrates multiple AI models (GPT-4o-mini, Claude, Gemini, Grok etc.) to collaboratively solve complex problems. Instead of trying different AI models sequentially, AI Council runs them in parallel, analyzes their approaches, and presents the best solutions through blind evaluation.
 
-Built for bootstrapped founders with **99% gross margins** at scale.
-
 **Key Features:**
 - 🤝 Multi-agent deliberation with LangGraph orchestration
 - 🎭 Blind evaluation - removes model bias by anonymizing outputs
@@ -39,15 +37,15 @@ Built for bootstrapped founders with **99% gross margins** at scale.
 │  AI WORKERS (Python + LangGraph)                        │
 │  - Railway or same container                            │
 │  - Multi-agent orchestration                            │
-│  - LLM routing (GPT-4o-mini, Claude, Gemini)           │
+│  - LLM routing (GPT-4o-mini, Claude, Gemini)            │
 │  - Semantic caching with Redis                          │
 └─────────────────┬───────────────────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────────────────┐
 │  DATA LAYER                                             │
-│  - Neon PostgreSQL            
-│  - Upstash Redis                           
-│  - 10,000 pooled connections       │
+│  - Neon PostgreSQL                                      │
+│  - Upstash Redis                                        │
+│  - 10,000 pooled connections                            │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -415,12 +413,23 @@ git push origin feature/amazing-feature
 
 This project is licensed under the MIT License - see [LICENSE](./LICENSE) file.
 
-## 🔗 Links
+## 📚 Documentation Structure
 
-- [Documentation](./docs)
-- [API Reference](./docs/api)
-- [Deployment Guide](./docs/deployment)
-- [Architecture Decisions](./docs/adr)
+### Getting Started
+- **[Quick Start Guide](./docs/guides/getting-started.md)** - Get up and running in 5 minutes
+- **[Self-Hosting](./docs/guides/self-hosting.md)** - Deploy on your infrastructure
+- **[FAQ](./docs/guides/faq.md)** - Frequently asked questions
+- **[Export Formats](./docs/guides/export-formats.md)** - Output format documentation
+
+### Application Documentation
+- **[Web App](./apps/web/README.md)** - Next.js frontend documentation
+- **[API Server](./apps/api/README.md)** - NestJS backend documentation
+- **[AI Workers](./apps/agents/README.md)** - Python agents documentation
+- **[Database](./packages/database/README.md)** - Prisma schema and migrations
+
+### Development
+- **[Project Tasks](./docs/guides/project-tasks.md)** - Development task breakdown
+- **[API Reference](./docs/api/README.md)** - REST API documentation
 
 ## 💬 Support
 
