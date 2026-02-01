@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import Optional, Union
+import os
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -41,6 +43,9 @@ class Settings(BaseSettings):
     # Database
     database_url: Optional[str] = None
 
+    # Observability
+    sentry_dsn: Optional[str] = None
+
     # Backend API URL
     backend_api_url: str = "http://localhost:3001"
 
@@ -59,8 +64,14 @@ class Settings(BaseSettings):
         return ["http://localhost:3000", "http://localhost:3001"]
 
     class Config:
-        env_file = ".env"
+        # Load .env.local from project root
+        # Path: apps/agents/src/shared/config/settings.py -> root (5 levels up)
+        # settings.py -> config/ -> shared/ -> src/ -> agents/ -> apps/ -> ROOT
+        _current = Path(__file__).resolve()
+        _root = _current.parent.parent.parent.parent.parent.parent
+        env_file = str(_root / ".env.local")
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra fields not defined in model
 
 
 settings = Settings()

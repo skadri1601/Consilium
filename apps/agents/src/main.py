@@ -6,12 +6,14 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import sentry_sdk
 
 # Feature routers
 from src.features.council import council_router
 from src.features.agents import agents_router
 from src.features.streaming import streaming_router
 from src.features.health import health_router
+from src.features.debates import debates_router
 
 # Shared configuration
 from src.shared.config import settings
@@ -23,6 +25,15 @@ API_V1_PREFIX = "/api/v1"
 if sys.platform == "win32":
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+# Initialize Sentry
+if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        traces_sample_rate=1.0,
+        environment=settings.app_env,
+    )
 
 
 @asynccontextmanager
@@ -56,6 +67,7 @@ app.include_router(health_router)
 app.include_router(council_router, prefix=API_V1_PREFIX)
 app.include_router(agents_router, prefix=API_V1_PREFIX)
 app.include_router(streaming_router, prefix=API_V1_PREFIX)
+app.include_router(debates_router, prefix=API_V1_PREFIX)
 
 
 @app.get("/")
@@ -75,6 +87,7 @@ async def root():
             "council": f"{API_V1_PREFIX}/council",
             "agents": f"{API_V1_PREFIX}/agents",
             "streaming": f"{API_V1_PREFIX}/streaming",
+            "debates": f"{API_V1_PREFIX}/debates",
         },
     }
 
