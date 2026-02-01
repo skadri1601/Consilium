@@ -5,6 +5,7 @@ export enum ApiKeyProvider {
   ANTHROPIC = "anthropic",
   GOOGLE = "google",
   GROQ = "groq",
+  XAI = "xai",
 }
 
 export class TestApiKeyDto {

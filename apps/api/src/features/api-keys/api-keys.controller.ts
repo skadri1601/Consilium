@@ -5,12 +5,16 @@ import { UpdateApiKeysDto } from "./dto/update-api-keys.dto";
 import { TestApiKeyDto } from "./dto/test-api-key.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { CliTokenService } from "../auth/services/cli-token.service";
 
 @ApiTags("api-keys")
 @Controller("api-keys")
 @UseGuards(ClerkAuthGuard)
 export class ApiKeysController {
-  constructor(private readonly apiKeysService: ApiKeysService) {}
+  constructor(
+    private readonly apiKeysService: ApiKeysService,
+    private readonly cliTokenService: CliTokenService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "Get user's API keys (masked)" })
@@ -31,6 +35,14 @@ export class ApiKeysController {
   @ApiResponse({ status: 200, description: "API key test result" })
   async testApiKey(@Body() dto: TestApiKeyDto) {
     return this.apiKeysService.testApiKey(dto);
+  }
+
+  @Post("cli-token")
+  @ApiOperation({ summary: "Generate a CLI token (long-lived, for consilium CLI)" })
+  @ApiResponse({ status: 201, description: "CLI token generated; copy and run: consilium config set apiKey <token>" })
+  async generateCliToken(@CurrentUser() user: any) {
+    const { token } = await this.cliTokenService.generate(user.userId);
+    return { token };
   }
 }
 

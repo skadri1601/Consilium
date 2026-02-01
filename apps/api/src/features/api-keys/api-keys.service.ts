@@ -30,6 +30,7 @@ export class ApiKeysService {
           anthropicKey: null,
           googleKey: null,
           groqKey: null,
+          xaiKey: null,
         };
       }
 
@@ -39,6 +40,7 @@ export class ApiKeysService {
         anthropicKey?: string | null;
         googleKey?: string | null;
         groqKey?: string | null;
+        xaiKey?: string | null;
       };
 
       // Return masked keys (last 4 characters)
@@ -47,6 +49,7 @@ export class ApiKeysService {
         anthropicKey: userWithKeys.anthropicKey ? this.maskKey(userWithKeys.anthropicKey) : null,
         googleKey: userWithKeys.googleKey ? this.maskKey(userWithKeys.googleKey) : null,
         groqKey: userWithKeys.groqKey ? this.maskKey(userWithKeys.groqKey) : null,
+        xaiKey: userWithKeys.xaiKey ? this.maskKey(userWithKeys.xaiKey) : null,
       };
     } catch (error) {
       console.error("Error fetching API keys:", error);
@@ -57,14 +60,6 @@ export class ApiKeysService {
   }
 
   async updateApiKeys(userId: string, dto: UpdateApiKeysDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!user) {
-      throw new BadRequestException("User not found");
-    }
-
     const updateData: any = {};
 
     if (dto.openaiKey !== undefined) {
@@ -83,9 +78,31 @@ export class ApiKeysService {
       updateData.groqKey = dto.groqKey ? this.encryption.encrypt(dto.groqKey) : null;
     }
 
-    await this.prisma.user.update({
+    if (dto.xaiKey !== undefined) {
+      updateData.xaiKey = dto.xaiKey ? this.encryption.encrypt(dto.xaiKey) : null;
+    }
+
+    // Try to get email from Clerk if user needs to be created
+    let email = `${userId}@clerk.user`; // Fallback
+    try {
+      const clerkUser = await this.clerk.users.getUser(userId);
+      if (clerkUser.emailAddresses.length > 0) {
+        email = clerkUser.emailAddresses[0].emailAddress;
+      }
+    } catch (error) {
+      console.warn("Failed to fetch user details from Clerk:", error);
+    }
+
+    // Upsert user: Create if not exists, otherwise update
+    await this.prisma.user.upsert({
       where: { clerkId: userId },
-      data: updateData,
+      create: {
+        clerkId: userId,
+        email: email,
+        tenantId: userId, // Default tenant is self
+        ...updateData,
+      },
+      update: updateData,
     });
 
     return {
@@ -105,6 +122,8 @@ export class ApiKeysService {
           return await this.testGoogleKey(dto.key);
         case ApiKeyProvider.GROQ:
           return await this.testGroqKey(dto.key);
+        case ApiKeyProvider.XAI:
+          return await this.testXAIKey(dto.key);
         default:
           throw new BadRequestException("Invalid provider");
       }
@@ -125,7 +144,9 @@ export class ApiKeysService {
       });
 
       if (!response.ok) {
-        return { valid: false, message: "Invalid OpenAI API key" };
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return { valid: false, message: `Invalid OpenAI API key: ${errorMessage}` };
       }
 
       return { valid: true, message: "OpenAI API key is valid" };
@@ -144,14 +165,16 @@ export class ApiKeysService {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-3-5-haiku-latest",
+          model: "claude-3-haiku-20240307",
           max_tokens: 10,
           messages: [{ role: "user", content: "test" }],
         }),
       });
 
       if (!response.ok) {
-        return { valid: false, message: "Invalid Anthropic API key" };
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return { valid: false, message: `Invalid Anthropic API key: ${errorMessage}` };
       }
 
       return { valid: true, message: "Anthropic API key is valid" };
@@ -163,7 +186,7 @@ export class ApiKeysService {
   private async testGoogleKey(key: string): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
         {
           method: "POST",
           headers: {
@@ -176,7 +199,9 @@ export class ApiKeysService {
       );
 
       if (!response.ok) {
-        return { valid: false, message: "Invalid Google AI API key" };
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return { valid: false, message: `Invalid Google AI API key: ${errorMessage}` };
       }
 
       return { valid: true, message: "Google AI API key is valid" };
@@ -194,10 +219,32 @@ export class ApiKeysService {
       });
 
       if (!response.ok) {
-        return { valid: false, message: "Invalid Groq API key" };
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return { valid: false, message: `Invalid Groq API key: ${errorMessage}` };
       }
 
       return { valid: true, message: "Groq API key is valid" };
+    } catch (error) {
+      return { valid: false, message: `Failed to validate: ${error.message}` };
+    }
+  }
+
+  private async testXAIKey(key: string): Promise<{ valid: boolean; message: string }> {
+    try {
+      const response = await fetch("https://api.x.ai/v1/models", {
+        headers: {
+          Authorization: `Bearer ${key}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return { valid: false, message: `Invalid XAI (Grok) API key: ${errorMessage}` };
+      }
+
+      return { valid: true, message: "XAI (Grok) API key is valid" };
     } catch (error) {
       return { valid: false, message: `Failed to validate: ${error.message}` };
     }
@@ -208,13 +255,21 @@ export class ApiKeysService {
     anthropicKey?: string;
     googleKey?: string;
     groqKey?: string;
+    xaiKey?: string;
   }> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
     });
 
+    // Fallback to environment variables for testing (e.g., CLI testing with test users)
     if (!user) {
-      return {};
+      return {
+        openaiKey: process.env.OPENAI_API_KEY,
+        anthropicKey: process.env.ANTHROPIC_API_KEY,
+        googleKey: process.env.GOOGLE_API_KEY,
+        groqKey: process.env.GROQ_API_KEY,
+        xaiKey: process.env.XAI_API_KEY,
+      };
     }
 
     // Type assertion for API key fields that may not be in schema
@@ -223,6 +278,7 @@ export class ApiKeysService {
       anthropicKey?: string | null;
       googleKey?: string | null;
       groqKey?: string | null;
+      xaiKey?: string | null;
     };
 
     const keys: any = {};
@@ -261,6 +317,14 @@ export class ApiKeysService {
       }
     }
 
+    if (userWithKeys.xaiKey) {
+      try {
+        keys.xaiKey = this.encryption.decrypt(userWithKeys.xaiKey);
+      } catch (error) {
+        console.error("Failed to decrypt XAI key:", error);
+      }
+    }
+
     // Fallback to environment variables if user keys not available
     if (!keys.openaiKey && process.env.OPENAI_API_KEY) {
       keys.openaiKey = process.env.OPENAI_API_KEY;
@@ -276,6 +340,10 @@ export class ApiKeysService {
 
     if (!keys.groqKey && process.env.GROQ_API_KEY) {
       keys.groqKey = process.env.GROQ_API_KEY;
+    }
+
+    if (!keys.xaiKey && process.env.XAI_API_KEY) {
+      keys.xaiKey = process.env.XAI_API_KEY;
     }
 
     return keys;

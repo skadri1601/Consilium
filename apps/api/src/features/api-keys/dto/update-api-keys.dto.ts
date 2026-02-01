@@ -16,5 +16,9 @@ export class UpdateApiKeysDto {
   @IsOptional()
   @IsString()
   groqKey?: string;
+
+  @IsOptional()
+  @IsString()
+  xaiKey?: string;
 }
 
