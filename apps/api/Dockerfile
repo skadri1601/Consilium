@@ -3,19 +3,17 @@ FROM node:20-alpine AS base
 # Install pnpm
 RUN npm install -g pnpm
 
-# Install dependencies
-FROM base AS deps
-WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages ./packages
-COPY apps/api/package.json ./apps/api/
-RUN pnpm install --frozen-lockfile
-
 # Build
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# Copy all workspace files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages ./packages
+COPY apps/api ./apps/api
+
+# Install dependencies and build
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @consilium/api build
 
 # Production
@@ -31,4 +29,3 @@ COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 4000
 
 CMD ["node", "dist/main.js"]
-
