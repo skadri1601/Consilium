@@ -4,6 +4,8 @@
   "private": true,
   "description": "AI Council Platform - Multi-AI agent orchestration system",
   "scripts": {
+    "consilium": "pnpm -C packages/cli dev --",
+    "cli:install": "pnpm -C packages/cli build && npm install -g ./packages/cli",
     "dev": "turbo dev",
     "build": "turbo build",
     "start": "turbo start",
@@ -20,6 +22,7 @@
     "db:generate": "pnpm --filter @consilium/database db:generate",
     "db:push": "pnpm --filter @consilium/database db:push",
     "db:studio": "pnpm --filter @consilium/database db:studio",
+    "env:sync": "node -e \"require('fs').copyFileSync('.env.local', '.env'); console.log('✓ Synced .env.local → .env')\"",
     "clean": "turbo clean && rm -rf node_modules",
     "prepare": "husky || true"
   },
