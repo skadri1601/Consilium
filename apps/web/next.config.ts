@@ -1,6 +1,11 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import path from "node:path";
+import { config } from "dotenv";
+
+// Load environment variables from root .env.local
+config({ path: path.resolve(__dirname, "../../.env.local") });
+config({ path: path.resolve(__dirname, "../../.env") });
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
