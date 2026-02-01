@@ -1,8 +1,9 @@
 "use client";
 
 import { UserProfile } from "@clerk/nextjs";
-import { Key } from "lucide-react";
+import { Key, Terminal } from "lucide-react";
 import { ApiKeysSettings } from "@/features/settings/components/api-keys-settings";
+import { CliTokenSettings } from "@/features/settings/components/cli-token-settings";
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,13 @@ export default function SettingsPage() {
           url="api-keys"
         >
           <ApiKeysSettings />
+        </UserProfile.Page>
+        <UserProfile.Page
+          label="CLI"
+          labelIcon={<Terminal className="h-4 w-4" />}
+          url="cli"
+        >
+          <CliTokenSettings />
         </UserProfile.Page>
       </UserProfile>
     </div>
