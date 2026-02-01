@@ -1,0 +1,43 @@
+{
+  "name": "@consilium/cli",
+  "version": "0.1.0",
+  "description": "CLI for Consilium AI Council - Multi-agent debate platform",
+  "main": "dist/index.js",
+  "bin": {
+    "consilium": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "cli",
+    "debate",
+    "consilium",
+    "multi-agent",
+    "prompt-engineering"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "eventsource": "^2.0.2",
+    "open": "^10.0.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
