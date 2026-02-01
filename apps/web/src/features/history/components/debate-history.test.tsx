@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { DebateHistory } from "./debate-history";
 
 // Mock fetch
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+globalThis.fetch = mockFetch;
 
 // Mock next/link
 vi.mock("next/link", () => ({
@@ -79,8 +78,11 @@ describe("DebateHistory", () => {
     await waitFor(() => {
       expect(screen.getByText(/gpt-4o-mini, claude-3-5-haiku-latest/)).toBeInTheDocument();
       expect(screen.getByText(/\$0\.0123/)).toBeInTheDocument();
-      expect(screen.getByText("✓ Golden Prompt")).toBeInTheDocument();
     });
+    
+    // Check for Golden Prompt indicators (there may be multiple)
+    const goldenPrompts = screen.getAllByText("✓ Golden Prompt");
+    expect(goldenPrompts.length).toBeGreaterThan(0);
   });
 
   it("shows empty state when no debates exist", async () => {

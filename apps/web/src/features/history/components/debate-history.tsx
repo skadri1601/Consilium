@@ -43,12 +43,6 @@ export function DebateHistory() {
     }
   };
 
-  const filteredDebates = debates.filter((debate) => {
-    const matchesSearch = debate.topic.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDate = dateFilter === "all" || checkDateFilter(debate.createdAt, dateFilter);
-    return matchesSearch && matchesDate;
-  });
-
   const checkDateFilter = (dateString: string, filter: string): boolean => {
     const date = new Date(dateString);
     const now = new Date();
@@ -66,6 +60,12 @@ export function DebateHistory() {
         return true;
     }
   };
+
+  const filteredDebates = debates.filter((debate) => {
+    const matchesSearch = debate.topic.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDate = dateFilter === "all" || checkDateFilter(debate.createdAt, dateFilter);
+    return matchesSearch && matchesDate;
+  });
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
