@@ -46,7 +46,7 @@ export async function GET() {
     return NextResponse.json(await response.json());
   } catch (error) {
     // If fetch fails (network error, backend down), return empty keys
-    if (error instanceof TypeError && error.message.includes('fetch')) {
+    if (isFetchError(error)) {
       console.warn("Backend API not reachable, returning empty keys");
       return NextResponse.json({
         openaiKey: null,
@@ -92,6 +92,13 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(await response.json());
   } catch (error) {
+    if (isFetchError(error)) {
+      console.warn("Backend API not reachable during PUT");
+      return NextResponse.json(
+        { error: "Backend is not reachable" },
+        { status: 503 }
+      );
+    }
     console.error("Error updating API keys:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to update API keys";
     return NextResponse.json(
@@ -110,3 +117,13 @@ async function getClerkToken(): Promise<string> {
   return token;
 }
 
+function isFetchError(error: unknown) {
+  return (
+    error instanceof TypeError || 
+    (error instanceof Error && (
+      error.name === 'TypeError' || 
+      error.message.includes('fetch failed') ||
+      error.message.includes('ECONNREFUSED')
+    ))
+  );
+}
