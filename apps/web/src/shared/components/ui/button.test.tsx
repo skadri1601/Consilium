@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from './button';
@@ -27,7 +26,9 @@ describe('Button', () => {
 
   it('should apply variant classes', () => {
     const { container } = render(<Button variant="destructive">Delete</Button>);
-    expect(container.firstChild).toHaveClass('destructive');
+    const button = container.firstChild as HTMLElement;
+    expect(button).toHaveClass('bg-destructive');
+    expect(button).toHaveClass('text-destructive-foreground');
   });
 });
 

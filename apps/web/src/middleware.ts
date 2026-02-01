@@ -12,6 +12,16 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // In E2E test mode, bypass authentication completely
+  // This allows Playwright tests to run without requiring Clerk authentication
+  const isTestMode = process.env.PLAYWRIGHT_TEST === 'true';
+  
+  if (isTestMode) {
+    // In test mode, don't call auth.protect() - allow all routes to be accessible
+    // This prevents server-side redirects to sign-in
+    return;
+  }
+
   // Protect page routes (not API routes) except public ones
   // API routes handle their own auth using auth() in the route handler
   if (!isPublicRoute(req) && !req.nextUrl.pathname.startsWith("/api")) {
