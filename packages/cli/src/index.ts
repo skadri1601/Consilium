@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import chalk from 'chalk';
 import path from 'path';
 import os from 'os';
 import { debateCommand } from './commands/debate';
@@ -9,7 +8,9 @@ import { configSetCommand, configGetCommand, configListCommand } from './command
 import { chatCommand, chatResumeCommand } from './commands/chat';
 import { loginCommand } from './commands/login';
 import { SessionManager } from './utils/session-manager';
+import { style } from './utils/visual-system';
 
+const st = style();
 const KNOWN_SUBCOMMANDS = ['debate', 'chat', 'config', 'sessions', 'login', 'help'];
 const args = process.argv.slice(2);
 const isFlag = (s: string) => s.startsWith('-');
@@ -21,12 +22,12 @@ const isOneShot =
 
 if (isDefaultRepl) {
   chatCommand().catch((err) => {
-    console.error(chalk.red(err.message));
+    console.error(st.error((err as Error).message));
     process.exit(1);
   });
 } else if (isOneShot) {
   debateCommand(args[0], {}).catch((err) => {
-    console.error(chalk.red(err.message));
+    console.error(st.error((err as Error).message));
     process.exit(1);
   });
 } else {
@@ -34,7 +35,7 @@ if (isDefaultRepl) {
 
   program
     .name('consilium')
-    .description('Consilium CLI - Multi-agent AI debate platform (like Gemini CLI / Cursor)')
+    .description('Consilium CLI - Multi-agent debate platform')
     .version('0.1.0');
 
   // Debate command
@@ -72,11 +73,11 @@ if (isDefaultRepl) {
     .action(() => {
       const list = sessionManager.listSessions();
       if (list.length === 0) {
-        console.log(chalk.gray('No saved sessions. Use "consilium chat" and /save or /exit to save.'));
+        console.log(st.dim('No saved sessions. Use "consilium chat" and /save or /exit to save.'));
         return;
       }
-      console.log(chalk.bold('\nSaved sessions:\n'));
-      console.log(chalk.cyan('ID'), '     ', chalk.cyan('Topic'), '                    ', chalk.cyan('Date'), '              ', chalk.cyan('Models'));
+      console.log(st.bold('\nSaved sessions:\n'));
+      console.log(st.brand('ID'), '     ', st.brand('Topic'), '                    ', st.brand('Date'), '              ', st.brand('Models'));
       console.log('-'.repeat(80));
       for (const s of list) {
         const dateStr = s.date ? new Date(s.date).toLocaleString() : '';
