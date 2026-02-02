@@ -62,7 +62,7 @@ export class ConsiliumClient {
       return true;
     } catch (error: any) {
       this.logError('Failed to connect to API', error);
-      console.error(`\n❌ Cannot reach API at ${this.apiUrl}`);
+      console.error(`\n✗ Cannot reach API at ${this.apiUrl}`);
       console.error('   Make sure the API is running:');
       console.error('   → cd apps/api && pnpm dev\n');
       return false;
@@ -105,7 +105,7 @@ export class ConsiliumClient {
         this.logError(`Failed to create debate (${response.status})`, new Error(errorBody));
 
         if (response.status === 503) {
-          console.error('\n❌ Service Unavailable - AI workers not responding');
+          console.error('\n✗ Service Unavailable - AI workers not responding');
           console.error('   Make sure the agents service is running:');
           console.error('   → cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000\n');
         }
@@ -124,7 +124,7 @@ export class ConsiliumClient {
 
       if (error.cause?.code === 'ECONNREFUSED') {
         this.logError('Connection refused', error);
-        console.error(`\n❌ Cannot connect to API at ${this.apiUrl}`);
+        console.error(`\n✗ Cannot connect to API at ${this.apiUrl}`);
         console.error('   Make sure the API is running:');
         console.error('   → cd apps/api && pnpm dev\n');
       }
@@ -202,11 +202,11 @@ export class ConsiliumClient {
         this.logError('SSE connection error', error);
 
         if (!connectionEstablished) {
-          console.error('\n❌ Failed to establish SSE stream');
+          console.error('\n✗ Failed to establish SSE stream');
           console.error(`   Check if agents service is running and accessible`);
           console.error(`   Stream URL: ${streamUrl}\n`);
         } else if (eventCount === 0) {
-          console.error('\n❌ Stream connection closed without receiving any events');
+          console.error('\n✗ Stream connection closed without receiving any events');
           console.error('   The debate may not exist or agents service is not responding\n');
         } else {
           this.log(`Stream closed after ${eventCount} events`);
