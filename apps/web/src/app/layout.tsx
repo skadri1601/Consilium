@@ -6,13 +6,17 @@ import { OnboardingProvider } from "@/components/onboarding/onboarding-provider"
 import { TestModeClerkProvider } from "@/components/test-mode-clerk-provider";
 import "@/styles/globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
-  title: "Consilium - AI Council Platform",
+  title: "Consilium - Council",
   description:
-    "Multi-AI agent orchestration system for collaborative problem-solving",
-  keywords: ["AI", "LLM", "GPT-4", "Claude", "Gemini", "multi-agent"],
+    "Multi-agent debate platform for better prompts and recommendations",
+  keywords: ["consilium", "debate", "prompts", "multi-agent", "synthesis"],
 };
 
 export default function RootLayout({
@@ -23,7 +27,7 @@ export default function RootLayout({
   return (
     <TestModeClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
+        <body className={`${inter.className} antialiased font-normal`}>
           <ErrorBoundary>
             <OnboardingProvider>
               {children}

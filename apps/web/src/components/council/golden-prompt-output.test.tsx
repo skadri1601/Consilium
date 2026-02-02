@@ -43,7 +43,7 @@ describe("GoldenPromptOutput", () => {
   it("renders the golden prompt content", () => {
     render(<GoldenPromptOutput {...defaultProps} />);
 
-    expect(screen.getByText("Golden Prompt")).toBeInTheDocument();
+    expect(screen.getByText("Synthesis")).toBeInTheDocument();
     expect(screen.getByText(defaultProps.prompt)).toBeInTheDocument();
   });
 
@@ -153,7 +153,7 @@ describe("GoldenPromptOutput", () => {
     const exportButton = screen.getByRole("button", { name: /markdown/i });
     fireEvent.click(exportButton);
 
-    expect(mockAnchor.download).toBe("golden-prompt.md");
+    expect(mockAnchor.download).toBe("synthesis.md");
     expect(mockAnchor.click).toHaveBeenCalled();
 
     // Restore mocks
@@ -165,7 +165,7 @@ describe("GoldenPromptOutput", () => {
   it("renders prompt content in a textbox role for accessibility", () => {
     render(<GoldenPromptOutput {...defaultProps} />);
 
-    const promptContent = screen.getByRole("textbox", { name: /golden prompt content/i });
+    const promptContent = screen.getByRole("textbox", { name: /synthesis content/i });
     expect(promptContent).toBeInTheDocument();
     expect(promptContent).toHaveTextContent(defaultProps.prompt);
   });

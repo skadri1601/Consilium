@@ -6,7 +6,7 @@ export default function HomePage() {
       <div className="max-w-5xl w-full text-center">
         <h1 className="text-6xl font-bold mb-6">Consilium</h1>
         <p className="text-xl text-muted-foreground mb-8">
-          Multi-AI agent orchestration system for collaborative problem-solving
+          Multi-agent debate platform for better prompts and recommendations
         </p>
         <div className="flex gap-4 justify-center">
           <Link
