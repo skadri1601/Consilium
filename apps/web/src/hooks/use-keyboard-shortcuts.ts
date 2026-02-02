@@ -76,7 +76,7 @@ export const COMMON_SHORTCUTS = {
     key: "c",
     ctrlKey: true,
     metaKey: true,
-    description: "Copy Golden Prompt",
+    description: "Copy Synthesis",
   },
   CLOSE_MODAL: {
     key: "Escape",
