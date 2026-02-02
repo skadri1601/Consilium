@@ -4,18 +4,18 @@
 
 @layer base {
   :root {
-    /* Brand - Indigo system (matching CLI) */
-    --brand-50: 238 242 255;
-    --brand-100: 224 231 255;
-    --brand-500: 99 102 241;
-    --brand-600: 79 70 229;
-    --brand-700: 67 56 202;
+    /* Brand - Indigo system (matching CLI) - HSL format for Tailwind */
+    --brand-50: 239 100% 97%;
+    --brand-100: 239 100% 94%;
+    --brand-500: 239 84% 67%;  /* #6366f1 indigo */
+    --brand-600: 239 84% 59%;
+    --brand-700: 239 84% 51%;
     /* Status */
-    --success: 134 239 172;
-    --warning: 251 191 36;
-    --info: 147 197 253;
+    --success: 142 76% 73%;
+    --warning: 38 92% 56%;
+    --info: 213 94% 78%;
     /* Shadows */
-    --shadow-brand: 0 10px 20px -5px rgb(99 102 241 / 0.2);
+    --shadow-brand: 0 10px 20px -5px hsl(239 84% 67% / 0.2);
 
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -40,8 +40,8 @@
   }
 
   .dark {
-    --brand-500: 129 140 248;
-    --brand-600: 165 180 252;
+    --brand-500: 239 84% 74%;  /* Lighter indigo for dark mode */
+    --brand-600: 239 84% 82%;
     --primary: var(--brand-500);
     --primary-foreground: 0 0% 100%;
     --accent: 243 32% 18%;
@@ -61,7 +61,7 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: var(--brand-500);
-    --shadow-brand: 0 10px 20px -5px rgb(129 140 248 / 0.35);
+    --shadow-brand: 0 10px 20px -5px hsl(239 84% 74% / 0.35);
   }
 }
 

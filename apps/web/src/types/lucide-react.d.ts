@@ -1,0 +1,98 @@
+// Type fix for lucide-react compatibility with React 19
+declare module 'lucide-react' {
+  import { FC, SVGProps } from 'react';
+
+  export type LucideProps = SVGProps<SVGSVGElement> & {
+    size?: string | number;
+    absoluteStrokeWidth?: boolean;
+  };
+
+  export type LucideIcon = FC<LucideProps>;
+
+  // Export all commonly used icons
+  export const Menu: LucideIcon;
+  export const X: LucideIcon;
+  export const Settings: LucideIcon;
+  export const History: LucideIcon;
+  export const BarChart3: LucideIcon;
+  export const Users: LucideIcon;
+  export const Key: LucideIcon;
+  export const Terminal: LucideIcon;
+  export const ArrowLeft: LucideIcon;
+  export const Loader2: LucideIcon;
+  export const Plus: LucideIcon;
+  export const Trash2: LucideIcon;
+  export const Edit: LucideIcon;
+  export const Check: LucideIcon;
+  export const Copy: LucideIcon;
+  export const Download: LucideIcon;
+  export const Upload: LucideIcon;
+  export const Search: LucideIcon;
+  export const Filter: LucideIcon;
+  export const ChevronDown: LucideIcon;
+  export const ChevronUp: LucideIcon;
+  export const ChevronLeft: LucideIcon;
+  export const ChevronRight: LucideIcon;
+  export const Info: LucideIcon;
+  export const AlertCircle: LucideIcon;
+  export const AlertTriangle: LucideIcon;
+  export const CheckCircle: LucideIcon;
+  export const CheckCircle2: LucideIcon;
+  export const XCircle: LucideIcon;
+  export const Sun: LucideIcon;
+  export const Moon: LucideIcon;
+  export const Sparkles: LucideIcon;
+  export const MessageSquare: LucideIcon;
+  export const Send: LucideIcon;
+  export const MoreVertical: LucideIcon;
+  export const Eye: LucideIcon;
+  export const EyeOff: LucideIcon;
+  export const ExternalLink: LucideIcon;
+  export const FileText: LucideIcon;
+  export const Clock: LucideIcon;
+  export const TrendingUp: LucideIcon;
+  export const Activity: LucideIcon;
+  export const DollarSign: LucideIcon;
+  export const Zap: LucideIcon;
+  export const Target: LucideIcon;
+  export const RefreshCw: LucideIcon;
+  export const Save: LucideIcon;
+  export const Mail: LucideIcon;
+  export const Lock: LucideIcon;
+  export const Unlock: LucideIcon;
+  export const Shield: LucideIcon;
+  export const User: LucideIcon;
+  export const UserPlus: LucideIcon;
+  export const LogOut: LucideIcon;
+  export const Home: LucideIcon;
+  export const Inbox: LucideIcon;
+  export const Archive: LucideIcon;
+  export const HelpCircle: LucideIcon;
+  export const MoreHorizontal: LucideIcon;
+  export const Command: LucideIcon;
+  export const Pencil: LucideIcon;
+  export const Star: LucideIcon;
+  export const ThumbsUp: LucideIcon;
+  export const ThumbsDown: LucideIcon;
+  export const Keyboard: LucideIcon;
+  export const Play: LucideIcon;
+  export const Pause: LucideIcon;
+  export const Stop: LucideIcon;
+  export const SkipForward: LucideIcon;
+  export const SkipBack: LucideIcon;
+  export const Volume: LucideIcon;
+  export const Volume2: LucideIcon;
+  export const VolumeX: LucideIcon;
+  export const Wifi: LucideIcon;
+  export const WifiOff: LucideIcon;
+  export const Battery: LucideIcon;
+  export const BatteryCharging: LucideIcon;
+  export const Bluetooth: LucideIcon;
+  export const Cast: LucideIcon;
+  export const Airplay: LucideIcon;
+  export const Github: LucideIcon;
+  export const Code: LucideIcon;
+  export const ArrowRight: LucideIcon;
+  export const ArrowDown: LucideIcon;
+  export const ArrowUp: LucideIcon;
+}

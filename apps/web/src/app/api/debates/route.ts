@@ -171,12 +171,12 @@ export async function POST(request: NextRequest) {
 
 async function getAuthContext(): Promise<{
   userId: string | null;
-  token: string;
+  token: string | null;
   error?: unknown;
 }> {
   try {
     const { userId, getToken } = await auth();
-    const token = getToken ? await getToken() : "";
+    const token = getToken ? await getToken() : null;
     return { userId: userId ?? null, token };
   } catch (error) {
     return { userId: null, token: "", error };

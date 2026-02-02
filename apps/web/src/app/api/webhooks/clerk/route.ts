@@ -134,10 +134,10 @@ export async function POST(req: Request) {
     }
 
     case "user.deleted": {
-      const userData = evt.data as ClerkUserData;
+      const userData = evt.data as { id: string };
       console.log(`User deleted: ${userData.id}`);
-      
-      const success = await syncUserToBackend("delete", userData);
+
+      const success = await syncUserToBackend("delete", userData as any);
       if (!success) {
         return NextResponse.json(
           { error: "Failed to delete user" },
