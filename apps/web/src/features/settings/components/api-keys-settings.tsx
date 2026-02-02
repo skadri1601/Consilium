@@ -145,7 +145,7 @@ export function ApiKeysSettings() {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-1">API Configuration</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your AI provider API keys.
+          Manage your provider API keys.
         </p>
       </div>
 
@@ -249,7 +249,7 @@ export function ApiKeysSettings() {
           {/* Google */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="google">Google AI API Key</Label>
+              <Label htmlFor="google">Google API Key</Label>
               <a
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
