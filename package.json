@@ -6,7 +6,7 @@
   "scripts": {
     "consilium": "pnpm -C packages/cli dev --",
     "cli:install": "pnpm -C packages/cli build && npm install -g ./packages/cli",
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=@consilium/web --filter=@consilium/api",
     "build": "turbo build",
     "start": "turbo start",
     "lint": "turbo lint",
@@ -31,6 +31,7 @@
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.0",
+    "prisma": "^7.3.0",
     "turbo": "^2.3.0",
     "typescript": "^5.7.0"
   },

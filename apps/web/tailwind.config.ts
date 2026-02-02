@@ -22,6 +22,13 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        brand: {
+          50: "rgb(var(--brand-50))",
+          100: "rgb(var(--brand-100))",
+          500: "rgb(var(--brand-500))",
+          600: "rgb(var(--brand-600))",
+          700: "rgb(var(--brand-700))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -56,7 +63,20 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        brand: "var(--shadow-brand)",
+      },
       keyframes: {
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-subtle": {
+          "50%": { opacity: "0.8" },
+        },
+        shimmer: {
+          "100%": { backgroundPosition: "200% 0" },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -67,6 +87,8 @@ const config: Config = {
         },
       },
       animation: {
+        "fade-in": "fade-in 0.3s ease-out",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
