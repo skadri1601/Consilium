@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { GoldenPromptOutput } from "@/components/council/golden-prompt-output";
+import { SynthesisOutput } from "@/components/council/synthesis-output";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -120,9 +120,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
         ))}
       </div>
 
-      {/* Golden Prompt */}
+      {/* Synthesis */}
       {debate.goldenPrompt && (
-        <GoldenPromptOutput
+        <SynthesisOutput
           prompt={debate.goldenPrompt}
           cost={debate.totalCost}
           modelsUsed={debate.modelsUsed}

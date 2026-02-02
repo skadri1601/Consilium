@@ -80,9 +80,9 @@ describe("DebateHistory", () => {
       expect(screen.getByText(/\$0\.0123/)).toBeInTheDocument();
     });
     
-    // Check for Golden Prompt indicators (there may be multiple)
-    const goldenPrompts = screen.getAllByText("✓ Golden Prompt");
-    expect(goldenPrompts.length).toBeGreaterThan(0);
+    // Check for Synthesis indicators (there may be multiple)
+    const synthesisIndicators = screen.getAllByText("✓ Synthesis");
+    expect(synthesisIndicators.length).toBeGreaterThan(0);
   });
 
   it("shows empty state when no debates exist", async () => {

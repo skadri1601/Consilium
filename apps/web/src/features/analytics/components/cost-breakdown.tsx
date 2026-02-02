@@ -54,7 +54,7 @@ export function CostBreakdown() {
       <Card>
         <CardHeader>
           <CardTitle>Cost by Model</CardTitle>
-          <CardDescription>Distribution of costs across AI models</CardDescription>
+          <CardDescription>Distribution of costs across models</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
           <p className="text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ export function CostBreakdown() {
       <CardHeader>
         <CardTitle>Cost by Model</CardTitle>
         <CardDescription>
-          Distribution of costs across AI models (Total: ${totalCost.toFixed(4)})
+          Distribution of costs across models (Total: ${totalCost.toFixed(4)})
         </CardDescription>
       </CardHeader>
       <CardContent>
