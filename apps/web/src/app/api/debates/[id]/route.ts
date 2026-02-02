@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -13,8 +13,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const token = await getClerkToken();
-    const response = await fetch(`${API_URL}/api/v1/debates/${params.id}`, {
+    const response = await fetch(`${API_URL}/api/v1/debates/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -9,7 +9,7 @@ const IS_PROD = process.env.NODE_ENV === "production";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await getAuthContext();
@@ -24,9 +24,10 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
 
-    const response = await fetch(`${API_URL}/api/v1/personas/${params.id}`, {
+    const response = await fetch(`${API_URL}/api/v1/personas/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +64,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authContext = await getAuthContext();
@@ -78,7 +79,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetch(`${API_URL}/api/v1/personas/${params.id}`, {
+    const { id } = await params;
+    const response = await fetch(`${API_URL}/api/v1/personas/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${authContext.token}`,

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
             subject: "Welcome to Consilium Waitlist",
             html: `
               <h1>Thanks for joining the Consilium waitlist!</h1>
-              <p>We're building something special - a multi-agent AI debate platform that helps you create better prompts for your coding AI.</p>
+              <p>We're building something special — a multi-agent debate platform that helps you create better prompts for Cursor, Copilot, or your editor.</p>
               <p>We'll notify you as soon as we launch. In the meantime, you can:</p>
               <ul>
                 <li>Star us on <a href="https://github.com/yourusername/consilium">GitHub</a></li>
