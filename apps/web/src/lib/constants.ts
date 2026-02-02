@@ -1,6 +1,6 @@
 export const APP_NAME = "Consilium";
 export const APP_DESCRIPTION =
-  "Multi-AI agent orchestration system for collaborative problem-solving";
+  "Multi-agent debate platform for better prompts and recommendations";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
