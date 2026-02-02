@@ -29,7 +29,7 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 mb-4 space-y-1">
               <li>Orchestrates multiple AI models (GPT-4, Claude, Gemini) to debate topics</li>
-              <li>Synthesizes "Golden Prompts" from multi-model consensus</li>
+              <li>Synthesizes recommendations from multi-model consensus</li>
               <li>Provides tools to export prompts for use with AI coding assistants</li>
               <li>Tracks usage and costs across AI providers</li>
             </ul>

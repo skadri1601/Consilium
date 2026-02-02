@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 mb-4 space-y-1">
               <li>Your debate topics and prompts</li>
               <li>AI agent responses during debates</li>
-              <li>Generated Golden Prompts</li>
+              <li>Generated synthesis</li>
               <li>Usage metrics (token counts, costs, timestamps)</li>
             </ul>
 
