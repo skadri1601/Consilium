@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Bot, Sparkles } from "lucide-react";
+import { Send, Loader2, Sparkles, MessageSquare } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useCouncilStore } from "../store/council.store";
 import { AgentSelector } from "./agent-selector";
-import { GoldenPromptOutput } from "@/components/council/golden-prompt-output";
+import { SynthesisOutput } from "@/components/council/synthesis-output";
 import { FeatureTooltip } from "../../../components/onboarding/feature-tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useAuth } from "@/features/auth";
@@ -29,6 +30,33 @@ interface RoundProgress {
 
 const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
 const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq"];
+
+// Provider-specific subtle gradients (professional, not flashy)
+const getProviderStyles = (agentId: string, status: string) => {
+  const agentName = AGENT_NAME_BY_ID.get(agentId) || "";
+  const provider = agentName.includes("GPT") ? "openai"
+    : agentName.includes("Claude") ? "anthropic"
+    : agentName.includes("Gemini") ? "google"
+    : agentName.includes("Groq") || agentName.includes("Llama") ? "groq"
+    : "default";
+
+  if (status === "complete") {
+    return "border-green-500/40 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-transparent";
+  }
+
+  if (status === "thinking") {
+    const styles = {
+      openai: "border-emerald-400/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-transparent",
+      anthropic: "border-amber-400/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-transparent",
+      google: "border-blue-400/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-transparent",
+      groq: "border-purple-400/40 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-transparent",
+      default: "border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5"
+    };
+    return styles[provider];
+  }
+
+  return "border-muted bg-muted/30";
+};
 
 export function CouncilChat() {
   const [input, setInput] = useState("");
@@ -97,7 +125,7 @@ export function CouncilChat() {
           navigator.clipboard.writeText(goldenPrompt);
         }
       },
-      description: "Copy Golden Prompt",
+      description: "Copy Synthesis",
     },
   ]);
 
@@ -229,7 +257,7 @@ export function CouncilChat() {
       case "synthesis:start":
         addMessage({
           role: "assistant",
-          content: "Synthesizing Golden Prompt from agent responses...",
+          content: "Synthesizing from agent responses...",
         });
         break;
         
@@ -295,7 +323,7 @@ export function CouncilChat() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Start a Debate</CardTitle>
-                <FeatureTooltip content="Describe what you want to build. Multiple AI models will debate and synthesize the best approach into a Golden Prompt.">
+                <FeatureTooltip content="Describe what you want to build. The council will debate and produce a synthesized recommendation.">
                   <span className="text-xs text-muted-foreground">What is this?</span>
                 </FeatureTooltip>
               </div>
@@ -319,7 +347,7 @@ export function CouncilChat() {
                   }}
                 />
                 <span id="debate-input-help" className="sr-only">
-                  Enter a description of what you want to build. Multiple AI agents will debate and create an optimized prompt.
+                  Describe what you want to build. The council will debate and produce a synthesized recommendation.
                 </span>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col text-xs text-muted-foreground min-w-0">
@@ -342,7 +370,7 @@ export function CouncilChat() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-4 w-4 mr-2" />
+                        <MessageSquare className="h-4 w-4 mr-2" />
                         Start Debate
                       </>
                     )}
@@ -352,64 +380,109 @@ export function CouncilChat() {
             </CardContent>
           </Card>
 
-          {/* Debate Progress - Agent Cards */}
-          {streaming && Object.keys(agentProgress).length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  Round {currentRound} - Agents Deliberating
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {Object.values(agentProgress).map((agent) => (
-                    <div
-                      key={agent.agentId}
-                      role="status"
-                      aria-live="polite"
-                      aria-label={`${getAgentDisplayName(agent.agentId)} - ${agent.status}`}
-                      className={cn(
-                        "p-3 rounded-lg border transition-all",
-                        agent.status === "thinking" && "border-primary bg-primary/5",
-                        agent.status === "complete" && "border-green-500 bg-green-500/5",
-                        agent.status === "pending" && "border-muted bg-muted/50",
-                        agent.status === "error" && "border-red-500 bg-red-500/5"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm">
-                          {getAgentDisplayName(agent.agentId)}
-                        </span>
-                        {agent.status === "thinking" && (
-                          <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                        )}
-                        {agent.status === "complete" && (
-                          <span className="text-green-500 text-xs">✓</span>
-                        )}
-                        {agent.status === "pending" && (
-                          <span className="text-muted-foreground text-xs">Waiting</span>
-                        )}
-                      </div>
-                      {agent.content && (
-                        <p className="text-xs text-muted-foreground line-clamp-3">
-                          {agent.content.slice(0, 150)}
-                          {agent.content.length > 150 && "..."}
-                        </p>
-                      )}
-                      {agent.status === "thinking" && !agent.content && (
-                        <div className="flex gap-1">
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
-                      )}
+          {/* Debate Progress - Enhanced Agent Cards */}
+          <AnimatePresence>
+            {streaming && Object.keys(agentProgress).length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card variant="elevated" className="overflow-hidden">
+                  <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-primary/10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        Council Debate — Round {currentRound}
+                      </CardTitle>
+                      <span className="text-xs text-muted-foreground">
+                        {Object.values(agentProgress).filter(a => a.status === "complete").length} / {Object.keys(agentProgress).length} complete
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <AnimatePresence mode="popLayout">
+                        {Object.values(agentProgress).map((agent, index) => (
+                          <motion.div
+                            key={agent.agentId}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.1, duration: 0.2 }}
+                            role="status"
+                            aria-live="polite"
+                            aria-label={`${getAgentDisplayName(agent.agentId)} - ${agent.status}`}
+                            className={cn(
+                              "relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-300",
+                              getProviderStyles(agent.agentId, agent.status),
+                              agent.status === "thinking" && "shadow-md",
+                              agent.status === "complete" && "shadow-sm"
+                            )}
+                          >
+                            {/* Top bar with model name and status */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className={cn(
+                                  "h-2 w-2 rounded-full shrink-0",
+                                  agent.status === "thinking" && "bg-primary animate-pulse",
+                                  agent.status === "complete" && "bg-green-500",
+                                  agent.status === "pending" && "bg-gray-300"
+                                )} />
+                                <span className="font-semibold text-sm truncate">
+                                  {getAgentDisplayName(agent.agentId)}
+                                </span>
+                              </div>
+                              {agent.status === "thinking" && (
+                                <div className="flex gap-0.5" aria-hidden>
+                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                                </div>
+                              )}
+                              {agent.status === "complete" && (
+                                <motion.span
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="text-green-600 dark:text-green-400 text-sm font-semibold"
+                                >
+                                  ✓
+                                </motion.span>
+                              )}
+                              {agent.status === "pending" && (
+                                <span className="text-xs text-muted-foreground">Waiting</span>
+                              )}
+                            </div>
+
+                            {/* Streaming content */}
+                            {agent.content && (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-xs text-muted-foreground line-clamp-4 leading-relaxed"
+                              >
+                                {agent.content.slice(0, 200)}
+                                {agent.content.length > 200 && "..."}
+                              </motion.div>
+                            )}
+
+                            {/* Thinking state */}
+                            {agent.status === "thinking" && !agent.content && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Analyzing...</span>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Messages History */}
           {messages.length > 0 && (
@@ -442,9 +515,9 @@ export function CouncilChat() {
             </Card>
           )}
 
-          {/* Golden Prompt Output */}
+          {/* Synthesis Output */}
           {goldenPrompt && (
-            <GoldenPromptOutput
+            <SynthesisOutput
               prompt={goldenPrompt}
               cost={debateCost || undefined}
               modelsUsed={modelsUsed}
@@ -455,11 +528,11 @@ export function CouncilChat() {
           {!streaming && !goldenPrompt && messages.length === 0 && (
             <Card className="border-dashed" role="region" aria-label="Empty state">
               <CardContent className="py-12 text-center">
-                <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
-                <h3 className="text-lg font-medium mb-2">Start Your First Debate</h3>
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
+                <h3 className="text-lg font-medium mb-2">Start your first debate</h3>
                 <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                  Select AI agents, describe what you want to build, and let them debate 
-                  to create the perfect Golden Prompt for your coding AI.
+                  Select agents, describe what you want to build, and get a synthesized
+                  recommendation from the council.
                 </p>
               </CardContent>
             </Card>

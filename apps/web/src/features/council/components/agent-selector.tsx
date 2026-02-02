@@ -70,11 +70,22 @@ export function AgentSelector() {
   };
 
   return (
-    <Card className="w-64 shrink-0">
-      <CardHeader>
-        <CardTitle className="text-lg">Select Agents</CardTitle>
+    <Card className="w-full max-w-sm shrink-0" variant="default">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Select Agents</CardTitle>
+          {selectedAgents.length > 0 && (
+            <span
+              className="rounded-full bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5"
+              aria-label={`${selectedAgents.length} selected`}
+            >
+              {selectedAgents.length}
+            </span>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {AGENTS.map((agent) => {
           const hasApiKey = hasKey(agent);
           const isSelected = selectedAgents.includes(agent.id);
@@ -123,9 +134,10 @@ export function AgentSelector() {
             </button>
           );
         })}
+        </div>
         {selectedAgents.length === 0 && (
-          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-            <AlertCircle className="h-4 w-4 inline mr-2" />
+          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             Select at least one agent to start a debate
           </div>
         )}

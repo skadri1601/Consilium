@@ -1,5 +1,6 @@
 import { Injectable, ConflictException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
+import type { Waitlist } from "@consilium/database";
 import { CreateWaitlistDto } from "./dto/create-waitlist.dto";
 
 @Injectable()
@@ -32,13 +33,13 @@ export class WaitlistService {
     };
   }
 
-  async findAll() {
+  async findAll(): Promise<Waitlist[]> {
     return this.prisma.waitlist.findMany({
       orderBy: { createdAt: "desc" },
     });
   }
 
-  async markNotified(email: string) {
+  async markNotified(email: string): Promise<Waitlist> {
     return this.prisma.waitlist.update({
       where: { email },
       data: { notified: true },

@@ -58,7 +58,7 @@ export function CouncilChat() {
           <div className="flex-1 space-y-4 overflow-y-auto">
             {messages.length === 0 ? (
               <div className="flex h-full items-center justify-center text-muted-foreground">
-                Start a conversation with the AI Council
+                Start a conversation with the council
               </div>
             ) : (
               messages.map((message) => (
