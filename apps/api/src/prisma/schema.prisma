@@ -16,6 +16,9 @@ model User {
   imageUrl  String?
   tenantId  String
 
+  // CLI access: hash of long-lived token (user generates in Settings)
+  cliTokenHash String? @unique
+
   conversations Conversation[]
   agents        Agent[]
 
