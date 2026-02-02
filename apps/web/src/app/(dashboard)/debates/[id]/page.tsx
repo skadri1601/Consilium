@@ -1,10 +1,11 @@
 import { DebateDetail } from "@/features/debates/components/debate-detail";
 
-export default function DebateDetailPage({
+export default async function DebateDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  return <DebateDetail debateId={params.id} />;
+  const { id } = await params;
+  return <DebateDetail debateId={id} />;
 }
 

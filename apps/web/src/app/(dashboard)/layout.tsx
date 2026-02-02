@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
-import { Menu, X, Settings, History, BarChart3, Users, CreditCard, Key } from "lucide-react";
+import { Menu, X, Settings, History, BarChart3, Users } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
+import { Logo } from "@/components/shared/logo";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserButton, useUser } from "@clerk/nextjs";
 
 const navItems = [
@@ -26,15 +28,17 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user } = useUser();
 
+  const MenuIcon = Menu;
+  const XIcon = X;
+
   return (
     <div className="min-h-screen lg:flex">
       {/* Mobile Navigation */}
       <nav className="lg:hidden border-b bg-background sticky top-0 z-50">
         <div className="flex items-center justify-between p-4">
-          <Link href="/" className="font-bold text-xl">
-            Consilium
-          </Link>
+          <Logo href="/" className="shrink-0" />
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <UserButton afterSignOutUrl="/" />
             <Button
               variant="ghost"
@@ -42,7 +46,7 @@ export default function DashboardLayout({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -72,24 +76,23 @@ export default function DashboardLayout({
       {/* Desktop Navigation */}
       <nav className="hidden lg:flex border-r bg-background w-64 min-h-screen sticky top-0 shrink-0">
         <div className="flex flex-col w-full p-4">
-          <Link href="/" className="font-bold text-xl mb-6">
-            Consilium
-          </Link>
+          <Logo href="/" className="mb-6 shrink-0" />
           <div className="flex flex-col gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
-                    pathname === item.href
-                      ? "bg-primary text-primary-foreground"
+                    "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "hover:bg-muted"
                   )}
                 >
-                  {Icon && <Icon className="h-4 w-4" />}
+                  {Icon && <Icon className={cn("h-4 w-4 shrink-0", isActive && "opacity-90")} />}
                   {item.label}
                 </Link>
               );
@@ -97,6 +100,9 @@ export default function DashboardLayout({
           </div>
           
           <div className="mt-auto pt-4 border-t space-y-4">
+            <div className="flex items-center gap-2 px-2">
+              <ThemeToggle />
+            </div>
              <div className="flex items-center gap-3 px-2">
                 <UserButton 
                   afterSignOutUrl="/"

@@ -18,9 +18,8 @@ export default function FAQPage() {
             <AccordionItem value="what-is">
               <AccordionTrigger>What is Consilium?</AccordionTrigger>
               <AccordionContent>
-                Consilium is an open-source platform that orchestrates multiple AI models
-                (GPT-4o, Claude, Gemini) to debate and synthesize optimal prompts for your
-                coding AI tools like Cursor or GitHub Copilot.
+                Consilium is an open-source platform that runs multiple models in debate
+                and synthesizes a single prompt you can use in Cursor, Copilot, or your editor.
               </AccordionContent>
             </AccordionItem>
 
@@ -34,7 +33,7 @@ export default function FAQPage() {
                 >
                   self-hosting guide
                 </a>
-                . You'll need Docker Compose, PostgreSQL, Redis, and API keys from AI providers.
+                . You'll need Docker Compose, PostgreSQL, Redis, and API keys from providers.
               </AccordionContent>
             </AccordionItem>
 
@@ -42,7 +41,7 @@ export default function FAQPage() {
               <AccordionTrigger>Do I need API keys?</AccordionTrigger>
               <AccordionContent>
                 Yes. Consilium uses a "Bring Your Own Keys" (BYOK) model. You provide your
-                own API keys for OpenAI, Anthropic, and/or Google AI. Keys are encrypted
+                own API keys for OpenAI, Anthropic, and/or Google. Keys are encrypted
                 before storage.
               </AccordionContent>
             </AccordionItem>
@@ -50,13 +49,13 @@ export default function FAQPage() {
             <AccordionItem value="cost">
               <AccordionTrigger>How much does it cost?</AccordionTrigger>
               <AccordionContent>
-                Consilium itself is free and open source. You only pay for the AI API calls
+                Consilium itself is free and open source. You only pay for the API calls
                 you make through your own API keys. Costs vary by provider and model.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="models">
-              <AccordionTrigger>Which AI models are supported?</AccordionTrigger>
+              <AccordionTrigger>Which models are supported?</AccordionTrigger>
               <AccordionContent>
                 Currently supported: GPT-4o, GPT-4o-mini, Claude 3.5 Opus, Claude 3.5 Haiku,
                 Gemini 2.0 Flash, and Gemini 1.5 Pro. More models can be added by the community.
@@ -66,7 +65,7 @@ export default function FAQPage() {
             <AccordionItem value="export">
               <AccordionTrigger>What export formats are available?</AccordionTrigger>
               <AccordionContent>
-                You can export Golden Prompts as Markdown, .cursorrules files, or plain text.
+                You can export synthesis as Markdown, .cursorrules files, or plain text.
                 Copy to clipboard is also available.
               </AccordionContent>
             </AccordionItem>

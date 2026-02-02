@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Github, Zap, Shield, Code, ArrowRight, Sparkles } from "lucide-react";
+import { Github, Zap, Shield, Code, ArrowRight } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { EmailCapture } from "@/components/marketing/email-capture";
@@ -10,13 +10,13 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6">
-          Multi-Agent AI Debate
+          Multi-Agent Debate
           <br />
           <span className="text-primary">for Better Prompts</span>
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Don't let Cursor guess. Tell it exactly what to build. Consilium orchestrates
-          multiple AI models to debate and synthesize the perfect prompt for your coding AI.
+          Get a clear, synthesized recommendation. Consilium runs multiple models in debate
+          and produces a single prompt you can use in Cursor, Copilot, or any editor.
         </p>
         <div className="mb-8">
           <EmailCapture />
@@ -24,8 +24,8 @@ export default function LandingPage() {
         <div className="flex gap-4 justify-center flex-wrap">
           <Button asChild size="lg" aria-label="Get started with Consilium">
             <Link href="/sign-up">
-              <Sparkles className="mr-2 h-4 w-4" />
               Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" aria-label="View Consilium on GitHub">
@@ -51,7 +51,7 @@ export default function LandingPage() {
             <CardContent>
               <CardDescription>
                 Describe what you want to build or the problem you're solving.
-                This becomes the debate topic for multiple AI agents.
+                That becomes the topic for the council debate.
               </CardDescription>
             </CardContent>
           </Card>
@@ -65,8 +65,8 @@ export default function LandingPage() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Multiple AI models (GPT-4o, Claude, Gemini) debate your topic
-                in parallel, critique each other, and refine their responses.
+                Multiple models debate your topic in parallel, critique each other,
+                and refine their responses.
               </CardDescription>
             </CardContent>
           </Card>
@@ -76,12 +76,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4" aria-hidden="true">
                 <span className="text-2xl font-bold text-primary">3</span>
               </div>
-              <CardTitle>Golden Prompt</CardTitle>
+              <CardTitle>Synthesis</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Get a synthesized, optimized prompt ready to paste into Cursor,
-                Copilot, or any AI coding tool. Better results, less debugging.
+                Get a single, optimized prompt ready to paste into Cursor,
+                Copilot, or your editor. Better results, less debugging.
               </CardDescription>
             </CardContent>
           </Card>
@@ -112,7 +112,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Use your own API keys for OpenAI, Anthropic, and Google AI.
+                  Use your own API keys for OpenAI, Anthropic, and Google.
                   Your keys, your costs, your control.
                 </CardDescription>
               </CardContent>
@@ -148,7 +148,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Export Golden Prompts as Markdown, .cursorrules files, or plain text.
+                  Export synthesis as Markdown, .cursorrules files, or plain text.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -239,7 +239,7 @@ export default function LandingPage() {
             <div>
               <h3 className="font-bold mb-4">Consilium</h3>
               <p className="text-sm text-muted-foreground">
-                Multi-agent AI debate platform for better prompts.
+                Multi-agent debate platform for better prompts.
               </p>
             </div>
             <div>
