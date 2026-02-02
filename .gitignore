@@ -91,6 +91,11 @@ temp/
 !README.md
 !**/README.md
 
+# Temporary test files
+test_*.js
+debug_*.js
+scratch.*
+
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md
 /files/backend-README.md
