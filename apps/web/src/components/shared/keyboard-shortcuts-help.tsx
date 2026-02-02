@@ -26,7 +26,7 @@ const shortcuts = [
   },
   {
     keys: ["⌘", "C"],
-    description: "Copy Golden Prompt (when visible)",
+    description: "Copy Synthesis (when visible)",
     mac: "⌘C",
     windows: "Ctrl+C",
   },

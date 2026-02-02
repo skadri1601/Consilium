@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { MessageSquare, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface WelcomeModalProps {
@@ -22,11 +22,11 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <DialogTitle>Welcome to Consilium!</DialogTitle>
+            <MessageSquare className="h-6 w-6 text-primary" aria-hidden />
+            <DialogTitle>Welcome to Consilium</DialogTitle>
           </div>
           <DialogDescription>
-            Get better prompts for your AI coding assistant through multi-agent debate
+            Get better prompts through multi-agent debate and synthesis
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-4">
@@ -34,8 +34,8 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
             <h3 className="font-semibold">How it works:</h3>
             <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
               <li>Describe what you want to build</li>
-              <li>Multiple AI models debate and refine the approach</li>
-              <li>Get a synthesized "Golden Prompt" ready to use</li>
+              <li>Multiple models debate and refine the approach</li>
+              <li>Get a synthesized recommendation ready to use</li>
             </ol>
           </div>
           <div className="space-y-2">
