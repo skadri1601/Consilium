@@ -28,7 +28,7 @@ export function HistoryList() {
   if (!conversations || conversations.length === 0) {
     return (
       <div className="text-center text-muted-foreground">
-        No conversations yet. Start chatting with the AI Council!
+        No conversations yet. Start a debate from the Council.
       </div>
     );
   }

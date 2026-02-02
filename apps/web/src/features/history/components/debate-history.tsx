@@ -169,7 +169,7 @@ export function DebateHistory() {
                   <span>Models: {debate.modelsUsed.join(", ")}</span>
                   <span>Cost: ${debate.totalCost.toFixed(4)}</span>
                   {debate.goldenPrompt && (
-                    <span className="text-green-600">✓ Golden Prompt</span>
+                    <span className="text-green-600">✓ Synthesis</span>
                   )}
                 </div>
               </CardContent>
