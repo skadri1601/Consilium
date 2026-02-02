@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { ConsiliumClient, DebateEvent } from '../api/client';
 import { ContextManager } from '../utils/context-manager';
 import { loadConfig } from '../utils/config';
@@ -54,10 +53,9 @@ export class ChatSession {
       models: this.models,
     });
 
-    console.log(chalk.bold('\n🤖 Agents debating\n'));
-
     let goldenPrompt = '';
     const handleEvent = createStreamHandlers({
+      topic: userInput,
       onComplete: () => {},
     });
 
