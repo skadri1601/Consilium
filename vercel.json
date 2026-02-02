@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd apps/web && pnpm build",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@clerk-publishable-key",
+    "CLERK_SECRET_KEY": "@clerk-secret-key",
+    "DATABASE_URL": "@database-url",
+    "NEXT_PUBLIC_API_URL": "https://consilium-api.onrender.com"
+  }
+}

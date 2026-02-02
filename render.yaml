@@ -1,0 +1,55 @@
+# Render Blueprint - FREE Hosting for Consilium API + Agents
+
+services:
+  # NestJS API Service
+  - type: web
+    name: consilium-api
+    env: node
+    region: ohio
+    plan: free
+    buildCommand: |
+      cd apps/api
+      npm install -g pnpm
+      pnpm install
+      pnpm build
+    startCommand: |
+      cd apps/api
+      pnpm prisma generate
+      pnpm prisma db push
+      pnpm start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: AI_WORKERS_URL
+        value: https://consilium-agents.onrender.com
+      - key: PORT
+        value: 4000
+
+  # FastAPI Agents Service
+  - type: web
+    name: consilium-agents
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: |
+      cd apps/agents
+      pip install poetry
+      poetry install --no-dev
+    startCommand: |
+      cd apps/agents
+      poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: 8000
