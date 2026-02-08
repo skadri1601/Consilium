@@ -1,17 +1,40 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { ReactNode } from "react";
 
-/**
- * Wrapper for ClerkProvider that handles test mode
- * In test mode, we still render ClerkProvider but rely on middleware bypass
- * to prevent authentication requirements
- */
 export function TestModeClerkProvider({ children }: { children: ReactNode }) {
-  // Always render ClerkProvider - the middleware bypass handles test mode
-  // ClerkProvider needs to be present for Clerk hooks to work
-  // The middleware bypass prevents server-side redirects,
-  // and we rely on components handling missing auth gracefully
-  return <ClerkProvider>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: "hsl(0 0% 98%)",
+          colorText: "hsl(0 0% 98%)",
+          colorBackground: "hsl(240 10% 3.9%)",
+          colorInputBackground: "hsl(240 3.7% 15.9%)",
+          colorInputText: "hsl(0 0% 98%)",
+        },
+        elements: {
+          formButtonPrimary:
+            "bg-primary text-primary-foreground hover:bg-primary/90 normal-case",
+          card: "bg-background",
+          headerTitle: "text-foreground",
+          headerSubtitle: "text-muted-foreground",
+          socialButtonsBlockButton:
+            "border border-input bg-background hover:bg-accent hover:text-accent-foreground normal-case",
+          socialButtonsBlockButtonText: "text-foreground font-normal",
+          formFieldLabel: "text-foreground",
+          formFieldInput:
+            "border-input bg-background text-foreground",
+          footerActionLink: "text-primary hover:text-primary/90",
+          identityPreviewText: "text-foreground",
+          identityPreviewEditButton: "text-muted-foreground",
+        },
+      }}
+    >
+      {children}
+    </ClerkProvider>
+  );
 }
