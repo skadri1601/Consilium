@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -116,6 +116,23 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
+
+      // Set default preferences on the new user's Clerk profile
+      // so they're available on any device from the start
+      try {
+        const client = await clerkClient();
+        await client.users.updateUser(userData.id, {
+          unsafeMetadata: {
+            defaultAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
+            defaultMode: "visible",
+          },
+        });
+        console.log(`Set default preferences for user: ${userData.id}`);
+      } catch (metadataError) {
+        // Non-fatal: preferences will fall back to defaults on the client
+        console.error("Failed to set default user metadata:", metadataError);
+      }
+
       break;
     }
 

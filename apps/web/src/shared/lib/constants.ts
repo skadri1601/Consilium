@@ -54,7 +54,40 @@ export const AGENTS = [
     provider: "Groq",
     description: "High-capacity Groq-hosted Llama 3.1 model",
   },
+  {
+    id: "claude-4.6-opus",
+    name: "Claude Opus 4.6",
+    provider: "Anthropic",
+    description: "Anthropic's most powerful model",
+  },
+  {
+    id: "claude-4.5-sonnet",
+    name: "Claude Sonnet 4.5",
+    provider: "Anthropic",
+    description: "Anthropic's latest balanced model",
+  },
+  {
+    id: "o1",
+    name: "GPT-o1",
+    provider: "OpenAI",
+    description: "OpenAI's reasoning model",
+  },
+  {
+    id: "grok-2",
+    name: "Grok 2",
+    provider: "XAI",
+    description: "xAI's most capable model",
+  },
+  {
+    id: "grok-2-mini",
+    name: "Grok 2 Mini",
+    provider: "XAI",
+    description: "Fast and efficient model from xAI",
+  },
 ] as const;
+
+export const MIN_AGENTS_PER_DEBATE = 2;
+export const MAX_AGENTS_PER_DEBATE = 5;
 
 export const ROUTES = {
   home: "/",
