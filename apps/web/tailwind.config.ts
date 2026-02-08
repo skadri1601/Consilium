@@ -22,13 +22,6 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        brand: {
-          50: "rgb(var(--brand-50))",
-          100: "rgb(var(--brand-100))",
-          500: "rgb(var(--brand-500))",
-          600: "rgb(var(--brand-600))",
-          700: "rgb(var(--brand-700))",
-        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -57,14 +50,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart: {
+          "1": "hsl(var(--chart-1))",
+          "2": "hsl(var(--chart-2))",
+          "3": "hsl(var(--chart-3))",
+          "4": "hsl(var(--chart-4))",
+          "5": "hsl(var(--chart-5))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      boxShadow: {
-        brand: "var(--shadow-brand)",
       },
       keyframes: {
         "fade-in": {
