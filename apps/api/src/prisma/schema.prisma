@@ -19,6 +19,13 @@ model User {
   // CLI access: hash of long-lived token (user generates in Settings)
   cliTokenHash String? @unique
 
+  // Encrypted API keys (per-provider)
+  openaiKey    String?
+  anthropicKey String?
+  googleKey    String?
+  groqKey      String?
+  xaiKey       String?
+
   conversations Conversation[]
   agents        Agent[]
 
