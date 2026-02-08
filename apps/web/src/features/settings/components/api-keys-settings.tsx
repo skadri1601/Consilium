@@ -13,6 +13,7 @@ interface ApiKeyStatus {
   anthropic: "idle" | "testing" | "valid" | "invalid";
   google: "idle" | "testing" | "valid" | "invalid";
   groq: "idle" | "testing" | "valid" | "invalid";
+  xai: "idle" | "testing" | "valid" | "invalid";
 }
 
 export function ApiKeysSettings() {
@@ -21,18 +22,21 @@ export function ApiKeysSettings() {
     anthropicKey: "",
     googleKey: "",
     groqKey: "",
+    xaiKey: "",
   });
   const [maskedKeys, setMaskedKeys] = useState({
     openaiKey: null as string | null,
     anthropicKey: null as string | null,
     googleKey: null as string | null,
     groqKey: null as string | null,
+    xaiKey: null as string | null,
   });
   const [status, setStatus] = useState<ApiKeyStatus>({
     openai: "idle",
     anthropic: "idle",
     google: "idle",
     groq: "idle",
+    xai: "idle",
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -47,6 +51,7 @@ export function ApiKeysSettings() {
           anthropicKey: data.anthropicKey,
           googleKey: data.googleKey,
           groqKey: data.groqKey,
+          xaiKey: data.xaiKey,
         });
       })
       .catch(() => {
@@ -54,7 +59,7 @@ export function ApiKeysSettings() {
       });
   }, []);
 
-  const testKey = async (provider: "openai" | "anthropic" | "google" | "groq", key: string) => {
+  const testKey = async (provider: "openai" | "anthropic" | "google" | "groq" | "xai", key: string) => {
     if (!key) {
       toast({
         title: "Error",
@@ -108,7 +113,11 @@ export function ApiKeysSettings() {
       const response = await fetch("/api/api-keys", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(keys),
+        body: JSON.stringify(
+          Object.fromEntries(
+            Object.entries(keys).filter(([, value]) => value !== "")
+          )
+        ),
       });
 
       if (response.ok) {
@@ -117,7 +126,7 @@ export function ApiKeysSettings() {
           description: "API keys saved successfully",
         });
         // Clear input fields
-        setKeys({ openaiKey: "", anthropicKey: "", googleKey: "", groqKey: "" });
+        setKeys({ openaiKey: "", anthropicKey: "", googleKey: "", groqKey: "", xaiKey: "" });
         // Refresh masked keys
         const data = await fetch("/api/api-keys").then((res) => res.json());
         setMaskedKeys({
@@ -125,6 +134,7 @@ export function ApiKeysSettings() {
           anthropicKey: data.anthropicKey,
           googleKey: data.googleKey,
           groqKey: data.groqKey,
+          xaiKey: data.xaiKey,
         });
       } else {
         throw new Error("Failed to save keys");
@@ -326,6 +336,50 @@ export function ApiKeysSettings() {
                 ) : status.groq === "valid" ? (
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                 ) : status.groq === "invalid" ? (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                ) : (
+                  "Test"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* XAI (Grok) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="xai">XAI (Grok) API Key</Label>
+              <a
+                href="https://console.x.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+              >
+                Get key <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            {maskedKeys.xaiKey && (
+              <p className="text-sm text-muted-foreground">
+                Current: {maskedKeys.xaiKey}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="xai"
+                type="password"
+                placeholder="xai-..."
+                value={keys.xaiKey}
+                onChange={(e) => setKeys({ ...keys, xaiKey: e.target.value })}
+              />
+              <Button
+                variant="outline"
+                onClick={() => testKey("xai", keys.xaiKey)}
+                disabled={status.xai === "testing"}
+              >
+                {status.xai === "testing" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : status.xai === "valid" ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : status.xai === "invalid" ? (
                   <XCircle className="h-4 w-4 text-red-500" />
                 ) : (
                   "Test"
