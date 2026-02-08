@@ -4,64 +4,31 @@
 
 @layer base {
   :root {
-    /* Brand - Indigo system (matching CLI) - HSL format for Tailwind */
-    --brand-50: 239 100% 97%;
-    --brand-100: 239 100% 94%;
-    --brand-500: 239 84% 67%;  /* #6366f1 indigo */
-    --brand-600: 239 84% 59%;
-    --brand-700: 239 84% 51%;
-    /* Status */
-    --success: 142 76% 73%;
-    --warning: 38 92% 56%;
-    --info: 213 94% 78%;
-    /* Shadows */
-    --shadow-brand: 0 10px 20px -5px hsl(239 84% 67% / 0.2);
-
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: var(--brand-500);
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: var(--brand-50);
-    --accent-foreground: var(--brand-700);
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: var(--brand-500);
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --brand-500: 239 84% 74%;  /* Lighter indigo for dark mode */
-    --brand-600: 239 84% 82%;
-    --primary: var(--brand-500);
-    --primary-foreground: 0 0% 100%;
-    --accent: 243 32% 18%;
-    --accent-foreground: 0 0% 98%;
-    --background: 0 0% 3.9%;
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --secondary: 0 0% 14.9%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: var(--brand-500);
-    --shadow-brand: 0 10px 20px -5px hsl(239 84% 74% / 0.35);
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --radius: 0.5rem;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -70,23 +37,46 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-normal;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-  }
-  h1 { @apply text-4xl; }
-  h2 { @apply text-3xl; }
-  h3 { @apply text-2xl; }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+.loader {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  position: fixed;
+  background: transparent;
+  overflow: hidden;
+  z-index: 9999;
+}
+.loader::after {
+  content: '';
+  width: 40%;
+  height: 3px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  animation: animloader 1s linear infinite;
+  @apply bg-primary;
+}
+
+@media (min-width: 800px) {
+  .loader::after {
+    width: 20%;
+    animation: animloader 2s linear infinite;
+  }
+}
+
+@keyframes animloader {
+  0% {
+    left: 0;
+    transform: translateX(-100%);
+  }
+  100% {
+    left: 100%;
+    transform: translateX(0%);
   }
 }
