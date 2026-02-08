@@ -4,6 +4,7 @@ import { Toaster } from "@/shared/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { TestModeClerkProvider } from "@/components/test-mode-clerk-provider";
+import { ThemeProvider } from "@/app/provider";
 import "@/styles/globals.css";
 
 const inter = Inter({
@@ -26,14 +27,16 @@ export default function RootLayout({
 }) {
   return (
     <TestModeClerkProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" className="dark" suppressHydrationWarning>
         <body className={`${inter.className} antialiased font-normal`}>
-          <ErrorBoundary>
-            <OnboardingProvider>
-              {children}
-              <Toaster />
-            </OnboardingProvider>
-          </ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+            <ErrorBoundary>
+              <OnboardingProvider>
+                {children}
+                <Toaster />
+              </OnboardingProvider>
+            </ErrorBoundary>
+          </ThemeProvider>
         </body>
       </html>
     </TestModeClerkProvider>
