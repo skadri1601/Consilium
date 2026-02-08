@@ -13,6 +13,7 @@ import { SynthesisOutput } from "@/components/council/synthesis-output";
 import { FeatureTooltip } from "../../../components/onboarding/feature-tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useAuth } from "@/features/auth";
+import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS, API_URL } from "@/shared/lib/constants";
 
@@ -29,15 +30,16 @@ interface RoundProgress {
 }
 
 const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
-const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq"];
+const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq", "Grok (XAI)"];
 
 // Provider-specific subtle gradients (professional, not flashy)
 const getProviderStyles = (agentId: string, status: string) => {
   const agentName = AGENT_NAME_BY_ID.get(agentId) || "";
-  const provider = agentName.includes("GPT") ? "openai"
+  const provider = agentName.includes("GPT") || agentName.includes("o1") ? "openai"
     : agentName.includes("Claude") ? "anthropic"
     : agentName.includes("Gemini") ? "google"
-    : agentName.includes("Groq") || agentName.includes("Llama") ? "groq"
+    : agentName.includes("Llama") ? "groq"
+    : agentName.includes("Grok") ? "xai"
     : "default";
 
   if (status === "complete") {
@@ -45,11 +47,12 @@ const getProviderStyles = (agentId: string, status: string) => {
   }
 
   if (status === "thinking") {
-    const styles = {
+    const styles: Record<string, string> = {
       openai: "border-emerald-400/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-transparent",
       anthropic: "border-amber-400/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-transparent",
       google: "border-blue-400/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-transparent",
       groq: "border-purple-400/40 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-transparent",
+      xai: "border-red-400/40 bg-gradient-to-br from-red-50 to-white dark:from-red-950/20 dark:to-transparent",
       default: "border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5"
     };
     return styles[provider];
@@ -70,15 +73,16 @@ export function CouncilChat() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messages, selectedAgents, addMessage, isLoading, setLoading } = useCouncilStore();
+  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults } = useCouncilStore();
   const { getToken, isLoaded: isAuthLoaded } = useAuth();
+  const { preferences, isLoaded: isPrefsLoaded } = useUserPreferences();
   const selectedAgentNames = selectedAgents.map(
     (agentId) => AGENT_NAME_BY_ID.get(agentId) ?? agentId
   );
   const selectedAgentsLabel =
     selectedAgentNames.length > 0
       ? `Selected: ${selectedAgentNames.join(", ")}`
-      : "Select at least one agent to start a debate";
+      : "Select at least 2 agents to start a debate";
 
   useEffect(() => {
     return () => {
@@ -87,6 +91,13 @@ export function CouncilChat() {
       }
     };
   }, []);
+
+  // Load default agents & mode from Clerk user metadata (synced across devices)
+  useEffect(() => {
+    if (isPrefsLoaded) {
+      loadDefaults(preferences);
+    }
+  }, [isPrefsLoaded, preferences, loadDefaults]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -131,7 +142,7 @@ export function CouncilChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || selectedAgents.length === 0) return;
+    if (!input.trim() || isLoading || selectedAgents.length < 2) return;
 
     const topic = input.trim();
     addMessage({ role: "user", content: topic });
@@ -293,29 +304,27 @@ export function CouncilChat() {
     const names: Record<string, string> = {
       "gpt-4o": "GPT-4o",
       "gpt-4o-mini": "GPT-4o Mini",
+      "o1": "GPT-o1",
       "claude-3-5-sonnet-latest": "Claude 3.5 Sonnet",
       "claude-3-5-haiku-latest": "Claude 3.5 Haiku",
+      "claude-4.6-opus": "Claude Opus 4.6",
+      "claude-4.5-sonnet": "Claude Sonnet 4.5",
       "gemini-2.0-flash": "Gemini 2.0 Flash",
       "gemini-1.5-pro": "Gemini 1.5 Pro",
       "llama-3.1-8b-instant": "Llama 3.1 8B Instant",
       "llama-3.1-70b-versatile": "Llama 3.1 70B Versatile",
+      "grok-2": "Grok 2",
+      "grok-2-mini": "Grok 2 Mini",
     };
     return names[agentId] || agentId;
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Mobile: Collapsible Agent Selection */}
-      <div className="lg:hidden">
-        <AgentSelector />
-      </div>
+      {/* Agent Selection */}
+      <AgentSelector />
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Desktop: Sidebar Agent Selection */}
-        <div className="hidden lg:block w-72 flex-shrink-0">
-          <AgentSelector />
-        </div>
-
+      <div className="flex flex-col gap-4">
         {/* Main Chat Interface */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
           {/* Input Form - Top on Mobile for better UX */}
@@ -335,7 +344,7 @@ export function CouncilChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Describe what you want to build. Be specific about features, tech stack, and requirements... (Cmd/Ctrl+K to focus)"
-                  disabled={isLoading || selectedAgents.length === 0}
+                  disabled={isLoading || selectedAgents.length < 2}
                   className="min-h-[100px] resize-none"
                   suppressHydrationWarning
                   aria-label="Debate topic input"
@@ -359,7 +368,7 @@ export function CouncilChat() {
                   </div>
                   <Button
                     type="submit"
-                    disabled={isLoading || !input.trim() || selectedAgents.length === 0}
+                    disabled={isLoading || !input.trim() || selectedAgents.length < 2}
                     className="min-w-[120px]"
                     aria-label="Start debate with selected agents"
                   >

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { useCouncilStore } from "../store/council.store";
-import { AGENTS } from "@/shared/lib/constants";
+import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
 import { CheckCircle2, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -15,11 +15,13 @@ export function AgentSelector() {
     anthropicKey: string | null;
     googleKey: string | null;
     groqKey: string | null;
+    xaiKey: string | null;
   }>({
     openaiKey: null,
     anthropicKey: null,
     googleKey: null,
     groqKey: null,
+    xaiKey: null,
   });
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function AgentSelector() {
         if (!res.ok) {
           // If error, just log and continue - agents will show as unavailable
           console.warn("Failed to fetch API keys:", res.status);
-          return { openaiKey: null, anthropicKey: null, googleKey: null, groqKey: null };
+          return { openaiKey: null, anthropicKey: null, googleKey: null, groqKey: null, xaiKey: null };
         }
         return res.json();
       })
@@ -40,6 +42,7 @@ export function AgentSelector() {
             anthropicKey: data.anthropicKey || null,
             googleKey: data.googleKey || null,
             groqKey: data.groqKey || null,
+            xaiKey: data.xaiKey || null,
           });
         }
       })
@@ -59,6 +62,8 @@ export function AgentSelector() {
         return apiKeys.googleKey;
       case "groq":
         return apiKeys.groqKey;
+      case "xai":
+        return apiKeys.xaiKey;
       default:
         return null;
     }
@@ -70,47 +75,50 @@ export function AgentSelector() {
   };
 
   return (
-    <Card className="w-full max-w-sm shrink-0" variant="default">
+    <Card className="w-full shrink-0" variant="default">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Select Agents</CardTitle>
           {selectedAgents.length > 0 && (
             <span
               className="rounded-full bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5"
-              aria-label={`${selectedAgents.length} selected`}
+              aria-label={`${selectedAgents.length} of ${MAX_AGENTS_PER_DEBATE} selected`}
             >
-              {selectedAgents.length}
+              {selectedAgents.length}/{MAX_AGENTS_PER_DEBATE}
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {AGENTS.map((agent) => {
           const hasApiKey = hasKey(agent);
           const isSelected = selectedAgents.includes(agent.id);
+          const atLimit = selectedAgents.length >= MAX_AGENTS_PER_DEBATE;
+          const isDisabled = !hasApiKey || (!isSelected && atLimit);
+
+          let statusLabel = "Available";
+          if (!hasApiKey) statusLabel = "API key required";
+          else if (!isSelected && atLimit) statusLabel = "Agent limit reached";
+
+          let borderStyle = "border-transparent bg-muted/30";
+          if (isSelected) borderStyle = "border-primary bg-primary/10";
+          else if (!isDisabled) borderStyle = "border-border hover:bg-accent";
 
           return (
             <button
               key={agent.id}
               onClick={() => {
-                if (!hasApiKey) {
-                  // Could show a tooltip or modal here
-                  return;
-                }
+                if (isDisabled) return;
                 toggleAgent(agent.id);
               }}
-              disabled={!hasApiKey}
-              aria-label={`${agent.name} - ${hasApiKey ? "Available" : "API key required"}`}
+              disabled={isDisabled}
+              aria-label={`${agent.name} - ${statusLabel}`}
               aria-pressed={isSelected}
               className={cn(
                 "w-full rounded-lg border p-3 text-left transition-colors relative",
-                !hasApiKey && "opacity-50 cursor-not-allowed",
-                isSelected && hasApiKey
-                  ? "border-primary bg-primary/10"
-                  : hasApiKey
-                  ? "border-border hover:bg-accent"
-                  : "border-border bg-muted"
+                isDisabled && "opacity-50 cursor-not-allowed",
+                borderStyle
               )}
             >
               <div className="flex items-start justify-between">
@@ -135,10 +143,16 @@ export function AgentSelector() {
           );
         })}
         </div>
-        {selectedAgents.length === 0 && (
+        {selectedAgents.length < MIN_AGENTS_PER_DEBATE && (
           <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
-            Select at least one agent to start a debate
+            Select at least {MIN_AGENTS_PER_DEBATE} agents to start a debate
+          </div>
+        )}
+        {selectedAgents.length >= MAX_AGENTS_PER_DEBATE && (
+          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            Maximum {MAX_AGENTS_PER_DEBATE} agents per debate
           </div>
         )}
       </CardContent>
