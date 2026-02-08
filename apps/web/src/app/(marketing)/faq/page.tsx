@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import {
   Accordion,
   AccordionContent,
@@ -8,12 +7,16 @@ import {
 
 export default function FAQPage() {
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-3xl">Frequently Asked Questions</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen">
+      <section className="container mx-auto px-4 py-32 md:py-48">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-center text-muted-foreground mb-12">
+            Everything you need to know about Consilium
+          </p>
+
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="what-is">
               <AccordionTrigger>What is Consilium?</AccordionTrigger>
@@ -28,8 +31,10 @@ export default function FAQPage() {
               <AccordionContent>
                 See our{" "}
                 <a
-                  href="https://github.com/yourusername/consilium#self-hosting"
+                  href="https://github.com/skadri1601/#self-hosting"
                   className="text-primary hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   self-hosting guide
                 </a>
@@ -41,7 +46,7 @@ export default function FAQPage() {
               <AccordionTrigger>Do I need API keys?</AccordionTrigger>
               <AccordionContent>
                 Yes. Consilium uses a "Bring Your Own Keys" (BYOK) model. You provide your
-                own API keys for OpenAI, Anthropic, and/or Google. Keys are encrypted
+                own API keys for OpenAI, Anthropic, Google, XAI, and/or Groq. Keys are encrypted
                 before storage.
               </AccordionContent>
             </AccordionItem>
@@ -57,8 +62,9 @@ export default function FAQPage() {
             <AccordionItem value="models">
               <AccordionTrigger>Which models are supported?</AccordionTrigger>
               <AccordionContent>
-                Currently supported: GPT-4o, GPT-4o-mini, Claude 3.5 Opus, Claude 3.5 Haiku,
-                Gemini 2.0 Flash, and Gemini 1.5 Pro. More models can be added by the community.
+                Supports the latest models including Claude Opus 4.6, Claude Sonnet 4.5, Claude Haiku 4.5,
+                GPT-4o, GPT-o1, Gemini 2.0 Flash, Gemini 1.5 Pro, Grok (XAI), and Groq models.
+                More models can be added by the community.
               </AccordionContent>
             </AccordionItem>
 
@@ -70,9 +76,8 @@ export default function FAQPage() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
-

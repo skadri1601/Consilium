@@ -8,7 +8,6 @@ import { Menu, X, Settings, History, BarChart3, Users } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
 import { Logo } from "@/components/shared/logo";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserButton, useUser } from "@clerk/nextjs";
 
 const navItems = [
@@ -36,9 +35,8 @@ export default function DashboardLayout({
       {/* Mobile Navigation */}
       <nav className="lg:hidden border-b bg-background sticky top-0 z-50">
         <div className="flex items-center justify-between p-4">
-          <Logo href="/" className="shrink-0" />
+          <Logo link="/" className="shrink-0" />
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <UserButton afterSignOutUrl="/" />
             <Button
               variant="ghost"
@@ -74,9 +72,9 @@ export default function DashboardLayout({
       </nav>
 
       {/* Desktop Navigation */}
-      <nav className="hidden lg:flex border-r bg-background w-64 min-h-screen sticky top-0 shrink-0">
+      <nav className="hidden lg:flex border-r bg-background w-64 h-screen sticky top-0 shrink-0 overflow-y-auto">
         <div className="flex flex-col w-full p-4">
-          <Logo href="/" className="mb-6 shrink-0" />
+          <Logo link="/" className="mb-6 shrink-0" />
           <div className="flex flex-col gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -100,9 +98,6 @@ export default function DashboardLayout({
           </div>
           
           <div className="mt-auto pt-4 border-t space-y-4">
-            <div className="flex items-center gap-2 px-2">
-              <ThemeToggle />
-            </div>
              <div className="flex items-center gap-3 px-2">
                 <UserButton 
                   afterSignOutUrl="/"
