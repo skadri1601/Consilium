@@ -244,7 +244,7 @@ export function PreferencesSettings() {
 
       <Button
         onClick={handleSave}
-        disabled={saving || !dirty}
+        disabled={saving || !dirty || selectedAgents.length < MIN_AGENTS_PER_DEBATE}
         className="w-full"
       >
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

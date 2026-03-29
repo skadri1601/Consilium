@@ -23,7 +23,8 @@ export class EncryptionService {
     }
 
     // Otherwise, derive key from string using PBKDF2
-    return crypto.pbkdf2Sync(encryptionKey, "consilium-salt", 100000, this.keyLength, "sha512");
+    const salt = process.env.ENCRYPTION_SALT || "consilium-salt";
+    return crypto.pbkdf2Sync(encryptionKey, salt, 100000, this.keyLength, "sha512");
   }
 
   encrypt(text: string): string {

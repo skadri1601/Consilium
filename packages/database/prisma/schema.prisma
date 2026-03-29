@@ -34,10 +34,11 @@ model User {
   cliTokenHash String? @unique
 
   // Relations
-  conversations  Conversation[]
-  agents         Agent[]
-  debateSessions DebateSession[]
-  personas       AgentPersona[]
+  conversations    Conversation[]
+  conversationsV2  ConversationV2[]
+  agents           Agent[]
+  debateSessions   DebateSession[]
+  personas         AgentPersona[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -137,21 +138,32 @@ model AgentResponse {
 // ============================================
 
 model DebateSession {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic        String   @db.Text
-  status       String   @default("pending") // pending, processing, completed, failed
-  modelsUsed   Json     @default("[]")
-  totalCost    Float    @default(0)
-  goldenPrompt String?  @db.Text
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic            String   @db.Text
+  status           String   @default("pending")
+  modelsUsed       Json     @default("[]")
+  totalCost        Float    @default(0)
+  goldenPrompt     String?  @db.Text
+  mode             String?  @default("council")
+  estimatedCost    Float?
+  debateSource     String?  @default("web")
+  synthesisMethod  String?
+  judgeModel       String?
+  improvementScore Float?
+  projectContext   Json?
+  conversationId   String?
+  conversation     ConversationV2? @relation(fields: [conversationId], references: [id])
 
-  rounds       DebateRound[]
+  rounds           DebateRound[]
 
-  createdAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([conversationId])
 }
 
 model DebateRound {
@@ -270,4 +282,63 @@ model Waitlist {
   updatedAt DateTime @updatedAt
 
   @@index([email])
+}
+
+// ============================================
+// Conversations V2
+// ============================================
+
+model ConversationV2 {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  decisionLog    Json?
+  projectContext Json?
+  deletedAt      DateTime?
+
+  debates        DebateSession[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+// ============================================
+// Prompt Cache
+// ============================================
+
+model PromptCache {
+  id            String   @id @default(cuid())
+  tenantId      String
+  promptHash    String
+  goldenPrompt  String   @db.Text
+  modelsUsed    Json     @default("[]")
+  debateId      String?
+  hitCount      Int      @default(0)
+  modelVersions Json?
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime?
+
+  @@unique([tenantId, promptHash])
+  @@index([tenantId])
+  @@index([promptHash])
+}
+
+// ============================================
+// Agent Failures
+// ============================================
+
+model AgentFailure {
+  id        String   @id @default(cuid())
+  modelId   String
+  provider  String
+  errorType String
+  debateId  String?
+  createdAt DateTime @default(now())
+
+  @@index([modelId])
+  @@index([debateId])
+  @@index([createdAt])
 }

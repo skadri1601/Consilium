@@ -5,10 +5,13 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  UseGuards,
   UnauthorizedException,
   Logger,
 } from "@nestjs/common";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
+import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
+import { RateLimit } from "../../shared/decorators/rate-limit.decorator";
 
 interface ClerkUserWebhookPayload {
   action: "create" | "update" | "delete";
@@ -25,6 +28,8 @@ interface SessionEndedPayload {
 }
 
 @Controller("api/v1/webhooks/clerk")
+@UseGuards(RateLimitGuard)
+@RateLimit(50, 60)
 export class ClerkWebhooksController {
   private readonly logger = new Logger(ClerkWebhooksController.name);
 

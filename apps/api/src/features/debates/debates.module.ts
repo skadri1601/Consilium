@@ -5,11 +5,13 @@ import { ApiKeysModule } from "../api-keys/api-keys.module";
 import { AuthModule } from "../auth/auth.module";
 import { AiWorkersClient } from "./ai-workers.client";
 import { SseProxyService } from "./sse-proxy.service";
+import { PersonasModule } from "../personas/personas.module";
+import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 
 @Module({
-  imports: [ApiKeysModule, AuthModule],
+  imports: [ApiKeysModule, AuthModule, PersonasModule],
   controllers: [DebatesController],
-  providers: [DebatesService, AiWorkersClient, SseProxyService],
+  providers: [DebatesService, AiWorkersClient, SseProxyService, RateLimitGuard],
   exports: [DebatesService, AiWorkersClient, SseProxyService],
 })
 export class DebatesModule {}

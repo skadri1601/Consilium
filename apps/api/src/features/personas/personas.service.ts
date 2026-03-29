@@ -7,8 +7,24 @@ import { UpdatePersonaDto } from "./dto/update-persona.dto";
 export class PersonasService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreatePersonaDto) {
-    return (this.prisma as any).agentPersona.create({
+  private async resolveUserId(clerkId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        "User not found. Please ensure your account is synced."
+      );
+    }
+
+    return user.id;
+  }
+
+  async create(clerkId: string, dto: CreatePersonaDto) {
+    const userId = await this.resolveUserId(clerkId);
+
+    return this.prisma.agentPersona.create({
       data: {
         userId,
         name: dto.name,
@@ -19,15 +35,19 @@ export class PersonasService {
     });
   }
 
-  async findAll(userId: string) {
-    return (this.prisma as any).agentPersona.findMany({
+  async findAll(clerkId: string) {
+    const userId = await this.resolveUserId(clerkId);
+
+    return this.prisma.agentPersona.findMany({
       where: { userId },
       orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
   }
 
-  async findOne(id: string, userId: string) {
-    const persona = await (this.prisma as any).agentPersona.findFirst({
+  async findOne(id: string, clerkId: string) {
+    const userId = await this.resolveUserId(clerkId);
+
+    const persona = await this.prisma.agentPersona.findFirst({
       where: { id, userId },
     });
 
@@ -38,19 +58,19 @@ export class PersonasService {
     return persona;
   }
 
-  async update(id: string, userId: string, dto: UpdatePersonaDto) {
-    await this.findOne(id, userId); // Verify ownership
+  async update(id: string, clerkId: string, dto: UpdatePersonaDto) {
+    await this.findOne(id, clerkId);
 
-    return (this.prisma as any).agentPersona.update({
+    return this.prisma.agentPersona.update({
       where: { id },
       data: dto,
     });
   }
 
-  async remove(id: string, userId: string) {
-    await this.findOne(id, userId); // Verify ownership
+  async remove(id: string, clerkId: string) {
+    await this.findOne(id, clerkId);
 
-    return (this.prisma as any).agentPersona.delete({
+    return this.prisma.agentPersona.delete({
       where: { id },
     });
   }

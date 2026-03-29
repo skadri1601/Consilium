@@ -60,13 +60,11 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get the headers
   const headersList = await headers();
   const svix_id = headersList.get("svix-id");
   const svix_timestamp = headersList.get("svix-timestamp");
   const svix_signature = headersList.get("svix-signature");
 
-  // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return NextResponse.json(
       { error: "Missing svix headers" },
@@ -74,16 +72,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get the body
   const payload = await req.json();
   const body = JSON.stringify(payload);
-
-  // Create a new Svix instance with your secret
   const wh = new Webhook(WEBHOOK_SECRET);
 
   let evt: WebhookEvent;
 
-  // Verify the payload with the headers
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -98,15 +92,11 @@ export async function POST(req: Request) {
     );
   }
 
-  // Handle the webhook event
   const eventType = evt.type;
-
-  console.log(`Received Clerk webhook: ${eventType}`);
 
   switch (eventType) {
     case "user.created": {
       const userData = evt.data as ClerkUserData;
-      console.log(`User created: ${userData.id}`);
       
       const success = await syncUserToBackend("create", userData);
       if (!success) {
@@ -117,8 +107,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // Set default preferences on the new user's Clerk profile
-      // so they're available on any device from the start
       try {
         const client = await clerkClient();
         await client.users.updateUser(userData.id, {
@@ -127,9 +115,7 @@ export async function POST(req: Request) {
             defaultMode: "visible",
           },
         });
-        console.log(`Set default preferences for user: ${userData.id}`);
       } catch (metadataError) {
-        // Non-fatal: preferences will fall back to defaults on the client
         console.error("Failed to set default user metadata:", metadataError);
       }
 
@@ -138,8 +124,6 @@ export async function POST(req: Request) {
 
     case "user.updated": {
       const userData = evt.data as ClerkUserData;
-      console.log(`User updated: ${userData.id}`);
-      
       const success = await syncUserToBackend("update", userData);
       if (!success) {
         return NextResponse.json(
@@ -152,9 +136,7 @@ export async function POST(req: Request) {
 
     case "user.deleted": {
       const userData = evt.data as { id: string };
-      console.log(`User deleted: ${userData.id}`);
-
-      const success = await syncUserToBackend("delete", userData as any);
+      const success = await syncUserToBackend("delete", userData as ClerkUserData);
       if (!success) {
         return NextResponse.json(
           { error: "Failed to delete user" },
@@ -165,15 +147,11 @@ export async function POST(req: Request) {
     }
 
     case "session.created": {
-      console.log(`Session created for user: ${evt.data.user_id}`);
-      // Session tracking is handled by the backend on authentication
       break;
     }
 
     case "session.ended":
     case "session.revoked": {
-      console.log(`Session ended/revoked for user: ${evt.data.user_id}`);
-      // Trigger session cleanup in backend
       try {
         await fetch(`${API_URL}/api/v1/webhooks/clerk/session-ended`, {
           method: "POST",
@@ -193,7 +171,7 @@ export async function POST(req: Request) {
     }
 
     default:
-      console.log(`Unhandled Clerk webhook event: ${eventType}`);
+      break;
   }
 
   return NextResponse.json({ received: true });

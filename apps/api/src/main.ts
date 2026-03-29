@@ -7,15 +7,15 @@ import { ValidationPipe, Logger } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
+import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import * as Sentry from "@sentry/node";
 
 async function bootstrap() {
-  // Initialize Sentry
   if (process.env.SENTRY_DSN) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV || "development",
-      tracesSampleRate: 1.0,
+      tracesSampleRate: 0.1,
     });
   }
 
@@ -25,10 +25,8 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true })
   );
 
-  // Global prefix
   app.setGlobalPrefix("api/v1");
 
-  // CORS
   app.enableCors({
     origin: process.env.CORS_ORIGINS?.split(",") || [
       "http://localhost:3000",
@@ -37,7 +35,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -46,10 +43,9 @@ async function bootstrap() {
     })
   );
 
-  // Logging
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  // Swagger
   const config = new DocumentBuilder()
     .setTitle("Consilium API")
     .setDescription("AI Council Platform API")

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAuthContext, shouldBypassAuth, isFetchError } from "@/lib/api/auth-helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const IS_TEST_MODE =
-  process.env.PLAYWRIGHT_TEST === "true" ||
-  process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === "true";
-const IS_PROD = process.env.NODE_ENV === "production";
 
 export async function PUT(
   request: NextRequest,
@@ -47,7 +43,7 @@ export async function PUT(
 
     return NextResponse.json(await response.json());
   } catch (error) {
-    if (!IS_PROD && isFetchError(error)) {
+    if (isFetchError(error)) {
       console.warn("[PUT /api/personas/:id] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
@@ -98,7 +94,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (!IS_PROD && isFetchError(error)) {
+    if (isFetchError(error)) {
       console.warn("[DELETE /api/personas/:id] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
@@ -112,43 +108,3 @@ export async function DELETE(
     );
   }
 }
-
-async function getAuthContext(): Promise<{
-  userId: string | null;
-  token: string | null;
-  error?: unknown;
-}> {
-  try {
-    const { userId, getToken } = await auth();
-    const token = getToken ? await getToken() : null;
-    return { userId: userId ?? null, token };
-  } catch (error) {
-    return { userId: null, token: null, error };
-  }
-}
-
-function shouldBypassAuth(authError?: unknown) {
-  if (IS_TEST_MODE) {
-    return true;
-  }
-
-  if (IS_PROD) {
-    return false;
-  }
-
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  const secretKey = process.env.CLERK_SECRET_KEY;
-  const hasPlaceholder = (value?: string) => !value || value.includes("...");
-  const hasValidKeys = !hasPlaceholder(publishableKey) && !hasPlaceholder(secretKey);
-
-  if (!hasValidKeys && authError) {
-    console.warn("[auth] Clerk keys not configured; bypassing auth for local dev.");
-  }
-
-  return !hasValidKeys;
-}
-
-function isFetchError(error: unknown) {
-  return error instanceof TypeError;
-}
-

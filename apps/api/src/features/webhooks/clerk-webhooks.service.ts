@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { AuditLoggerService } from "../../shared/services/audit-logger.service";
 import { SessionService } from "../../shared/services/session.service";
+import { EmailService } from "../../shared/services/email.service";
 
 interface CreateUserPayload {
   clerkId: string;
@@ -19,6 +20,7 @@ export class ClerkWebhooksService {
     private prisma: PrismaService,
     private auditLogger: AuditLoggerService,
     private sessionService: SessionService,
+    private emailService: EmailService,
   ) {}
 
   async createUser(payload: CreateUserPayload): Promise<{ success: boolean; userId: string }> {
@@ -54,6 +56,16 @@ export class ClerkWebhooksService {
     await this.auditLogger.log("session_created", {
       userId: user.id,
       metadata: { source: "clerk_webhook", action: "user.created" },
+    });
+
+    setImmediate(() => {
+      this.emailService
+        .sendWelcomeEmail(email, firstName || "")
+        .catch((err) =>
+          this.logger.error(
+            `Welcome email failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+          ),
+        );
     });
 
     return { success: true, userId: user.id };
@@ -105,9 +117,9 @@ export class ClerkWebhooksService {
       where: { tenantId: user.tenantId },
     });
 
-    // Access included relations with type assertion
-    const conversations = (user as any).conversations || [];
-    const agents = (user as any).agents || [];
+    const userWithRelations = user as typeof user & { conversations?: { id: string }[]; agents?: { id: string }[] };
+    const conversations = userWithRelations.conversations || [];
+    const agents = userWithRelations.agents || [];
 
     // Log the deletion before it happens
     await this.auditLogger.log("session_revoked", {

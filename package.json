@@ -50,6 +50,8 @@
     ]
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5"
+    "@clerk/nextjs": "^6.36.5",
+    "@sentry/nextjs": "^10.46.0",
+    "claude": "^0.1.1"
   }
 }

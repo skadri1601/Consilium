@@ -151,7 +151,6 @@ export class ConsiliumClient {
       let eventCount = 0;
       let connectionEstablished = false;
 
-      // Handler for processing all event types
       const handleEvent = (eventType: string) => (event: any) => {
         try {
           if (!connectionEstablished) {
@@ -163,7 +162,6 @@ export class ConsiliumClient {
           this.log(`Received event #${eventCount}: ${eventType}`);
 
           const data = JSON.parse(event.data);
-          // Add the event type to the data
           const debateEvent: DebateEvent = {
             type: eventType as any,
             agent: data.agent,
@@ -189,7 +187,6 @@ export class ConsiliumClient {
         }
       };
 
-      // Add listeners for all event types
       eventSource.addEventListener('debate_start', handleEvent('debate_start'));
       eventSource.addEventListener('agent_start', handleEvent('agent_start'));
       eventSource.addEventListener('agent_chunk', handleEvent('agent_chunk'));
@@ -216,7 +213,6 @@ export class ConsiliumClient {
         reject(new Error('Stream connection failed'));
       };
 
-      // Timeout after 5 minutes
       setTimeout(() => {
         this.log('Stream timeout - closing connection');
         eventSource.close();

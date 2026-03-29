@@ -1,11 +1,8 @@
-"""Pydantic schemas for debates feature."""
-
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 
 class ApiKeys(BaseModel):
-    """API keys for LLM providers."""
     openaiKey: Optional[str] = Field(None, alias="openai_key")
     anthropicKey: Optional[str] = Field(None, alias="anthropic_key")
     googleKey: Optional[str] = Field(None, alias="google_key")
@@ -17,17 +14,33 @@ class ApiKeys(BaseModel):
 
 
 class DebateStartRequest(BaseModel):
-    """Request schema for starting a debate."""
     debate_id: Optional[str] = Field(None, description="Optional ID from API; if not set, one is generated")
     topic: str = Field(..., description="The debate topic or question")
     models: List[str] = Field(
         ...,
-        description="List of model names to participate in the debate"
+        description="List of model names to participate in the debate",
     )
     api_keys: ApiKeys = Field(..., description="API keys for LLM providers")
+    system_prompt: Optional[str] = Field(
+        None,
+        description="Optional custom system prompt override for Round 1",
+    )
+    mode: str = Field(
+        default="debate",
+        description="Debate mode: 'debate' for multi-round, 'single' for one-shot",
+    )
+    round_count: int = Field(
+        default=3,
+        ge=1,
+        le=5,
+        description="Number of debate rounds (1-5)",
+    )
+    debate_source: str = Field(
+        default="web",
+        description="Source of the debate request: 'web', 'api', 'cli'",
+    )
 
 
 class DebateStartResponse(BaseModel):
-    """Response schema for debate start."""
     debate_id: str = Field(..., description="Unique identifier for the debate")
     status: str = Field(default="processing", description="Current status of the debate")

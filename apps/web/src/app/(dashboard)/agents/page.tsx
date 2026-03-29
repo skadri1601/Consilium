@@ -6,7 +6,7 @@ export default function AgentsPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Agents</h1>
         <p className="text-muted-foreground">
-          Manage and configure your agents
+          Available LLM models and their configuration status
         </p>
       </div>
       <AgentList />

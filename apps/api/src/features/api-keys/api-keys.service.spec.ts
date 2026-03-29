@@ -1,10 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
 import { ApiKeysService } from './api-keys.service';
 import { PrismaService } from '../../shared/database/prisma.service';
 import { EncryptionService } from '../../shared/services/encryption.service';
 import { UpdateApiKeysDto } from './dto/update-api-keys.dto';
 import { TestApiKeyDto, ApiKeyProvider } from './dto/test-api-key.dto';
+
+jest.mock('@clerk/clerk-sdk-node', () => ({
+  createClerkClient: jest.fn(() => ({
+    users: {
+      getUser: jest.fn().mockResolvedValue({
+        emailAddresses: [{ emailAddress: 'test@example.com' }],
+      }),
+    },
+  })),
+}));
 
 describe('ApiKeysService', () => {
   let service: ApiKeysService;
@@ -19,6 +28,7 @@ describe('ApiKeysService', () => {
     anthropicKey: 'encrypted-anthropic-key',
     googleKey: null,
     groqKey: null,
+    xaiKey: null,
   };
 
   beforeEach(async () => {
@@ -30,7 +40,7 @@ describe('ApiKeysService', () => {
           useValue: {
             user: {
               findUnique: jest.fn(),
-              update: jest.fn(),
+              upsert: jest.fn(),
             },
           },
         },
@@ -59,24 +69,31 @@ describe('ApiKeysService', () => {
       expect(result.anthropicKey).toContain('****');
       expect(result.googleKey).toBeNull();
       expect(result.groqKey).toBeNull();
+      expect(result.xaiKey).toBeNull();
     });
 
-    it('should throw BadRequestException if user not found', async () => {
+    it('should return empty keys if user not found', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
 
-      await expect(service.getApiKeys('invalid')).rejects.toThrow(BadRequestException);
+      const result = await service.getApiKeys('invalid');
+
+      expect(result.openaiKey).toBeNull();
+      expect(result.anthropicKey).toBeNull();
+      expect(result.googleKey).toBeNull();
+      expect(result.groqKey).toBeNull();
+      expect(result.xaiKey).toBeNull();
     });
   });
 
   describe('updateApiKeys', () => {
     it('should update API keys', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
-      jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUser as any);
+      jest.spyOn(prismaService.user, 'upsert').mockResolvedValue(mockUser as any);
       jest.spyOn(service, 'getApiKeys').mockResolvedValue({
         openaiKey: '****-new',
         anthropicKey: null,
         googleKey: null,
         groqKey: null,
+        xaiKey: null,
       });
 
       const dto: UpdateApiKeysDto = {
@@ -86,30 +103,32 @@ describe('ApiKeysService', () => {
       const result = await service.updateApiKeys('clerk-123', dto);
 
       expect(encryptionService.encrypt).toHaveBeenCalledWith('sk-new-key');
-      expect(prismaService.user.update).toHaveBeenCalled();
+      expect(prismaService.user.upsert).toHaveBeenCalled();
       expect(result.message).toBe('API keys updated successfully');
     });
 
     it('should handle null values to delete keys', async () => {
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
-      jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUser as any);
+      jest.spyOn(prismaService.user, 'upsert').mockResolvedValue(mockUser as any);
       jest.spyOn(service, 'getApiKeys').mockResolvedValue({
         openaiKey: null,
         anthropicKey: null,
         googleKey: null,
         groqKey: null,
+        xaiKey: null,
       });
 
       const dto: UpdateApiKeysDto = {
-        openaiKey: null,
+        openaiKey: '',
       };
 
       await service.updateApiKeys('clerk-123', dto);
 
-      expect(prismaService.user.update).toHaveBeenCalledWith({
-        where: { clerkId: 'clerk-123' },
-        data: { openaiKey: null },
-      });
+      expect(prismaService.user.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { clerkId: 'clerk-123' },
+          update: { openaiKey: null },
+        }),
+      );
     });
   });
 
@@ -131,6 +150,7 @@ describe('ApiKeysService', () => {
         anthropicKey: null,
         googleKey: null,
         groqKey: null,
+        xaiKey: null,
       };
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(userWithoutKeys as any);
       process.env.OPENAI_API_KEY = 'env-openai-key';
@@ -217,6 +237,7 @@ describe('ApiKeysService', () => {
     it('should return invalid for failed API calls', async () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
+        json: jest.fn().mockResolvedValue({}),
       });
 
       const dto: TestApiKeyDto = {

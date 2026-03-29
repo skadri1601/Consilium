@@ -1,20 +1,21 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { GoldenPromptOutput } from "./golden-prompt-output";
+import { SynthesisOutput } from "./synthesis-output";
 
-// Mock the toast hook
 vi.mock("@/shared/components/ui/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
-// Mock clipboard API - create a fresh mock for this test file
+vi.mock("@/hooks/use-keyboard-shortcuts", () => ({
+  useKeyboardShortcuts: vi.fn(),
+}));
+
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
 const mockClipboard = {
   writeText: mockWriteText,
 };
 
-// Set up navigator.clipboard before any tests run
 if (typeof navigator !== 'undefined') {
   Object.defineProperty(navigator, 'clipboard', {
     value: mockClipboard,
@@ -23,39 +24,37 @@ if (typeof navigator !== 'undefined') {
   });
 }
 
-describe("GoldenPromptOutput", () => {
+describe("SynthesisOutput", () => {
   const defaultProps = {
     prompt: "This is a test Golden Prompt for building a REST API.",
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset clipboard mock
     mockWriteText.mockClear();
     mockWriteText.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
-    // Ensure all spies are restored after each test
     vi.restoreAllMocks();
   });
 
-  it("renders the golden prompt content", () => {
-    render(<GoldenPromptOutput {...defaultProps} />);
+  it("renders the synthesis content", () => {
+    render(<SynthesisOutput {...defaultProps} />);
 
     expect(screen.getByText("Synthesis")).toBeInTheDocument();
     expect(screen.getByText(defaultProps.prompt)).toBeInTheDocument();
   });
 
   it("displays cost when provided", () => {
-    render(<GoldenPromptOutput {...defaultProps} cost={0.0123} />);
+    render(<SynthesisOutput {...defaultProps} cost={0.0123} />);
 
     expect(screen.getByText(/\$0\.0123/)).toBeInTheDocument();
   });
 
   it("displays models used when provided", () => {
     const modelsUsed = ["gpt-4o-mini", "claude-3-5-haiku-latest"];
-    render(<GoldenPromptOutput {...defaultProps} modelsUsed={modelsUsed} cost={0.01} />);
+    render(<SynthesisOutput {...defaultProps} modelsUsed={modelsUsed} cost={0.01} />);
 
     expect(screen.getByText(/gpt-4o-mini, claude-3-5-haiku-latest/)).toBeInTheDocument();
   });
@@ -63,7 +62,7 @@ describe("GoldenPromptOutput", () => {
   it("copies prompt to clipboard when copy button is clicked", async () => {
     mockClipboard.writeText.mockResolvedValue(undefined);
 
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     const copyButton = screen.getByRole("button", { name: /copy/i });
     fireEvent.click(copyButton);
@@ -74,40 +73,36 @@ describe("GoldenPromptOutput", () => {
   });
 
   it("shows checkmark after successful copy", async () => {
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     const copyButton = screen.getByRole("button", { name: /copy/i });
     fireEvent.click(copyButton);
 
     await waitFor(() => {
-      // The button should now show a checkmark (CheckCircle2 icon)
       expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
   it("has export as .cursorrules button", () => {
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     expect(screen.getByRole("button", { name: /\.cursorrules/i })).toBeInTheDocument();
   });
 
   it("has export as Markdown button", () => {
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     expect(screen.getByRole("button", { name: /markdown/i })).toBeInTheDocument();
   });
 
   it("exports as .cursorrules file when button clicked", () => {
-    // Render first to avoid React rendering issues
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
-    // Mock document.createElement and related methods
     const mockAnchor = {
       href: "",
       download: "",
       click: vi.fn(),
     };
-    // Get the original createElement before spying
     const originalCreateElement = document.createElement.bind(document);
     const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName) => {
       if (tagName === "a") {
@@ -124,22 +119,19 @@ describe("GoldenPromptOutput", () => {
     expect(mockAnchor.download).toBe(".cursorrules");
     expect(mockAnchor.click).toHaveBeenCalled();
 
-    // Restore mocks
     createElementSpy.mockRestore();
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
   });
 
   it("exports as Markdown file when button clicked", () => {
-    // Render first to avoid React rendering issues
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     const mockAnchor = {
       href: "",
       download: "",
       click: vi.fn(),
     };
-    // Get the original createElement before spying
     const originalCreateElement = document.createElement.bind(document);
     const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName) => {
       if (tagName === "a") {
@@ -156,14 +148,13 @@ describe("GoldenPromptOutput", () => {
     expect(mockAnchor.download).toBe("synthesis.md");
     expect(mockAnchor.click).toHaveBeenCalled();
 
-    // Restore mocks
     createElementSpy.mockRestore();
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
   });
 
   it("renders prompt content in a textbox role for accessibility", () => {
-    render(<GoldenPromptOutput {...defaultProps} />);
+    render(<SynthesisOutput {...defaultProps} />);
 
     const promptContent = screen.getByRole("textbox", { name: /synthesis content/i });
     expect(promptContent).toBeInTheDocument();
@@ -172,16 +163,15 @@ describe("GoldenPromptOutput", () => {
 
   it("handles very long prompts", () => {
     const longPrompt = "A".repeat(10000);
-    render(<GoldenPromptOutput prompt={longPrompt} />);
+    render(<SynthesisOutput prompt={longPrompt} />);
 
     expect(screen.getByText(longPrompt)).toBeInTheDocument();
   });
 
   it("handles prompts with special characters", () => {
     const specialPrompt = "Build an API with `authentication` & <security>!";
-    render(<GoldenPromptOutput prompt={specialPrompt} />);
+    render(<SynthesisOutput prompt={specialPrompt} />);
 
     expect(screen.getByText(specialPrompt)).toBeInTheDocument();
   });
 });
-

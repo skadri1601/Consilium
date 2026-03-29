@@ -1,7 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "next-themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        retry: 1,
+      },
+    },
+  }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <NextThemesProvider {...props}>{children}</NextThemesProvider>
+    </QueryClientProvider>
+  );
 }

@@ -77,13 +77,19 @@ if (isDefaultRepl) {
         return;
       }
       console.log(st.bold('\nSaved sessions:\n'));
-      console.log(st.brand('ID'), '     ', st.brand('Topic'), '                    ', st.brand('Date'), '              ', st.brand('Models'));
-      console.log('-'.repeat(80));
-      for (const s of list) {
-        const dateStr = s.date ? new Date(s.date).toLocaleString() : '';
-        console.log(s.id.padEnd(24), (s.topic || 'Untitled').padEnd(24), dateStr.padEnd(20), String(s.modelCount));
+      for (let i = 0; i < list.length; i++) {
+        const s = list[i];
+        const timeAgo = sessionManager.formatRelativeTime(s.updatedAt);
+        const label = s.name || s.topic || 'Untitled';
+        const displayLabel = label.length > 50 ? label.substring(0, 50) + '...' : label;
+        console.log(
+          st.brand(`  ${i + 1}.`),
+          displayLabel,
+          st.dim(`(${s.debateCount} debate${s.debateCount !== 1 ? 's' : ''}, ${timeAgo})`)
+        );
+        console.log(st.dim(`     ID: ${s.id}`));
       }
-      console.log('');
+      console.log(st.dim('\n  Resume: consilium sessions resume <session-id>\n'));
     });
 
   sessions
@@ -91,6 +97,42 @@ if (isDefaultRepl) {
     .description('Resume a saved session')
     .argument('<sessionId>', 'Session ID from "consilium sessions list"')
     .action(chatResumeCommand);
+
+  sessions
+    .command('rename')
+    .description('Rename a saved session')
+    .argument('<sessionId>', 'Session ID')
+    .argument('<name>', 'New session name')
+    .action((sessionId: string, name: string) => {
+      const success = sessionManager.renameSession(sessionId, name);
+      if (success) {
+        console.log(st.success(`Session renamed to: ${name}`));
+      } else {
+        console.log(st.error(`Session not found: ${sessionId}`));
+      }
+    });
+
+  sessions
+    .command('delete')
+    .description('Delete a saved session')
+    .argument('<sessionId>', 'Session ID')
+    .action((sessionId: string) => {
+      const readline = require('readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      rl.question(st.warning(`Delete session "${sessionId}"? (y/N) `), (answer: string) => {
+        rl.close();
+        if (answer.trim().toLowerCase() === 'y') {
+          const deleted = sessionManager.deleteSession(sessionId);
+          if (deleted) {
+            console.log(st.success(`Session "${sessionId}" deleted.`));
+          } else {
+            console.log(st.error(`Session not found: ${sessionId}`));
+          }
+        } else {
+          console.log(st.dim('Cancelled.'));
+        }
+      });
+    });
 
   // Config command
   const config = program

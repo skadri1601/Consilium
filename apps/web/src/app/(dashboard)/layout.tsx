@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
-import { Menu, X, Settings, History, BarChart3, Users } from "lucide-react";
+import { Menu, X, Settings, History, BarChart3, Users, Bot } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
 import { Logo } from "@/components/shared/logo";
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/council", label: "Council" },
   { href: "/history", label: "History", icon: History },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/agents", label: "Agents", icon: Bot },
   { href: "/personas", label: "Personas", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -27,12 +28,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user } = useUser();
 
-  const MenuIcon = Menu;
-  const XIcon = X;
-
   return (
     <div className="min-h-screen lg:flex">
-      {/* Mobile Navigation */}
       <nav className="lg:hidden border-b bg-background sticky top-0 z-50">
         <div className="flex items-center justify-between p-4">
           <Logo link="/" className="shrink-0" />
@@ -44,7 +41,7 @@ export default function DashboardLayout({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -71,7 +68,6 @@ export default function DashboardLayout({
         )}
       </nav>
 
-      {/* Desktop Navigation */}
       <nav className="hidden lg:flex border-r bg-background w-64 h-screen sticky top-0 shrink-0 overflow-y-auto">
         <div className="flex flex-col w-full p-4">
           <Logo link="/" className="mb-6 shrink-0" />
@@ -118,7 +114,6 @@ export default function DashboardLayout({
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="flex-1 min-w-0">
         <main>{children}</main>
       </div>

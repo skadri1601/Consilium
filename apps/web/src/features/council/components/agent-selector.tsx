@@ -25,12 +25,9 @@ export function AgentSelector() {
   });
 
   useEffect(() => {
-    // Fetch API key status
     fetch("/api/api-keys")
       .then((res) => {
         if (!res.ok) {
-          // If error, just log and continue - agents will show as unavailable
-          console.warn("Failed to fetch API keys:", res.status);
           return { openaiKey: null, anthropicKey: null, googleKey: null, groqKey: null, xaiKey: null };
         }
         return res.json();
@@ -46,10 +43,7 @@ export function AgentSelector() {
           });
         }
       })
-      .catch((error) => {
-        // Ignore errors - will show as unavailable
-        console.warn("Error fetching API keys:", error);
-      });
+      .catch(() => {});
   }, []);
 
   const getProviderKey = (provider: string) => {
@@ -70,6 +64,7 @@ export function AgentSelector() {
   };
 
   const hasKey = (agent: (typeof AGENTS)[number]) => {
+    if (agent.free) return true;
     const key = getProviderKey(agent.provider);
     return key !== null;
   };
@@ -98,11 +93,13 @@ export function AgentSelector() {
           const isDisabled = !hasApiKey || (!isSelected && atLimit);
 
           let statusLabel = "Available";
-          if (!hasApiKey) statusLabel = "API key required";
+          if (agent.free) statusLabel = "Free";
+          else if (!hasApiKey) statusLabel = "API key required";
           else if (!isSelected && atLimit) statusLabel = "Agent limit reached";
 
           let borderStyle = "border-transparent bg-muted/30";
           if (isSelected) borderStyle = "border-primary bg-primary/10";
+          else if (agent.free && !isDisabled) borderStyle = "border-green-500/40 hover:bg-green-50 dark:hover:bg-green-950/20";
           else if (!isDisabled) borderStyle = "border-border hover:bg-accent";
 
           return (
@@ -123,16 +120,25 @@ export function AgentSelector() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-medium">{agent.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium">{agent.name}</p>
+                    {agent.free && (
+                      <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-[10px] font-semibold px-1.5 py-0.5 leading-none">
+                        Free
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{agent.provider}</p>
                 </div>
-                {hasApiKey ? (
+                {agent.free ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
+                ) : hasApiKey ? (
                   <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
                 ) : (
                   <Lock className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
                 )}
               </div>
-              {!hasApiKey && (
+              {!hasApiKey && !agent.free && (
                 <p className="text-xs text-muted-foreground mt-1">
                   <Link href="/settings" className="text-primary hover:underline">
                     Configure API key

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service";
 
 export type AuthEvent =
@@ -24,6 +24,8 @@ interface LogMetadata {
 
 @Injectable()
 export class AuditLoggerService {
+  private readonly logger = new Logger(AuditLoggerService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async log(
@@ -37,13 +39,7 @@ export class AuditLoggerService {
     },
   ) {
     try {
-      // Check if authLog model exists in Prisma schema
-      if (!('authLog' in this.prisma)) {
-        // Log to console if Prisma model doesn't exist
-        console.log(`[Audit Log] ${event}`, options);
-        return;
-      }
-      await (this.prisma as any).authLog.create({
+      await this.prisma.authLog.create({
         data: {
           event,
           userId: options.userId,
@@ -54,8 +50,7 @@ export class AuditLoggerService {
         },
       });
     } catch (error) {
-      // Don't throw - logging failures shouldn't break the app
-      console.error("Failed to write audit log:", error);
+      this.logger.error("Failed to write audit log:", error);
     }
   }
 
@@ -88,13 +83,8 @@ export class AuditLoggerService {
       endDate?: Date;
     },
     limit: number = 100,
-  ) {
-    // Check if authLog model exists in Prisma schema
-    if (!('authLog' in this.prisma)) {
-      console.warn("authLog model not found in Prisma schema");
-      return [];
-    }
-    return (this.prisma as any).authLog.findMany({
+  ): Promise<any[]> {
+    return this.prisma.authLog.findMany({
       where: {
         ...(filters.userId && { userId: filters.userId }),
         ...(filters.event && { event: filters.event }),

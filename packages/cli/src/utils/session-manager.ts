@@ -10,9 +10,21 @@ const SESSION_DIR = path.join(os.homedir(), '.consilium', 'sessions');
 
 export interface SessionMetadata {
   id: string;
+  name: string;
   topic: string;
+  debateCount: number;
   date: string;
+  updatedAt: string;
   modelCount: number;
+  preview: string;
+}
+
+export interface SearchResult {
+  sessionId: string;
+  sessionName: string;
+  debateTopic: string;
+  matchSnippet: string;
+  matchType: 'topic' | 'synthesis';
 }
 
 export class SessionManager {
@@ -28,6 +40,21 @@ export class SessionManager {
     }
   }
 
+  private getSessionPath(sessionId: string): string {
+    return path.join(this.sessionDir, `${sessionId}.json`);
+  }
+
+  private readSessionData(sessionId: string): ChatSessionData | null {
+    const filePath = this.getSessionPath(sessionId);
+    if (!fs.existsSync(filePath)) return null;
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(content) as ChatSessionData;
+    } catch {
+      return null;
+    }
+  }
+
   saveSession(session: ChatSession): string {
     this.ensureSessionDir();
     const data = session.toJSON();
@@ -35,7 +62,7 @@ export class SessionManager {
     data.id = sessionId;
     session.id = sessionId;
 
-    const filePath = path.join(this.sessionDir, `${sessionId}.json`);
+    const filePath = this.getSessionPath(sessionId);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return sessionId;
   }
@@ -53,26 +80,38 @@ export class SessionManager {
         const filePath = path.join(this.sessionDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const data: ChatSessionData = JSON.parse(content);
-        const raw = data.debates?.[0]?.topic || 'Untitled';
-        const topic = raw.length > 40 ? raw.substring(0, 40) + '...' : raw;
+        const debateCount = data.debates?.length ?? 0;
+        const firstTopic = data.debates?.[0]?.topic || 'Untitled';
+        const topic = firstTopic.length > 40 ? firstTopic.substring(0, 40) + '...' : firstTopic;
+        const name = data.name || topic;
+        const lastDebate = debateCount > 0 ? data.debates[debateCount - 1] : null;
+        const lastSynthesis = lastDebate?.goldenPrompt || '';
+        const preview = lastSynthesis.length > 80
+          ? lastSynthesis.substring(0, 80) + '...'
+          : lastSynthesis || '(no synthesis)';
+
         result.push({
           id: data.id || path.basename(file, '.json'),
+          name,
           topic,
+          debateCount,
           date: data.createdAt || '',
+          updatedAt: data.updatedAt || data.createdAt || '',
           modelCount: data.models?.length ?? 0,
+          preview,
         });
       } catch {
-        // Skip invalid session files
+        // skip invalid
       }
     }
 
-    result.sort((a, b) => (b.date > a.date ? 1 : -1));
+    result.sort((a, b) => (b.updatedAt > a.updatedAt ? 1 : -1));
     return result;
   }
 
   loadSession(sessionId: string): ChatSession {
     this.ensureSessionDir();
-    const filePath = path.join(this.sessionDir, `${sessionId}.json`);
+    const filePath = this.getSessionPath(sessionId);
     if (!fs.existsSync(filePath)) {
       throw new Error(`Session not found: ${sessionId}`);
     }
@@ -85,12 +124,12 @@ export class SessionManager {
     const session = ChatSession.fromJSON(data, client, contextManager);
 
     if (data.contextFilePaths?.length) {
-      for (const filePath of data.contextFilePaths) {
+      for (const ctxFilePath of data.contextFilePaths) {
         try {
-          contextManager.addFile(filePath);
+          contextManager.addFile(ctxFilePath);
         } catch (error: any) {
           console.warn(
-            chalk.yellow(`⚠️  Could not reload file: ${filePath}`),
+            chalk.yellow(`Could not reload file: ${ctxFilePath}`),
             error?.message || ''
           );
         }
@@ -98,5 +137,98 @@ export class SessionManager {
     }
 
     return session;
+  }
+
+  renameSession(sessionId: string, newName: string): boolean {
+    const data = this.readSessionData(sessionId);
+    if (!data) return false;
+    data.name = newName;
+    data.updatedAt = new Date().toISOString();
+    const filePath = this.getSessionPath(sessionId);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    return true;
+  }
+
+  deleteSession(sessionId: string): boolean {
+    const filePath = this.getSessionPath(sessionId);
+    if (!fs.existsSync(filePath)) return false;
+    fs.unlinkSync(filePath);
+    return true;
+  }
+
+  searchSessions(query: string): SearchResult[] {
+    if (!fs.existsSync(this.sessionDir)) return [];
+
+    const files = fs.readdirSync(this.sessionDir).filter((f) => f.endsWith('.json'));
+    const results: SearchResult[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    for (const file of files) {
+      try {
+        const filePath = path.join(this.sessionDir, file);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const data: ChatSessionData = JSON.parse(content);
+        const sessionId = data.id || path.basename(file, '.json');
+        const sessionName = data.name || data.debates?.[0]?.topic || 'Untitled';
+
+        for (const debate of (data.debates || [])) {
+          if (debate.topic.toLowerCase().includes(lowerQuery)) {
+            const idx = debate.topic.toLowerCase().indexOf(lowerQuery);
+            const start = Math.max(0, idx - 20);
+            const end = Math.min(debate.topic.length, idx + query.length + 20);
+            const snippet = (start > 0 ? '...' : '') +
+              debate.topic.substring(start, end) +
+              (end < debate.topic.length ? '...' : '');
+
+            results.push({
+              sessionId,
+              sessionName,
+              debateTopic: debate.topic,
+              matchSnippet: snippet,
+              matchType: 'topic',
+            });
+          }
+
+          if (debate.goldenPrompt && debate.goldenPrompt.toLowerCase().includes(lowerQuery)) {
+            const text = debate.goldenPrompt;
+            const idx = text.toLowerCase().indexOf(lowerQuery);
+            const start = Math.max(0, idx - 30);
+            const end = Math.min(text.length, idx + query.length + 30);
+            const snippet = (start > 0 ? '...' : '') +
+              text.substring(start, end) +
+              (end < text.length ? '...' : '');
+
+            results.push({
+              sessionId,
+              sessionName,
+              debateTopic: debate.topic,
+              matchSnippet: snippet,
+              matchType: 'synthesis',
+            });
+          }
+        }
+      } catch {
+        // skip invalid
+      }
+    }
+
+    return results;
+  }
+
+  formatRelativeTime(isoDate: string): string {
+    if (!isoDate) return '';
+    const now = Date.now();
+    const then = new Date(isoDate).getTime();
+    const diffMs = now - then;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHr = Math.floor(diffMs / 3600000);
+    const diffDay = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffDay === 1) return 'yesterday';
+    if (diffDay < 30) return `${diffDay}d ago`;
+    return new Date(isoDate).toLocaleDateString();
   }
 }

@@ -107,3 +107,5 @@ scratch.*
 
 # Temporary markdown files
 *.tmp.md
+# Sentry Config File
+.env.sentry-build-plugin

@@ -22,10 +22,7 @@ export class AuthService {
       const session = await this.clerk.verifyToken(token);
       return session;
     } catch (error) {
-      // Log error details for debugging (but don't expose sensitive info)
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      this.logger.warn(`Token verification failed: ${errorMessage}`);
+      this.logger.warn(`Token verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       return null;
     }
   }
@@ -35,13 +32,10 @@ export class AuthService {
       const user = await this.clerk.users.getUser(userId);
       return user;
     } catch (error) {
+      this.logger.warn(`Failed to get user ${userId}: ${error instanceof Error ? error.message : "Unknown error"}`);
       return null;
     }
   }
-
-  /**
-   * Revoke a specific session in Clerk
-   */
   async revokeSession(sessionId: string): Promise<boolean> {
     try {
       await this.clerk.sessions.revokeSession(sessionId);
@@ -53,9 +47,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Revoke all sessions for a user (e.g., on password change or security event)
-   */
   async revokeAllUserSessions(userId: string): Promise<boolean> {
     try {
       const sessions = await this.clerk.sessions.getSessionList({ userId });
@@ -74,9 +65,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Get all active sessions for a user
-   */
   async getUserSessions(userId: string) {
     try {
       const sessions = await this.clerk.sessions.getSessionList({ userId });

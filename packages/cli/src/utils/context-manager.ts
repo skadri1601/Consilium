@@ -9,8 +9,6 @@ export interface FileEntry {
 export class ContextManager {
   private static readonly MAX_FILE_SIZE = 100 * 1024; // 100KB
   private static readonly MAX_TOTAL_SIZE = 500 * 1024; // 500KB
-  private static readonly MAX_CONTEXT_TOKENS = 100_000; // GPT-4 limit (documented)
-
   private files: Map<string, string> = new Map();
   private images: Map<string, string> = new Map();
 

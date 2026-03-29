@@ -3,6 +3,8 @@ import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { DebatesService } from "./debates.service";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { ApiKeysService } from "../api-keys/api-keys.service";
+import { AiWorkersClient } from "./ai-workers.client";
+import { PersonasService } from "../personas/personas.service";
 
 describe("DebatesService", () => {
   let service: DebatesService;
@@ -10,6 +12,10 @@ describe("DebatesService", () => {
   let apiKeysService: jest.Mocked<ApiKeysService>;
 
   const mockPrismaService = {
+    user: {
+      findUnique: jest.fn(),
+      upsert: jest.fn(),
+    },
     debateSession: {
       create: jest.fn(),
       findMany: jest.fn(),
@@ -28,12 +34,28 @@ describe("DebatesService", () => {
     getUserApiKeys: jest.fn(),
   };
 
+  const mockAiWorkersClient = {
+    startDebate: jest.fn(),
+    getStreamUrl: jest.fn(),
+    healthCheck: jest.fn(),
+  };
+
+  const mockRedis = {
+    publish: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DebatesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ApiKeysService, useValue: mockApiKeysService },
+        { provide: AiWorkersClient, useValue: mockAiWorkersClient },
+        { provide: PersonasService, useValue: { findOne: jest.fn() } },
+        { provide: "default_IORedisModuleConnectionToken", useValue: mockRedis },
       ],
     }).compile();
 
@@ -52,6 +74,9 @@ describe("DebatesService", () => {
     };
 
     it("should create a debate session when user has API keys", async () => {
+      const mockUser = { id: "internal-id", clerkId: userId, email: "test@test.com" };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
       mockApiKeysService.getUserApiKeys.mockResolvedValue({
         openaiKey: "sk-test-key",
         anthropicKey: "sk-ant-test-key",
@@ -59,7 +84,7 @@ describe("DebatesService", () => {
 
       const expectedDebate = {
         id: "debate-123",
-        userId,
+        userId: mockUser.id,
         topic: createDto.topic,
         status: "pending",
         modelsUsed: createDto.models,
@@ -67,49 +92,52 @@ describe("DebatesService", () => {
       };
 
       mockPrismaService.debateSession.create.mockResolvedValue(expectedDebate);
+      mockAiWorkersClient.startDebate.mockResolvedValue({ debateId: "debate-123", status: "processing" });
+      mockPrismaService.debateSession.update.mockResolvedValue({ ...expectedDebate, status: "processing" });
 
       const result = await service.createDebate(userId, createDto);
 
       expect(result).toEqual(expectedDebate);
       expect(mockApiKeysService.getUserApiKeys).toHaveBeenCalledWith(userId);
-      expect(mockPrismaService.debateSession.create).toHaveBeenCalledWith({
-        data: {
-          userId,
-          topic: createDto.topic,
-          status: "pending",
-          modelsUsed: createDto.models,
-          totalCost: 0,
-        },
-      });
+      expect(mockPrismaService.debateSession.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: mockUser.id,
+            topic: createDto.topic,
+            status: "pending",
+            modelsUsed: createDto.models,
+          }),
+        }),
+      );
     });
 
-    it("should throw BadRequestException when no API keys are configured", async () => {
-      mockApiKeysService.getUserApiKeys.mockResolvedValue({});
+    it("should throw NotFoundException when user not found", async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.createDebate(userId, createDto)).rejects.toThrow(
-        BadRequestException
-      );
-      await expect(service.createDebate(userId, createDto)).rejects.toThrow(
-        "No API keys configured"
+        NotFoundException
       );
     });
   });
 
   describe("findAll", () => {
-    const userId = "user-123";
+    const clerkId = "user-123";
 
     it("should return paginated debate sessions", async () => {
+      const mockUser = { id: "internal-id", clerkId };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
       const mockDebates = [
         {
           id: "debate-1",
-          userId,
+          userId: mockUser.id,
           topic: "Topic 1",
           status: "completed",
           rounds: [],
         },
         {
           id: "debate-2",
-          userId,
+          userId: mockUser.id,
           topic: "Topic 2",
           status: "pending",
           rounds: [],
@@ -118,11 +146,14 @@ describe("DebatesService", () => {
 
       mockPrismaService.debateSession.findMany.mockResolvedValue(mockDebates);
 
-      const result = await service.findAll(userId, 20, 0);
+      const result = await service.findAll(clerkId, 20, 0);
 
       expect(result).toEqual(mockDebates);
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { clerkId },
+      });
       expect(mockPrismaService.debateSession.findMany).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId: mockUser.id },
         orderBy: { createdAt: "desc" },
         take: 20,
         skip: 0,
@@ -136,10 +167,20 @@ describe("DebatesService", () => {
       });
     });
 
+    it("should return empty array when user not found", async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.findAll(clerkId);
+
+      expect(result).toEqual([]);
+    });
+
     it("should use default pagination values", async () => {
+      const mockUser = { id: "internal-id", clerkId };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.debateSession.findMany.mockResolvedValue([]);
 
-      await service.findAll(userId);
+      await service.findAll(clerkId);
 
       expect(mockPrismaService.debateSession.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -151,13 +192,16 @@ describe("DebatesService", () => {
   });
 
   describe("findOne", () => {
-    const userId = "user-123";
+    const clerkId = "user-123";
     const debateId = "debate-123";
 
     it("should return debate session with rounds and messages", async () => {
+      const mockUser = { id: "internal-id", clerkId };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
       const mockDebate = {
         id: debateId,
-        userId,
+        userId: mockUser.id,
         topic: "Test topic",
         status: "completed",
         goldenPrompt: "Generated prompt",
@@ -172,11 +216,11 @@ describe("DebatesService", () => {
 
       mockPrismaService.debateSession.findFirst.mockResolvedValue(mockDebate);
 
-      const result = await service.findOne(debateId, userId);
+      const result = await service.findOne(debateId, clerkId);
 
       expect(result).toEqual(mockDebate);
       expect(mockPrismaService.debateSession.findFirst).toHaveBeenCalledWith({
-        where: { id: debateId, userId },
+        where: { id: debateId, userId: mockUser.id },
         include: {
           rounds: {
             include: {
@@ -190,10 +234,20 @@ describe("DebatesService", () => {
       });
     });
 
+    it("should throw NotFoundException when user not found", async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne(debateId, clerkId)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
     it("should throw NotFoundException when debate not found", async () => {
+      const mockUser = { id: "internal-id", clerkId };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.debateSession.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(debateId, userId)).rejects.toThrow(
+      await expect(service.findOne(debateId, clerkId)).rejects.toThrow(
         NotFoundException
       );
     });

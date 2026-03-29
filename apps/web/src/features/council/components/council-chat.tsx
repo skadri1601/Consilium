@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Sparkles, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useCouncilStore } from "../store/council.store";
@@ -15,7 +14,8 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useAuth } from "@/features/auth";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
-import { AGENTS, API_URL } from "@/shared/lib/constants";
+import { AGENTS, FREE_MODEL_IDS } from "@/shared/lib/constants";
+import { getProviderStyles, getAgentDisplayName } from "../utils/council-helpers";
 
 interface AgentProgress {
   agentId: string;
@@ -23,58 +23,53 @@ interface AgentProgress {
   content?: string;
 }
 
-interface RoundProgress {
-  roundNumber: number;
-  status: "pending" | "in_progress" | "complete";
-  agents: AgentProgress[];
+interface StreamEvent {
+  event: string;
+  roundNumber?: number;
+  agentId?: string;
+  chunk?: string;
+  content?: string;
+  goldenPrompt?: string;
+  totalCost?: number;
+  modelsUsed?: string[];
+  message?: string;
+}
+
+interface Persona {
+  id: string;
+  name: string;
+  description?: string;
+  systemPrompt: string;
 }
 
 const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
 const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq", "Grok (XAI)"];
-
-// Provider-specific subtle gradients (professional, not flashy)
-const getProviderStyles = (agentId: string, status: string) => {
-  const agentName = AGENT_NAME_BY_ID.get(agentId) || "";
-  const provider = agentName.includes("GPT") || agentName.includes("o1") ? "openai"
-    : agentName.includes("Claude") ? "anthropic"
-    : agentName.includes("Gemini") ? "google"
-    : agentName.includes("Llama") ? "groq"
-    : agentName.includes("Grok") ? "xai"
-    : "default";
-
-  if (status === "complete") {
-    return "border-green-500/40 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-transparent";
-  }
-
-  if (status === "thinking") {
-    const styles: Record<string, string> = {
-      openai: "border-emerald-400/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-transparent",
-      anthropic: "border-amber-400/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-transparent",
-      google: "border-blue-400/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-transparent",
-      groq: "border-purple-400/40 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-transparent",
-      xai: "border-red-400/40 bg-gradient-to-br from-red-50 to-white dark:from-red-950/20 dark:to-transparent",
-      default: "border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5"
-    };
-    return styles[provider];
-  }
-
-  return "border-muted bg-muted/30";
+const ROUND_DESCRIPTIONS: Record<number, string> = {
+  1: "Independent Analysis",
+  2: "Cross-Examination",
+  3: "Rebuttal & Refinement",
+  4: "Final Positions",
 };
 
 export function CouncilChat() {
   const [input, setInput] = useState("");
+  const [usingFreeModels, setUsingFreeModels] = useState(false);
   const [debateId, setDebateId] = useState<string | null>(null);
   const [goldenPrompt, setGoldenPrompt] = useState<string | null>(null);
   const [debateCost, setDebateCost] = useState<number | null>(null);
   const [modelsUsed, setModelsUsed] = useState<string[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [currentRound, setCurrentRound] = useState<number>(0);
+  const [roundDescription, setRoundDescription] = useState<string>("");
+  const [synthesizing, setSynthesizing] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, AgentProgress>>({});
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>("");
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults } = useCouncilStore();
-  const { getToken, isLoaded: isAuthLoaded } = useAuth();
+  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents } = useCouncilStore();
+  const { isLoaded: isAuthLoaded } = useAuth();
   const { preferences, isLoaded: isPrefsLoaded } = useUserPreferences();
   const selectedAgentNames = selectedAgents.map(
     (agentId) => AGENT_NAME_BY_ID.get(agentId) ?? agentId
@@ -92,19 +87,41 @@ export function CouncilChat() {
     };
   }, []);
 
-  // Load default agents & mode from Clerk user metadata (synced across devices)
   useEffect(() => {
     if (isPrefsLoaded) {
       loadDefaults(preferences);
     }
   }, [isPrefsLoaded, preferences, loadDefaults]);
 
-  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    fetch("/api/personas", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setPersonas(data);
+        }
+      })
+      .catch(() => setPersonas([]));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/api-keys")
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data: Record<string, string | null>) => {
+        const hasAnyKey =
+          data.openaiKey || data.anthropicKey || data.googleKey || data.groqKey || data.xaiKey;
+        if (!hasAnyKey) {
+          setSelectedAgents([...FREE_MODEL_IDS.slice(0, 2)]);
+          setUsingFreeModels(true);
+        }
+      })
+      .catch(() => {});
+  }, [setSelectedAgents]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, agentProgress]);
 
-  // Keyboard shortcuts
   useKeyboardShortcuts([
     {
       key: "k",
@@ -121,8 +138,7 @@ export function CouncilChat() {
       metaKey: true,
       action: () => {
         if (input.trim() && !isLoading && selectedAgents.length > 0) {
-          const syntheticEvent = new Event("submit") as any;
-          handleSubmit(syntheticEvent);
+          handleSubmit(new Event("submit") as unknown as React.FormEvent);
         }
       },
       description: "Submit debate",
@@ -152,16 +168,20 @@ export function CouncilChat() {
     setGoldenPrompt(null);
 
     try {
-      // Create debate session
-      if (!isAuthLoaded || !getToken) {
+      if (topic.length < 3) {
+        addMessage({
+          role: "assistant",
+          content: "Please enter a longer topic (at least 3 characters) to start a debate.",
+        });
+        setLoading(false);
+        setStreaming(false);
+        return;
+      }
+
+      if (!isAuthLoaded) {
         throw new Error("Authentication not ready");
       }
-      const token = await getToken();
-      if (!token) {
-        throw new Error("No authentication token available");
-      }
-      
-      // Use Next.js API route as proxy
+
       const createResponse = await fetch("/api/debates", {
         method: "POST",
         headers: {
@@ -170,26 +190,27 @@ export function CouncilChat() {
         body: JSON.stringify({
           topic,
           models: selectedAgents,
+          ...(selectedPersonaId && { personaId: selectedPersonaId }),
         }),
       });
 
       if (!createResponse.ok) {
         const errorData = await createResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to create debate");
+        const errorMsg = errorData.message || errorData.error || (Array.isArray(errorData) ? errorData.join(", ") : "Failed to create debate");
+        throw new Error(errorMsg);
       }
 
       const debate = await createResponse.json();
       setDebateId(debate.id);
 
-      // Connect to SSE stream
       const eventSource = new EventSource(
-        `${API_URL}/api/v1/debates/${debate.id}/stream?token=${token}`
+        `/api/debates/${debate.id}/stream`
       );
       eventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data) as StreamEvent;
           handleStreamEvent(data);
         } catch (error) {
           console.error("Failed to parse SSE event:", error);
@@ -202,93 +223,131 @@ export function CouncilChat() {
         setLoading(false);
       };
     } catch (error) {
-      console.error("Failed to start debate:", error);
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       addMessage({
         role: "assistant",
-        content: "Failed to start debate. Please try again.",
+        content: errorMessage.includes("topic") ? errorMessage : `Failed to start debate: ${errorMessage}`,
       });
       setLoading(false);
       setStreaming(false);
     }
   };
 
-  const handleStreamEvent = (data: any) => {
-    switch (data.event) {
-      case "debate:start":
-        // Initialize agent progress
+  const handleStreamEvent = (data: StreamEvent) => {
+    const eventName = (data.event || "").replace(/_/g, ":");
+    const agentId = data.agentId || (data as any).agent_id || (data as any).agent;
+    const chunk = data.chunk || (data as any).text;
+    switch (eventName) {
+      case "debate:start": {
         const initialProgress: Record<string, AgentProgress> = {};
         selectedAgents.forEach((agent) => {
           initialProgress[agent] = { agentId: agent, status: "pending" };
         });
         setAgentProgress(initialProgress);
         setCurrentRound(1);
+        setRoundDescription(ROUND_DESCRIPTIONS[1] || "");
+        setSynthesizing(false);
         break;
-        
-      case "round:start":
-        setCurrentRound(data.roundNumber);
-        // Set all agents to pending for new round
+      }
+
+      case "round:start": {
+        const round = data.roundNumber ?? (data as any).round ?? 1;
+        setCurrentRound(round);
+        setRoundDescription(ROUND_DESCRIPTIONS[round] || `Round ${round}`);
+        setSynthesizing(false);
         setAgentProgress((prev) => {
           const updated = { ...prev };
           Object.keys(updated).forEach((key) => {
-            updated[key] = { ...updated[key], status: "pending" };
+            updated[key] = { ...updated[key], status: "pending", content: undefined };
           });
           return updated;
         });
         break;
+      }
         
       case "agent:start":
-        setAgentProgress((prev) => ({
-          ...prev,
-          [data.agentId]: { agentId: data.agentId, status: "thinking" },
-        }));
+        if (agentId) {
+          setAgentProgress((prev) => ({
+            ...prev,
+            [agentId]: { agentId, status: "thinking" },
+          }));
+        }
         break;
-        
+
       case "agent:chunk":
-        setAgentProgress((prev) => ({
-          ...prev,
-          [data.agentId]: {
-            ...prev[data.agentId],
-            status: "thinking",
-            content: (prev[data.agentId]?.content || "") + data.chunk,
-          },
-        }));
+        if (agentId) {
+          setAgentProgress((prev) => ({
+            ...prev,
+            [agentId]: {
+              ...prev[agentId],
+              status: "thinking",
+              content: (prev[agentId]?.content || "") + (chunk || ""),
+            },
+          }));
+        }
         break;
-        
+
       case "agent:complete":
-        setAgentProgress((prev) => ({
-          ...prev,
-          [data.agentId]: {
-            agentId: data.agentId,
-            status: "complete",
-            content: data.content || prev[data.agentId]?.content,
-          },
-        }));
+        if (agentId) {
+          setAgentProgress((prev) => ({
+            ...prev,
+            [agentId]: {
+              agentId,
+              status: "complete",
+              content: data.content || (data as any).response || prev[agentId]?.content,
+            },
+          }));
+        }
         break;
         
       case "synthesis:start":
-        addMessage({
-          role: "assistant",
-          content: "Synthesizing from agent responses...",
-        });
+        setSynthesizing(true);
         break;
-        
-      case "debate:complete":
-        setGoldenPrompt(data.goldenPrompt);
-        setDebateCost(data.totalCost);
-        setModelsUsed(data.modelsUsed || selectedAgents);
+
+      case "round:complete":
+        break;
+
+      case "judge:start":
+        setSynthesizing(true);
+        break;
+
+      case "consensus":
+        setGoldenPrompt(data.goldenPrompt || (data as any).golden_prompt || data.consensus);
+        setSynthesizing(false);
+        break;
+
+      case "cost:update":
+        setDebateCost(data.totalCost || data.total_cost);
+        break;
+
+      case "done":
+      case "debate:complete": {
+        const finalGolden = data.goldenPrompt || (data as any).golden_prompt;
+        if (finalGolden) {
+          setGoldenPrompt(finalGolden);
+        }
+        const finalCost = data.totalCost || (data as any).total_cost;
+        if (finalCost) {
+          setDebateCost(finalCost);
+        }
+        setModelsUsed(data.modelsUsed || (data as any).models || selectedAgents);
         setStreaming(false);
         setLoading(false);
         setCurrentRound(0);
+        setRoundDescription("");
+        setSynthesizing(false);
         setAgentProgress({});
         if (eventSourceRef.current) {
           eventSourceRef.current.close();
         }
         break;
-        
+      }
+
+      case "error":
       case "debate:error":
         addMessage({
           role: "assistant",
-          content: `Error: ${data.message || "Something went wrong during the debate."}`,
+          content: `Error: ${data.message || data.error || "Something went wrong during the debate."}`,
         });
         setStreaming(false);
         setLoading(false);
@@ -299,35 +358,19 @@ export function CouncilChat() {
     }
   };
 
-
-  const getAgentDisplayName = (agentId: string) => {
-    const names: Record<string, string> = {
-      "gpt-4o": "GPT-4o",
-      "gpt-4o-mini": "GPT-4o Mini",
-      "o1": "GPT-o1",
-      "claude-3-5-sonnet-latest": "Claude 3.5 Sonnet",
-      "claude-3-5-haiku-latest": "Claude 3.5 Haiku",
-      "claude-4.6-opus": "Claude Opus 4.6",
-      "claude-4.5-sonnet": "Claude Sonnet 4.5",
-      "gemini-2.0-flash": "Gemini 2.0 Flash",
-      "gemini-1.5-pro": "Gemini 1.5 Pro",
-      "llama-3.1-8b-instant": "Llama 3.1 8B Instant",
-      "llama-3.1-70b-versatile": "Llama 3.1 70B Versatile",
-      "grok-2": "Grok 2",
-      "grok-2-mini": "Grok 2 Mini",
-    };
-    return names[agentId] || agentId;
-  };
-
   return (
     <div className="flex flex-col gap-4">
-      {/* Agent Selection */}
       <AgentSelector />
 
+      {usingFreeModels && (
+        <div className="rounded-lg border border-green-500/30 bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400 flex items-center justify-between">
+          <span>Using free models. Add API keys in Settings for more options.</span>
+          <a href="/settings" className="font-medium underline hover:no-underline">Settings</a>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4">
-        {/* Main Chat Interface */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
-          {/* Input Form - Top on Mobile for better UX */}
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -339,6 +382,22 @@ export function CouncilChat() {
             </CardHeader>
             <CardContent className="pt-4">
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                {personas.length > 0 && (
+                  <select
+                    value={selectedPersonaId}
+                    onChange={(e) => setSelectedPersonaId(e.target.value)}
+                    disabled={isLoading}
+                    aria-label="Select a persona"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="">No persona (standard mode)</option>
+                    {personas.map((persona) => (
+                      <option key={persona.id} value={persona.id}>
+                        {persona.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <Textarea
                   ref={textareaRef}
                   value={input}
@@ -389,7 +448,6 @@ export function CouncilChat() {
             </CardContent>
           </Card>
 
-          {/* Debate Progress - Enhanced Agent Cards */}
           <AnimatePresence>
             {streaming && Object.keys(agentProgress).length > 0 && (
               <motion.div
@@ -403,7 +461,7 @@ export function CouncilChat() {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        Council Debate — Round {currentRound}
+                        Round {currentRound}{roundDescription && `: ${roundDescription}`}
                       </CardTitle>
                       <span className="text-xs text-muted-foreground">
                         {Object.values(agentProgress).filter(a => a.status === "complete").length} / {Object.keys(agentProgress).length} complete
@@ -429,7 +487,6 @@ export function CouncilChat() {
                               agent.status === "complete" && "shadow-sm"
                             )}
                           >
-                            {/* Top bar with model name and status */}
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
                                 <div className={cn(
@@ -463,7 +520,6 @@ export function CouncilChat() {
                               )}
                             </div>
 
-                            {/* Streaming content */}
                             {agent.content && (
                               <motion.div
                                 initial={{ opacity: 0 }}
@@ -476,7 +532,6 @@ export function CouncilChat() {
                               </motion.div>
                             )}
 
-                            {/* Thinking state */}
                             {agent.status === "thinking" && !agent.content && (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -487,13 +542,24 @@ export function CouncilChat() {
                         ))}
                       </AnimatePresence>
                     </div>
+                    {synthesizing && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 flex items-center gap-3 rounded-lg border border-amber-400/30 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 dark:to-transparent p-3"
+                      >
+                        <Loader2 className="h-4 w-4 animate-spin text-amber-600 dark:text-amber-400" />
+                        <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                          Judge synthesizing golden prompt...
+                        </span>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Messages History */}
           {messages.length > 0 && (
             <Card>
               <CardContent className="pt-4">
@@ -524,7 +590,6 @@ export function CouncilChat() {
             </Card>
           )}
 
-          {/* Synthesis Output */}
           {goldenPrompt && (
             <SynthesisOutput
               prompt={goldenPrompt}
@@ -533,7 +598,6 @@ export function CouncilChat() {
             />
           )}
 
-          {/* Empty State */}
           {!streaming && !goldenPrompt && messages.length === 0 && (
             <Card className="border-dashed" role="region" aria-label="Empty state">
               <CardContent className="py-12 text-center">

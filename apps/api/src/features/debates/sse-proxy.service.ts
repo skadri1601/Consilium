@@ -1,36 +1,41 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { AiWorkersClient } from "./ai-workers.client";
+import { DebatesService } from "./debates.service";
+
+interface SseEvent {
+  data: string;
+}
 
 @Injectable()
 export class SseProxyService {
   private readonly logger = new Logger(SseProxyService.name);
 
-  constructor(private aiWorkersClient: AiWorkersClient) {}
+  constructor(
+    private aiWorkersClient: AiWorkersClient,
+    @Inject(forwardRef(() => DebatesService))
+    private debatesService: DebatesService,
+  ) {}
 
-  /**
-   * Proxy SSE stream from FastAPI AI workers to frontend
-   */
-  proxyStream(debateId: string): Observable<MessageEvent> {
+  proxyStream(debateId: string): Observable<SseEvent> {
     return new Observable((subscriber) => {
       const streamUrl = this.aiWorkersClient.getStreamUrl(debateId);
-
       this.logger.log(`[SSE PROXY] Starting stream proxy for debate ${debateId}`);
       this.logger.log(`[SSE PROXY] Fetching from: ${streamUrl}`);
 
-      // Use EventSource-like functionality via fetch with streaming
       const controller = new AbortController();
+      let goldenPrompt: string | undefined;
+      let totalCost: number | undefined;
+      let totalTokens: number | undefined;
+      let statusUpdated = false;
 
       fetch(streamUrl, {
         method: "GET",
-        headers: {
-          Accept: "text/event-stream",
-        },
+        headers: { Accept: "text/event-stream" },
         signal: controller.signal,
       })
         .then(async (response) => {
           this.logger.log(`[SSE PROXY] Response status: ${response.status}`);
-          this.logger.log(`[SSE PROXY] Response headers:`, response.headers);
 
           if (!response.ok) {
             this.logger.error(`[SSE PROXY] HTTP error! status: ${response.status}`);
@@ -55,17 +60,20 @@ export class SseProxyService {
 
             if (done) {
               this.logger.log(`[SSE PROXY] Stream ended after ${eventCount} events`);
+              if (!statusUpdated) {
+                statusUpdated = true;
+                await this.handleStreamComplete(debateId, goldenPrompt, totalCost, totalTokens);
+              }
               subscriber.complete();
               break;
             }
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
-            buffer = lines.pop() || ""; // Keep incomplete line in buffer
+            buffer = lines.pop() || "";
 
             for (const line of lines) {
               if (line.startsWith("event: ")) {
-                // Store the event type for the next data line
                 currentEvent = line.slice(7).trim();
                 this.logger.debug(`[SSE PROXY] Event type: ${currentEvent}`);
               } else if (line.startsWith("data: ")) {
@@ -74,32 +82,95 @@ export class SseProxyService {
                   eventCount++;
                   this.logger.log(`[SSE PROXY] Event #${eventCount} (${currentEvent}): ${dataStr.substring(0, 100)}...`);
 
-                  // Emit the message with event type and data
-                  subscriber.next({
-                    type: currentEvent || "message",
-                    data: dataStr,
-                  } as MessageEvent);
-                  currentEvent = null; // Reset after emitting
+                  let parsed: Record<string, unknown>;
+                  try {
+                    parsed = JSON.parse(dataStr);
+                  } catch {
+                    parsed = { raw: dataStr };
+                  }
+
+                  if (currentEvent === "consensus") {
+                    const gp = (parsed.golden_prompt || parsed.goldenPrompt || parsed.consensus) as string | undefined;
+                    if (gp) {
+                      goldenPrompt = gp;
+                    }
+                  }
+
+                  if (currentEvent === "done") {
+                    const doneGp = (parsed.golden_prompt || parsed.goldenPrompt) as string | undefined;
+                    if (doneGp && !goldenPrompt) {
+                      goldenPrompt = doneGp;
+                    }
+                    if (parsed.total_cost !== undefined) {
+                      totalCost = parsed.total_cost as number;
+                    }
+                    if (parsed.total_tokens !== undefined) {
+                      totalTokens = parsed.total_tokens as number;
+                    }
+                    if (!statusUpdated) {
+                      statusUpdated = true;
+                      await this.handleStreamComplete(debateId, goldenPrompt, totalCost, totalTokens);
+                    }
+                  }
+
+                  if (currentEvent) {
+                    parsed.event = currentEvent;
+                  }
+
+                  if (parsed.golden_prompt && !parsed.goldenPrompt) {
+                    parsed.goldenPrompt = parsed.golden_prompt;
+                  }
+
+                  subscriber.next({ data: JSON.stringify(parsed) });
+                  currentEvent = null;
                 } catch (error) {
                   this.logger.warn(`[SSE PROXY] Failed to process SSE data: ${line}`, error);
                 }
               } else if (line.trim() === "") {
-                // Empty line separates events
                 currentEvent = null;
               }
             }
           }
         })
-        .catch((error) => {
+        .catch(async (error) => {
           this.logger.error(`[SSE PROXY] Error: ${error.message}`, error.stack);
+          if (!statusUpdated) {
+            statusUpdated = true;
+            await this.handleStreamError(debateId, error);
+          }
           subscriber.error(error);
         });
 
-      // Cleanup on unsubscribe
       return () => {
         controller.abort();
       };
     });
+  }
+
+  private async handleStreamComplete(
+    debateId: string,
+    goldenPrompt?: string,
+    totalCost?: number,
+    totalTokens?: number,
+  ): Promise<void> {
+    try {
+      this.logger.log(`[SSE PROXY] Updating debate ${debateId} status to completed`);
+      await this.debatesService.updateStatus(debateId, "completed", goldenPrompt);
+      if (totalCost !== undefined) {
+        await this.debatesService.updateTotalCost(debateId, totalCost);
+      }
+    } catch (error) {
+      this.logger.error(`[SSE PROXY] Failed to update debate status: ${error}`);
+    }
+  }
+
+  private async handleStreamError(debateId: string, error: Error): Promise<void> {
+    try {
+      this.logger.error(`[SSE PROXY] Marking debate ${debateId} as failed: ${error.message}`);
+      await this.debatesService.updateStatus(debateId, "failed");
+    } catch (updateError) {
+      this.logger.error(`[SSE PROXY] Failed to update debate status to failed: ${updateError}`);
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { EncryptionService } from "../../shared/services/encryption.service";
 import { UpdateApiKeysDto } from "./dto/update-api-keys.dto";
@@ -7,6 +7,7 @@ import { createClerkClient } from "@clerk/clerk-sdk-node";
 
 @Injectable()
 export class ApiKeysService {
+  private readonly logger = new Logger(ApiKeysService.name);
   private clerk = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
   });
@@ -23,8 +24,7 @@ export class ApiKeysService {
       });
 
       if (!user) {
-        // Return empty keys instead of throwing error - user might not be in DB yet
-        console.warn(`User not found in database for clerkId: ${userId}`);
+        this.logger.warn(`User not found in database for clerkId: ${userId}`);
         return {
           openaiKey: null,
           anthropicKey: null,
@@ -34,7 +34,6 @@ export class ApiKeysService {
         };
       }
 
-      // Type assertion for API key fields that may not be in schema
       const userWithKeys = user as typeof user & {
         openaiKey?: string | null;
         anthropicKey?: string | null;
@@ -43,7 +42,6 @@ export class ApiKeysService {
         xaiKey?: string | null;
       };
 
-      // Return masked keys (last 4 characters)
       return {
         openaiKey: userWithKeys.openaiKey ? this.maskKey(userWithKeys.openaiKey) : null,
         anthropicKey: userWithKeys.anthropicKey ? this.maskKey(userWithKeys.anthropicKey) : null,
@@ -52,7 +50,7 @@ export class ApiKeysService {
         xaiKey: userWithKeys.xaiKey ? this.maskKey(userWithKeys.xaiKey) : null,
       };
     } catch (error) {
-      console.error("Error fetching API keys:", error);
+      this.logger.error("Error fetching API keys:", error);
       throw new BadRequestException(
         `Failed to fetch API keys: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -82,24 +80,22 @@ export class ApiKeysService {
       updateData.xaiKey = dto.xaiKey ? this.encryption.encrypt(dto.xaiKey) : null;
     }
 
-    // Try to get email from Clerk if user needs to be created
-    let email = `${userId}@clerk.user`; // Fallback
+    let email = `${userId}@clerk.user`;
     try {
       const clerkUser = await this.clerk.users.getUser(userId);
       if (clerkUser.emailAddresses.length > 0) {
         email = clerkUser.emailAddresses[0].emailAddress;
       }
     } catch (error) {
-      console.warn("Failed to fetch user details from Clerk:", error);
+      this.logger.warn("Failed to fetch user details from Clerk:", error);
     }
 
-    // Upsert user: Create if not exists, otherwise update
     await this.prisma.user.upsert({
       where: { clerkId: userId },
       create: {
         clerkId: userId,
         email: email,
-        tenantId: userId, // Default tenant is self
+        tenantId: userId,
         ...updateData,
       },
       update: updateData,
@@ -261,7 +257,6 @@ export class ApiKeysService {
       where: { clerkId: userId },
     });
 
-    // Fallback to environment variables for testing (e.g., CLI testing with test users)
     if (!user) {
       return {
         openaiKey: process.env.OPENAI_API_KEY,
@@ -272,7 +267,6 @@ export class ApiKeysService {
       };
     }
 
-    // Type assertion for API key fields that may not be in schema
     const userWithKeys = user as typeof user & {
       openaiKey?: string | null;
       anthropicKey?: string | null;
@@ -281,51 +275,25 @@ export class ApiKeysService {
       xaiKey?: string | null;
     };
 
-    const keys: any = {};
+    const keys: Record<string, string | undefined> = {};
 
-    // Decrypt keys if they exist
-    if (userWithKeys.openaiKey) {
-      try {
-        keys.openaiKey = this.encryption.decrypt(userWithKeys.openaiKey);
-      } catch (error) {
-        // If decryption fails, key might be corrupted
-        console.error("Failed to decrypt OpenAI key:", error);
+    const keyMap = {
+      openaiKey: userWithKeys.openaiKey,
+      anthropicKey: userWithKeys.anthropicKey,
+      googleKey: userWithKeys.googleKey,
+      groqKey: userWithKeys.groqKey,
+      xaiKey: userWithKeys.xaiKey,
+    };
+
+    for (const [keyName, encryptedValue] of Object.entries(keyMap)) {
+      if (encryptedValue) {
+        try {
+          keys[keyName] = this.encryption.decrypt(encryptedValue);
+        } catch (error) {
+          this.logger.error(`Failed to decrypt ${keyName}:`, error);
+        }
       }
     }
-
-    if (userWithKeys.anthropicKey) {
-      try {
-        keys.anthropicKey = this.encryption.decrypt(userWithKeys.anthropicKey);
-      } catch (error) {
-        console.error("Failed to decrypt Anthropic key:", error);
-      }
-    }
-
-    if (userWithKeys.googleKey) {
-      try {
-        keys.googleKey = this.encryption.decrypt(userWithKeys.googleKey);
-      } catch (error) {
-        console.error("Failed to decrypt Google key:", error);
-      }
-    }
-
-    if (userWithKeys.groqKey) {
-      try {
-        keys.groqKey = this.encryption.decrypt(userWithKeys.groqKey);
-      } catch (error) {
-        console.error("Failed to decrypt Groq key:", error);
-      }
-    }
-
-    if (userWithKeys.xaiKey) {
-      try {
-        keys.xaiKey = this.encryption.decrypt(userWithKeys.xaiKey);
-      } catch (error) {
-        console.error("Failed to decrypt XAI key:", error);
-      }
-    }
-
-    // Fallback to environment variables if user keys not available
     if (!keys.openaiKey && process.env.OPENAI_API_KEY) {
       keys.openaiKey = process.env.OPENAI_API_KEY;
     }

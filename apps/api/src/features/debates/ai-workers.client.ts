@@ -10,7 +10,13 @@ export interface DebateStartRequest {
     anthropicKey?: string;
     googleKey?: string;
     groqKey?: string;
+    xaiKey?: string;
   };
+  systemPrompt?: string;
+  mode?: string;
+  debateSource?: string;
+  roundCount?: number;
+  projectContext?: Record<string, any>;
 }
 
 export interface DebateStartResponse {
@@ -48,7 +54,18 @@ export class AiWorkersClient {
           debate_id: request.debateId,
           topic: request.topic,
           models: request.models,
-          api_keys: request.apiKeys,
+          api_keys: {
+            openai_key: request.apiKeys.openaiKey,
+            anthropic_key: request.apiKeys.anthropicKey,
+            google_key: request.apiKeys.googleKey,
+            groq_key: request.apiKeys.groqKey,
+            xai_key: request.apiKeys.xaiKey,
+          },
+          ...(request.systemPrompt && { system_prompt: request.systemPrompt }),
+          ...(request.mode && { mode: request.mode }),
+          ...(request.debateSource && { debate_source: request.debateSource }),
+          ...(request.roundCount && { round_count: request.roundCount }),
+          ...(request.projectContext && { project_context: request.projectContext }),
         }),
       });
 

@@ -7,6 +7,9 @@ import { ReactNode } from "react";
 export function TestModeClerkProvider({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
+      afterSignOutUrl="/"
+      signInFallbackRedirectUrl="/council"
+      signUpFallbackRedirectUrl="/council"
       appearance={{
         baseTheme: dark,
         variables: {

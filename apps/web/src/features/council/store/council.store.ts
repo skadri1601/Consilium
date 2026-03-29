@@ -1,5 +1,18 @@
 import { create } from "zustand";
 import type { CouncilMessage, CouncilMode } from "../types/council.types";
+import { AGENTS } from "@/shared/lib/constants";
+
+const DEPRECATED_MODEL_MAP: Record<string, string> = {
+  "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
+};
+
+const VALID_AGENT_IDS = new Set(AGENTS.map((a) => a.id));
+
+function sanitizeAgentIds(ids: string[]): string[] {
+  return ids
+    .map((id) => DEPRECATED_MODEL_MAP[id] || id)
+    .filter((id) => VALID_AGENT_IDS.has(id));
+}
 
 interface CouncilState {
   messages: CouncilMessage[];
@@ -18,7 +31,7 @@ interface CouncilState {
 
 export const useCouncilStore = create<CouncilState>((set, get) => ({
   messages: [],
-  selectedAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
+  selectedAgents: [],
   mode: "visible",
   isLoading: false,
   _defaultsLoaded: false,
@@ -51,10 +64,9 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
   setLoading: (loading) => set({ isLoading: loading }),
 
   loadDefaults: (prefs) => {
-    // Only load once per session so user selections during a session aren't overwritten
     if (get()._defaultsLoaded) return;
     set({
-      selectedAgents: prefs.defaultAgents,
+      selectedAgents: sanitizeAgentIds(prefs.defaultAgents),
       mode: prefs.defaultMode,
       _defaultsLoaded: true,
     });

@@ -1,45 +1,60 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Settings } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import type { Agent } from "../types/agents.types";
+import type { AgentDef } from "../types/agents.types";
 
 interface AgentCardProps {
-  agent: Agent;
-  isSelected?: boolean;
-  onClick?: () => void;
+  agent: AgentDef;
+  hasApiKey: boolean;
 }
 
-export function AgentCard({ agent, isSelected, onClick }: AgentCardProps) {
+export function AgentCard({ agent, hasApiKey }: AgentCardProps) {
+  const available = agent.free || hasApiKey;
+
   return (
-    <Card
-      className={cn(
-        "cursor-pointer transition-colors",
-        isSelected && "border-primary bg-primary/5",
-        onClick && "hover:bg-accent"
-      )}
-      onClick={onClick}
-    >
+    <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">{agent.name}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{agent.provider}</p>
-        {agent.description && (
-          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-            {agent.description}
-          </p>
-        )}
-        <div className="mt-2 flex items-center gap-2">
-          <div
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">{agent.name}</CardTitle>
+          <span
             className={cn(
-              "h-2 w-2 rounded-full",
-              agent.isActive ? "bg-green-500" : "bg-gray-400"
+              "rounded-full px-2 py-0.5 text-xs font-medium",
+              agent.free
+                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
             )}
-          />
-          <span className="text-xs text-muted-foreground">
-            {agent.isActive ? "Active" : "Inactive"}
+          >
+            {agent.free ? "Free" : "Paid"}
           </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">{agent.description}</p>
+        <p className="font-mono text-xs text-muted-foreground">{agent.id}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "h-2 w-2 rounded-full",
+                available ? "bg-green-500" : "bg-gray-400"
+              )}
+            />
+            <span className="text-xs text-muted-foreground">
+              {available ? "Available" : "API key required"}
+            </span>
+          </div>
+          {!available && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/settings#/api-keys">
+                <Settings className="mr-1 h-3 w-3" />
+                Configure
+              </Link>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

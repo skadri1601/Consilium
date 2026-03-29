@@ -1,8 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ApiKeysController } from './api-keys.controller';
 import { ApiKeysService } from './api-keys.service';
+import { CliTokenService } from '../auth/services/cli-token.service';
+import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
+import { RateLimitGuard } from '../../shared/guards/rate-limit.guard';
 import { UpdateApiKeysDto } from './dto/update-api-keys.dto';
 import { TestApiKeyDto, ApiKeyProvider } from './dto/test-api-key.dto';
+
+const mockGuard = { canActivate: jest.fn().mockReturnValue(true) };
 
 describe('ApiKeysController', () => {
   let controller: ApiKeysController;
@@ -25,8 +30,20 @@ describe('ApiKeysController', () => {
             testApiKey: jest.fn(),
           },
         },
+        {
+          provide: CliTokenService,
+          useValue: {
+            generate: jest.fn(),
+            validate: jest.fn(),
+          },
+        },
       ],
-    }).compile();
+    })
+      .overrideGuard(ClerkAuthGuard)
+      .useValue(mockGuard)
+      .overrideGuard(RateLimitGuard)
+      .useValue(mockGuard)
+      .compile();
 
     controller = module.get<ApiKeysController>(ApiKeysController);
     service = module.get<ApiKeysService>(ApiKeysService);
@@ -43,6 +60,7 @@ describe('ApiKeysController', () => {
         anthropicKey: null,
         googleKey: null,
         groqKey: null,
+        xaiKey: null,
       };
 
       jest.spyOn(service, 'getApiKeys').mockResolvedValue(mockKeys);
@@ -64,6 +82,10 @@ describe('ApiKeysController', () => {
         message: 'API keys updated successfully',
         keys: {
           openaiKey: '****-new',
+          anthropicKey: null,
+          googleKey: null,
+          groqKey: null,
+          xaiKey: null,
         },
       };
 
@@ -90,12 +112,10 @@ describe('ApiKeysController', () => {
 
       jest.spyOn(service, 'testApiKey').mockResolvedValue(mockResult);
 
-      const result = await controller.testApiKey(mockUser, dto);
+      const result = await controller.testApiKey(dto);
 
       expect(result).toEqual(mockResult);
       expect(service.testApiKey).toHaveBeenCalledWith(dto);
     });
   });
-
 });
-

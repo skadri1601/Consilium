@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, DollarSign, MessageSquare, Zap } from "lucide-react";
+import { TrendingUp, DollarSign, MessageSquare, Zap, Terminal } from "lucide-react";
 
 interface AnalyticsData {
   totalDebates: number;
@@ -121,15 +121,21 @@ export function AnalyticsDashboard() {
             <CardDescription>Last 7 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.debatesByDay.slice(-7)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#0088FE" />
-              </BarChart>
-            </ResponsiveContainer>
+            {data.debatesByDay.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data.debatesByDay.slice(-7)}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#0088FE" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+                No data yet. Start a debate to see activity.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -139,25 +145,52 @@ export function AnalyticsDashboard() {
             <CardDescription>Most used models</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={data.modelUsage}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ model, percent }) => `${model} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {data.modelUsage.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {data.modelUsage.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data.modelUsage}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ model, percent }) => `${model} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="count"
+                  >
+                    {data.modelUsage.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+                No data yet. Complete a debate to see model usage.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Terminal className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle>CLI Analytics</CardTitle>
+              <CardDescription>Usage stats from the Consilium CLI</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Terminal className="h-8 w-8 shrink-0" />
+              <div>
+                <p>Connect your CLI to start tracking usage.</p>
+                <p className="mt-1 font-mono text-xs">Run: consilium login</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

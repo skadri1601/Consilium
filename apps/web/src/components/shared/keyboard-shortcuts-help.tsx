@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,33 +14,33 @@ import { Keyboard } from "lucide-react";
 
 const shortcuts = [
   {
-    keys: ["⌘", "K"],
+    mac: ["⌘", "K"],
+    windows: ["Ctrl", "K"],
     description: "Focus debate input",
-    mac: "⌘K",
-    windows: "Ctrl+K",
   },
   {
-    keys: ["⌘", "Enter"],
+    mac: ["⌘", "Enter"],
+    windows: ["Ctrl", "Enter"],
     description: "Submit debate",
-    mac: "⌘Enter",
-    windows: "Ctrl+Enter",
   },
   {
-    keys: ["⌘", "C"],
+    mac: ["⌘", "C"],
+    windows: ["Ctrl", "C"],
     description: "Copy Synthesis (when visible)",
-    mac: "⌘C",
-    windows: "Ctrl+C",
   },
   {
-    keys: ["Esc"],
+    mac: ["Esc"],
+    windows: ["Esc"],
     description: "Close modal/dialog",
-    mac: "Esc",
-    windows: "Esc",
   },
 ];
 
 export function KeyboardShortcutsHelp() {
-  const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
+  }, []);
 
   return (
     <Dialog>
@@ -57,21 +58,24 @@ export function KeyboardShortcutsHelp() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 mt-4">
-          {shortcuts.map((shortcut, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{shortcut.description}</span>
-              <div className="flex items-center gap-1">
-                {shortcut.keys.map((key, keyIndex) => (
-                  <kbd
-                    key={keyIndex}
-                    className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-                  >
-                    {isMac ? shortcut.mac.split("+")[keyIndex] : shortcut.windows.split("+")[keyIndex]}
-                  </kbd>
-                ))}
+          {shortcuts.map((shortcut, index) => {
+            const keys = isMac ? shortcut.mac : shortcut.windows;
+            return (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{shortcut.description}</span>
+                <div className="flex items-center gap-1">
+                  {keys.map((key, keyIndex) => (
+                    <kbd
+                      key={keyIndex}
+                      className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+                    >
+                      {key}
+                    </kbd>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>

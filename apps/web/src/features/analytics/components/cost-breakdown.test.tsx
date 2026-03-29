@@ -51,7 +51,7 @@ describe('CostBreakdown', () => {
     render(<CostBreakdown />);
 
     expect(screen.getByText('Cost by Model')).toBeInTheDocument();
-    expect(screen.getByText(/distribution of costs across ai models/i)).toBeInTheDocument();
+    expect(screen.getByText(/distribution of costs across models/i)).toBeInTheDocument();
   });
 
   it('should display total cost in description', () => {

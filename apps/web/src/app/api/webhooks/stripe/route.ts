@@ -37,27 +37,21 @@ export async function POST(req: Request) {
   }
 
   switch (event.type) {
-    case "checkout.session.completed":
-      const session = event.data.object as Stripe.Checkout.Session;
-      // Handle successful checkout
-      console.log("Checkout completed:", session.id);
+    case "checkout.session.completed": {
       break;
+    }
 
     case "customer.subscription.created":
-    case "customer.subscription.updated":
-      const subscription = event.data.object as Stripe.Subscription;
-      // Handle subscription changes
-      console.log("Subscription updated:", subscription.id);
+    case "customer.subscription.updated": {
       break;
+    }
 
-    case "customer.subscription.deleted":
-      const deletedSubscription = event.data.object as Stripe.Subscription;
-      // Handle subscription cancellation
-      console.log("Subscription deleted:", deletedSubscription.id);
+    case "customer.subscription.deleted": {
       break;
+    }
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      break;
   }
 
   return NextResponse.json({ received: true });

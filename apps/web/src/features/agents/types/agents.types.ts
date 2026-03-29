@@ -1,19 +1,9 @@
-export type AgentProvider = "openai" | "anthropic" | "google" | "groq" | "xai";
+export type AgentProvider = "OpenAI" | "Anthropic" | "Google" | "Groq" | "XAI";
 
-export interface Agent {
+export interface AgentDef {
   id: string;
   name: string;
   provider: AgentProvider;
-  modelId: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateAgentInput {
-  name: string;
-  provider: string;
-  modelId: string;
-  description?: string;
+  description: string;
+  free: boolean;
 }

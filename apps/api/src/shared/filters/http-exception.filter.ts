@@ -22,24 +22,45 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : "Internal server error";
-
     this.logger.error(
-      `HTTP ${status} Error: ${JSON.stringify(message)}`,
+      `HTTP ${status} Error: ${exception instanceof Error ? exception.message : "Unknown error"}`,
       exception instanceof Error ? exception.stack : undefined
     );
+
+    const clientMessage = this.getSafeMessage(exception, status);
 
     response.status(status).send({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      message:
-        typeof message === "object" && "message" in message
-          ? (message as any).message
-          : message,
+      message: clientMessage,
     });
+  }
+
+  private getSafeMessage(exception: unknown, status: number): string | string[] {
+    if (!(exception instanceof HttpException)) {
+      return "Internal server error";
+    }
+
+    const exceptionResponse = exception.getResponse();
+
+    if (typeof exceptionResponse === "string") {
+      return exceptionResponse;
+    }
+
+    if (typeof exceptionResponse === "object" && exceptionResponse !== null) {
+      const resp = exceptionResponse as Record<string, unknown>;
+      if (Array.isArray(resp.message)) {
+        return resp.message as string[];
+      }
+      if (typeof resp.message === "string") {
+        if (resp.message.includes("Prisma") || resp.message.includes("prisma")) {
+          return "Internal server error";
+        }
+        return resp.message;
+      }
+    }
+
+    return HttpStatus[status] || "Internal server error";
   }
 }

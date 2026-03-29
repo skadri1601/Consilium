@@ -1,32 +1,26 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 
-// Mock the Clerk SDK
-jest.mock("@clerk/clerk-sdk-node", () => ({
-  createClerkClient: jest.fn(() => ({
-    verifyToken: jest.fn(),
-    users: {
-      getUser: jest.fn(),
-    },
-    sessions: {
-      revokeSession: jest.fn(),
-      getSessionList: jest.fn(),
-    },
-  })),
-}));
+const mockClerk = {
+  verifyToken: jest.fn(),
+  users: {
+    getUser: jest.fn(),
+  },
+  sessions: {
+    revokeSession: jest.fn(),
+    getSessionList: jest.fn(),
+  },
+};
 
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+jest.mock("@clerk/clerk-sdk-node", () => ({
+  createClerkClient: jest.fn(() => mockClerk),
+}));
 
 describe("AuthService", () => {
   let service: AuthService;
-  let mockClerk: any;
 
   beforeEach(async () => {
-    // Reset mocks
     jest.clearAllMocks();
-
-    // Get the mocked Clerk client
-    mockClerk = (createClerkClient as jest.Mock)();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService],
@@ -119,7 +113,7 @@ describe("AuthService", () => {
         data: [
           { id: "session-1", status: "active" },
           { id: "session-2", status: "active" },
-          { id: "session-3", status: "ended" }, // Should be skipped
+          { id: "session-3", status: "ended" },
         ],
       };
 
@@ -132,7 +126,6 @@ describe("AuthService", () => {
       expect(mockClerk.sessions.getSessionList).toHaveBeenCalledWith({
         userId: "user-123",
       });
-      // Should only revoke active sessions
       expect(mockClerk.sessions.revokeSession).toHaveBeenCalledTimes(2);
       expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith("session-1");
       expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith("session-2");

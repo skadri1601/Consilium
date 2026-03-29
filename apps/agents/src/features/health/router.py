@@ -104,7 +104,7 @@ def get_available_models() -> list:
     if keys["google"]:
         models.extend(["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-exp-1206"])
     if keys["groq"]:
-        models.extend(["llama-3.1-8b-instant", "llama-3.1-70b-versatile"])
+        models.extend(["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
     if keys["xai"]:
         models.extend(["grok-beta"])
 

@@ -6,62 +6,34 @@ import {
   HttpStatus,
   Logger,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { Redis } from "ioredis";
+import { Reflector } from "@nestjs/core";
+import { InjectRedis } from "@nestjs-modules/ioredis";
+import Redis from "ioredis";
+
+export const RATE_LIMIT_KEY = "rateLimit";
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
-  private redis: Redis;
-  private readonly defaultLimit: number;
-  private readonly defaultWindow: number; // in seconds
   private readonly logger = new Logger(RateLimitGuard.name);
-  private redisAvailable = false;
 
-  constructor(private configService: ConfigService) {
-    const redisUrl = this.configService.get<string>("REDIS_URL");
-    this.redis = new Redis(redisUrl || "redis://localhost:6379", {
-      retryStrategy: (times) => {
-        if (times > 3) {
-          this.logger.warn("Redis connection failed. Rate limiting will be disabled.");
-          this.redisAvailable = false;
-          return null; // Stop retrying
-        }
-        return Math.min(times * 200, 2000);
-      },
-      maxRetriesPerRequest: 1,
-      lazyConnect: true,
-    });
-
-    this.redis.on("error", (error) => {
-      this.redisAvailable = false;
-      this.logger.debug(`Redis error in RateLimitGuard: ${error.message}`);
-    });
-
-    this.redis.on("connect", () => {
-      this.redisAvailable = true;
-      this.logger.debug("Redis connected for rate limiting");
-    });
-
-    // Attempt to connect
-    this.redis.connect().catch(() => {
-      this.redisAvailable = false;
-      this.logger.warn("Redis unavailable. Rate limiting disabled.");
-    });
-
-    this.defaultLimit = 100; // requests
-    this.defaultWindow = 60; // per minute
-  }
+  constructor(
+    @InjectRedis() private readonly redis: Redis,
+    private readonly reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // If Redis is not available, skip rate limiting
-    if (!this.redisAvailable) {
+    if (this.redis.status !== "ready") {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
+    const metadata = this.reflector.get<{ limit: number; window: number }>(
+      RATE_LIMIT_KEY,
+      context.getHandler(),
+    );
+    const limit = metadata?.limit ?? 100;
+    const window = metadata?.window ?? 60;
     const key = this.getKey(request);
-    const limit = this.getLimit(request);
-    const window = this.getWindow(request);
 
     try {
       const current = await this.redis.incr(key);
@@ -82,7 +54,6 @@ export class RateLimitGuard implements CanActivate {
         );
       }
 
-      // Add rate limit headers
       const response = context.switchToHttp().getResponse();
       response.header("X-RateLimit-Limit", limit);
       response.header("X-RateLimit-Remaining", Math.max(0, limit - current));
@@ -90,12 +61,10 @@ export class RateLimitGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      // If it's an HttpException (rate limit exceeded), rethrow it
       if (error instanceof HttpException) {
         throw error;
       }
-      // Otherwise, Redis error - allow request through
-      this.logger.debug(`Redis error in rate limiting, allowing request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.debug(`Redis error in rate limiting, allowing request: ${error instanceof Error ? error.message : "Unknown error"}`);
       return true;
     }
   }
@@ -104,15 +73,5 @@ export class RateLimitGuard implements CanActivate {
     const userId = request.user?.userId || request.ip;
     const path = request.url.split("?")[0];
     return `rate-limit:${userId}:${path}`;
-  }
-
-  private getLimit(request: any): number {
-    // Can be customized per endpoint
-    return this.defaultLimit;
-  }
-
-  private getWindow(request: any): number {
-    // Can be customized per endpoint
-    return this.defaultWindow;
   }
 }

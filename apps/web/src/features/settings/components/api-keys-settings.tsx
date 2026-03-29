@@ -342,6 +342,9 @@ export function ApiKeysSettings() {
                 )}
               </Button>
             </div>
+            <p className="text-xs text-green-600 dark:text-green-400">
+              Groq models are free to use. No API key required for basic access. Add your own key for higher rate limits.
+            </p>
           </div>
 
           {/* XAI (Grok) */}

@@ -5,38 +5,57 @@ import { PrismaService } from "../../shared/database/prisma.service";
 export class AnalyticsService {
   constructor(private prisma: PrismaService) {}
 
-  async getStats(userId: string) {
+  private async resolveUserId(clerkId: string): Promise<string | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    return user?.id ?? null;
+  }
+
+  async getStats(clerkId: string) {
+    const internalUserId = await this.resolveUserId(clerkId);
+    if (!internalUserId) {
+      return {
+        totalDebates: 0,
+        totalCost: 0,
+        debatesThisMonth: 0,
+        costThisMonth: 0,
+        debatesByDay: [],
+        modelUsage: [],
+      };
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [totalDebates, debatesThisMonth, totalCostResult, costThisMonthResult] = await Promise.all([
-      (this.prisma as any).debateSession.count({ where: { userId } }),
-      (this.prisma as any).debateSession.count({
+      this.prisma.debateSession.count({ where: { userId: internalUserId } }),
+      this.prisma.debateSession.count({
         where: {
-          userId,
+          userId: internalUserId,
           createdAt: { gte: startOfMonth },
         },
       }),
-      (this.prisma as any).debateSession.aggregate({
-        where: { userId },
+      this.prisma.debateSession.aggregate({
+        where: { userId: internalUserId },
         _sum: { totalCost: true },
       }),
-      (this.prisma as any).debateSession.aggregate({
+      this.prisma.debateSession.aggregate({
         where: {
-          userId,
+          userId: internalUserId,
           createdAt: { gte: startOfMonth },
         },
         _sum: { totalCost: true },
       }),
     ]);
 
-    // Get debates by day for last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const recentDebates = await (this.prisma as any).debateSession.findMany({
+    const recentDebates = await this.prisma.debateSession.findMany({
       where: {
-        userId,
+        userId: internalUserId,
         createdAt: { gte: sevenDaysAgo },
       },
       select: { createdAt: true },
@@ -51,18 +70,19 @@ export class AnalyticsService {
       {} as Record<string, number>
     );
 
-    // Get model usage
-    const allDebates = await (this.prisma as any).debateSession.findMany({
-      where: { userId },
+    const allDebates = await this.prisma.debateSession.findMany({
+      where: { userId: internalUserId },
       select: { modelsUsed: true },
     });
 
     const modelUsage = allDebates.reduce(
       (acc: Record<string, number>, debate: { modelsUsed: unknown }) => {
         const models = debate.modelsUsed as string[];
-        models.forEach((model) => {
-          acc[model] = (acc[model] || 0) + 1;
-        });
+        if (Array.isArray(models)) {
+          models.forEach((model) => {
+            acc[model] = (acc[model] || 0) + 1;
+          });
+        }
         return acc;
       },
       {} as Record<string, number>
@@ -82,7 +102,7 @@ export class AnalyticsService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const records = await (this.prisma as any).usageRecord.findMany({
+    const records = await this.prisma.usageRecord.findMany({
       where: {
         tenantId,
         recordedAt: { gte: startDate },
@@ -94,7 +114,7 @@ export class AnalyticsService {
   }
 
   async getCostsByModel(tenantId: string) {
-    const costs = await (this.prisma as any).usageRecord.groupBy({
+    const costs = await this.prisma.usageRecord.groupBy({
       by: ["agentId"],
       where: { tenantId },
       _sum: { cost: true, tokens: true },

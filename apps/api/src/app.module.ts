@@ -3,11 +3,8 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { RedisModule } from "@nestjs-modules/ioredis";
 import { TerminusModule } from "@nestjs/terminus";
 
-// Shared modules
 import { PrismaModule } from "./shared/database";
 import { appConfig, databaseConfig, redisConfig } from "./shared/config";
-
-// Feature modules
 import { AuthModule } from "./features/auth";
 import { AgentsModule } from "./features/agents";
 import { ConversationsModule } from "./features/conversations";
@@ -21,14 +18,12 @@ import { WebhooksModule } from "./features/webhooks";
 import { WaitlistModule } from "./features/waitlist";
 import { DebateQueueModule } from "./shared/queue/debate-queue.module";
 
-// Controllers
 import { HealthController } from "./health.controller";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      // Look for .env.local in root directory (../../ from apps/api/src)
       envFilePath: ["../../.env.local", "../../.env", ".env.local", ".env"],
       load: [appConfig, databaseConfig, redisConfig],
     }),
@@ -43,13 +38,13 @@ import { HealthController } from "./health.controller";
           options: {
             retryStrategy: (times: number) => {
               if (times > 3) {
-                return null; // Stop retrying after 3 attempts
+                return null;
               }
               return Math.min(times * 200, 2000);
             },
             maxRetriesPerRequest: 1,
             lazyConnect: true,
-            enableOfflineQueue: false, // Don't queue commands when disconnected
+            enableOfflineQueue: false,
           },
         };
       },

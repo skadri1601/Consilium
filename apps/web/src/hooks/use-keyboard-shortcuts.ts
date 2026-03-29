@@ -17,12 +17,9 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     (event: KeyboardEvent) => {
       for (const shortcut of shortcuts) {
         const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const ctrlMatches = shortcut.ctrlKey ? event.ctrlKey : !event.ctrlKey;
-        const metaMatches = shortcut.metaKey ? event.metaKey : !event.metaKey;
         const shiftMatches = shortcut.shiftKey ? event.shiftKey : !event.shiftKey;
         const altMatches = shortcut.altKey ? event.altKey : !event.altKey;
 
-        // Handle Cmd on Mac, Ctrl on Windows/Linux
         const modifierMatches =
           shortcut.ctrlKey || shortcut.metaKey
             ? event.ctrlKey || event.metaKey
@@ -35,14 +32,12 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
           altMatches &&
           !event.defaultPrevented
         ) {
-          // Check if user is typing in an input/textarea
           const target = event.target as HTMLElement;
           const isInput =
             target.tagName === "INPUT" ||
             target.tagName === "TEXTAREA" ||
             target.isContentEditable;
 
-          // Allow shortcuts in inputs only if explicitly allowed (like Cmd+K)
           if (isInput && shortcut.key.toLowerCase() !== "k") {
             continue;
           }

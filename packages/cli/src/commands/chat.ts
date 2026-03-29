@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import readline from 'readline';
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +9,7 @@ import { SessionManager } from '../utils/session-manager';
 import { requireAuth } from '../utils/require-auth';
 import { loadConfig, updateConfig } from '../utils/config';
 import { openBrowser } from '../utils/open-browser';
-import { border, borderBottom, borderLine, contentLine, style } from '../utils/visual-system';
+import { border, borderBottom, contentLine, style } from '../utils/visual-system';
 import { formatPrompt } from '../utils/prompt-renderer';
 import { terminal } from '../utils/terminal-capabilities';
 
@@ -22,9 +21,8 @@ const DEFAULT_SESSION_DIR = path.join(
 
 const st = style();
 const w = terminal.width;
-
-/** Default prompt when no context (used by readline initial prompt) */
-const DEFAULT_PROMPT = 'consilium › ';
+const DEFAULT_PROMPT = 'consilium > ';
+const INPUT_HISTORY_SIZE = 100;
 
 function getPrompt(session: ChatSession): string {
   return formatPrompt({ fileCount: session.contextFilePaths.length }) + ' ';
@@ -50,16 +48,147 @@ function printHelp(): void {
   console.log(st.dim('  /status        - Show session status'));
   console.log(st.dim('  /models [m1 m2 ...] - Set models; no args to show current'));
   console.log(st.dim('  /save [file]   - Save synthesis to file, or session to ~/.consilium/sessions'));
+  console.log(st.dim('  /search <query> - Search across all conversations'));
+  console.log(st.dim('  /rename <name> - Rename current session'));
+  console.log(st.dim('  /delete <id>   - Delete a saved session'));
+  console.log(st.dim('  /history       - Show conversation history'));
+  console.log(st.dim('  /sessions      - List all saved sessions'));
   console.log(st.dim('  /help          - Show this help'));
   console.log(st.dim('  /exit          - Exit and optionally save session'));
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
 }
 
+function printConversationHistory(session: ChatSession): void {
+  if (session.debates.length === 0) {
+    console.log(st.dim('\nNo debates in this session yet.\n'));
+    return;
+  }
+
+  console.log(st.bold('\nConversation History:\n'));
+  for (let i = 0; i < session.debates.length; i++) {
+    const d = session.debates[i];
+    const topicPreview = d.topic.length > 70
+      ? d.topic.substring(0, 70) + '...'
+      : d.topic;
+    const time = d.timestamp
+      ? st.dim(` (${new Date(d.timestamp).toLocaleString()})`)
+      : '';
+    console.log(st.brand(`  ${i + 1}.`), topicPreview + time);
+
+    if (d.goldenPrompt) {
+      const synthPreview = d.goldenPrompt.length > 100
+        ? d.goldenPrompt.substring(0, 100) + '...'
+        : d.goldenPrompt;
+      console.log(st.dim(`     Synthesis: ${synthPreview}`));
+    }
+  }
+  console.log('');
+}
+
+function handleSearchCommand(query: string, sessionManager: SessionManager): void {
+  if (!query) {
+    console.log(st.warning('Usage: /search <query>'));
+    return;
+  }
+
+  const results = sessionManager.searchSessions(query);
+  if (results.length === 0) {
+    console.log(st.dim(`\nNo results for "${query}".\n`));
+    return;
+  }
+
+  console.log(st.bold(`\nSearch results for "${query}":\n`));
+  for (const r of results) {
+    const typeLabel = r.matchType === 'topic' ? 'Topic' : 'Synthesis';
+    console.log(st.brand(`  [${r.sessionId}]`), r.sessionName);
+    console.log(st.dim(`    ${typeLabel}: ${r.matchSnippet}`));
+  }
+  console.log('');
+}
+
+function handleSessionsListCommand(sessionManager: SessionManager): void {
+  const list = sessionManager.listSessions();
+  if (list.length === 0) {
+    console.log(st.dim('\nNo saved sessions.\n'));
+    return;
+  }
+
+  console.log(st.bold('\nSaved sessions:\n'));
+  for (let i = 0; i < list.length; i++) {
+    const s = list[i];
+    const timeAgo = sessionManager.formatRelativeTime(s.updatedAt);
+    const label = s.name || s.topic || 'Untitled';
+    const displayLabel = label.length > 50 ? label.substring(0, 50) + '...' : label;
+    console.log(
+      st.brand(`  ${i + 1}.`),
+      displayLabel,
+      st.dim(`(${s.debateCount} debate${s.debateCount !== 1 ? 's' : ''}, ${timeAgo})`)
+    );
+    if (s.preview && s.preview !== '(no synthesis)') {
+      console.log(st.dim(`     ${s.preview}`));
+    }
+  }
+  console.log(st.dim('\n  Resume with: consilium sessions resume <session-id>\n'));
+}
+
+function handleRenameCommand(
+  args: string[],
+  session: ChatSession,
+  sessionManager: SessionManager
+): void {
+  const newName = args.join(' ').trim();
+  if (!newName) {
+    console.log(st.warning('Usage: /rename <new name>'));
+    return;
+  }
+
+  session.name = newName;
+
+  if (session.id) {
+    sessionManager.renameSession(session.id, newName);
+    console.log(st.success(`Session renamed to: ${newName}`));
+  } else {
+    console.log(st.success(`Session will be saved as: ${newName}`));
+  }
+}
+
+function handleDeleteCommand(
+  args: string[],
+  sessionManager: SessionManager,
+  rl: readline.Interface,
+  callback: () => void
+): void {
+  const targetId = args[0];
+  if (!targetId) {
+    console.log(st.warning('Usage: /delete <session-id>'));
+    callback();
+    return;
+  }
+
+  rl.question(st.warning(`Delete session "${targetId}"? (y/N) `), (answer) => {
+    const confirmed = answer.trim().toLowerCase() === 'y';
+    if (!confirmed) {
+      console.log(st.dim('Cancelled.'));
+      callback();
+      return;
+    }
+
+    const deleted = sessionManager.deleteSession(targetId);
+    if (deleted) {
+      console.log(st.success(`Session "${targetId}" deleted.`));
+    } else {
+      console.log(st.error(`Session not found: ${targetId}`));
+    }
+    callback();
+  });
+}
+
 async function handleSlashCommand(
   input: string,
   session: ChatSession,
-  sessionManager: SessionManager
-): Promise<'exit' | 'continue'> {
+  sessionManager: SessionManager,
+  rl: readline.Interface
+): Promise<'exit' | 'continue' | 'delete-pending'> {
   const trimmed = input.trim();
   const parts = trimmed.split(/\s+/);
   const cmd = parts[0].toLowerCase();
@@ -93,7 +222,7 @@ async function handleSlashCommand(
         const entry = files.find((f) => f.name === path.basename(filePath));
         const sizeKb = entry ? (entry.size / 1024).toFixed(1) : '?';
         console.log(
-          st.success(`✓ Added ${path.basename(filePath)} to context (${sizeKb} KB)`)
+          st.success(`Added ${path.basename(filePath)} to context (${sizeKb} KB)`)
         );
       } catch (error: any) {
         console.error(st.error('Error:'), error.message);
@@ -109,7 +238,7 @@ async function handleSlashCommand(
       }
       try {
         session.contextManager.addImage(imagePath);
-        console.log(st.success(`✓ Added ${path.basename(imagePath)} to context (for future use)`));
+        console.log(st.success(`Added ${path.basename(imagePath)} to context (for future use)`));
       } catch (error: any) {
         console.error(st.error('Error:'), error.message);
       }
@@ -127,6 +256,12 @@ async function handleSlashCommand(
       const files = session.contextManager.getFiles();
       const totalSize = session.contextManager.getTotalSize();
       console.log(st.bold('\nSession Status\n'));
+      if (session.name) {
+        console.log(st.brand('Name:'), session.name);
+      }
+      if (session.id) {
+        console.log(st.brand('ID:'), session.id);
+      }
       console.log(st.brand('Models:'), session.models.join(', '));
       console.log(st.brand('Context files:'), files.length);
       if (files.length > 0) {
@@ -150,7 +285,7 @@ async function handleSlashCommand(
     case '/models': {
       if (args.length > 0) {
         session.models = args;
-        console.log(st.success('✓ Models set:'), session.models.join(', '));
+        console.log(st.success('Models set:'), session.models.join(', '));
       } else {
         console.log(st.brand('Current models:'), session.models.join(', '));
       }
@@ -162,14 +297,14 @@ async function handleSlashCommand(
       if (filepath) {
         if (session.lastGoldenPrompt) {
           fs.writeFileSync(filepath, session.lastGoldenPrompt, 'utf-8');
-          console.log(st.success(`✓ Saved synthesis to ${filepath}`));
+          console.log(st.success(`Saved synthesis to ${filepath}`));
         } else {
           console.log(st.warning('No synthesis to save. Run a debate first.'));
         }
       } else {
         const sessionId = sessionManager.saveSession(session);
         console.log(
-          st.success('✓ Session saved. Resume with:'),
+          st.success('Session saved. Resume with:'),
           st.brand(`consilium sessions resume ${sessionId}`)
         );
       }
@@ -186,12 +321,12 @@ async function handleSlashCommand(
         const key = args.slice(1).join(' ').trim() || (args[1] ?? '');
         if (!key) {
           console.log(st.warning('Usage: /api set <your-api-key>'));
-          console.log(st.dim('Get a key from the web app: Settings → CLI → Generate CLI token'));
+          console.log(st.dim('Get a key from the web app: Settings > CLI > Generate CLI token'));
           console.log(st.dim('Or run: /api open'));
           return 'continue';
         }
         updateConfig('apiKey', key);
-        console.log(st.success('✓ API key saved. You can run debates now.'));
+        console.log(st.success('API key saved. You can run debates now.'));
         return 'continue';
       }
 
@@ -202,7 +337,6 @@ async function handleSlashCommand(
         return 'continue';
       }
 
-      // /api with no subcommand: show status
       const apiKey = config.apiKey?.trim();
       console.log(st.bold('\nAPI Configuration\n'));
       console.log(st.brand('API URL:'), config.apiUrl || 'http://localhost:4000');
@@ -218,13 +352,36 @@ async function handleSlashCommand(
       return 'continue';
     }
 
+    case '/search': {
+      const query = args.join(' ').trim();
+      handleSearchCommand(query, sessionManager);
+      return 'continue';
+    }
+
+    case '/rename': {
+      handleRenameCommand(args, session, sessionManager);
+      return 'continue';
+    }
+
+    case '/delete': {
+      return 'delete-pending';
+    }
+
+    case '/history': {
+      printConversationHistory(session);
+      return 'continue';
+    }
+
+    case '/sessions': {
+      handleSessionsListCommand(sessionManager);
+      return 'continue';
+    }
+
     default:
       console.log(st.warning(`Unknown command: ${cmd}. Use /help for commands.`));
       return 'continue';
   }
 }
-
-const INPUT_HISTORY_SIZE = 100;
 
 function pushHistory(history: string[], line: string): void {
   if (!line || history[history.length - 1] === line) return;
@@ -272,7 +429,21 @@ function runReplLoop(
     }
 
     if (trimmed.startsWith('/')) {
-      handleSlashCommand(trimmed, session, sessionManager).then((result) => {
+      if (trimmed.toLowerCase().startsWith('/delete')) {
+        const parts = trimmed.split(/\s+/);
+        const deleteArgs = parts.slice(1);
+        if (!deleteArgs[0]) {
+          console.log(st.warning('Usage: /delete <session-id>'));
+          runReplLoop(rl, history, session, sessionManager);
+          return;
+        }
+        handleDeleteCommand(deleteArgs, sessionManager, rl, () => {
+          runReplLoop(rl, history, session, sessionManager);
+        });
+        return;
+      }
+
+      handleSlashCommand(trimmed, session, sessionManager, rl).then((result) => {
         if (result === 'exit') {
           rl.close();
           return;
@@ -350,9 +521,21 @@ export async function chatResumeCommand(sessionId: string): Promise<void> {
 
   try {
     const session = sessionManager.loadSession(sessionId);
+    const displayName = session.name || sessionId;
 
-    console.log(st.success(`\nResuming session: ${sessionId}\n`));
-    console.log(st.brand('Previous context loaded.'), st.dim(`(${session.debates.length} debates in session)\n`));
+    console.log(st.success(`\nResuming session: ${displayName}\n`));
+
+    if (session.debates.length > 0) {
+      console.log(st.bold('Conversation history:'));
+      for (let i = 0; i < session.debates.length; i++) {
+        const d = session.debates[i];
+        const topicPreview = d.topic.length > 60
+          ? d.topic.substring(0, 60) + '...'
+          : d.topic;
+        console.log(st.brand(`  ${i + 1}.`), topicPreview);
+      }
+      console.log(st.dim(`\n  ${session.debates.length} debate${session.debates.length !== 1 ? 's' : ''} loaded. Previous syntheses will be used as context.\n`));
+    }
 
     printWelcome();
 

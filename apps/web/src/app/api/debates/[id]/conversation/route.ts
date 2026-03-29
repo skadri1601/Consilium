@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthContext } from "@/lib/api/auth-helpers";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authContext = await getAuthContext();
+    if (!authContext.userId || !authContext.token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const response = await fetch(`${API_URL}/api/v1/debates/${id}/conversation`, {
+      headers: {
+        Authorization: `Bearer ${authContext.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      return NextResponse.json(
+        { error: errorText || "Failed to fetch conversation" },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json());
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to fetch conversation" },
+      { status: 500 }
+    );
+  }
+}
