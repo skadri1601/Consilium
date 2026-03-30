@@ -21,4 +21,3 @@ export class UpdateApiKeysDto {
   @IsString()
   xaiKey?: string;
 }
-

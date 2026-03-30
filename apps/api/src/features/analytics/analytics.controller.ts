@@ -2,7 +2,10 @@ import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AnalyticsService } from "./analytics.service";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("analytics")
 @Controller("analytics")
@@ -27,7 +30,7 @@ export class AnalyticsController {
   @ApiOperation({ summary: "Get usage history" })
   getUsageHistory(
     @Query("days") days: number = 30,
-    @CurrentUser() user: CurrentUserData
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.analyticsService.getUsageHistory(user.userId, days);
   }

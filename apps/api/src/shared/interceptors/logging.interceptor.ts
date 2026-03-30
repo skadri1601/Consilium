@@ -24,15 +24,11 @@ export class LoggingInterceptor implements NestInterceptor {
           const { statusCode } = response;
           const delay = Date.now() - now;
 
-          this.logger.log(
-            `${method} ${url} ${statusCode} - ${delay}ms`,
-          );
+          this.logger.log(`${method} ${url} ${statusCode} - ${delay}ms`);
         },
         error: (error) => {
           const delay = Date.now() - now;
-          this.logger.error(
-            `${method} ${url} - ${error.message} - ${delay}ms`,
-          );
+          this.logger.error(`${method} ${url} - ${error.message} - ${delay}ms`);
         },
       }),
     );

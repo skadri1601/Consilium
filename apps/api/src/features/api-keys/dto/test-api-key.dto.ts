@@ -15,4 +15,3 @@ export class TestApiKeyDto {
   @IsString()
   key: string;
 }
-

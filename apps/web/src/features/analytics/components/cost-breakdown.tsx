@@ -81,7 +81,7 @@ export function CostBreakdown() {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, value, percent }) => {
+              label={({ name, percent }) => {
                 const percentage = (percent * 100).toFixed(1);
                 const displayName = name.replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ');
                 return `${displayName} (${percentage}%)`;

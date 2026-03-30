@@ -43,7 +43,7 @@ export function SynthesisOutput({
         description: "Synthesis copied to clipboard",
       });
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to copy to clipboard",

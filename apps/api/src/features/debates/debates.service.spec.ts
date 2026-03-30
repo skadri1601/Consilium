@@ -28,6 +28,9 @@ describe("DebatesService", () => {
     debateMessage: {
       create: jest.fn(),
     },
+    conversationV2: {
+      create: jest.fn().mockResolvedValue({ id: "conv-123" }),
+    },
   };
 
   const mockApiKeysService = {
@@ -55,7 +58,10 @@ describe("DebatesService", () => {
         { provide: ApiKeysService, useValue: mockApiKeysService },
         { provide: AiWorkersClient, useValue: mockAiWorkersClient },
         { provide: PersonasService, useValue: { findOne: jest.fn() } },
-        { provide: "default_IORedisModuleConnectionToken", useValue: mockRedis },
+        {
+          provide: "default_IORedisModuleConnectionToken",
+          useValue: mockRedis,
+        },
       ],
     }).compile();
 
@@ -74,7 +80,11 @@ describe("DebatesService", () => {
     };
 
     it("should create a debate session when user has API keys", async () => {
-      const mockUser = { id: "internal-id", clerkId: userId, email: "test@test.com" };
+      const mockUser = {
+        id: "internal-id",
+        clerkId: userId,
+        email: "test@test.com",
+      };
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
       mockApiKeysService.getUserApiKeys.mockResolvedValue({
@@ -92,8 +102,14 @@ describe("DebatesService", () => {
       };
 
       mockPrismaService.debateSession.create.mockResolvedValue(expectedDebate);
-      mockAiWorkersClient.startDebate.mockResolvedValue({ debateId: "debate-123", status: "processing" });
-      mockPrismaService.debateSession.update.mockResolvedValue({ ...expectedDebate, status: "processing" });
+      mockAiWorkersClient.startDebate.mockResolvedValue({
+        debateId: "debate-123",
+        status: "processing",
+      });
+      mockPrismaService.debateSession.update.mockResolvedValue({
+        ...expectedDebate,
+        status: "processing",
+      });
 
       const result = await service.createDebate(userId, createDto);
 
@@ -115,7 +131,7 @@ describe("DebatesService", () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.createDebate(userId, createDto)).rejects.toThrow(
-        NotFoundException
+        NotFoundException,
       );
     });
   });
@@ -186,7 +202,7 @@ describe("DebatesService", () => {
         expect.objectContaining({
           take: 20,
           skip: 0,
-        })
+        }),
       );
     });
   });
@@ -238,7 +254,7 @@ describe("DebatesService", () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(debateId, clerkId)).rejects.toThrow(
-        NotFoundException
+        NotFoundException,
       );
     });
 
@@ -248,7 +264,7 @@ describe("DebatesService", () => {
       mockPrismaService.debateSession.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne(debateId, clerkId)).rejects.toThrow(
-        NotFoundException
+        NotFoundException,
       );
     });
   });
@@ -267,7 +283,7 @@ describe("DebatesService", () => {
       const result = await service.updateStatus(
         debateId,
         "completed",
-        "Final prompt"
+        "Final prompt",
       );
 
       expect(result).toEqual(updatedDebate);
@@ -344,7 +360,7 @@ describe("DebatesService", () => {
         messageData.promptTokens,
         messageData.completionTokens,
         messageData.cost,
-        messageData.latencyMs
+        messageData.latencyMs,
       );
 
       expect(result).toEqual(expectedMessage);

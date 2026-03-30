@@ -44,4 +44,3 @@ describe("DebatesController (e2e)", () => {
       });
   });
 });
-

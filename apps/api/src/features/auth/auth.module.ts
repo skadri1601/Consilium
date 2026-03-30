@@ -8,7 +8,19 @@ import { PrismaModule } from "../../shared/database";
 
 @Module({
   imports: [PrismaModule],
-  providers: [AuthService, ClerkAuthGuard, AuditLoggerService, SessionService, CliTokenService],
-  exports: [AuthService, ClerkAuthGuard, AuditLoggerService, SessionService, CliTokenService],
+  providers: [
+    AuthService,
+    ClerkAuthGuard,
+    AuditLoggerService,
+    SessionService,
+    CliTokenService,
+  ],
+  exports: [
+    AuthService,
+    ClerkAuthGuard,
+    AuditLoggerService,
+    SessionService,
+    CliTokenService,
+  ],
 })
 export class AuthModule {}

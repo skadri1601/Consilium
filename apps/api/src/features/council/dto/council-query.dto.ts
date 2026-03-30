@@ -14,7 +14,11 @@ export class CouncilQueryDto {
   @IsString({ each: true })
   agents: string[];
 
-  @ApiProperty({ required: false, enum: ["blind", "visible"], default: "visible" })
+  @ApiProperty({
+    required: false,
+    enum: ["blind", "visible"],
+    default: "visible",
+  })
   @IsOptional()
   @IsIn(["blind", "visible"])
   mode?: string;

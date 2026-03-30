@@ -61,7 +61,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">7. Disclaimer</h2>
               <p className="mb-4 text-muted-foreground">
-                THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. We do not
+                THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND. We do not
                 guarantee accuracy, reliability, or availability.
               </p>
             </section>

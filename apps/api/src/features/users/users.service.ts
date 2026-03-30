@@ -18,7 +18,11 @@ export class UsersService {
     return user;
   }
 
-  async findOrCreate(clerkId: string, email: string, data?: Partial<UpdateUserDto>) {
+  async findOrCreate(
+    clerkId: string,
+    email: string,
+    data?: Partial<UpdateUserDto>,
+  ) {
     return this.prisma.user.upsert({
       where: { clerkId },
       create: {

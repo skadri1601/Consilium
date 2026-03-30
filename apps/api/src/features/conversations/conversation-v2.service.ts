@@ -22,7 +22,11 @@ export class ConversationV2Service {
     });
   }
 
-  async list(userId: string, limit: number = 20, offset: number = 0): Promise<any[]> {
+  async list(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0,
+  ): Promise<any[]> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -105,7 +109,11 @@ export class ConversationV2Service {
     });
   }
 
-  async addDebate(conversationId: string, debateId: string, userId: string): Promise<any> {
+  async addDebate(
+    conversationId: string,
+    debateId: string,
+    userId: string,
+  ): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
     });

@@ -29,7 +29,7 @@ export async function GET(
     }
 
     return NextResponse.json(await response.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch debate" },
       { status: 500 }
@@ -67,7 +67,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(await response.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update debate" },
       { status: 500 }
@@ -102,7 +102,7 @@ export async function DELETE(
     }
 
     return NextResponse.json(await response.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete debate" },
       { status: 500 }

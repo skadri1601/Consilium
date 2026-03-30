@@ -18,4 +18,3 @@ export class WaitlistController {
     return this.waitlistService.create(dto);
   }
 }
-

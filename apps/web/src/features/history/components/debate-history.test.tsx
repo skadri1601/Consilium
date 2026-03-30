@@ -81,7 +81,7 @@ describe("DebateHistory", () => {
     });
     
     // Check for Synthesis indicators (there may be multiple)
-    const synthesisIndicators = screen.getAllByText("✓ Synthesis");
+    const synthesisIndicators = screen.getAllByText("Synthesis");
     expect(synthesisIndicators.length).toBeGreaterThan(0);
   });
 
@@ -106,12 +106,21 @@ describe("DebateHistory", () => {
       expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
     });
 
+    // Mock fetch to return only the matching debate for the search query
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [mockDebates[1]], // Only "Create a React dashboard"
+    });
+
     const searchInput = screen.getByPlaceholderText(/search debates/i);
     fireEvent.change(searchInput, { target: { value: "React" } });
 
-    expect(screen.queryByText("Build a REST API with authentication")).not.toBeInTheDocument();
-    expect(screen.getByText("Create a React dashboard")).toBeInTheDocument();
-    expect(screen.queryByText("Design a database schema")).not.toBeInTheDocument();
+    // Wait for debounce and re-fetch
+    await waitFor(() => {
+      expect(screen.queryByText("Build a REST API with authentication")).not.toBeInTheDocument();
+      expect(screen.getByText("Create a React dashboard")).toBeInTheDocument();
+      expect(screen.queryByText("Design a database schema")).not.toBeInTheDocument();
+    });
   });
 
   it("filters debates by date - today", async () => {
@@ -175,10 +184,19 @@ describe("DebateHistory", () => {
       expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
     });
 
+    // Mock fetch to return empty results for the search query
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    });
+
     const searchInput = screen.getByPlaceholderText(/search debates/i);
     fireEvent.change(searchInput, { target: { value: "nonexistent query xyz" } });
 
-    expect(screen.getByText(/no debates match your search/i)).toBeInTheDocument();
+    // Wait for debounce and re-fetch to complete
+    await waitFor(() => {
+      expect(screen.getByText(/no debates match your search/i)).toBeInTheDocument();
+    });
   });
 
   it("handles fetch error gracefully", async () => {

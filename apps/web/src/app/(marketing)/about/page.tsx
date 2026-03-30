@@ -87,7 +87,7 @@ export default function AboutPage() {
 
             <p>
               Today, Consilium powers development workflows for developers worldwide.
-              We're committed to remaining open source, developer-first, and
+              We&apos;re committed to remaining open source, developer-first, and
               community-driven. Our mission is to make AI more accessible, predictable,
               and useful for developers everywhere.
             </p>
@@ -100,7 +100,7 @@ export default function AboutPage() {
           <Github className="h-12 w-12 mx-auto mb-4" />
           <h2 className="text-3xl font-bold mb-4">Contribute to Consilium</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground">
-            We're open source and welcome contributions from developers of all skill levels.
+            We&apos;re open source and welcome contributions from developers of all skill levels.
           </p>
 
           <Button asChild size="lg">

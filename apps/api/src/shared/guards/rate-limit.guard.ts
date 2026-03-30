@@ -64,7 +64,9 @@ export class RateLimitGuard implements CanActivate {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.debug(`Redis error in rate limiting, allowing request: ${error instanceof Error ? error.message : "Unknown error"}`);
+      this.logger.debug(
+        `Redis error in rate limiting, allowing request: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       return true;
     }
   }

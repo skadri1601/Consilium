@@ -36,7 +36,9 @@ export class CliTokenService {
             email = clerkUser.emailAddresses[0].emailAddress;
           }
         } catch (e) {
-          this.logger.warn(`Clerk getUser failed for ${clerkId}, using fallback email`);
+          this.logger.warn(
+            `Clerk getUser failed for ${clerkId}, using fallback email`,
+          );
         }
         user = await this.prisma.user.upsert({
           where: { clerkId },
@@ -61,7 +63,10 @@ export class CliTokenService {
       return { token };
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Unknown error";
-      this.logger.error(`CLI token generate failed: ${msg}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `CLI token generate failed: ${msg}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw new BadRequestException(`Failed to generate CLI token: ${msg}`);
     }
   }

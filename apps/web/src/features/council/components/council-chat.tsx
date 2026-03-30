@@ -57,7 +57,7 @@ const ROUND_DESCRIPTIONS: Record<number, string> = {
 export function CouncilChat() {
   const [input, setInput] = useState("");
   const [usingFreeModels, setUsingFreeModels] = useState(false);
-  const [debateId, setDebateId] = useState<string | null>(null);
+  const [, setDebateId] = useState<string | null>(null);
   const [goldenPrompt, setGoldenPrompt] = useState<string | null>(null);
   const [debateCost, setDebateCost] = useState<number | null>(null);
   const [modelsUsed, setModelsUsed] = useState<string[]>([]);

@@ -29,7 +29,7 @@ export async function GET(
     }
 
     return NextResponse.json(await response.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch conversation" },
       { status: 500 }

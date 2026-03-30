@@ -3,7 +3,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("users")
 @Controller("users")
@@ -20,7 +23,10 @@ export class UsersController {
 
   @Put("me")
   @ApiOperation({ summary: "Update current user profile" })
-  updateProfile(@Body() dto: UpdateUserDto, @CurrentUser() user: CurrentUserData) {
+  updateProfile(
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     return this.usersService.update(user.userId, dto);
   }
 }

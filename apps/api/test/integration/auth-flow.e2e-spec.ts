@@ -25,29 +25,21 @@ describe("Authentication Flow Integration (e2e)", () => {
 
   describe("Protected Routes", () => {
     it("should require authentication for debates endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/debates")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/debates").expect(401);
     });
 
     it("should require authentication for user endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/users/me")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/users/me").expect(401);
     });
 
     it("should require authentication for API keys endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/api-keys")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/api-keys").expect(401);
     });
   });
 
   describe("Public Routes", () => {
     it("should allow access to health endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/health")
-        .expect(200);
+      await request(app.getHttpServer()).get("/api/v1/health").expect(200);
     });
 
     it("should allow access to waitlist endpoint", async () => {
@@ -99,4 +91,3 @@ describe("Authentication Flow Integration (e2e)", () => {
     });
   });
 });
-

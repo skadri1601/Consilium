@@ -149,7 +149,7 @@ describe("Debate Flow Integration (e2e)", () => {
 
       expect(getResponse.body.status).toBeDefined();
       expect(["pending", "processing", "completed", "failed"]).toContain(
-        getResponse.body.status
+        getResponse.body.status,
       );
     });
   });
@@ -239,4 +239,3 @@ describe("Debate Flow Integration (e2e)", () => {
     });
   });
 });
-

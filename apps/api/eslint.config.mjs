@@ -3,6 +3,7 @@ import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettier from 'eslint-plugin-prettier/recommended';
+import globals from 'globals';
 
 export default [
   {
@@ -10,8 +11,11 @@ export default [
   },
   eslint.configs.recommended,
   {
-    files: ['{src,apps,libs,test}/**/*.ts'],
+    files: ['{src,apps,libs}/**/*.ts'],
     languageOptions: {
+      globals: {
+        ...globals.node,
+      },
       parser: tseslintParser,
       sourceType: 'module',
       parserOptions: {
@@ -24,6 +28,33 @@ export default [
     },
     rules: {
       ...tseslintPlugin.configs['recommended'].rules,
+      'no-undef': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    files: ['test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      parser: tseslintParser,
+      sourceType: 'module',
+    },
+    plugins: {
+      '@typescript-eslint': tseslintPlugin,
+    },
+    rules: {
+      ...tseslintPlugin.configs['recommended'].rules,
+      'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',

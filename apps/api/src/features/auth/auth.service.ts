@@ -22,7 +22,9 @@ export class AuthService {
       const session = await this.clerk.verifyToken(token);
       return session;
     } catch (error) {
-      this.logger.warn(`Token verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      this.logger.warn(
+        `Token verification failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       return null;
     }
   }
@@ -32,7 +34,9 @@ export class AuthService {
       const user = await this.clerk.users.getUser(userId);
       return user;
     } catch (error) {
-      this.logger.warn(`Failed to get user ${userId}: ${error instanceof Error ? error.message : "Unknown error"}`);
+      this.logger.warn(
+        `Failed to get user ${userId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       return null;
     }
   }
@@ -50,17 +54,20 @@ export class AuthService {
   async revokeAllUserSessions(userId: string): Promise<boolean> {
     try {
       const sessions = await this.clerk.sessions.getSessionList({ userId });
-      
+
       for (const session of sessions.data) {
         if (session.status === "active") {
           await this.clerk.sessions.revokeSession(session.id);
         }
       }
-      
+
       this.logger.log(`All sessions revoked for user: ${userId}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to revoke all sessions for user ${userId}:`, error);
+      this.logger.error(
+        `Failed to revoke all sessions for user ${userId}:`,
+        error,
+      );
       return false;
     }
   }

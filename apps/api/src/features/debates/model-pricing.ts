@@ -3,7 +3,10 @@ export const FREE_FALLBACK_MODELS = {
   judge: "llama-3.3-70b-versatile",
 };
 
-export const MODEL_PRICING: Record<string, { inputPerMillion: number; outputPerMillion: number }> = {
+export const MODEL_PRICING: Record<
+  string,
+  { inputPerMillion: number; outputPerMillion: number }
+> = {
   "gpt-4o": { inputPerMillion: 2.5, outputPerMillion: 10.0 },
   "gpt-4o-mini": { inputPerMillion: 0.15, outputPerMillion: 0.6 },
   "gpt-4.1": { inputPerMillion: 2.0, outputPerMillion: 8.0 },
@@ -19,5 +22,5 @@ export const MODEL_PRICING: Record<string, { inputPerMillion: number; outputPerM
   "llama-4-scout-17b-16e-instruct": { inputPerMillion: 0, outputPerMillion: 0 },
   "grok-2": { inputPerMillion: 2.0, outputPerMillion: 10.0 },
   "grok-2-mini": { inputPerMillion: 0.3, outputPerMillion: 1.0 },
-  "default": { inputPerMillion: 1.0, outputPerMillion: 3.0 },
+  default: { inputPerMillion: 1.0, outputPerMillion: 3.0 },
 };

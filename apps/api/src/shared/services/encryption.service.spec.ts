@@ -6,7 +6,8 @@ describe("EncryptionService", () => {
 
   beforeEach(() => {
     // Set up test encryption key (64 hex chars = 32 bytes)
-    process.env.ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    process.env.ENCRYPTION_KEY =
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     service = new EncryptionService();
   });
 
@@ -43,7 +44,8 @@ describe("EncryptionService", () => {
     });
 
     it("should handle special characters", () => {
-      const plaintext = "key-with-special-chars!@#$%^&*()_+-={}[]|\\:\";<>?,./~`";
+      const plaintext =
+        'key-with-special-chars!@#$%^&*()_+-={}[]|\\:";<>?,./~`';
       const encrypted = service.encrypt(plaintext);
       const decrypted = service.decrypt(encrypted);
 
@@ -93,10 +95,10 @@ describe("EncryptionService", () => {
     it("should throw error for tampered ciphertext", () => {
       const plaintext = "sk-test-api-key-12345";
       const encrypted = service.encrypt(plaintext);
-      
+
       // Tamper with the ciphertext
       const tamperedEncrypted = encrypted.slice(0, -5) + "XXXXX";
-      
+
       expect(() => service.decrypt(tamperedEncrypted)).toThrow();
     });
 
@@ -105,7 +107,8 @@ describe("EncryptionService", () => {
       const encrypted = service.encrypt(plaintext);
 
       // Change the encryption key
-      process.env.ENCRYPTION_KEY = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
+      process.env.ENCRYPTION_KEY =
+        "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
       const newService = new EncryptionService();
 
       expect(() => newService.decrypt(encrypted)).toThrow();

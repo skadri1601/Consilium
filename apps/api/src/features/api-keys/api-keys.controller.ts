@@ -6,7 +6,10 @@ import { TestApiKeyDto } from "./dto/test-api-key.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 import { RateLimit } from "../../shared/decorators/rate-limit.decorator";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 import { CliTokenService } from "../auth/services/cli-token.service";
 
 @ApiTags("api-keys")
@@ -28,7 +31,10 @@ export class ApiKeysController {
   @Put()
   @ApiOperation({ summary: "Update user's API keys" })
   @ApiResponse({ status: 200, description: "API keys updated successfully" })
-  async updateApiKeys(@CurrentUser() user: CurrentUserData, @Body() dto: UpdateApiKeysDto) {
+  async updateApiKeys(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: UpdateApiKeysDto,
+  ) {
     return this.apiKeysService.updateApiKeys(user.userId, dto);
   }
 
@@ -42,11 +48,16 @@ export class ApiKeysController {
   }
 
   @Post("cli-token")
-  @ApiOperation({ summary: "Generate a CLI token (long-lived, for consilium CLI)" })
-  @ApiResponse({ status: 201, description: "CLI token generated; copy and run: consilium config set apiKey <token>" })
+  @ApiOperation({
+    summary: "Generate a CLI token (long-lived, for consilium CLI)",
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      "CLI token generated; copy and run: consilium config set apiKey <token>",
+  })
   async generateCliToken(@CurrentUser() user: CurrentUserData) {
     const { token } = await this.cliTokenService.generate(user.userId);
     return { token };
   }
 }
-

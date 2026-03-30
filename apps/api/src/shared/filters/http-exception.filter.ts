@@ -24,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     this.logger.error(
       `HTTP ${status} Error: ${exception instanceof Error ? exception.message : "Unknown error"}`,
-      exception instanceof Error ? exception.stack : undefined
+      exception instanceof Error ? exception.stack : undefined,
     );
 
     const clientMessage = this.getSafeMessage(exception, status);
@@ -37,7 +37,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
   }
 
-  private getSafeMessage(exception: unknown, status: number): string | string[] {
+  private getSafeMessage(
+    exception: unknown,
+    status: number,
+  ): string | string[] {
     if (!(exception instanceof HttpException)) {
       return "Internal server error";
     }
@@ -54,7 +57,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return resp.message as string[];
       }
       if (typeof resp.message === "string") {
-        if (resp.message.includes("Prisma") || resp.message.includes("prisma")) {
+        if (
+          resp.message.includes("Prisma") ||
+          resp.message.includes("prisma")
+        ) {
           return "Internal server error";
         }
         return resp.message;

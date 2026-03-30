@@ -14,7 +14,7 @@ export class PersonasService {
 
     if (!user) {
       throw new NotFoundException(
-        "User not found. Please ensure your account is synced."
+        "User not found. Please ensure your account is synced.",
       );
     }
 
@@ -75,4 +75,3 @@ export class PersonasService {
     });
   }
 }
-
