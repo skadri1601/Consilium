@@ -43,13 +43,13 @@ class MultiAgentWorkflow:
         # Add nodes
         workflow.add_node("distribute", self.distribute_query)
         workflow.add_node("aggregate", self.aggregate_responses)
-        workflow.add_node("consensus", self.generate_consensus)
+        workflow.add_node("synthesize", self.generate_consensus)
 
         # Define edges
         workflow.set_entry_point("distribute")
         workflow.add_edge("distribute", "aggregate")
-        workflow.add_edge("aggregate", "consensus")
-        workflow.add_edge("consensus", END)
+        workflow.add_edge("aggregate", "synthesize")
+        workflow.add_edge("synthesize", END)
 
         # Compile with memory for state persistence
         memory = MemorySaver()
