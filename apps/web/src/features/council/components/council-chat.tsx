@@ -31,8 +31,11 @@ interface StreamEvent {
   content?: string;
   goldenPrompt?: string;
   totalCost?: number;
+  total_cost?: number;
   modelsUsed?: string[];
   message?: string;
+  consensus?: string;
+  error?: string;
 }
 
 interface Persona {
@@ -42,7 +45,7 @@ interface Persona {
   systemPrompt: string;
 }
 
-const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
+const AGENT_NAME_BY_ID = new Map<string, string>(AGENTS.map((agent) => [agent.id, agent.name]));
 const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq", "Grok (XAI)"];
 const ROUND_DESCRIPTIONS: Record<number, string> = {
   1: "Independent Analysis",
@@ -317,7 +320,7 @@ export function CouncilChat() {
         break;
 
       case "cost:update":
-        setDebateCost(data.totalCost || data.total_cost);
+        setDebateCost(data.totalCost ?? data.total_cost ?? null);
         break;
 
       case "done":

@@ -6,6 +6,7 @@ enabling parallel processing and response aggregation.
 """
 
 import asyncio
+import uuid
 from typing import TypedDict, Annotated, Sequence
 from operator import add
 from collections import Counter
@@ -100,7 +101,7 @@ class MultiAgentWorkflow:
                     "success": True
                 })
 
-        return {**state, "agent_responses": agent_responses}
+        return {"agent_responses": agent_responses}
 
     async def aggregate_responses(self, state: AgentState) -> AgentState:
         """
@@ -122,7 +123,7 @@ class MultiAgentWorkflow:
                 "total_tokens": 0,
                 "success_rate": 0.0
             })
-            return {**state, "metadata": metadata}
+            return {"metadata": metadata}
 
         # Calculate average response length
         response_lengths = [len(r["content"]) for r in successful_responses]
@@ -154,7 +155,7 @@ class MultiAgentWorkflow:
             "agent_count": len(responses)
         })
 
-        return {**state, "metadata": metadata}
+        return {"metadata": metadata}
 
     async def generate_consensus(self, state: AgentState) -> AgentState:
         """
@@ -182,7 +183,7 @@ class MultiAgentWorkflow:
             formatted_responses
         )
 
-        return {**state, "consensus": consensus}
+        return {"consensus": consensus}
 
     async def run(self, query: str, metadata: dict = None) -> dict:
         """
@@ -203,7 +204,8 @@ class MultiAgentWorkflow:
         }
 
         if self.graph:
-            result = await self.graph.ainvoke(initial_state)
+            config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+            result = await self.graph.ainvoke(initial_state, config=config)
             return result
 
         # Fallback without LangGraph (shouldn't happen after initialization)

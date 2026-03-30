@@ -139,32 +139,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
           version: latest
           virtualenvs-create: true
           virtualenvs-in-project: true
-      
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: apps/agents/.venv
+          key: poetry-${{ runner.os }}-${{ hashFiles('apps/agents/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-
+
       - name: Install dependencies
         run: cd apps/agents && poetry install --no-interaction --no-root
-      
+
       - name: Run tests
         run: cd apps/agents && poetry run pytest
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_TEST }}
+          OPENAI_API_KEY: test-key-placeholder
+          ANTHROPIC_API_KEY: test-key-placeholder
+          GOOGLE_API_KEY: test-key-placeholder
 
   build:
     name: Build All
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test-api, test-web]
+    needs: [lint-and-typecheck, test-api, test-web, test-agents]
     steps:
       - uses: actions/checkout@v4
       
