@@ -14,6 +14,7 @@ describe("Authentication Flow Integration (e2e)", () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -41,6 +42,18 @@ describe("Authentication Flow Integration (e2e)", () => {
   });
 
   afterAll(async () => {
+    await prisma.waitlist.deleteMany({
+      where: {
+        email: {
+          in: [
+            'test@example.com',
+            'newuser@example.com',
+            'duplicate@example.com',
+            'invalid-email',
+          ],
+        },
+      },
+    });
     await app.close();
   });
 

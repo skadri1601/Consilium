@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import {
+  INestApplication,
+  UnauthorizedException,
+  ValidationPipe,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -20,7 +24,7 @@ class MockClerkAuthGuard {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return false;
+      throw new UnauthorizedException("No authentication token provided");
     }
 
     request.user = { userId: TEST_CLERK_ID };
@@ -41,6 +45,8 @@ describe("Debate Flow Integration (e2e)", () => {
   let userId: string;
 
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })

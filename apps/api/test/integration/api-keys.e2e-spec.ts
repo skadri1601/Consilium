@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, UnauthorizedException, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -17,6 +17,10 @@ import { HttpExceptionFilter } from "../../src/shared/filters/http-exception.fil
 class MockClerkAuthGuard {
   async canActivate(context: any): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
+    const authHeader = req.headers?.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new UnauthorizedException("No valid token provided");
+    }
     req.user = { userId: "test-user-id", sessionId: "test-session-id" };
     return true;
   }
@@ -38,6 +42,7 @@ describe("API Keys Integration (e2e)", () => {
   let userId: string;
 
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
     let moduleBuilder = Test.createTestingModule({
       imports: [AppModule],
     });
