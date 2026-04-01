@@ -3,7 +3,27 @@
   "rootDir": "..",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "declaration": true,
+          "emitDecoratorMetadata": true,
+          "experimentalDecorators": true,
+          "allowSyntheticDefaultImports": true,
+          "target": "ES2022",
+          "sourceMap": true,
+          "baseUrl": "./",
+          "skipLibCheck": true,
+          "strictNullChecks": true,
+          "noImplicitAny": false,
+          "paths": {
+            "@/*": ["src/*"]
+          }
+        }
+      }
+    ]
   },
   "testEnvironment": "node",
   "moduleNameMapper": {

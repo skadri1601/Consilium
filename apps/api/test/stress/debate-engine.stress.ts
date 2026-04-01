@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from "@nestjs/platform-fastify";
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
@@ -93,11 +97,14 @@ describe("Debate Engine Stress Tests", () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 

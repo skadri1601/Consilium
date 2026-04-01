@@ -26,7 +26,10 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
+      - name: Generate Prisma Client
+        run: cd packages/database && pnpm db:generate
+
       - name: Lint API
         run: cd apps/api && pnpm lint
       
@@ -132,7 +135,7 @@ jobs:
         run: cd apps/web && pnpm build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
 
   test-agents:
     name: Test AI Agents
@@ -198,7 +201,7 @@ jobs:
         run: cd apps/web && pnpm build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
       
       - name: Setup Python
         uses: actions/setup-python@v5

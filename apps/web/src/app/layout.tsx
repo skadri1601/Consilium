@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
@@ -7,10 +7,10 @@ import { TestModeClerkProvider } from "@/components/test-mode-clerk-provider";
 import { ThemeProvider } from "@/app/provider";
 import "@/styles/globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const inter = localFont({
+  src: "../fonts/Inter.woff2",
   variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

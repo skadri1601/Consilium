@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from "@nestjs/platform-fastify";
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
@@ -15,8 +19,11 @@ describe("Debate Flow Integration (e2e)", () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 
