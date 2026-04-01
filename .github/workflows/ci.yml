@@ -197,7 +197,10 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
+      - name: Generate Prisma Client
+        run: cd packages/database && pnpm db:generate
+
       - name: Build API
         run: cd apps/api && pnpm build
       
