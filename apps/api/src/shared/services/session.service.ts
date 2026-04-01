@@ -158,7 +158,9 @@ export class SessionService {
   async isTokenBlacklisted(userId: string, token: string): Promise<boolean> {
     if (!this.redisAvailable) {
       if (this.isDevMode()) {
-        this.logger.debug("Redis unavailable in dev mode, allowing token (fail-open)");
+        this.logger.debug(
+          "Redis unavailable in dev mode, allowing token (fail-open)",
+        );
         return false;
       }
       this.logger.warn("Redis unavailable, rejecting token (fail-closed)");
@@ -202,7 +204,9 @@ export class SessionService {
   async isIdle(userId: string): Promise<boolean> {
     if (!this.redisAvailable) {
       if (this.isDevMode()) {
-        this.logger.debug("Redis unavailable in dev mode, allowing session (fail-open)");
+        this.logger.debug(
+          "Redis unavailable in dev mode, allowing session (fail-open)",
+        );
         return false;
       }
       this.logger.warn("Redis unavailable, rejecting session (fail-closed)");

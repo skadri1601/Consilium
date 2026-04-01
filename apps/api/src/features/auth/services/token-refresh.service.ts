@@ -11,7 +11,11 @@ export class TokenRefreshService {
     return this.sessionService.shouldRefreshToken(expiresAt);
   }
 
-  async refreshTokenIfNeeded(userId: string, currentToken: string, expiresAt: Date): Promise<string | null> {
+  async refreshTokenIfNeeded(
+    userId: string,
+    currentToken: string,
+    expiresAt: Date,
+  ): Promise<string | null> {
     if (await this.shouldRefresh(expiresAt)) {
       this.logger.log(`Token refresh needed for user ${userId}`);
       // In a real implementation, this would call Clerk to refresh the token
@@ -21,4 +25,3 @@ export class TokenRefreshService {
     return currentToken;
   }
 }
-

@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from "@nestjs/common";
 import { PrismaClient } from "@consilium/database";
 
 @Injectable()
@@ -13,8 +18,12 @@ export class PrismaService
       await this.$connect();
       this.logger.log("Database connected successfully");
     } catch (error) {
-      this.logger.error(`Failed to connect to database: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      this.logger.warn("Application will continue, but database operations may fail");
+      this.logger.error(
+        `Failed to connect to database: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      this.logger.warn(
+        "Application will continue, but database operations may fail",
+      );
       // Don't throw - allow app to start even if DB is unavailable
     }
   }
@@ -23,7 +32,9 @@ export class PrismaService
     try {
       await this.$disconnect();
     } catch (error) {
-      this.logger.error(`Error disconnecting from database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Error disconnecting from database: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 }

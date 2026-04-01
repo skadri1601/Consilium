@@ -24,7 +24,13 @@ export class EncryptionService {
 
     // Otherwise, derive key from string using PBKDF2
     const salt = process.env.ENCRYPTION_SALT || "consilium-salt";
-    return crypto.pbkdf2Sync(encryptionKey, salt, 100000, this.keyLength, "sha512");
+    return crypto.pbkdf2Sync(
+      encryptionKey,
+      salt,
+      100000,
+      this.keyLength,
+      "sha512",
+    );
   }
 
   encrypt(text: string): string {
@@ -46,7 +52,12 @@ export class EncryptionService {
       const tag = cipher.getAuthTag();
 
       // Combine salt + iv + tag + encrypted
-      return Buffer.concat([salt, iv, tag, Buffer.from(encrypted, "hex")]).toString("base64");
+      return Buffer.concat([
+        salt,
+        iv,
+        tag,
+        Buffer.from(encrypted, "hex"),
+      ]).toString("base64");
     } catch (error) {
       throw new Error(`Encryption failed: ${error.message}`);
     }
@@ -72,7 +83,9 @@ export class EncryptionService {
 
       const decryptedBuffer = decipher.update(encrypted);
       const finalBuffer = decipher.final();
-      const decrypted = Buffer.concat([decryptedBuffer, finalBuffer]).toString("utf8");
+      const decrypted = Buffer.concat([decryptedBuffer, finalBuffer]).toString(
+        "utf8",
+      );
 
       return decrypted;
     } catch (error) {
@@ -80,4 +93,3 @@ export class EncryptionService {
     }
   }
 }
-

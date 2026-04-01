@@ -31,7 +31,8 @@ import { HealthController } from "./health.controller";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.get("REDIS_URL") || "redis://localhost:6379";
+        const redisUrl =
+          configService.get("REDIS_URL") || "redis://localhost:6379";
         return {
           type: "single",
           url: redisUrl,

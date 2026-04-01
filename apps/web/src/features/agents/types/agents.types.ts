@@ -7,3 +7,20 @@ export interface AgentDef {
   description: string;
   free: boolean;
 }
+
+export interface Agent {
+  id: string;
+  name: string;
+  provider: string;
+  modelId: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAgentInput {
+  name: string;
+  provider: string;
+  modelId: string;
+  description?: string;
+}

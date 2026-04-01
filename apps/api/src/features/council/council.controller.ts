@@ -4,7 +4,10 @@ import { Observable } from "rxjs";
 import { CouncilService } from "./council.service";
 import { CouncilQueryDto } from "./dto/council-query.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("council")
 @Controller("council")

@@ -1,4 +1,14 @@
-import { IsArray, IsString, IsOptional, IsObject, IsIn, ArrayMinSize, ArrayMaxSize, MinLength, MaxLength } from "class-validator";
+import {
+  IsArray,
+  IsString,
+  IsOptional,
+  IsObject,
+  IsIn,
+  ArrayMinSize,
+  ArrayMaxSize,
+  MinLength,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateDebateDto {
@@ -15,7 +25,12 @@ export class CreateDebateDto {
 
   @ApiProperty({
     description: "List of model IDs to use in the debate",
-    example: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash", "llama-3.1-8b-instant"],
+    example: [
+      "gpt-4o-mini",
+      "claude-3-5-haiku-latest",
+      "gemini-2.0-flash",
+      "llama-3.1-8b-instant",
+    ],
     type: [String],
     minItems: 2,
     maxItems: 5,
@@ -27,7 +42,8 @@ export class CreateDebateDto {
   models: string[];
 
   @ApiPropertyOptional({
-    description: "Optional persona ID to apply a custom system prompt to all agents",
+    description:
+      "Optional persona ID to apply a custom system prompt to all agents",
     example: "clxxxxxxxxxxxxxxxxx",
   })
   @IsOptional()
@@ -69,4 +85,3 @@ export class CreateDebateDto {
   @IsString()
   conversationId?: string;
 }
-

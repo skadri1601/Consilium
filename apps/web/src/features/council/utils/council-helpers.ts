@@ -1,6 +1,6 @@
 import { AGENTS } from "@/shared/lib/constants";
 
-const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
+const AGENT_NAME_BY_ID = new Map<string, string>(AGENTS.map((agent) => [agent.id, agent.name]));
 
 type ProviderKey = "openai" | "anthropic" | "google" | "groq" | "xai" | "default";
 

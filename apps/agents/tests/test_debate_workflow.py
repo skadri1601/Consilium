@@ -12,7 +12,12 @@ class TestDebateWorkflow:
     def workflow(self):
         """Create workflow instance."""
         return DebateWorkflow(
-            models=["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"]
+            models=["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
+            api_keys={
+                "openaiKey": "sk-test",
+                "anthropicKey": "sk-ant-test",
+                "googleKey": "google-test",
+            },
         )
 
     @pytest.fixture

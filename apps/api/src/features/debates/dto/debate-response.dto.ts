@@ -7,10 +7,16 @@ export class DebateResponseDto {
   @ApiProperty({ example: "Create a REST API for a todo app" })
   topic: string;
 
-  @ApiProperty({ example: "completed", enum: ["pending", "in_progress", "completed", "failed"] })
+  @ApiProperty({
+    example: "completed",
+    enum: ["pending", "in_progress", "completed", "failed"],
+  })
   status: string;
 
-  @ApiProperty({ example: ["gpt-4o-mini", "claude-3-5-haiku-latest"], type: [String] })
+  @ApiProperty({
+    example: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+    type: [String],
+  })
   modelsUsed: string[];
 
   @ApiProperty({ example: 0.05 })
@@ -46,4 +52,3 @@ export class DebateMessageDto {
   latencyMs: number;
   createdAt: Date;
 }
-

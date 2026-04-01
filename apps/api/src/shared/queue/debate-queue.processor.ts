@@ -19,7 +19,9 @@ export class DebateQueueProcessor extends WorkerHost {
   }
 
   async process(job: Job<DebateJobData>) {
-    this.logger.log(`Processing debate job ${job.id} for debate ${job.data.debateId}`);
+    this.logger.log(
+      `Processing debate job ${job.id} for debate ${job.data.debateId}`,
+    );
 
     try {
       const { debateId, topic, models, userId, apiKeys } = job.data;
@@ -28,7 +30,7 @@ export class DebateQueueProcessor extends WorkerHost {
       await this.debatesService.updateStatus(debateId, "processing");
 
       await job.updateProgress(30);
-      
+
       const result = await this.aiWorkersClient.startDebate({
         topic,
         models,
@@ -40,14 +42,14 @@ export class DebateQueueProcessor extends WorkerHost {
       await job.updateProgress(100);
 
       this.logger.log(`Debate job ${job.id} completed for debate ${debateId}`);
-      return { 
-        success: true, 
+      return {
+        success: true,
         debateId,
         aiWorkersDebateId: result.debateId,
       };
     } catch (error) {
       this.logger.error(`Error processing debate job ${job.id}:`, error);
-      
+
       try {
         await this.debatesService.updateStatus(job.data.debateId, "failed");
       } catch (updateError) {
@@ -58,4 +60,3 @@ export class DebateQueueProcessor extends WorkerHost {
     }
   }
 }
-

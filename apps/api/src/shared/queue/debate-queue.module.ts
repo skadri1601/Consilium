@@ -31,4 +31,3 @@ import { DebatesModule } from "../../features/debates/debates.module";
   exports: [DebateQueueService],
 })
 export class DebateQueueModule {}
-

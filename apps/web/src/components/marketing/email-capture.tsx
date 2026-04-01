@@ -60,7 +60,7 @@ export function EmailCapture() {
     return (
       <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
         <CheckCircle2 className="h-5 w-5" />
-        <span className="font-medium">Thanks! We'll be in touch soon.</span>
+        <span className="font-medium">Thanks! We&apos;ll be in touch soon.</span>
       </div>
     );
   }

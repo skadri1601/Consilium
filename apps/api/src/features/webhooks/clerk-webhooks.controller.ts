@@ -43,7 +43,9 @@ export class ClerkWebhooksController {
   ) {
     this.verifyWebhookSecret(secret);
 
-    this.logger.log(`Processing Clerk user webhook: ${payload.action} for ${payload.clerkId}`);
+    this.logger.log(
+      `Processing Clerk user webhook: ${payload.action} for ${payload.clerkId}`,
+    );
 
     switch (payload.action) {
       case "create":
@@ -68,7 +70,10 @@ export class ClerkWebhooksController {
 
     this.logger.log(`Processing session ended for user: ${payload.userId}`);
 
-    return this.webhooksService.handleSessionEnded(payload.userId, payload.sessionId);
+    return this.webhooksService.handleSessionEnded(
+      payload.userId,
+      payload.sessionId,
+    );
   }
 
   private verifyWebhookSecret(secret: string): void {
@@ -84,4 +89,3 @@ export class ClerkWebhooksController {
     }
   }
 }
-

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
@@ -50,7 +50,7 @@ interface StreamEvent {
   message?: string;
 }
 
-const AGENT_NAME_MAP = new Map(AGENTS.map((a) => [a.id, a.name]));
+const AGENT_NAME_MAP = new Map<string, string>(AGENTS.map((a) => [a.id, a.name]));
 
 function getAgentDisplayName(agentId: string): string {
   return AGENT_NAME_MAP.get(agentId) ?? agentId;

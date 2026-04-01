@@ -23,7 +23,9 @@ export class ClerkWebhooksService {
     private emailService: EmailService,
   ) {}
 
-  async createUser(payload: CreateUserPayload): Promise<{ success: boolean; userId: string }> {
+  async createUser(
+    payload: CreateUserPayload,
+  ): Promise<{ success: boolean; userId: string }> {
     const { clerkId, email, firstName, lastName, imageUrl } = payload;
 
     if (!email) {
@@ -71,7 +73,9 @@ export class ClerkWebhooksService {
     return { success: true, userId: user.id };
   }
 
-  async updateUser(payload: CreateUserPayload): Promise<{ success: boolean; userId: string }> {
+  async updateUser(
+    payload: CreateUserPayload,
+  ): Promise<{ success: boolean; userId: string }> {
     const { clerkId, email, firstName, lastName, imageUrl } = payload;
 
     const user = await this.prisma.user.findUnique({
@@ -79,7 +83,9 @@ export class ClerkWebhooksService {
     });
 
     if (!user) {
-      this.logger.warn(`User not found for update: ${clerkId}, creating instead`);
+      this.logger.warn(
+        `User not found for update: ${clerkId}, creating instead`,
+      );
       return this.createUser(payload);
     }
 
@@ -117,15 +123,18 @@ export class ClerkWebhooksService {
       where: { tenantId: user.tenantId },
     });
 
-    const userWithRelations = user as typeof user & { conversations?: { id: string }[]; agents?: { id: string }[] };
+    const userWithRelations = user as typeof user & {
+      conversations?: { id: string }[];
+      agents?: { id: string }[];
+    };
     const conversations = userWithRelations.conversations || [];
     const agents = userWithRelations.agents || [];
 
     // Log the deletion before it happens
     await this.auditLogger.log("session_revoked", {
       userId: user.id,
-      metadata: { 
-        source: "clerk_webhook", 
+      metadata: {
+        source: "clerk_webhook",
         action: "user.deleted",
         deletedData: {
           debateSessions: debateSessionsCount,
@@ -152,7 +161,7 @@ export class ClerkWebhooksService {
 
     await this.auditLogger.log("session_revoked", {
       userId,
-      metadata: { 
+      metadata: {
         sessionId,
         source: "clerk_webhook",
       },
@@ -163,4 +172,3 @@ export class ClerkWebhooksService {
     return { success: true };
   }
 }
-

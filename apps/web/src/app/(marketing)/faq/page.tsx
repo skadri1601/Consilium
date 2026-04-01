@@ -38,14 +38,14 @@ export default function FAQPage() {
                 >
                   self-hosting guide
                 </a>
-                . You'll need Docker Compose, PostgreSQL, Redis, and API keys from providers.
+                . You&apos;ll need Docker Compose, PostgreSQL, Redis, and API keys from providers.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="api-keys">
               <AccordionTrigger>Do I need API keys?</AccordionTrigger>
               <AccordionContent>
-                Yes. Consilium uses a "Bring Your Own Keys" (BYOK) model. You provide your
+                Yes. Consilium uses a &quot;Bring Your Own Keys&quot; (BYOK) model. You provide your
                 own API keys for OpenAI, Anthropic, Google, XAI, and/or Groq. Keys are encrypted
                 before storage.
               </AccordionContent>

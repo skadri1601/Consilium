@@ -6,7 +6,7 @@ const DEPRECATED_MODEL_MAP: Record<string, string> = {
   "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
 };
 
-const VALID_AGENT_IDS = new Set(AGENTS.map((a) => a.id));
+const VALID_AGENT_IDS = new Set<string>(AGENTS.map((a) => a.id));
 
 function sanitizeAgentIds(ids: string[]): string[] {
   return ids

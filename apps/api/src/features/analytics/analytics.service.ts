@@ -29,7 +29,12 @@ export class AnalyticsService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [totalDebates, debatesThisMonth, totalCostResult, costThisMonthResult] = await Promise.all([
+    const [
+      totalDebates,
+      debatesThisMonth,
+      totalCostResult,
+      costThisMonthResult,
+    ] = await Promise.all([
       this.prisma.debateSession.count({ where: { userId: internalUserId } }),
       this.prisma.debateSession.count({
         where: {
@@ -67,7 +72,7 @@ export class AnalyticsService {
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     );
 
     const allDebates = await this.prisma.debateSession.findMany({
@@ -85,7 +90,7 @@ export class AnalyticsService {
         }
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     );
 
     return {
@@ -93,8 +98,14 @@ export class AnalyticsService {
       totalCost: totalCostResult._sum.totalCost || 0,
       debatesThisMonth,
       costThisMonth: costThisMonthResult._sum.totalCost || 0,
-      debatesByDay: Object.entries(debatesByDay).map(([date, count]) => ({ date, count })),
-      modelUsage: Object.entries(modelUsage).map(([model, count]) => ({ model, count })),
+      debatesByDay: Object.entries(debatesByDay).map(([date, count]) => ({
+        date,
+        count,
+      })),
+      modelUsage: Object.entries(modelUsage).map(([model, count]) => ({
+        model,
+        count,
+      })),
     };
   }
 
@@ -121,13 +132,16 @@ export class AnalyticsService {
     });
 
     return costs.reduce(
-      (acc: Record<string, number>, curr: { agentId: string | null; _sum: { cost: number | null } }) => {
+      (
+        acc: Record<string, number>,
+        curr: { agentId: string | null; _sum: { cost: number | null } },
+      ) => {
         if (curr.agentId) {
           acc[curr.agentId] = curr._sum.cost || 0;
         }
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     );
   }
 }

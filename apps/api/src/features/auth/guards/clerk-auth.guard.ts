@@ -34,7 +34,9 @@ export class ClerkAuthGuard implements CanActivate {
 
   private async prismaFallbackUser(): Promise<any> {
     try {
-      return await this.prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
+      return await this.prisma.user.findFirst({
+        orderBy: { createdAt: "desc" },
+      });
     } catch {
       return null;
     }
@@ -55,10 +57,16 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!token) {
-      if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === undefined) {
+      if (
+        process.env.NODE_ENV === "development" ||
+        process.env.NODE_ENV === undefined
+      ) {
         const devUser = await this.prismaFallbackUser();
         if (devUser) {
-          request.user = { userId: devUser.clerkId, tenantId: devUser.tenantId || devUser.clerkId };
+          request.user = {
+            userId: devUser.clerkId,
+            tenantId: devUser.tenantId || devUser.clerkId,
+          };
           return true;
         }
       }
@@ -128,10 +136,7 @@ export class ClerkAuthGuard implements CanActivate {
       throw new UnauthorizedException("Session expired due to inactivity");
     }
 
-    const fingerprint = this.sessionService.generateFingerprint(
-      userAgent,
-      ip,
-    );
+    const fingerprint = this.sessionService.generateFingerprint(userAgent, ip);
     const fingerprintValid =
       await this.sessionService.validateSessionFingerprint(
         session.sub,

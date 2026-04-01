@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from "@nestjs/platform-fastify";
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
@@ -7,26 +11,46 @@ import { PrismaService } from "../../src/shared/database/prisma.service";
 const API_PREFIX = "/api/v1";
 const AUTH_HEADER = "Authorization";
 const BEARER_TOKEN = "Bearer stress_test_token_valid";
-const EXPIRED_TOKEN = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDAwMDAwMDB9.expired";
+const EXPIRED_TOKEN =
+  "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDAwMDAwMDB9.expired";
 const MALFORMED_TOKEN = "Bearer not-a-real-jwt-token!!!";
 const VALID_MODELS_TWO = ["gpt-4o-mini", "claude-3-5-haiku-latest"];
-const VALID_MODELS_FIVE = ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash", "llama-3.1-8b-instant", "gpt-4o"];
-const VALID_MODELS_SIX = ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash", "llama-3.1-8b-instant", "gpt-4o", "claude-3-5-sonnet-latest"];
+const VALID_MODELS_FIVE = [
+  "gpt-4o-mini",
+  "claude-3-5-haiku-latest",
+  "gemini-2.0-flash",
+  "llama-3.1-8b-instant",
+  "gpt-4o",
+];
+const VALID_MODELS_SIX = [
+  "gpt-4o-mini",
+  "claude-3-5-haiku-latest",
+  "gemini-2.0-flash",
+  "llama-3.1-8b-instant",
+  "gpt-4o",
+  "claude-3-5-sonnet-latest",
+];
 const SINGLE_MODEL = ["gpt-4o-mini"];
-const REALISTIC_TOPIC = "Design a distributed event-driven microservices architecture for a fintech payment processing platform with real-time fraud detection";
+const REALISTIC_TOPIC =
+  "Design a distributed event-driven microservices architecture for a fintech payment processing platform with real-time fraud detection";
 const MIN_TOPIC = "API";
 const MAX_TOPIC = "A".repeat(1000);
 const OVER_MAX_TOPIC = "B".repeat(1001);
 const SQL_INJECTION_TOPIC = "'; DROP TABLE debates; --";
 const XSS_TOPIC = '<script>alert("xss")</script>Discuss best practices';
-const UNICODE_TOPIC = "Discuss the impact of AI on healthcare \u{1F916}\u{1F3E5} in \u6F22\u5B57 and \u0410\u043D\u0434\u0440\u0435\u0439";
+const UNICODE_TOPIC =
+  "Discuss the impact of AI on healthcare \u{1F916}\u{1F3E5} in \u6F22\u5B57 and \u0410\u043D\u0434\u0440\u0435\u0439";
 const WHITESPACE_TOPIC = "   \t\n   ";
 const HUGE_TOPIC = "C".repeat(100000);
 const TEST_USER_CLERK_ID = "stress_test_clerk_user_001";
 const TEST_USER_EMAIL = "stress-test@consilium.dev";
 const TEST_TENANT = "stress_test_tenant";
 
-function makeDebatePayload(topic: string, models: string[], personaId?: string) {
+function makeDebatePayload(
+  topic: string,
+  models: string[],
+  personaId?: string,
+) {
   return { topic, models, ...(personaId && { personaId }) };
 }
 
@@ -39,7 +63,9 @@ function fireParallelRequests(
   token: string = BEARER_TOKEN,
 ) {
   const promises = Array.from({ length: count }, () => {
-    const req = request(server)[method](`${API_PREFIX}${path}`).set(AUTH_HEADER, token);
+    const req = request(server)
+      [method](`${API_PREFIX}${path}`)
+      .set(AUTH_HEADER, token);
     if (body && method === "post") {
       return req.send(body);
     }
@@ -49,10 +75,15 @@ function fireParallelRequests(
 }
 
 function extractUniqueIds(responses: request.Response[]): string[] {
-  return [...new Set(responses.filter((r) => r.body?.id).map((r) => r.body.id))];
+  return [
+    ...new Set(responses.filter((r) => r.body?.id).map((r) => r.body.id)),
+  ];
 }
 
-function countByStatus(responses: request.Response[], statusCode: number): number {
+function countByStatus(
+  responses: request.Response[],
+  statusCode: number,
+): number {
   return responses.filter((r) => r.status === statusCode).length;
 }
 
@@ -66,9 +97,14 @@ describe("Debate Engine Stress Tests", () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    );
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 
@@ -111,7 +147,10 @@ describe("Debate Engine Stress Tests", () => {
     }, 30000);
 
     it("should rate limit after threshold on rapid fire", async () => {
-      const payload = makeDebatePayload("Rate limit stress test for concurrent users", VALID_MODELS_TWO);
+      const payload = makeDebatePayload(
+        "Rate limit stress test for concurrent users",
+        VALID_MODELS_TWO,
+      );
       const responses = await fireParallelRequests(
         app.getHttpServer(),
         20,
@@ -122,7 +161,9 @@ describe("Debate Engine Stress Tests", () => {
 
       const rateLimited = countByStatus(responses, 429);
       expect(rateLimited).toBeGreaterThanOrEqual(0);
-      expect(responses.every((r) => [201, 429, 400].includes(r.status))).toBe(true);
+      expect(responses.every((r) => [201, 429, 400].includes(r.status))).toBe(
+        true,
+      );
     }, 30000);
   });
 
@@ -131,7 +172,9 @@ describe("Debate Engine Stress Tests", () => {
       const response = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Five model debate stress test", VALID_MODELS_FIVE));
+        .send(
+          makeDebatePayload("Five model debate stress test", VALID_MODELS_FIVE),
+        );
 
       expect([201, 400]).toContain(response.status);
       if (response.status === 201) {
@@ -143,7 +186,9 @@ describe("Debate Engine Stress Tests", () => {
       const response = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Six model debate should fail", VALID_MODELS_SIX));
+        .send(
+          makeDebatePayload("Six model debate should fail", VALID_MODELS_SIX),
+        );
 
       expect(response.status).toBe(400);
     });
@@ -152,7 +197,9 @@ describe("Debate Engine Stress Tests", () => {
       const response = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Single model debate should fail", SINGLE_MODEL));
+        .send(
+          makeDebatePayload("Single model debate should fail", SINGLE_MODEL),
+        );
 
       expect(response.status).toBe(400);
     });
@@ -295,7 +342,12 @@ describe("Debate Engine Stress Tests", () => {
       const createResponse = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Debate to cancel immediately after creation", VALID_MODELS_TWO));
+        .send(
+          makeDebatePayload(
+            "Debate to cancel immediately after creation",
+            VALID_MODELS_TWO,
+          ),
+        );
 
       if (createResponse.status !== 201) return;
 
@@ -315,7 +367,12 @@ describe("Debate Engine Stress Tests", () => {
       const createResponse = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Debate that will be retried after failure", VALID_MODELS_TWO));
+        .send(
+          makeDebatePayload(
+            "Debate that will be retried after failure",
+            VALID_MODELS_TWO,
+          ),
+        );
 
       if (createResponse.status !== 201) return;
 
@@ -337,7 +394,12 @@ describe("Debate Engine Stress Tests", () => {
       const createResponse = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Debate that should not be retried in non-failed state", VALID_MODELS_TWO));
+        .send(
+          makeDebatePayload(
+            "Debate that should not be retried in non-failed state",
+            VALID_MODELS_TWO,
+          ),
+        );
 
       if (createResponse.status !== 201) return;
 
@@ -394,11 +456,16 @@ describe("Debate Engine Stress Tests", () => {
       const response = await request(app.getHttpServer())
         .post(`${API_PREFIX}/conversations`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send({ title: "Stress test conversation for architecture review", mode: "visible" });
+        .send({
+          title: "Stress test conversation for architecture review",
+          mode: "visible",
+        });
 
       if (response.status === 201) {
         conversationId = response.body.id;
-        expect(response.body.title).toBe("Stress test conversation for architecture review");
+        expect(response.body.title).toBe(
+          "Stress test conversation for architecture review",
+        );
       }
       expect([201, 401, 400]).toContain(response.status);
     });
@@ -458,7 +525,9 @@ describe("Debate Engine Stress Tests", () => {
           { provider, key: `sk-test-stress-${provider}-key` },
         );
 
-        const validStatuses = responses.every((r) => [200, 400, 401, 429].includes(r.status));
+        const validStatuses = responses.every((r) =>
+          [200, 400, 401, 429].includes(r.status),
+        );
         expect(validStatuses).toBe(true);
       }
     }, 60000);
@@ -474,7 +543,9 @@ describe("Debate Engine Stress Tests", () => {
 
       const rateLimited = countByStatus(responses, 429);
       expect(rateLimited).toBeGreaterThanOrEqual(0);
-      expect(responses.every((r) => [200, 400, 401, 429].includes(r.status))).toBe(true);
+      expect(
+        responses.every((r) => [200, 400, 401, 429].includes(r.status)),
+      ).toBe(true);
     }, 30000);
   });
 
@@ -589,7 +660,12 @@ describe("Debate Engine Stress Tests", () => {
       const createResponse = await request(app.getHttpServer())
         .post(`${API_PREFIX}/debates`)
         .set(AUTH_HEADER, BEARER_TOKEN)
-        .send(makeDebatePayload("Debate detail retrieval stress test", VALID_MODELS_TWO));
+        .send(
+          makeDebatePayload(
+            "Debate detail retrieval stress test",
+            VALID_MODELS_TWO,
+          ),
+        );
 
       if (createResponse.status !== 201) return;
 

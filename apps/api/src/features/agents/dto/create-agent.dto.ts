@@ -6,7 +6,10 @@ export class CreateAgentDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: "openai", enum: ["openai", "anthropic", "google", "groq", "xai"] })
+  @ApiProperty({
+    example: "openai",
+    enum: ["openai", "anthropic", "google", "groq", "xai"],
+  })
   @IsString()
   @IsIn(["openai", "anthropic", "google", "groq", "xai"])
   provider: string;

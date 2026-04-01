@@ -1,4 +1,13 @@
-import { IsArray, IsString, IsOptional, IsIn, ArrayMinSize, ArrayMaxSize, MinLength, MaxLength } from "class-validator";
+import {
+  IsArray,
+  IsString,
+  IsOptional,
+  IsIn,
+  ArrayMinSize,
+  ArrayMaxSize,
+  MinLength,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class EstimateDebateDto {
