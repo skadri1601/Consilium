@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -7,6 +7,32 @@ import {
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
+import { ClerkAuthGuard } from "../../src/features/auth/guards/clerk-auth.guard";
+import { RateLimitGuard } from "../../src/shared/guards/rate-limit.guard";
+import { HttpExceptionFilter } from "../../src/shared/filters/http-exception.filter";
+import { LoggingInterceptor } from "../../src/shared/interceptors/logging.interceptor";
+
+const TEST_CLERK_ID = "test_user_clerk_123";
+
+class MockClerkAuthGuard {
+  canActivate(context: any) {
+    const request = context.switchToHttp().getRequest();
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return false;
+    }
+
+    request.user = { userId: TEST_CLERK_ID };
+    return true;
+  }
+}
+
+class MockRateLimitGuard {
+  canActivate() {
+    return true;
+  }
+}
 
 describe("Debate Flow Integration (e2e)", () => {
   let app: INestApplication;
@@ -17,11 +43,30 @@ describe("Debate Flow Integration (e2e)", () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(ClerkAuthGuard)
+      .useClass(MockClerkAuthGuard)
+      .overrideGuard(RateLimitGuard)
+      .useClass(MockRateLimitGuard)
+      .compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
+
+    app.setGlobalPrefix("api/v1");
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new LoggingInterceptor());
+
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -30,21 +75,24 @@ describe("Debate Flow Integration (e2e)", () => {
     // Create a test user
     const user = await prisma.user.create({
       data: {
-        clerkId: "test_user_clerk_123",
+        clerkId: TEST_CLERK_ID,
         email: "test@example.com",
         tenantId: "test_tenant",
       },
     });
     userId = user.id;
 
-    // Mock Clerk token (in real tests, use actual Clerk test tokens)
+    // Token value doesn't matter — MockClerkAuthGuard just checks for presence
     authToken = "mock_clerk_token";
   });
 
   afterAll(async () => {
-    // Cleanup
+    // Cleanup: delete debates and related data for the test user, then the user
+    await prisma.debateSession.deleteMany({
+      where: { userId },
+    });
     await prisma.user.deleteMany({
-      where: { clerkId: "test_user_clerk_123" },
+      where: { clerkId: TEST_CLERK_ID },
     });
     await app.close();
   });
@@ -195,7 +243,7 @@ describe("Debate Flow Integration (e2e)", () => {
 
     it("should only return user's own debates", async () => {
       // Create debate for test user
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post("/api/v1/debates")
         .set("Authorization", `Bearer ${authToken}`)
         .send({

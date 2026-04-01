@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -7,6 +7,29 @@ import {
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
+import { ClerkAuthGuard } from "../../src/features/auth/guards/clerk-auth.guard";
+import { RateLimitGuard } from "../../src/shared/guards/rate-limit.guard";
+import { HttpExceptionFilter } from "../../src/shared/filters/http-exception.filter";
+
+/**
+ * Mock auth guard that injects a fake user for all requests.
+ */
+class MockClerkAuthGuard {
+  async canActivate(context: any): Promise<boolean> {
+    const req = context.switchToHttp().getRequest();
+    req.user = { userId: "test-user-id", sessionId: "test-session-id" };
+    return true;
+  }
+}
+
+/**
+ * Mock rate limit guard that always allows requests.
+ */
+class MockRateLimitGuard {
+  async canActivate(): Promise<boolean> {
+    return true;
+  }
+}
 
 describe("API Keys Integration (e2e)", () => {
   let app: INestApplication;
@@ -15,15 +38,37 @@ describe("API Keys Integration (e2e)", () => {
   let userId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    let moduleBuilder = Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    });
+
+    // Override guards that depend on Redis / Clerk
+    moduleBuilder = moduleBuilder
+      .overrideGuard(ClerkAuthGuard)
+      .useClass(MockClerkAuthGuard)
+      .overrideGuard(RateLimitGuard)
+      .useClass(MockRateLimitGuard);
+
+    const moduleFixture: TestingModule = await moduleBuilder.compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
+
+    app.setGlobalPrefix("api/v1");
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
+    app.useGlobalFilters(new HttpExceptionFilter());
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await (app as NestFastifyApplication).getHttpAdapter().getInstance().ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 
@@ -43,7 +88,9 @@ describe("API Keys Integration (e2e)", () => {
     await prisma.user.deleteMany({
       where: { clerkId: "test_user_api_keys" },
     });
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   describe("API Key Management", () => {

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -7,6 +7,7 @@ import {
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
+import { HttpExceptionFilter } from "../../src/shared/filters/http-exception.filter";
 
 describe("Authentication Flow Integration (e2e)", () => {
   let app: INestApplication;
@@ -20,6 +21,19 @@ describe("Authentication Flow Integration (e2e)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
+
+    app.setGlobalPrefix("api/v1");
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
+    app.useGlobalFilters(new HttpExceptionFilter());
+
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
