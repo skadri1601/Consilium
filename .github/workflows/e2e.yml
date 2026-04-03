@@ -27,7 +27,10 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
+      - name: Generate Prisma Client
+        run: cd packages/database && pnpm db:generate
+
       - name: Install Playwright
         run: cd apps/web && pnpm exec playwright install --with-deps
       
@@ -41,6 +44,9 @@ jobs:
         run: cd apps/web && pnpm test:e2e
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
+          PLAYWRIGHT_TEST: 'true'
+          NEXT_PUBLIC_PLAYWRIGHT_TEST: 'true'
       
       - name: Upload test results
         if: always()
