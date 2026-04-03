@@ -40,8 +40,10 @@ class OpenAIAgent(BaseAgent):
 
                 return content, tokens
 
-        except Exception as e:
-            return f"[GPT-4 Error: {str(e)}]", 0
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            return f"[GPT-4 API Error: {str(e)}]", 0
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            return f"[GPT-4 Network Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using OpenAI's API."""
@@ -69,8 +71,10 @@ class OpenAIAgent(BaseAgent):
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
 
-        except Exception as e:
-            yield f"[GPT-4 Stream Error: {str(e)}]"
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            yield f"[GPT-4 API Error: {str(e)}]"
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            yield f"[GPT-4 Network Error: {str(e)}]"
         finally:
             if http_client:
                 await http_client.aclose()
@@ -89,5 +93,6 @@ class OpenAIAgent(BaseAgent):
                 client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
                 await client.models.list()
                 return True
-        except Exception:
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError,
+                httpx.RequestError, httpx.HTTPStatusError):
             return False

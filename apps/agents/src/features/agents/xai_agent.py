@@ -41,8 +41,10 @@ class XAIAgent(BaseAgent):
 
                 return content, tokens
 
-        except Exception as e:
-            return f"[X.AI Error: {str(e)}]", 0
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            return f"[X.AI API Error: {str(e)}]", 0
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            return f"[X.AI Network Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using X.AI's OpenAI-compatible API."""
@@ -70,8 +72,10 @@ class XAIAgent(BaseAgent):
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
 
-        except Exception as e:
-            yield f"[X.AI Stream Error: {str(e)}]"
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            yield f"[X.AI API Error: {str(e)}]"
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            yield f"[X.AI Network Error: {str(e)}]"
         finally:
             if http_client:
                 await http_client.aclose()
@@ -90,5 +94,6 @@ class XAIAgent(BaseAgent):
                 client = openai.AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, http_client=http_client)
                 await client.models.list()
                 return True
-        except Exception:
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError,
+                httpx.RequestError, httpx.HTTPStatusError):
             return False

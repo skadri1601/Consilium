@@ -19,6 +19,7 @@ class GoogleAgent(BaseAgent):
         """Generate a response using Google's Gemini API."""
         try:
             import google.generativeai as genai
+            from google.api_core import exceptions as google_exceptions
 
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
@@ -34,13 +35,16 @@ class GoogleAgent(BaseAgent):
 
             return content, tokens
 
-        except Exception as e:
-            return f"[Gemini Error: {str(e)}]", 0
+        except (google_exceptions.GoogleAPIError, google_exceptions.RetryError) as e:
+            return f"[Gemini API Error: {str(e)}]", 0
+        except (google_exceptions.InvalidArgument, google_exceptions.PermissionDenied) as e:
+            return f"[Gemini Auth Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using Google's Gemini API."""
         try:
             import google.generativeai as genai
+            from google.api_core import exceptions as google_exceptions
 
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
@@ -56,8 +60,10 @@ class GoogleAgent(BaseAgent):
                 if chunk.text:
                     yield chunk.text
 
-        except Exception as e:
-            yield f"[Gemini Stream Error: {str(e)}]"
+        except (google_exceptions.GoogleAPIError, google_exceptions.RetryError) as e:
+            yield f"[Gemini API Error: {str(e)}]"
+        except (google_exceptions.InvalidArgument, google_exceptions.PermissionDenied) as e:
+            yield f"[Gemini Auth Error: {str(e)}]"
 
     async def health_check(self) -> bool:
         """Check if Google Gemini API is accessible."""
@@ -66,9 +72,12 @@ class GoogleAgent(BaseAgent):
 
         try:
             import google.generativeai as genai
+            from google.api_core import exceptions as google_exceptions
+
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
             await model.generate_content_async("ping")
             return True
-        except Exception:
+        except (google_exceptions.GoogleAPIError, google_exceptions.RetryError,
+                google_exceptions.InvalidArgument, google_exceptions.PermissionDenied):
             return False
