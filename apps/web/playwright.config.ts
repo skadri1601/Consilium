@@ -54,6 +54,7 @@ export default defineConfig({
     env: {
       PLAYWRIGHT_TEST: 'true',
       NEXT_PUBLIC_PLAYWRIGHT_TEST: 'true',
+      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || 'sk_test_placeholder',
       PORT: '3000',
     },
   },
