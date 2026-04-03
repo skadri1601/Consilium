@@ -45,17 +45,17 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm dev',
+    command: process.env.CI ? 'node .next/standalone/server.js' : 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     stdout: 'pipe',
     stderr: 'pipe',
     env: {
-      // Set test mode to bypass authentication
       PLAYWRIGHT_TEST: 'true',
-      // Also set as public env var for client-side access
       NEXT_PUBLIC_PLAYWRIGHT_TEST: 'true',
+      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || 'sk_test_placeholder',
+      PORT: '3000',
     },
   },
 });
