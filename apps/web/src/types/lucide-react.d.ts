@@ -67,6 +67,7 @@ declare module 'lucide-react' {
   export const Home: LucideIcon;
   export const Inbox: LucideIcon;
   export const Archive: LucideIcon;
+  export const ArchiveRestore: LucideIcon;
   export const HelpCircle: LucideIcon;
   export const MoreHorizontal: LucideIcon;
   export const Command: LucideIcon;
@@ -95,4 +96,6 @@ declare module 'lucide-react' {
   export const ArrowRight: LucideIcon;
   export const ArrowDown: LucideIcon;
   export const ArrowUp: LucideIcon;
+  export const Bot: LucideIcon;
+  export const SlidersHorizontal: LucideIcon;
 }

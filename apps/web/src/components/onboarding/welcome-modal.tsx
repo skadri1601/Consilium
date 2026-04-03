@@ -41,9 +41,9 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
           <div className="space-y-2">
             <h3 className="font-semibold">Try these sample prompts:</h3>
             <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• "Build a REST API with authentication using Node.js and PostgreSQL"</li>
-              <li>• "Create a React dashboard with real-time data updates"</li>
-              <li>• "Design a database schema for an e-commerce platform"</li>
+              <li>• &quot;Build a REST API with authentication using Node.js and PostgreSQL&quot;</li>
+              <li>• &quot;Create a React dashboard with real-time data updates&quot;</li>
+              <li>• &quot;Design a database schema for an e-commerce platform&quot;</li>
             </ul>
           </div>
           <div className="flex gap-2 pt-4">

@@ -1,53 +1,79 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from "@nestjs/platform-fastify";
 import * as request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/shared/database/prisma.service";
+import { HttpExceptionFilter } from "../../src/shared/filters/http-exception.filter";
 
 describe("Authentication Flow Integration (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+
+    app.setGlobalPrefix("api/v1");
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
+    app.useGlobalFilters(new HttpExceptionFilter());
+
     await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
   });
 
   afterAll(async () => {
+    await prisma.waitlist.deleteMany({
+      where: {
+        email: {
+          in: [
+            'test@example.com',
+            'newuser@example.com',
+            'duplicate@example.com',
+            'invalid-email',
+          ],
+        },
+      },
+    });
     await app.close();
   });
 
   describe("Protected Routes", () => {
     it("should require authentication for debates endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/debates")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/debates").expect(401);
     });
 
     it("should require authentication for user endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/users/me")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/users/me").expect(401);
     });
 
     it("should require authentication for API keys endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/api-keys")
-        .expect(401);
+      await request(app.getHttpServer()).get("/api/v1/api-keys").expect(401);
     });
   });
 
   describe("Public Routes", () => {
     it("should allow access to health endpoint", async () => {
-      await request(app.getHttpServer())
-        .get("/api/v1/health")
-        .expect(200);
+      await request(app.getHttpServer()).get("/api/v1/health").expect(200);
     });
 
     it("should allow access to waitlist endpoint", async () => {
@@ -99,4 +125,3 @@ describe("Authentication Flow Integration (e2e)", () => {
     });
   });
 });
-

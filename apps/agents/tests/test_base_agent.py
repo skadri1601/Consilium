@@ -24,6 +24,10 @@ class TestAgent(BaseAgent):
         yield "Test"
         yield " response"
 
+    async def health_check(self) -> bool:
+        """Mock implementation."""
+        return True
+
 
 class TestBaseAgent:
     """Test cases for BaseAgent."""

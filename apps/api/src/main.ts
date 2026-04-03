@@ -22,7 +22,7 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true })
+    new FastifyAdapter({ logger: true }),
   );
 
   app.setGlobalPrefix("api/v1");
@@ -40,7 +40,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    })
+    }),
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -62,7 +62,9 @@ async function bootstrap() {
     logger.log(`Application is running on: ${await app.getUrl()}`);
     logger.log(`Swagger docs: ${await app.getUrl()}/api/docs`);
   } catch (error) {
-    logger.error(`Failed to start application: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error(
+      `Failed to start application: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
     logger.error(error);
     process.exit(1);
   }
@@ -70,7 +72,9 @@ async function bootstrap() {
 
 bootstrap().catch((error) => {
   const logger = new Logger("Bootstrap");
-  logger.error(`Fatal error during bootstrap: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  logger.error(
+    `Fatal error during bootstrap: ${error instanceof Error ? error.message : "Unknown error"}`,
+  );
   logger.error(error);
   process.exit(1);
 });

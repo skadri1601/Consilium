@@ -6,7 +6,10 @@ const logger = new Logger("RedisProvider");
 export const RedisProvider: Provider = {
   provide: "REDIS_CLIENT",
   useFactory: () => {
-    const redisUrl = process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || "redis://localhost:6379";
+    const redisUrl =
+      process.env.UPSTASH_REDIS_URL ||
+      process.env.REDIS_URL ||
+      "redis://localhost:6379";
     const redisToken = process.env.UPSTASH_REDIS_TOKEN;
 
     let redis: Redis;
@@ -20,7 +23,9 @@ export const RedisProvider: Provider = {
         },
         retryStrategy: (times) => {
           if (times > 3) {
-            logger.warn("Redis connection failed after multiple retries. Redis features will be unavailable.");
+            logger.warn(
+              "Redis connection failed after multiple retries. Redis features will be unavailable.",
+            );
             return null; // Stop retrying
           }
           return Math.min(times * 200, 2000);
@@ -33,7 +38,9 @@ export const RedisProvider: Provider = {
       redis = new Redis(redisUrl, {
         retryStrategy: (times) => {
           if (times > 3) {
-            logger.warn("Redis connection failed after multiple retries. Redis features will be unavailable.");
+            logger.warn(
+              "Redis connection failed after multiple retries. Redis features will be unavailable.",
+            );
             return null; // Stop retrying
           }
           return Math.min(times * 200, 2000);
@@ -54,10 +61,11 @@ export const RedisProvider: Provider = {
 
     // Attempt to connect, but don't fail if it doesn't work
     redis.connect().catch(() => {
-      logger.warn("Redis connection failed. Application will continue without Redis features.");
+      logger.warn(
+        "Redis connection failed. Application will continue without Redis features.",
+      );
     });
 
     return redis;
   },
 };
-

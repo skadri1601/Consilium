@@ -10,8 +10,13 @@ import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 @Module({
   imports: [PrismaModule],
   controllers: [ClerkWebhooksController],
-  providers: [ClerkWebhooksService, AuditLoggerService, SessionService, EmailService, RateLimitGuard],
+  providers: [
+    ClerkWebhooksService,
+    AuditLoggerService,
+    SessionService,
+    EmailService,
+    RateLimitGuard,
+  ],
   exports: [ClerkWebhooksService],
 })
 export class WebhooksModule {}
-

@@ -93,12 +93,14 @@ describe("AuthService", () => {
       const result = await service.revokeSession("session-123");
 
       expect(result).toBe(true);
-      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith("session-123");
+      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith(
+        "session-123",
+      );
     });
 
     it("should return false when revocation fails", async () => {
       mockClerk.sessions.revokeSession.mockRejectedValue(
-        new Error("Revocation failed")
+        new Error("Revocation failed"),
       );
 
       const result = await service.revokeSession("session-123");
@@ -127,13 +129,17 @@ describe("AuthService", () => {
         userId: "user-123",
       });
       expect(mockClerk.sessions.revokeSession).toHaveBeenCalledTimes(2);
-      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith("session-1");
-      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith("session-2");
+      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith(
+        "session-1",
+      );
+      expect(mockClerk.sessions.revokeSession).toHaveBeenCalledWith(
+        "session-2",
+      );
     });
 
     it("should return false when getting sessions fails", async () => {
       mockClerk.sessions.getSessionList.mockRejectedValue(
-        new Error("Failed to get sessions")
+        new Error("Failed to get sessions"),
       );
 
       const result = await service.revokeAllUserSessions("user-123");

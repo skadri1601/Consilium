@@ -1,9 +1,29 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { ConversationV2Service } from "./conversation-v2.service";
-import { CreateConversationV2Dto, AddDebateToConversationDto } from "./dto/create-conversation-v2.dto";
+import {
+  CreateConversationV2Dto,
+  AddDebateToConversationDto,
+} from "./dto/create-conversation-v2.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("conversations-v2")
 @Controller("v2/conversations")
@@ -15,7 +35,10 @@ export class ConversationV2Controller {
   @Post()
   @ApiOperation({ summary: "Create a new conversation" })
   @ApiResponse({ status: 201, description: "Conversation created" })
-  create(@Body() dto: CreateConversationV2Dto, @CurrentUser() user: CurrentUserData): Promise<any> {
+  create(
+    @Body() dto: CreateConversationV2Dto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<any> {
     return this.conversationV2Service.create(user.userId, dto.title);
   }
 
@@ -37,14 +60,20 @@ export class ConversationV2Controller {
   @Get(":id")
   @ApiOperation({ summary: "Get conversation details" })
   @ApiResponse({ status: 200, description: "Conversation details" })
-  get(@Param("id") id: string, @CurrentUser() user: CurrentUserData): Promise<any> {
+  get(
+    @Param("id") id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<any> {
     return this.conversationV2Service.get(id, user.userId);
   }
 
   @Delete(":id")
   @ApiOperation({ summary: "Soft delete a conversation" })
   @ApiResponse({ status: 200, description: "Conversation deleted" })
-  delete(@Param("id") id: string, @CurrentUser() user: CurrentUserData): Promise<any> {
+  delete(
+    @Param("id") id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<any> {
     return this.conversationV2Service.delete(id, user.userId);
   }
 

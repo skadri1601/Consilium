@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
 import { PrismaService } from "../../shared/database/prisma.service";
@@ -26,14 +30,18 @@ export class DebatesService {
 
     if (!user) {
       throw new NotFoundException(
-        "User not found. Please ensure your account is synced."
+        "User not found. Please ensure your account is synced.",
       );
     }
 
     const apiKeys = await this.apiKeysService.getUserApiKeys(userId);
 
     const hasKeys =
-      apiKeys.openaiKey || apiKeys.anthropicKey || apiKeys.googleKey || apiKeys.groqKey || apiKeys.xaiKey;
+      apiKeys.openaiKey ||
+      apiKeys.anthropicKey ||
+      apiKeys.googleKey ||
+      apiKeys.groqKey ||
+      apiKeys.xaiKey;
 
     let useFallback = false;
     if (!hasKeys) {
@@ -44,7 +52,10 @@ export class DebatesService {
     const debateSource = dto.debateSource || "web";
 
     const effectiveModels = useFallback
-      ? Array.from({ length: Math.max(dto.models.length, 2) }, () => FREE_FALLBACK_MODELS.debater)
+      ? Array.from(
+          { length: Math.max(dto.models.length, 2) },
+          () => FREE_FALLBACK_MODELS.debater,
+        )
       : dto.models;
 
     const estimated = this.estimateCost(dto.topic, effectiveModels, mode);
@@ -108,7 +119,12 @@ export class DebatesService {
     return debate;
   }
 
-  async findAll(clerkId: string, limit: number = 20, offset: number = 0, search?: string): Promise<any[]> {
+  async findAll(
+    clerkId: string,
+    limit: number = 20,
+    offset: number = 0,
+    search?: string,
+  ): Promise<any[]> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -167,7 +183,10 @@ export class DebatesService {
     return debate;
   }
 
-  async findConversationDebates(conversationId: string, clerkId: string): Promise<any[]> {
+  async findConversationDebates(
+    conversationId: string,
+    clerkId: string,
+  ): Promise<any[]> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -192,7 +211,11 @@ export class DebatesService {
     });
   }
 
-  async renameDebate(id: string, clerkId: string, newTopic: string): Promise<any> {
+  async renameDebate(
+    id: string,
+    clerkId: string,
+    newTopic: string,
+  ): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -215,7 +238,11 @@ export class DebatesService {
     });
   }
 
-  async archiveDebate(id: string, clerkId: string, archived: boolean): Promise<any> {
+  async archiveDebate(
+    id: string,
+    clerkId: string,
+    archived: boolean,
+  ): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -238,7 +265,11 @@ export class DebatesService {
     });
   }
 
-  async updateStatus(id: string, status: DebateStatus, goldenPrompt?: string): Promise<any> {
+  async updateStatus(
+    id: string,
+    status: DebateStatus,
+    goldenPrompt?: string,
+  ): Promise<any> {
     return this.prisma.debateSession.update({
       where: { id },
       data: {
@@ -389,9 +420,14 @@ export class DebatesService {
 
     try {
       if (this.redis.status === "ready") {
-        await this.redis.publish(`debate:${id}:cancel`, JSON.stringify({ debateId: id, action: "cancel" }));
+        await this.redis.publish(
+          `debate:${id}:cancel`,
+          JSON.stringify({ debateId: id, action: "cancel" }),
+        );
       }
-    } catch (_) {}
+    } catch {
+      // Best-effort cancellation — ignore errors
+    }
 
     return { id, cancelled: true };
   }
@@ -408,21 +444,38 @@ export class DebatesService {
     const avgInputTokens = Math.min(topic.length * 2, 2000);
     const avgOutputTokens = 800;
 
-    const breakdown: Array<{ model: string; role: string; estimatedCost: number }> = [];
+    const breakdown: Array<{
+      model: string;
+      role: string;
+      estimatedCost: number;
+    }> = [];
     let total = 0;
 
     for (const model of models) {
       const pricing = MODEL_PRICING[model] || MODEL_PRICING["default"];
       const modelCost =
-        rounds * ((avgInputTokens / 1_000_000) * pricing.inputPerMillion + (avgOutputTokens / 1_000_000) * pricing.outputPerMillion);
-      breakdown.push({ model, role: "debater", estimatedCost: parseFloat(modelCost.toFixed(6)) });
+        rounds *
+        ((avgInputTokens / 1_000_000) * pricing.inputPerMillion +
+          (avgOutputTokens / 1_000_000) * pricing.outputPerMillion);
+      breakdown.push({
+        model,
+        role: "debater",
+        estimatedCost: parseFloat(modelCost.toFixed(6)),
+      });
       total += modelCost;
     }
 
-    const judgePricing = MODEL_PRICING["gpt-4o-mini"] || MODEL_PRICING["default"];
-    const judgeCost = (avgInputTokens * models.length / 1_000_000) * judgePricing.inputPerMillion +
+    const judgePricing =
+      MODEL_PRICING["gpt-4o-mini"] || MODEL_PRICING["default"];
+    const judgeCost =
+      ((avgInputTokens * models.length) / 1_000_000) *
+        judgePricing.inputPerMillion +
       (avgOutputTokens / 1_000_000) * judgePricing.outputPerMillion;
-    breakdown.push({ model: "gpt-4o-mini", role: "judge", estimatedCost: parseFloat(judgeCost.toFixed(6)) });
+    breakdown.push({
+      model: "gpt-4o-mini",
+      role: "judge",
+      estimatedCost: parseFloat(judgeCost.toFixed(6)),
+    });
     total += judgeCost;
 
     return {
@@ -433,4 +486,3 @@ export class DebatesService {
     };
   }
 }
-

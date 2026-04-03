@@ -30,7 +30,7 @@ export async function POST(
     }
 
     return NextResponse.json(await response.json());
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to retry debate" },
       { status: 500 }

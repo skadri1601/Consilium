@@ -13,7 +13,10 @@ import { AgentsService } from "./agents.service";
 import { CreateAgentDto } from "./dto/create-agent.dto";
 import { UpdateAgentDto } from "./dto/update-agent.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("agents")
 @Controller("agents")
@@ -24,7 +27,10 @@ export class AgentsController {
 
   @Post()
   @ApiOperation({ summary: "Create a new agent" })
-  create(@Body() createAgentDto: CreateAgentDto, @CurrentUser() user: CurrentUserData) {
+  create(
+    @Body() createAgentDto: CreateAgentDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     return this.agentsService.create(createAgentDto, user.userId);
   }
 
@@ -45,7 +51,7 @@ export class AgentsController {
   update(
     @Param("id") id: string,
     @Body() updateAgentDto: UpdateAgentDto,
-    @CurrentUser() user: CurrentUserData
+    @CurrentUser() user: CurrentUserData,
   ) {
     return this.agentsService.update(id, updateAgentDto, user.userId);
   }

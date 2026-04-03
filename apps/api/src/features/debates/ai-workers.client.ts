@@ -42,8 +42,10 @@ export class AiWorkersClient {
   async startDebate(request: DebateStartRequest): Promise<DebateStartResponse> {
     try {
       const url = `${this.baseUrl}/api/v1/debates/start`;
-      
-      this.logger.log(`Starting debate with models: ${request.models.join(", ")}`);
+
+      this.logger.log(
+        `Starting debate with models: ${request.models.join(", ")}`,
+      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -65,16 +67,20 @@ export class AiWorkersClient {
           ...(request.mode && { mode: request.mode }),
           ...(request.debateSource && { debate_source: request.debateSource }),
           ...(request.roundCount && { round_count: request.roundCount }),
-          ...(request.projectContext && { project_context: request.projectContext }),
+          ...(request.projectContext && {
+            project_context: request.projectContext,
+          }),
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        this.logger.error(`AI workers error: ${response.status} - ${errorText}`);
+        this.logger.error(
+          `AI workers error: ${response.status} - ${errorText}`,
+        );
         throw new HttpException(
           `Failed to start debate: ${errorText}`,
-          response.status || HttpStatus.INTERNAL_SERVER_ERROR
+          response.status || HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
@@ -87,10 +93,13 @@ export class AiWorkersClient {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.error(`Error calling AI workers: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error calling AI workers: ${error.message}`,
+        error.stack,
+      );
       throw new HttpException(
         "Failed to connect to AI workers service",
-        HttpStatus.SERVICE_UNAVAILABLE
+        HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
   }
@@ -121,4 +130,3 @@ export class AiWorkersClient {
     }
   }
 }
-

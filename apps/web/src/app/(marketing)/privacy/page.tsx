@@ -10,7 +10,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
               <p className="mb-4 text-muted-foreground">
-                Consilium ("we", "our", or "us") is an open-source AI debate platform that orchestrates
+                Consilium (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is an open-source AI debate platform that orchestrates
                 multiple AI models to generate optimized prompts. This Privacy Policy explains how we
                 collect, use, and protect your information when you use our service.
               </p>
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
                   AI to process debate requests. Review their privacy policies for how they handle data.
                 </li>
                 <li>
-                  <strong className="text-foreground">Authentication Provider:</strong> We use Clerk for authentication. See Clerk's
+                  <strong className="text-foreground">Authentication Provider:</strong> We use Clerk for authentication. See Clerk&apos;s
                   privacy policy at clerk.com/privacy.
                 </li>
                 <li>

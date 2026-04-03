@@ -34,24 +34,25 @@ export class HealthController extends HealthIndicator {
         } catch (error) {
           return this.getStatus("database", false, {
             status: "down",
-            error: error.message
+            error: error.message,
           });
         }
       },
-      () =>
-        this.memory.checkHeap("memory_heap", 150 * 1024 * 1024), // 150MB
-      () =>
-        this.memory.checkRSS("memory_rss", 300 * 1024 * 1024), // 300MB
+      () => this.memory.checkHeap("memory_heap", 150 * 1024 * 1024), // 150MB
+      () => this.memory.checkRSS("memory_rss", 300 * 1024 * 1024), // 300MB
     ]);
   }
 
   @Get("ready")
   @ApiOperation({ summary: "Readiness check for container orchestration" })
-  @ApiResponse({ status: 200, description: "Service is ready to accept traffic" })
+  @ApiResponse({
+    status: 200,
+    description: "Service is ready to accept traffic",
+  })
   async ready() {
     try {
       await this.prismaService.$queryRaw`SELECT 1`;
-      return { 
+      return {
         status: "ready",
         timestamp: new Date().toISOString(),
         checks: {
@@ -59,8 +60,8 @@ export class HealthController extends HealthIndicator {
         },
       };
     } catch (error) {
-      return { 
-        status: "not_ready", 
+      return {
+        status: "not_ready",
         timestamp: new Date().toISOString(),
         error: error.message,
         checks: {
@@ -74,7 +75,7 @@ export class HealthController extends HealthIndicator {
   @ApiOperation({ summary: "Liveness check for container orchestration" })
   @ApiResponse({ status: 200, description: "Service is alive" })
   live() {
-    return { 
+    return {
       status: "alive",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),

@@ -1,9 +1,20 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ConversationsService } from "./conversations.service";
 import { CreateConversationDto } from "./dto/create-conversation.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("conversations")
 @Controller("conversations")
@@ -14,7 +25,10 @@ export class ConversationsController {
 
   @Post()
   @ApiOperation({ summary: "Create a new conversation" })
-  create(@Body() dto: CreateConversationDto, @CurrentUser() user: CurrentUserData) {
+  create(
+    @Body() dto: CreateConversationDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     return this.conversationsService.create(dto, user.userId);
   }
 

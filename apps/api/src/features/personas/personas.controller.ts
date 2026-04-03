@@ -13,7 +13,10 @@ import { PersonasService } from "./personas.service";
 import { CreatePersonaDto } from "./dto/create-persona.dto";
 import { UpdatePersonaDto } from "./dto/update-persona.dto";
 import { ClerkAuthGuard } from "../auth/guards/clerk-auth.guard";
-import { CurrentUser, CurrentUserData } from "../auth/decorators/current-user.decorator";
+import {
+  CurrentUser,
+  CurrentUserData,
+} from "../auth/decorators/current-user.decorator";
 
 @ApiTags("personas")
 @Controller("personas")
@@ -59,4 +62,3 @@ export class PersonasController {
     return this.personasService.remove(id, user.userId);
   }
 }
-

@@ -31,8 +31,11 @@ interface StreamEvent {
   content?: string;
   goldenPrompt?: string;
   totalCost?: number;
+  total_cost?: number;
   modelsUsed?: string[];
   message?: string;
+  consensus?: string;
+  error?: string;
 }
 
 interface Persona {
@@ -42,7 +45,7 @@ interface Persona {
   systemPrompt: string;
 }
 
-const AGENT_NAME_BY_ID = new Map(AGENTS.map((agent) => [agent.id, agent.name]));
+const AGENT_NAME_BY_ID = new Map<string, string>(AGENTS.map((agent) => [agent.id, agent.name]));
 const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq", "Grok (XAI)"];
 const ROUND_DESCRIPTIONS: Record<number, string> = {
   1: "Independent Analysis",
@@ -54,7 +57,7 @@ const ROUND_DESCRIPTIONS: Record<number, string> = {
 export function CouncilChat() {
   const [input, setInput] = useState("");
   const [usingFreeModels, setUsingFreeModels] = useState(false);
-  const [debateId, setDebateId] = useState<string | null>(null);
+  const [, setDebateId] = useState<string | null>(null);
   const [goldenPrompt, setGoldenPrompt] = useState<string | null>(null);
   const [debateCost, setDebateCost] = useState<number | null>(null);
   const [modelsUsed, setModelsUsed] = useState<string[]>([]);
@@ -317,7 +320,7 @@ export function CouncilChat() {
         break;
 
       case "cost:update":
-        setDebateCost(data.totalCost || data.total_cost);
+        setDebateCost(data.totalCost ?? data.total_cost ?? null);
         break;
 
       case "done":

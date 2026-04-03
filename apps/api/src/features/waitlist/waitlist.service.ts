@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import type { Waitlist } from "@consilium/database";
 import { CreateWaitlistDto } from "./dto/create-waitlist.dto";
@@ -46,4 +50,3 @@ export class WaitlistService {
     });
   }
 }
-

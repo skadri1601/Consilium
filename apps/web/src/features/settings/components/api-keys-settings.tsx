@@ -97,7 +97,7 @@ export function ApiKeysSettings() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       setStatus((prev) => ({ ...prev, [provider]: "invalid" }));
       toast({
         title: "Error",
@@ -139,7 +139,7 @@ export function ApiKeysSettings() {
       } else {
         throw new Error("Failed to save keys");
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save API keys",
@@ -164,7 +164,7 @@ export function ApiKeysSettings() {
           <CardTitle>API Keys</CardTitle>
           <CardDescription>
             Add your API keys to use your own credits. Keys are encrypted and stored securely.
-            If you don't provide keys, the demo instance keys will be used (with rate limits).
+            If you don&apos;t provide keys, the demo instance keys will be used (with rate limits).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

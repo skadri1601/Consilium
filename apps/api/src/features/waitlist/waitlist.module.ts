@@ -10,4 +10,3 @@ import { PrismaModule } from "../../shared/database";
   exports: [WaitlistService],
 })
 export class WaitlistModule {}
-

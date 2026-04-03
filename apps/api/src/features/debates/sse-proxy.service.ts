@@ -20,7 +20,9 @@ export class SseProxyService {
   proxyStream(debateId: string): Observable<SseEvent> {
     return new Observable((subscriber) => {
       const streamUrl = this.aiWorkersClient.getStreamUrl(debateId);
-      this.logger.log(`[SSE PROXY] Starting stream proxy for debate ${debateId}`);
+      this.logger.log(
+        `[SSE PROXY] Starting stream proxy for debate ${debateId}`,
+      );
       this.logger.log(`[SSE PROXY] Fetching from: ${streamUrl}`);
 
       const controller = new AbortController();
@@ -38,7 +40,9 @@ export class SseProxyService {
           this.logger.log(`[SSE PROXY] Response status: ${response.status}`);
 
           if (!response.ok) {
-            this.logger.error(`[SSE PROXY] HTTP error! status: ${response.status}`);
+            this.logger.error(
+              `[SSE PROXY] HTTP error! status: ${response.status}`,
+            );
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
@@ -59,10 +63,17 @@ export class SseProxyService {
             const { done, value } = await reader.read();
 
             if (done) {
-              this.logger.log(`[SSE PROXY] Stream ended after ${eventCount} events`);
+              this.logger.log(
+                `[SSE PROXY] Stream ended after ${eventCount} events`,
+              );
               if (!statusUpdated) {
                 statusUpdated = true;
-                await this.handleStreamComplete(debateId, goldenPrompt, totalCost, totalTokens);
+                await this.handleStreamComplete(
+                  debateId,
+                  goldenPrompt,
+                  totalCost,
+                  totalTokens,
+                );
               }
               subscriber.complete();
               break;
@@ -80,7 +91,9 @@ export class SseProxyService {
                 try {
                   const dataStr = line.slice(6);
                   eventCount++;
-                  this.logger.log(`[SSE PROXY] Event #${eventCount} (${currentEvent}): ${dataStr.substring(0, 100)}...`);
+                  this.logger.log(
+                    `[SSE PROXY] Event #${eventCount} (${currentEvent}): ${dataStr.substring(0, 100)}...`,
+                  );
 
                   let parsed: Record<string, unknown>;
                   try {
@@ -90,14 +103,17 @@ export class SseProxyService {
                   }
 
                   if (currentEvent === "consensus") {
-                    const gp = (parsed.golden_prompt || parsed.goldenPrompt || parsed.consensus) as string | undefined;
+                    const gp = (parsed.golden_prompt ||
+                      parsed.goldenPrompt ||
+                      parsed.consensus) as string | undefined;
                     if (gp) {
                       goldenPrompt = gp;
                     }
                   }
 
                   if (currentEvent === "done") {
-                    const doneGp = (parsed.golden_prompt || parsed.goldenPrompt) as string | undefined;
+                    const doneGp = (parsed.golden_prompt ||
+                      parsed.goldenPrompt) as string | undefined;
                     if (doneGp && !goldenPrompt) {
                       goldenPrompt = doneGp;
                     }
@@ -109,7 +125,12 @@ export class SseProxyService {
                     }
                     if (!statusUpdated) {
                       statusUpdated = true;
-                      await this.handleStreamComplete(debateId, goldenPrompt, totalCost, totalTokens);
+                      await this.handleStreamComplete(
+                        debateId,
+                        goldenPrompt,
+                        totalCost,
+                        totalTokens,
+                      );
                     }
                   }
 
@@ -124,7 +145,10 @@ export class SseProxyService {
                   subscriber.next({ data: JSON.stringify(parsed) });
                   currentEvent = null;
                 } catch (error) {
-                  this.logger.warn(`[SSE PROXY] Failed to process SSE data: ${line}`, error);
+                  this.logger.warn(
+                    `[SSE PROXY] Failed to process SSE data: ${line}`,
+                    error,
+                  );
                 }
               } else if (line.trim() === "") {
                 currentEvent = null;
@@ -154,8 +178,14 @@ export class SseProxyService {
     totalTokens?: number,
   ): Promise<void> {
     try {
-      this.logger.log(`[SSE PROXY] Updating debate ${debateId} status to completed`);
-      await this.debatesService.updateStatus(debateId, "completed", goldenPrompt);
+      this.logger.log(
+        `[SSE PROXY] Updating debate ${debateId} status to completed`,
+      );
+      await this.debatesService.updateStatus(
+        debateId,
+        "completed",
+        goldenPrompt,
+      );
       if (totalCost !== undefined) {
         await this.debatesService.updateTotalCost(debateId, totalCost);
       }
@@ -164,13 +194,19 @@ export class SseProxyService {
     }
   }
 
-  private async handleStreamError(debateId: string, error: Error): Promise<void> {
+  private async handleStreamError(
+    debateId: string,
+    error: Error,
+  ): Promise<void> {
     try {
-      this.logger.error(`[SSE PROXY] Marking debate ${debateId} as failed: ${error.message}`);
+      this.logger.error(
+        `[SSE PROXY] Marking debate ${debateId} as failed: ${error.message}`,
+      );
       await this.debatesService.updateStatus(debateId, "failed");
     } catch (updateError) {
-      this.logger.error(`[SSE PROXY] Failed to update debate status to failed: ${updateError}`);
+      this.logger.error(
+        `[SSE PROXY] Failed to update debate status to failed: ${updateError}`,
+      );
     }
   }
 }
-

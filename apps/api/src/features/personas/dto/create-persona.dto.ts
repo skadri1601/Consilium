@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsBoolean, MinLength, MaxLength } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  MinLength,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreatePersonaDto {
@@ -8,7 +14,10 @@ export class CreatePersonaDto {
   @MaxLength(100)
   name: string;
 
-  @ApiProperty({ example: "Focuses on security and best practices", required: false })
+  @ApiProperty({
+    example: "Focuses on security and best practices",
+    required: false,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -25,4 +34,3 @@ export class CreatePersonaDto {
   @IsBoolean()
   isDefault?: boolean;
 }
-

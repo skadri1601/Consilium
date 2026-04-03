@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data = await response.json();
+    await response.json();
 
     // Optionally send welcome email via Resend if configured
     if (process.env.RESEND_API_KEY) {

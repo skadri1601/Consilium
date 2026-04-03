@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, IsObject, MaxLength } from "class-validator";
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsObject,
+  MaxLength,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateWaitlistDto {
@@ -7,15 +13,20 @@ export class CreateWaitlistDto {
   @MaxLength(254)
   email: string;
 
-  @ApiPropertyOptional({ description: "Source of signup", example: "landing_page" })
+  @ApiPropertyOptional({
+    description: "Source of signup",
+    example: "landing_page",
+  })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   source?: string;
 
-  @ApiPropertyOptional({ description: "Additional metadata", example: { referrer: "google" } })
+  @ApiPropertyOptional({
+    description: "Additional metadata",
+    example: { referrer: "google" },
+  })
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
 }
-

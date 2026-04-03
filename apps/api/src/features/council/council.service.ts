@@ -41,7 +41,9 @@ export class CouncilService {
 
     if (!subject) {
       return new Observable((subscriber) => {
-        subscriber.next({ data: JSON.stringify({ error: "Session not found" }) });
+        subscriber.next({
+          data: JSON.stringify({ error: "Session not found" }),
+        });
         subscriber.complete();
       });
     }

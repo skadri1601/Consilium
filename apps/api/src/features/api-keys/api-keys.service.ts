@@ -43,16 +43,24 @@ export class ApiKeysService {
       };
 
       return {
-        openaiKey: userWithKeys.openaiKey ? this.maskKey(userWithKeys.openaiKey) : null,
-        anthropicKey: userWithKeys.anthropicKey ? this.maskKey(userWithKeys.anthropicKey) : null,
-        googleKey: userWithKeys.googleKey ? this.maskKey(userWithKeys.googleKey) : null,
-        groqKey: userWithKeys.groqKey ? this.maskKey(userWithKeys.groqKey) : null,
+        openaiKey: userWithKeys.openaiKey
+          ? this.maskKey(userWithKeys.openaiKey)
+          : null,
+        anthropicKey: userWithKeys.anthropicKey
+          ? this.maskKey(userWithKeys.anthropicKey)
+          : null,
+        googleKey: userWithKeys.googleKey
+          ? this.maskKey(userWithKeys.googleKey)
+          : null,
+        groqKey: userWithKeys.groqKey
+          ? this.maskKey(userWithKeys.groqKey)
+          : null,
         xaiKey: userWithKeys.xaiKey ? this.maskKey(userWithKeys.xaiKey) : null,
       };
     } catch (error) {
       this.logger.error("Error fetching API keys:", error);
       throw new BadRequestException(
-        `Failed to fetch API keys: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to fetch API keys: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
@@ -61,23 +69,33 @@ export class ApiKeysService {
     const updateData: any = {};
 
     if (dto.openaiKey !== undefined) {
-      updateData.openaiKey = dto.openaiKey ? this.encryption.encrypt(dto.openaiKey) : null;
+      updateData.openaiKey = dto.openaiKey
+        ? this.encryption.encrypt(dto.openaiKey)
+        : null;
     }
 
     if (dto.anthropicKey !== undefined) {
-      updateData.anthropicKey = dto.anthropicKey ? this.encryption.encrypt(dto.anthropicKey) : null;
+      updateData.anthropicKey = dto.anthropicKey
+        ? this.encryption.encrypt(dto.anthropicKey)
+        : null;
     }
 
     if (dto.googleKey !== undefined) {
-      updateData.googleKey = dto.googleKey ? this.encryption.encrypt(dto.googleKey) : null;
+      updateData.googleKey = dto.googleKey
+        ? this.encryption.encrypt(dto.googleKey)
+        : null;
     }
 
     if (dto.groqKey !== undefined) {
-      updateData.groqKey = dto.groqKey ? this.encryption.encrypt(dto.groqKey) : null;
+      updateData.groqKey = dto.groqKey
+        ? this.encryption.encrypt(dto.groqKey)
+        : null;
     }
 
     if (dto.xaiKey !== undefined) {
-      updateData.xaiKey = dto.xaiKey ? this.encryption.encrypt(dto.xaiKey) : null;
+      updateData.xaiKey = dto.xaiKey
+        ? this.encryption.encrypt(dto.xaiKey)
+        : null;
     }
 
     let email = `${userId}@clerk.user`;
@@ -107,7 +125,9 @@ export class ApiKeysService {
     };
   }
 
-  async testApiKey(dto: TestApiKeyDto): Promise<{ valid: boolean; message: string }> {
+  async testApiKey(
+    dto: TestApiKeyDto,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       switch (dto.provider) {
         case ApiKeyProvider.OPENAI:
@@ -131,7 +151,9 @@ export class ApiKeysService {
     }
   }
 
-  private async testOpenAIKey(key: string): Promise<{ valid: boolean; message: string }> {
+  private async testOpenAIKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch("https://api.openai.com/v1/models", {
         headers: {
@@ -142,7 +164,10 @@ export class ApiKeysService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        return { valid: false, message: `Invalid OpenAI API key: ${errorMessage}` };
+        return {
+          valid: false,
+          message: `Invalid OpenAI API key: ${errorMessage}`,
+        };
       }
 
       return { valid: true, message: "OpenAI API key is valid" };
@@ -151,7 +176,9 @@ export class ApiKeysService {
     }
   }
 
-  private async testAnthropicKey(key: string): Promise<{ valid: boolean; message: string }> {
+  private async testAnthropicKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -170,7 +197,10 @@ export class ApiKeysService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        return { valid: false, message: `Invalid Anthropic API key: ${errorMessage}` };
+        return {
+          valid: false,
+          message: `Invalid Anthropic API key: ${errorMessage}`,
+        };
       }
 
       return { valid: true, message: "Anthropic API key is valid" };
@@ -179,7 +209,9 @@ export class ApiKeysService {
     }
   }
 
-  private async testGoogleKey(key: string): Promise<{ valid: boolean; message: string }> {
+  private async testGoogleKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
@@ -197,7 +229,10 @@ export class ApiKeysService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        return { valid: false, message: `Invalid Google AI API key: ${errorMessage}` };
+        return {
+          valid: false,
+          message: `Invalid Google AI API key: ${errorMessage}`,
+        };
       }
 
       return { valid: true, message: "Google AI API key is valid" };
@@ -206,7 +241,9 @@ export class ApiKeysService {
     }
   }
 
-  private async testGroqKey(key: string): Promise<{ valid: boolean; message: string }> {
+  private async testGroqKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch("https://api.groq.com/openai/v1/models", {
         headers: {
@@ -217,7 +254,10 @@ export class ApiKeysService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        return { valid: false, message: `Invalid Groq API key: ${errorMessage}` };
+        return {
+          valid: false,
+          message: `Invalid Groq API key: ${errorMessage}`,
+        };
       }
 
       return { valid: true, message: "Groq API key is valid" };
@@ -226,7 +266,9 @@ export class ApiKeysService {
     }
   }
 
-  private async testXAIKey(key: string): Promise<{ valid: boolean; message: string }> {
+  private async testXAIKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch("https://api.x.ai/v1/models", {
         headers: {
@@ -237,7 +279,10 @@ export class ApiKeysService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        return { valid: false, message: `Invalid XAI (Grok) API key: ${errorMessage}` };
+        return {
+          valid: false,
+          message: `Invalid XAI (Grok) API key: ${errorMessage}`,
+        };
       }
 
       return { valid: true, message: "XAI (Grok) API key is valid" };
@@ -324,4 +369,3 @@ export class ApiKeysService {
     return `****${key.slice(-4)}`;
   }
 }
-

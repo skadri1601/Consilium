@@ -26,9 +26,9 @@ class TestMultiAgentWorkflow:
         }
 
         # Mock agent responses
-        with patch('src.workflows.multi_agent.OpenAIAgent') as MockOpenAI, \
-             patch('src.workflows.multi_agent.AnthropicAgent') as MockAnthropic, \
-             patch('src.workflows.multi_agent.GoogleAgent') as MockGoogle:
+        with patch('src.features.agents.openai_agent.OpenAIAgent') as MockOpenAI, \
+             patch('src.features.agents.anthropic_agent.AnthropicAgent') as MockAnthropic, \
+             patch('src.features.agents.google_agent.GoogleAgent') as MockGoogle:
 
             # Setup mocks
             mock_openai = MockOpenAI.return_value
@@ -66,9 +66,9 @@ class TestMultiAgentWorkflow:
             "metadata": {}
         }
 
-        with patch('src.workflows.multi_agent.OpenAIAgent') as MockOpenAI, \
-             patch('src.workflows.multi_agent.AnthropicAgent') as MockAnthropic, \
-             patch('src.workflows.multi_agent.GoogleAgent') as MockGoogle:
+        with patch('src.features.agents.openai_agent.OpenAIAgent') as MockOpenAI, \
+             patch('src.features.agents.anthropic_agent.AnthropicAgent') as MockAnthropic, \
+             patch('src.features.agents.google_agent.GoogleAgent') as MockGoogle:
 
             # Mock success for one agent, error for others
             mock_openai = MockOpenAI.return_value
@@ -197,7 +197,7 @@ class TestMultiAgentWorkflow:
             "metadata": {}
         }
 
-        with patch('src.workflows.multi_agent.ConsensusWorkflow') as MockConsensus:
+        with patch('src.workflows.consensus.ConsensusWorkflow') as MockConsensus:
             mock_consensus = MockConsensus.return_value
             mock_consensus.synthesize = AsyncMock(
                 return_value="Consensus: AI is artificial intelligence and machine learning."
@@ -230,7 +230,7 @@ class TestMultiAgentWorkflow:
             "metadata": {}
         }
 
-        with patch('src.workflows.multi_agent.ConsensusWorkflow') as MockConsensus:
+        with patch('src.workflows.consensus.ConsensusWorkflow') as MockConsensus:
             mock_consensus = MockConsensus.return_value
             mock_consensus.synthesize = AsyncMock(return_value="Consensus")
 
@@ -247,10 +247,10 @@ class TestMultiAgentWorkflow:
         """Test complete workflow execution end-to-end."""
         workflow = MultiAgentWorkflow()
 
-        with patch('src.workflows.multi_agent.OpenAIAgent') as MockOpenAI, \
-             patch('src.workflows.multi_agent.AnthropicAgent') as MockAnthropic, \
-             patch('src.workflows.multi_agent.GoogleAgent') as MockGoogle, \
-             patch('src.workflows.multi_agent.ConsensusWorkflow') as MockConsensus:
+        with patch('src.features.agents.openai_agent.OpenAIAgent') as MockOpenAI, \
+             patch('src.features.agents.anthropic_agent.AnthropicAgent') as MockAnthropic, \
+             patch('src.features.agents.google_agent.GoogleAgent') as MockGoogle, \
+             patch('src.workflows.consensus.ConsensusWorkflow') as MockConsensus:
 
             # Setup agent mocks
             for mock_agent_cls in [MockOpenAI, MockAnthropic, MockGoogle]:
@@ -295,10 +295,10 @@ class TestMultiAgentWorkflow:
         """Test workflow run with default metadata."""
         workflow = MultiAgentWorkflow()
 
-        with patch('src.workflows.multi_agent.OpenAIAgent') as MockOpenAI, \
-             patch('src.workflows.multi_agent.AnthropicAgent') as MockAnthropic, \
-             patch('src.workflows.multi_agent.GoogleAgent') as MockGoogle, \
-             patch('src.workflows.multi_agent.ConsensusWorkflow') as MockConsensus:
+        with patch('src.features.agents.openai_agent.OpenAIAgent') as MockOpenAI, \
+             patch('src.features.agents.anthropic_agent.AnthropicAgent') as MockAnthropic, \
+             patch('src.features.agents.google_agent.GoogleAgent') as MockGoogle, \
+             patch('src.workflows.consensus.ConsensusWorkflow') as MockConsensus:
 
             # Setup mocks
             for mock_agent_cls in [MockOpenAI, MockAnthropic, MockGoogle]:
