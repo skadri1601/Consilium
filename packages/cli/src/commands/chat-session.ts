@@ -2,6 +2,10 @@ import { ConsiliumClient, DebateEvent } from '../api/client';
 import { ContextManager } from '../utils/context-manager';
 import { loadConfig } from '../utils/config';
 import { createStreamHandlers } from '../utils/stream-renderer';
+import { DecisionLog } from '../utils/decision-extractor';
+import { DebateMode, getDefaultMode } from '../utils/debate-modes';
+import { OutputFormat } from '../utils/output-formatter';
+import { type ScannedFile } from '../utils/project-scanner';
 
 const DEFAULT_MODELS = ['gpt-4o-mini', 'claude-haiku', 'gemini-flash'];
 const MAX_CONTEXT_SYNTHESES = 5;
@@ -15,9 +19,13 @@ export interface DebateRecord {
 export interface ChatSessionData {
   id: string;
   name: string;
+  conversationId?: string;
   debates: DebateRecord[];
   contextFilePaths: string[];
+  contextImagePaths: string[];
   models: string[];
+  mode: DebateMode;
+  decisions: any;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,11 +34,17 @@ export class ChatSession {
   readonly client: ConsiliumClient;
   readonly contextManager: ContextManager;
   models: string[];
+  mode: DebateMode;
+  outputFormat: OutputFormat;
   lastGoldenPrompt: string | undefined;
   debates: DebateRecord[];
+  decisionLog: DecisionLog;
   id: string | undefined;
   name: string;
+  conversationId: string | undefined;
   contextFilePaths: string[];
+  contextImagePaths: string[];
+  projectFiles: ScannedFile[] | undefined;
   createdAt: string;
   updatedAt: string;
 
@@ -42,11 +56,17 @@ export class ChatSession {
     this.models = Array.isArray(configModels) && configModels.length > 0
       ? configModels
       : DEFAULT_MODELS;
+    this.mode = getDefaultMode();
+    this.outputFormat = 'text';
     this.lastGoldenPrompt = undefined;
     this.debates = [];
+    this.decisionLog = new DecisionLog();
     this.id = undefined;
     this.name = '';
+    this.conversationId = undefined;
     this.contextFilePaths = [];
+    this.contextImagePaths = [];
+    this.projectFiles = undefined;
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
   }
@@ -71,19 +91,37 @@ export class ChatSession {
   async debate(userInput: string): Promise<void> {
     const context = this.contextManager.buildContext();
     const followUp = this.buildFollowUpContext();
+    const decisionContext = this.decisionLog.getContext();
 
     let effectiveTopic = userInput;
-    if (followUp || context) {
+    if (followUp || context || decisionContext) {
       const parts: string[] = [];
+      if (decisionContext) parts.push(decisionContext);
       if (followUp) parts.push(followUp);
       if (context) parts.push(context);
       parts.push(`QUESTION: ${userInput}`);
       effectiveTopic = parts.join('\n\n');
     }
 
+    const files = this.contextManager.getFiles().length > 0
+      ? Array.from((this.contextManager as any).files?.entries?.() || []).map(([name, content]: [string, string]) => ({ name, content }))
+      : undefined;
+    const images = this.contextManager.getImages().length > 0
+      ? this.contextManager.getImages()
+      : undefined;
+
+    const projectFiles = this.projectFiles?.length
+      ? this.projectFiles.map((f) => ({ path: f.path, content: f.content, category: f.category }))
+      : undefined;
+
     const debate = await this.client.createDebate({
       topic: effectiveTopic,
       models: this.models,
+      mode: this.mode,
+      conversationId: this.conversationId,
+      files: files as any,
+      images,
+      projectFiles,
     });
 
     let goldenPrompt = '';
@@ -100,13 +138,22 @@ export class ChatSession {
       handleEvent(event);
     });
 
+    if (!this.conversationId) {
+      this.conversationId = debate.id;
+    }
+
     const now = new Date().toISOString();
+    const debateIndex = this.debates.length;
     this.debates.push({ topic: userInput, goldenPrompt, timestamp: now });
     this.updatedAt = now;
 
+    if (goldenPrompt) {
+      this.decisionLog.addFromSynthesis(goldenPrompt, userInput, debateIndex);
+    }
+
     if (!this.name && this.debates.length === 1) {
-      this.name = userInput.length > 60
-        ? userInput.substring(0, 60) + '...'
+      this.name = userInput.length > 50
+        ? userInput.substring(0, 50) + '...'
         : userInput;
     }
   }
@@ -116,9 +163,13 @@ export class ChatSession {
     return {
       id: this.id || `session-${Date.now()}`,
       name: this.name,
+      conversationId: this.conversationId,
       debates: this.debates,
       contextFilePaths: [...this.contextFilePaths],
+      contextImagePaths: [...this.contextImagePaths],
       models: this.models,
+      mode: this.mode,
+      decisions: this.decisionLog.toJSON(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt || now,
     };
@@ -132,9 +183,15 @@ export class ChatSession {
     const session = new ChatSession(client, contextManager);
     session.id = data.id;
     session.name = data.name || '';
+    session.conversationId = data.conversationId;
     session.debates = data.debates || [];
     session.models = data.models || DEFAULT_MODELS;
+    session.mode = data.mode || getDefaultMode();
     session.contextFilePaths = data.contextFilePaths || [];
+    session.contextImagePaths = data.contextImagePaths || [];
+    if (data.decisions) {
+      session.decisionLog = DecisionLog.fromJSON(data.decisions);
+    }
     session.createdAt = data.createdAt || new Date().toISOString();
     session.updatedAt = data.updatedAt || data.createdAt || new Date().toISOString();
     if (session.debates.length > 0) {

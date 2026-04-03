@@ -12,6 +12,19 @@ import { openBrowser } from '../utils/open-browser';
 import { border, borderBottom, contentLine, style } from '../utils/visual-system';
 import { formatPrompt } from '../utils/prompt-renderer';
 import { terminal } from '../utils/terminal-capabilities';
+import {
+  handleConversationsCommand,
+  handleContextCommand,
+  handleModeCommand,
+  handleEstimateCommand,
+  handleCancelCommand,
+  handleSkipCommand,
+  handleOutputCommand,
+  handleWorkspaceCommand,
+} from '../utils/chat-commands';
+import { detectWorkspace, getAutoLoadFiles, formatWorkspaceInfo } from '../utils/workspace-detector';
+import { scanProject, type ProjectScanResult } from '../utils/project-scanner';
+import { log } from '../utils/logger';
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '',
@@ -40,21 +53,31 @@ function printWelcome(): void {
 
 function printHelp(): void {
   console.log(st.bold('\nCommands:\n'));
-  console.log(st.dim('  /ask <topic>   - Run one debate (same as typing the topic)'));
-  console.log(st.dim('  /file <path>   - Add file to context (max 100KB per file, 500KB total)'));
-  console.log(st.dim('  /image <path>  - Add image to context (for future use)'));
-  console.log(st.dim('  /api           - Show API key status; /api set <key> or /api open to get key'));
-  console.log(st.dim('  /clear         - Clear context'));
-  console.log(st.dim('  /status        - Show session status'));
-  console.log(st.dim('  /models [m1 m2 ...] - Set models; no args to show current'));
-  console.log(st.dim('  /save [file]   - Save synthesis to file, or session to ~/.consilium/sessions'));
+  console.log(st.bold('  Debate'));
+  console.log(st.dim('  /ask <topic>    - Run one debate (same as typing the topic)'));
+  console.log(st.dim('  /mode [mode]    - Set debate mode: quick, council, deep, blind'));
+  console.log(st.dim('  /estimate       - Show cost estimate for next debate'));
+  console.log(st.dim('  /output [fmt]   - Set output format: markdown, cursorrules, claude-md, json, text'));
+  console.log(st.bold('\n  Context'));
+  console.log(st.dim('  /file <path>    - Add file to context (max 100KB per file, 500KB total)'));
+  console.log(st.dim('  /image <path>   - Add image to context'));
+  console.log(st.dim('  /workspace      - Detect project and show workspace info'));
+  console.log(st.dim('  /context        - Show context window usage and token budget'));
+  console.log(st.dim('  /clear          - Clear context'));
+  console.log(st.bold('\n  Session'));
+  console.log(st.dim('  /status         - Show session status'));
+  console.log(st.dim('  /models [m1 ..] - Set models; no args to show current'));
+  console.log(st.dim('  /save [file]    - Save synthesis to file, or session to disk'));
+  console.log(st.dim('  /history        - Show conversation history'));
+  console.log(st.dim('  /conversations  - List recent conversations'));
+  console.log(st.dim('  /sessions       - List all saved sessions'));
   console.log(st.dim('  /search <query> - Search across all conversations'));
-  console.log(st.dim('  /rename <name> - Rename current session'));
-  console.log(st.dim('  /delete <id>   - Delete a saved session'));
-  console.log(st.dim('  /history       - Show conversation history'));
-  console.log(st.dim('  /sessions      - List all saved sessions'));
-  console.log(st.dim('  /help          - Show this help'));
-  console.log(st.dim('  /exit          - Exit and optionally save session'));
+  console.log(st.dim('  /rename <name>  - Rename current session'));
+  console.log(st.dim('  /delete <id>    - Delete a saved session'));
+  console.log(st.bold('\n  Config'));
+  console.log(st.dim('  /api            - Show API key status; /api set <key> or /api open'));
+  console.log(st.dim('  /help           - Show this help'));
+  console.log(st.dim('  /exit           - Exit and save session'));
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
 }
 
@@ -197,6 +220,7 @@ async function handleSlashCommand(
   switch (cmd) {
     case '/exit': {
       const sessionId = sessionManager.saveSession(session);
+      log('INFO', 'session_saved', { sessionId });
       console.log(
         st.success('\nSession saved. Resume with:'),
         st.brand(`consilium sessions resume ${sessionId}\n`)
@@ -238,7 +262,8 @@ async function handleSlashCommand(
       }
       try {
         session.contextManager.addImage(imagePath);
-        console.log(st.success(`Added ${path.basename(imagePath)} to context (for future use)`));
+        session.contextImagePaths.push(imagePath);
+        console.log(st.success(`Added ${path.basename(imagePath)} to context`));
       } catch (error: any) {
         console.error(st.error('Error:'), error.message);
       }
@@ -303,6 +328,7 @@ async function handleSlashCommand(
         }
       } else {
         const sessionId = sessionManager.saveSession(session);
+        log('INFO', 'session_saved', { sessionId });
         console.log(
           st.success('Session saved. Resume with:'),
           st.brand(`consilium sessions resume ${sessionId}`)
@@ -377,9 +403,52 @@ async function handleSlashCommand(
       return 'continue';
     }
 
+    case '/conversations': {
+      handleConversationsCommand(sessionManager);
+      return 'continue';
+    }
+
+    case '/context': {
+      handleContextCommand(session);
+      return 'continue';
+    }
+
+    case '/mode': {
+      const result = handleModeCommand(args, session.mode);
+      if (result.changed) {
+        session.mode = result.mode as any;
+      }
+      return 'continue';
+    }
+
+    case '/estimate': {
+      handleEstimateCommand(session.mode, session.models.length);
+      return 'continue';
+    }
+
+    case '/output': {
+      const result = handleOutputCommand(args, session.outputFormat);
+      if (result.changed) {
+        session.outputFormat = result.format as any;
+      }
+      return 'continue';
+    }
+
+    case '/workspace': {
+      await handleWorkspaceCommand(process.cwd());
+      return 'continue';
+    }
+
     default:
       console.log(st.warning(`Unknown command: ${cmd}. Use /help for commands.`));
       return 'continue';
+  }
+}
+
+function autoSave(session: ChatSession, sessionManager: SessionManager): void {
+  try {
+    sessionManager.saveSession(session);
+  } catch {
   }
 }
 
@@ -412,7 +481,10 @@ function runReplLoop(
         return;
       }
       session.debate(topic).then(
-        () => runReplLoop(rl, history, session, sessionManager),
+        () => {
+          autoSave(session, sessionManager);
+          runReplLoop(rl, history, session, sessionManager);
+        },
         (error: any) => {
           console.error(st.error('\nDebate failed:'), error.message);
           if (error.message.includes('503')) {
@@ -454,7 +526,10 @@ function runReplLoop(
     }
 
     session.debate(trimmed).then(
-      () => runReplLoop(rl, history, session, sessionManager),
+      () => {
+        autoSave(session, sessionManager);
+        runReplLoop(rl, history, session, sessionManager);
+      },
       (error: any) => {
         console.error(st.error('\nDebate failed:'), error.message);
         if (error.message.includes('503')) {
@@ -492,15 +567,33 @@ export async function chatCommand(): Promise<void> {
   }
   spinner.succeed('Connected');
 
+  log('INFO', 'session_started', { sessionId: session.id });
+
   printWelcome();
   const config = loadConfig();
   const baseUrl = config.apiUrl || 'http://localhost:4000';
   try {
     const host = new URL(baseUrl).host;
-    console.log(st.dim('Ready. Connected to ' + host + '\n'));
+    console.log(st.dim('Ready. Connected to ' + host));
   } catch {
-    console.log(st.dim('Ready. Connected.\n'));
+    console.log(st.dim('Ready. Connected.'));
   }
+
+  const workspace = detectWorkspace();
+  if (workspace.projectType !== 'unknown') {
+    console.log(st.dim(`Detected: ${workspace.language} project (${workspace.framework || workspace.projectType})`));
+    const autoFiles = getAutoLoadFiles(workspace);
+    for (const f of autoFiles) {
+      try {
+        contextManager.addFile(f);
+        session.contextFilePaths.push(f);
+      } catch { /* skip files that fail */ }
+    }
+    if (autoFiles.length > 0) {
+      console.log(st.dim(`Auto-loaded ${session.contextFilePaths.length} project file(s)`));
+    }
+  }
+  console.log('');
 
   const history: string[] = [];
   const rl = readline.createInterface({

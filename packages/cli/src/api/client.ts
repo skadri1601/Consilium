@@ -4,13 +4,19 @@ import { loadConfig } from '../utils/config';
 export interface DebateOptions {
   topic: string;
   models?: string[];
+  mode?: 'quick' | 'council' | 'deep' | 'blind';
+  conversationId?: string;
+  files?: Array<{ name: string; content: string }>;
+  images?: Array<{ name: string; base64: string }>;
+  projectFiles?: Array<{ path: string; content: string; category: string }>;
 }
 
 export interface DebateEvent {
-  type: 'debate_start' | 'agent_start' | 'agent_chunk' | 'agent_complete' | 'consensus' | 'done' | 'error';
+  type: 'debate_start' | 'agent_start' | 'agent_chunk' | 'agent_complete' | 'consensus' | 'done' | 'error' | 'debate:cancelled';
   agent?: string;
   text?: string;
   error?: string;
+  debateId?: string;
 }
 
 export class ConsiliumClient {
@@ -88,13 +94,20 @@ export class ConsiliumClient {
     this.log(`Creating debate at: ${url}`);
 
     try {
+      const body: Record<string, any> = {
+        topic: options.topic,
+        models: options.models || ['gpt-4o-mini', 'claude-haiku', 'gemini-flash'],
+      };
+      if (options.mode) body.mode = options.mode;
+      if (options.conversationId) body.conversationId = options.conversationId;
+      if (options.files?.length) body.context = { ...body.context, files: options.files };
+      if (options.images?.length) body.context = { ...body.context, images: options.images };
+      if (options.projectFiles?.length) body.context = { ...body.context, projectFiles: options.projectFiles };
+
       const response = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          topic: options.topic,
-          models: options.models || ['gpt-4o-mini', 'claude-haiku', 'gemini-flash'],
-        }),
+        body: JSON.stringify(body),
         signal: AbortSignal.timeout(10000),
       });
 
@@ -213,11 +226,83 @@ export class ConsiliumClient {
         reject(new Error('Stream connection failed'));
       };
 
+      eventSource.addEventListener('debate:cancelled', handleEvent('debate:cancelled'));
+
       setTimeout(() => {
         this.log('Stream timeout - closing connection');
         eventSource.close();
         reject(new Error('Stream timeout after 5 minutes'));
       }, 5 * 60 * 1000);
     });
+  }
+
+  async cancelDebate(debateId: string): Promise<void> {
+    const headers: Record<string, string> = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(`${this.apiUrl}/api/v1/debates/${debateId}`, {
+      method: 'DELETE',
+      headers,
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Cancel failed: HTTP ${response.status}`);
+    }
+  }
+
+  async skipToJudge(debateId: string): Promise<void> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(`${this.apiUrl}/api/v1/debates/${debateId}/skip`, {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Skip failed: HTTP ${response.status}`);
+    }
+  }
+
+  async getDebateDetails(debateId: string): Promise<any> {
+    const headers: Record<string, string> = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(`${this.apiUrl}/api/v1/debates/${debateId}`, {
+      method: 'GET',
+      headers,
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    return response.json();
+  }
+
+  async estimateCost(options: { topic: string; models: string[]; mode: string }): Promise<any> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(`${this.apiUrl}/api/v1/debates/estimate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(options),
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) return null;
+    return response.json();
+  }
+
+  getApiUrl(): string {
+    return this.apiUrl;
   }
 }

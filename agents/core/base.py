@@ -1,0 +1,166 @@
+import json
+import logging
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
+AGENTS_DIR = Path(__file__).resolve().parent.parent
+CLAUDE_CLI = shutil.which("claude") or shutil.which("claude.cmd") or "claude"
+
+
+def setup_logging(name):
+    logging.basicConfig(
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        level=logging.INFO,
+    )
+    return logging.getLogger(name)
+
+
+def run_claude(prompt, system_prompt=None, model="sonnet", subagents=None, allowed_tools=None, max_duration=None):
+    logger = logging.getLogger("run_claude")
+
+    cmd = [CLAUDE_CLI, "-p", "--model", model, "--verbose", "--output-format", "stream-json"]
+
+    if allowed_tools:
+        cmd.extend(["--allowed-tools", ",".join(allowed_tools)])
+    else:
+        cmd.extend(["--allowed-tools", "Bash,Read,Glob,Grep,Task,Edit,Write"])
+
+    temp_files = []
+
+    try:
+        if system_prompt:
+            sp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8")
+            sp_file.write(system_prompt)
+            sp_file.close()
+            temp_files.append(sp_file.name)
+            cmd.extend(["--system-prompt", sp_file.name])
+
+        if subagents:
+            agents_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
+            json.dump(subagents, agents_file)
+            agents_file.close()
+            temp_files.append(agents_file.name)
+            cmd.extend(["--agents", agents_file.name])
+
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=(os.name == "nt"),
+        )
+
+        proc.stdin.write(prompt)
+        proc.stdin.close()
+
+        result_text = ""
+        deadline = time.time() + max_duration if max_duration else None
+
+        for line in proc.stdout:
+            if deadline and time.time() > deadline:
+                proc.kill()
+                logger.warning("Process killed due to timeout (%ss)", max_duration)
+                break
+
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if event.get("type") == "result":
+                result_text = event.get("result", "")
+            elif event.get("type") == "assistant" and "message" in event:
+                msg = event["message"]
+                if isinstance(msg, dict):
+                    for block in msg.get("content", []):
+                        if isinstance(block, dict) and block.get("type") == "text":
+                            result_text = block["text"]
+
+        proc.wait()
+
+        stderr_output = proc.stderr.read()
+        if proc.returncode and proc.returncode != 0:
+            logger.error("claude exited with code %s: %s", proc.returncode, stderr_output)
+            if not result_text:
+                return f"Error: claude exited with code {proc.returncode}"
+
+        return result_text
+
+    except Exception as e:
+        logger.exception("run_claude failed")
+        return f"Error: {e}"
+
+    finally:
+        for f in temp_files:
+            try:
+                Path(f).unlink()
+            except OSError:
+                pass
+
+
+def build_base_prompt(role_description, agent_rules):
+    sections = [role_description]
+
+    personality_path = AGENTS_DIR / "guides" / "personality.md"
+    if personality_path.exists():
+        sections.append("## Personality\n" + personality_path.read_text(encoding="utf-8"))
+
+    instructions_path = AGENTS_DIR / "memory" / "instructions.md"
+    if instructions_path.exists():
+        sections.append("## Live Instructions (ALWAYS follow these)\n" + instructions_path.read_text(encoding="utf-8"))
+
+    guide_path = AGENTS_DIR / "guides" / "guide.md"
+    if guide_path.exists():
+        sections.append("## Internal Knowledge Base\n" + guide_path.read_text(encoding="utf-8"))
+
+    try:
+        from agents.core.registry import format_tools_for_prompt
+        tools_text = format_tools_for_prompt()
+        if tools_text:
+            sections.append("## Available CLI Tools\n" + tools_text)
+    except Exception:
+        pass
+
+    sections.append(f"Working directory: {PROJECT_DIR}")
+    sections.append(agent_rules)
+
+    return "\n\n".join(sections)
+
+
+def run_continuous(process_fn, poll_interval=300, name="agent"):
+    logger = setup_logging(name)
+    shutdown = False
+
+    def handle_signal(signum, frame):
+        nonlocal shutdown
+        logger.info("%s shutting down", name)
+        shutdown = True
+
+    signal.signal(signal.SIGTERM, handle_signal)
+    signal.signal(signal.SIGINT, handle_signal)
+
+    logger.info("%s started", name)
+
+    while not shutdown:
+        logger.info("%s polling...", name)
+        try:
+            process_fn()
+        except Exception:
+            logger.exception("Error in %s process_fn", name)
+
+        for _ in range(poll_interval):
+            if shutdown:
+                break
+            time.sleep(1)

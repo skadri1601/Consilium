@@ -7,11 +7,14 @@ import { debateCommand } from './commands/debate';
 import { configSetCommand, configGetCommand, configListCommand } from './commands/config';
 import { chatCommand, chatResumeCommand } from './commands/chat';
 import { loginCommand } from './commands/login';
+import { debugCommand } from './commands/debug';
+import { logsCommand } from './commands/logs';
+import { statsCommand } from './commands/stats';
 import { SessionManager } from './utils/session-manager';
 import { style } from './utils/visual-system';
 
 const st = style();
-const KNOWN_SUBCOMMANDS = ['debate', 'chat', 'config', 'sessions', 'login', 'help'];
+const KNOWN_SUBCOMMANDS = ['debate', 'ask', 'chat', 'config', 'sessions', 'login', 'debug', 'logs', 'stats', 'help'];
 const args = process.argv.slice(2);
 const isFlag = (s: string) => s.startsWith('-');
 const isDefaultRepl = args.length === 0;
@@ -44,7 +47,18 @@ if (isDefaultRepl) {
     .description('Start a multi-agent debate on a topic')
     .argument('<topic>', 'Topic to debate')
     .option('-m, --models <models...>', 'Models to use (e.g., gpt-4o-mini claude-haiku)')
-    .option('-o, --output <file>', 'Save golden prompt to file')
+    .option('--mode <mode>', 'Debate mode: quick, council, deep, blind (default: council)')
+    .option('--output <format>', 'Output format: markdown, cursorrules, claude-md, json (default: pretty-print)')
+    .action(debateCommand);
+
+  // Ask command (alias for debate)
+  program
+    .command('ask')
+    .description('Ask a question (alias for debate)')
+    .argument('<topic>', 'Question or topic')
+    .option('-m, --models <models...>', 'Models to use')
+    .option('--mode <mode>', 'Debate mode: quick, council, deep, blind')
+    .option('--output <format>', 'Output format: markdown, cursorrules, claude-md, json')
     .action(debateCommand);
 
   // Chat command
@@ -58,6 +72,27 @@ if (isDefaultRepl) {
     .command('login')
     .description('Sign in and get a CLI token (opens web app)')
     .action(loginCommand);
+
+  // Debug command
+  program
+    .command('debug')
+    .description('Show full debug trace for a debate')
+    .argument('<debateId>', 'Debate ID (e.g., dbt_01HY3K...)')
+    .action(debugCommand);
+
+  // Logs command
+  program
+    .command('logs')
+    .description('Query logs for a debate')
+    .argument('<debateId>', 'Debate ID')
+    .option('-l, --level <level>', 'Filter by level: DEBUG, INFO, WARN, ERROR')
+    .action(logsCommand);
+
+  // Stats command
+  program
+    .command('stats')
+    .description('Show model performance dashboard')
+    .action(statsCommand);
 
   // Sessions command
   const sessionDir = path.join(os.homedir(), '.consilium', 'sessions');

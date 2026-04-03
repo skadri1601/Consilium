@@ -109,3 +109,4 @@ scratch.*
 *.tmp.md
 # Sentry Config File
 .env.sentry-build-plugin
+*.dll.node

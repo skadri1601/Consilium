@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { ChatSession, ChatSessionData } from '../commands/chat-session';
 import { ConsiliumClient } from '../api/client';
 import { ContextManager } from './context-manager';
+import { generateId } from './id';
 
 const SESSION_DIR = path.join(os.homedir(), '.consilium', 'sessions');
 
@@ -58,7 +59,7 @@ export class SessionManager {
   saveSession(session: ChatSession): string {
     this.ensureSessionDir();
     const data = session.toJSON();
-    const sessionId = data.id || `session-${Date.now()}`;
+    const sessionId = data.id || generateId('session');
     data.id = sessionId;
     session.id = sessionId;
 
