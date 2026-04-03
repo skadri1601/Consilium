@@ -22,29 +22,32 @@ class OpenAIAgent(BaseAgent):
             import httpx
 
             # Create custom HTTP client to avoid proxy detection issues in older SDK versions
-            http_client = httpx.AsyncClient()
-            client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
+            async with httpx.AsyncClient() as http_client:
+                client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
 
-            response = await client.chat.completions.create(
-                model=self.model_id,
-                messages=[
-                    {"role": "system", "content": self.get_system_prompt()},
-                    {"role": "user", "content": query}
-                ],
-                temperature=0.7,
-                max_tokens=2000
-            )
+                response = await client.chat.completions.create(
+                    model=self.model_id,
+                    messages=[
+                        {"role": "system", "content": self.get_system_prompt()},
+                        {"role": "user", "content": query}
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000
+                )
 
-            content = response.choices[0].message.content or ""
-            tokens = response.usage.total_tokens if response.usage else 0
+                content = response.choices[0].message.content or ""
+                tokens = response.usage.total_tokens if response.usage else 0
 
-            return content, tokens
+                return content, tokens
 
-        except Exception as e:
-            return f"[GPT-4 Error: {str(e)}]", 0
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            return f"[GPT-4 API Error: {str(e)}]", 0
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            return f"[GPT-4 Network Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using OpenAI's API."""
+        http_client = None
         try:
             import openai
             import httpx
@@ -65,11 +68,16 @@ class OpenAIAgent(BaseAgent):
             )
 
             async for chunk in stream:
-                if chunk.choices[0].delta.content:
+                if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
 
-        except Exception as e:
-            yield f"[GPT-4 Stream Error: {str(e)}]"
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError) as e:
+            yield f"[GPT-4 API Error: {str(e)}]"
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            yield f"[GPT-4 Network Error: {str(e)}]"
+        finally:
+            if http_client:
+                await http_client.aclose()
 
     async def health_check(self) -> bool:
         """Check if OpenAI API is accessible."""
@@ -81,9 +89,10 @@ class OpenAIAgent(BaseAgent):
             import httpx
 
             # Create custom HTTP client to avoid proxy detection issues in older SDK versions
-            http_client = httpx.AsyncClient()
-            client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
-            await client.models.list()
-            return True
-        except Exception:
+            async with httpx.AsyncClient() as http_client:
+                client = openai.AsyncOpenAI(api_key=self.api_key, http_client=http_client)
+                await client.models.list()
+                return True
+        except (openai.APIConnectionError, openai.RateLimitError, openai.APIStatusError,
+                httpx.RequestError, httpx.HTTPStatusError):
             return False
