@@ -45,7 +45,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
+    command: process.env.CI ? 'node .next/standalone/server.js' : 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
@@ -54,6 +54,7 @@ export default defineConfig({
     env: {
       PLAYWRIGHT_TEST: 'true',
       NEXT_PUBLIC_PLAYWRIGHT_TEST: 'true',
+      PORT: '3000',
     },
   },
 });
