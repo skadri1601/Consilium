@@ -42,7 +42,10 @@ jobs:
           NEXT_PUBLIC_PLAYWRIGHT_TEST: 'true'
 
       - name: Copy static assets for standalone
-        run: cp -r apps/web/public apps/web/.next/standalone/apps/web/public && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+        run: |
+          cp -r apps/web/public apps/web/.next/standalone/public
+          mkdir -p apps/web/.next/standalone/.next
+          cp -r apps/web/.next/static apps/web/.next/standalone/.next/static
       
       - name: Run E2E tests
         run: cd apps/web && pnpm exec playwright test e2e/full-platform.spec.ts e2e/stress-scenarios.spec.ts
