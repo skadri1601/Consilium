@@ -33,13 +33,28 @@ MASTER_RULES = """
 ## Slack Master Agent Rules
 
 1. You receive messages from Slack users. Understand what they need.
-2. Investigate context using all available tools before responding.
-3. Use the **plan** subagent to create a step-by-step action plan.
-4. Execute the plan using the appropriate tools.
-5. Before sending your final response, use the **verify-response** subagent.
-6. Keep responses concise and actionable.
-7. If you need to escalate, use `notify_slack --escalate`.
-8. Always respond in the context of the Consilium product.
+2. Be DECISIVE and ACTION-ORIENTED. Do not ask for permissions repeatedly.
+3. When users say "approved", "done", "yes", "sure", "go ahead" - PROCEED immediately.
+4. Execute tasks end-to-end: create + assign + update status in one action.
+5. Keep responses concise and actionable. No unnecessary confirmations.
+6. If you cannot execute a Linear operation directly, suggest the quick command format.
+7. Always respond in the context of the Consilium product.
+
+## Quick Command Reference
+Tell users they can use these patterns for immediate Linear actions:
+- "create ticket: <title>" - Creates a new ticket
+- "create ticket and start: <title>" - Creates, assigns to you, moves to In Progress
+- "create ticket about <topic>" - Creates a ticket about that topic
+- "start working on <TICKET-ID>" - Moves ticket to In Progress
+- "assign <TICKET-ID> to me" - Assigns ticket to you
+- "move <TICKET-ID> to <status>" - Changes ticket status
+- "list my tickets" - Shows your assigned tickets
+- "status <TICKET-ID>" - Shows ticket details
+
+## Important
+- Do NOT ask for tool permissions. Tools are already authorized.
+- Do NOT repeatedly ask if user wants to proceed. Just do it.
+- If a task involves Linear, suggest the quick command format above.
 """
 
 
@@ -137,6 +152,99 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
         try:
             issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
             _post_reply(client, channel, thread_ts, f"Created *{issue['identifier']}*: {issue['title']}\n{issue.get('url', '')}")
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
+        return True
+
+    # Create ticket and start working on it (full flow)
+    m = re.match(r"create (?:an? )?ticket (?:and|&) start[:\s]*(.+)", text, re.IGNORECASE)
+    if m:
+        title = m.group(1).strip()
+        try:
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
+            linear_api.assign_issue(issue["identifier"], email)
+            linear_api.transition_issue(issue["identifier"], "In Progress")
+            _post_reply(
+                client, channel, thread_ts,
+                f"Created *{issue['identifier']}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
+            )
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
+        return True
+
+    # Natural language: "create a ticket about X" or "create ticket on linear about X"
+    m = re.match(
+        r"create (?:an? )?(?:ticket|issue) (?:on linear )?(?:about|for|regarding)[:\s]+(?:the (?:issue )?)?(.+?)(?:\s+and\s+(?:after that |then )?(?:start|assign|tag|work|move|tell).*)?$",
+        text, re.IGNORECASE
+    )
+    if m:
+        # Extract the core issue title, cleaning up common phrases
+        title = m.group(1).strip()
+        title = re.sub(r"\s+and\s+after that.*$", "", title, flags=re.IGNORECASE).strip()
+
+        # Check if user wants to start working on it or assign to someone
+        wants_start = bool(re.search(r"(?:start|work|move.*(?:in\s*progress|started))", text, re.IGNORECASE))
+        wants_assign_claude = bool(re.search(r"(?:tag|assign)\s+(?:claude|bot|it)", text, re.IGNORECASE))
+        wants_assign_me = bool(re.search(r"assign\s+(?:to\s+)?me", text, re.IGNORECASE))
+
+        try:
+            issue = linear_api.create_issue(title.title(), f"Created from Slack by <@{user_id}>")
+            msg = f"Created *{issue['identifier']}*: {issue['title']}"
+
+            # Handle assignment
+            if wants_assign_me or wants_assign_claude:
+                info = client.users_info(user=user_id)
+                email = info["user"]["profile"].get("email", "")
+                linear_api.assign_issue(issue["identifier"], email)
+                msg += f"\nAssigned to <@{user_id}>."
+
+            # Handle status transition
+            if wants_start:
+                linear_api.transition_issue(issue["identifier"], "In Progress")
+                msg += "\nMoved to In Progress."
+
+            msg += f"\n{issue.get('url', '')}"
+            _post_reply(client, channel, thread_ts, msg)
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
+        return True
+
+    # Fallback for complex Linear requests - extract ticket creation intent
+    if re.search(r"create\s+(?:an?\s+)?(?:ticket|issue)", text, re.IGNORECASE) and re.search(r"linear|email|not working|bug|fix", text, re.IGNORECASE):
+        # Try to extract a reasonable title from the request
+        title_match = re.search(
+            r"(?:about|regarding|for|issue[:\s]+)\s*(?:the\s+(?:issue\s+)?)?([^,]+?)(?:\s+and\s+|$|\s+tag\s+|\s+then\s+)",
+            text, re.IGNORECASE
+        )
+        if title_match:
+            title = title_match.group(1).strip()
+        else:
+            # Last resort: grab key phrases
+            title = re.sub(r"<@[A-Z0-9]+>", "", text)
+            title = re.sub(r"create\s+(?:an?\s+)?(?:ticket|issue)\s+(?:on\s+linear\s+)?", "", title, flags=re.IGNORECASE)
+            title = re.sub(r"\s+and\s+(?:after|then|tag|assign|start|work|move).*$", "", title, flags=re.IGNORECASE)
+            title = re.sub(r"(?:about|regarding|for)\s+(?:the\s+(?:issue\s+)?)?", "", title, flags=re.IGNORECASE).strip()
+            title = title[:100] if title else "Issue from Slack"
+
+        wants_start = bool(re.search(r"(?:start|work|move.*progress)", text, re.IGNORECASE))
+
+        try:
+            issue = linear_api.create_issue(title.strip().title(), f"Created from Slack by <@{user_id}>")
+            msg = f"Created *{issue['identifier']}*: {issue['title']}"
+
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            linear_api.assign_issue(issue["identifier"], email)
+            msg += f"\nAssigned to <@{user_id}>."
+
+            if wants_start:
+                linear_api.transition_issue(issue["identifier"], "In Progress")
+                msg += "\nMoved to In Progress."
+
+            msg += f"\n{issue.get('url', '')}"
+            _post_reply(client, channel, thread_ts, msg)
         except Exception as e:
             _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
         return True
