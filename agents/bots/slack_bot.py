@@ -21,6 +21,7 @@ from agents.tools.task_queue import (
     recover_stale,
     timeout_stale,
 )
+from agents.tools.memory_tool import check, track
 
 logger = setup_logging("slack_bot")
 
@@ -33,14 +34,28 @@ MASTER_RULES = """
 ## Slack Master Agent Rules
 
 1. You receive messages from Slack users. Understand what they need.
-2. Investigate context using all available tools before responding.
-3. Use the **plan** subagent to create a step-by-step action plan.
-4. Execute the plan using the appropriate tools.
-5. Before sending your final response, use the **verify-response** subagent.
-6. Keep responses concise and actionable.
-7. If you need to escalate, use `notify_slack --escalate`.
-8. Always respond in the context of the Consilium product.
+2. Read the **CONVERSATION HISTORY** carefully - it contains prior messages from this thread.
+3. Be decisive and action-oriented. Don't ask for permissions repeatedly - just proceed with available tools.
+4. If a user says "approved", "done", "yes", "sure", or similar - that means proceed with the task you proposed.
+5. Remember what was discussed earlier in the thread. Never say "I don't have context" when history is provided.
+6. Execute tasks end-to-end. Create tickets, assign them, update status - all in one go when requested.
+7. Use available tools immediately. Don't ask for permission - just use them.
+8. Keep responses concise. Don't list what tools you have - just use them.
+9. If you hit an error, explain briefly and try an alternative approach.
+10. Always respond in the context of the Consilium product.
+11. The **USER INFO** section tells you who is talking. Use their email for assignments and lookups.
+12. When asked to create a ticket AND work on it, do both in a single response - create, assign, transition to In Progress.
+13. Acknowledge confirmations ("done", "approved") by immediately doing the previously proposed action.
 """
+
+MAX_HISTORY_CHARS = 6000  # Cap thread history to avoid blowing up the prompt
+
+GREETING_PATTERNS = re.compile(
+    r"^(hi|hello|hey|yo|sup|what'?s up|howdy|greetings?)\s*[!?.]*$",
+    re.IGNORECASE,
+)
+
+GREETING_RESPONSE = "Hey! How can I help you today?"
 
 
 def _build_system_prompt():
@@ -50,10 +65,95 @@ def _build_system_prompt():
     )
 
 
-def run_master(prompt, model="sonnet"):
+def _fetch_thread_history(client, channel, thread_ts, limit=20):
+    """Fetch previous messages in a thread for context, capped by MAX_HISTORY_CHARS."""
+    try:
+        result = client.conversations_replies(
+            channel=channel,
+            ts=thread_ts,
+            limit=limit,
+        )
+        messages = result.get("messages", [])
+        history = []
+        total_chars = 0
+        # Walk messages oldest-first, exclude the current (last) message
+        for msg in messages[:-1]:
+            text = msg.get("text", "")
+            # Clean up bot mentions
+            text = re.sub(r"<@[A-Z0-9]+>", "", text).strip()
+            if not text:
+                continue
+            role = "assistant" if msg.get("bot_id") else "user"
+            line = f"[{role}]: {text}"
+            total_chars += len(line)
+            if total_chars > MAX_HISTORY_CHARS:
+                # Keep the most recent messages that fit
+                break
+            history.append(line)
+        return history
+    except Exception as e:
+        logger.warning("Failed to fetch thread history: %s", e)
+        return []
+
+
+def _resolve_user_info(client, user_id):
+    """Look up Slack user profile for identity context."""
+    try:
+        info = client.users_info(user=user_id)
+        profile = info["user"]["profile"]
+        name = profile.get("real_name") or profile.get("display_name") or "Unknown"
+        email = profile.get("email", "")
+        return {"name": name, "email": email, "user_id": user_id}
+    except Exception as e:
+        logger.warning("Failed to resolve user info for %s: %s", user_id, e)
+        return {"name": "Unknown", "email": "", "user_id": user_id}
+
+
+def _get_conversation_context(thread_ts):
+    """Check memory for previous context about this conversation."""
+    try:
+        result = check("conversation", thread_ts)
+        if result.get("processed") and result.get("entry"):
+            return result["entry"].get("summary", "")
+    except Exception:
+        pass
+    return ""
+
+
+def _save_conversation_context(thread_ts, summary):
+    """Save conversation context to memory."""
+    try:
+        track("conversation", thread_ts, "active", summary)
+    except Exception as e:
+        logger.warning("Failed to save conversation context: %s", e)
+
+
+def run_master(prompt, model="sonnet", thread_history=None, conversation_context=None, user_info=None):
     system_prompt = _build_system_prompt()
     subagents = get_subagents("plan", "verify-response")
-    return run_claude(prompt, system_prompt=system_prompt, model=model, subagents=subagents)
+
+    # Build enhanced prompt with context
+    parts = []
+
+    if user_info:
+        parts.append(
+            f"## USER INFO\nName: {user_info['name']}\n"
+            f"Email: {user_info['email']}\nSlack ID: {user_info['user_id']}"
+        )
+
+    if thread_history:
+        parts.append(
+            "## CONVERSATION HISTORY (read this for context)\n"
+            + "\n".join(thread_history)
+        )
+
+    if conversation_context:
+        parts.append(f"## PREVIOUS CONTEXT\n{conversation_context}")
+
+    parts.append(f"## CURRENT MESSAGE\n{prompt}")
+
+    enhanced_prompt = "\n\n".join(parts)
+    return run_claude(enhanced_prompt, system_prompt=system_prompt, model=model, subagents=subagents)
 
 
 def _post_reply(client, channel, thread_ts, text):
@@ -67,6 +167,11 @@ def _post_reply(client, channel, thread_ts, text):
 
 def _handle_quick_command(client, channel, thread_ts, user_id, text):
     lower = text.lower().strip()
+
+    # Fast greeting response - skip the LLM entirely
+    if GREETING_PATTERNS.match(lower):
+        _post_reply(client, channel, thread_ts, GREETING_RESPONSE)
+        return True
 
     m = re.match(r"start working on ([A-Z]+-\d+)", text, re.IGNORECASE)
     if m:
@@ -131,7 +236,7 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
             _post_reply(client, channel, thread_ts, f"Failed to get {ticket_id}: {e}")
         return True
 
-    m = re.match(r"create ticket[:\s]+(.+)", text, re.IGNORECASE)
+    m = re.match(r"create (?:a )?ticket[:\s]+(?:about |for |on )?(.+)", text, re.IGNORECASE)
     if m:
         title = m.group(1).strip()
         try:
@@ -164,6 +269,25 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
             _post_reply(client, channel, thread_ts, "Email agent triggered.")
         except Exception as e:
             _post_reply(client, channel, thread_ts, f"Failed to run email agent: {e}")
+        return True
+
+    # Create ticket and start working on it in one command
+    m = re.match(r"create (?:a )?ticket (?:and )?(?:start|work)(?: on)?[:\s]+(.+)", text, re.IGNORECASE)
+    if m:
+        title = m.group(1).strip()
+        try:
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
+            ticket_id = issue["identifier"]
+            linear_api.assign_issue(ticket_id, email)
+            linear_api.transition_issue(ticket_id, "In Progress")
+            _post_reply(
+                client, channel, thread_ts,
+                f"Created *{ticket_id}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
+            )
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
         return True
 
     return False
@@ -243,10 +367,24 @@ def run_worker(slack_client, model):
         except Exception:
             pass
 
+        # Gather context for the master agent
+        thread_history = _fetch_thread_history(slack_client, channel, thread_ts)
+        conversation_context = _get_conversation_context(thread_ts)
+        user_info = _resolve_user_info(slack_client, task.get("user_id", ""))
+
         try:
-            result = run_master(prompt, model)
+            result = run_master(
+                prompt, model,
+                thread_history=thread_history,
+                conversation_context=conversation_context,
+                user_info=user_info,
+            )
             _post_reply(slack_client, channel, thread_ts, result)
             complete(task_id, result[:500])
+
+            # Save conversation context including what action was taken
+            summary = f"User: {user_info['name']} | Topic: {prompt[:80]} | Result: {result[:120]}"
+            _save_conversation_context(thread_ts, summary)
 
             try:
                 slack_client.reactions_add(channel=channel, name="white_check_mark", timestamp=task["slack_message_ts"])
