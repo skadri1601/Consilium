@@ -36,13 +36,13 @@ export class WaitlistService {
     };
   }
 
-  async findAll() {
+  async findAll(): Promise<any[]> {
     return this.prisma.waitlist.findMany({
       orderBy: { createdAt: "desc" },
     });
   }
 
-  async markNotified(email: string) {
+  async markNotified(email: string): Promise<any> {
     return this.prisma.waitlist.update({
       where: { email },
       data: { notified: true },
