@@ -79,89 +79,101 @@ def _parse_message(msg_data, uid):
     }
 
 
+def _sanitize_imap_string(value):
+    """Sanitize a value for safe embedding in IMAP search string literals."""
+    return str(value).replace("\\", "").replace('"', "")
+
+
 def _connect():
     if not IMAP_HOST or not IMAP_USER or not IMAP_PASSWORD:
         raise RuntimeError("IMAP not configured (need IMAP_HOST, IMAP_USER, IMAP_PASSWORD)")
-    conn = imaplib.IMAP4_SSL(IMAP_HOST)
+    conn = imaplib.IMAP4_SSL(IMAP_HOST, timeout=30)
     conn.login(IMAP_USER, IMAP_PASSWORD)
     return conn
 
 
 def inbox(limit=10):
     conn = _connect()
-    conn.select("INBOX")
-    _, data = conn.search(None, "ALL")
-    uids = data[0].split()
-    uids = uids[-limit:] if uids else []
-    uids.reverse()
-    messages = []
-    for uid in uids:
-        _, msg_data = conn.fetch(uid, "(RFC822)")
-        if msg_data and msg_data[0]:
-            parsed = _parse_message(msg_data[0][1], uid.decode())
-            parsed["body"] = parsed["body"][:200]
-            messages.append(parsed)
-    conn.logout()
+    try:
+        conn.select("INBOX")
+        _, data = conn.search(None, "ALL")
+        uids = data[0].split()
+        uids = uids[-limit:] if uids else []
+        uids.reverse()
+        messages = []
+        for uid in uids:
+            _, msg_data = conn.fetch(uid, "(RFC822)")
+            if msg_data and msg_data[0]:
+                parsed = _parse_message(msg_data[0][1], uid.decode())
+                parsed["body"] = parsed["body"][:200]
+                messages.append(parsed)
+    finally:
+        conn.logout()
     return messages
 
 
 def unread(limit=10):
     conn = _connect()
-    conn.select("INBOX")
-    _, data = conn.search(None, "UNSEEN")
-    uids = data[0].split()
-    uids = uids[-limit:] if uids else []
-    uids.reverse()
-    messages = []
-    for uid in uids:
-        _, msg_data = conn.fetch(uid, "(RFC822)")
-        if msg_data and msg_data[0]:
-            parsed = _parse_message(msg_data[0][1], uid.decode())
-            parsed["body"] = parsed["body"][:200]
-            messages.append(parsed)
-    conn.logout()
+    try:
+        conn.select("INBOX")
+        _, data = conn.search(None, "UNSEEN")
+        uids = data[0].split()
+        uids = uids[-limit:] if uids else []
+        uids.reverse()
+        messages = []
+        for uid in uids:
+            _, msg_data = conn.fetch(uid, "(RFC822)")
+            if msg_data and msg_data[0]:
+                parsed = _parse_message(msg_data[0][1], uid.decode())
+                parsed["body"] = parsed["body"][:200]
+                messages.append(parsed)
+    finally:
+        conn.logout()
     return {"unread_count": len(uids), "messages": messages}
 
 
 def search_emails(query, limit=10):
     conn = _connect()
-    conn.select("INBOX")
-    criteria = []
-    parts = query.split()
-    for part in parts:
-        if part.startswith("from:"):
-            criteria.append(f'FROM "{part[5:]}"')
-        elif part.startswith("to:"):
-            criteria.append(f'TO "{part[3:]}"')
-        elif part.startswith("subject:"):
-            criteria.append(f'SUBJECT "{part[8:]}"')
-        else:
-            criteria.append(f'TEXT "{part}"')
-    search_str = " ".join(criteria) if criteria else f'TEXT "{query}"'
-    _, data = conn.search(None, search_str)
-    uids = data[0].split()
-    uids = uids[-limit:] if uids else []
-    uids.reverse()
-    messages = []
-    for uid in uids:
-        _, msg_data = conn.fetch(uid, "(RFC822)")
-        if msg_data and msg_data[0]:
-            parsed = _parse_message(msg_data[0][1], uid.decode())
-            parsed["body"] = parsed["body"][:300]
-            messages.append(parsed)
-    conn.logout()
+    try:
+        conn.select("INBOX")
+        criteria = []
+        parts = query.split()
+        for part in parts:
+            if part.startswith("from:"):
+                criteria.append(f'FROM "{_sanitize_imap_string(part[5:])}"')
+            elif part.startswith("to:"):
+                criteria.append(f'TO "{_sanitize_imap_string(part[3:])}"')
+            elif part.startswith("subject:"):
+                criteria.append(f'SUBJECT "{_sanitize_imap_string(part[8:])}"')
+            else:
+                criteria.append(f'TEXT "{_sanitize_imap_string(part)}"')
+        search_str = " ".join(criteria) if criteria else f'TEXT "{_sanitize_imap_string(query)}"'
+        _, data = conn.search(None, search_str)
+        uids = data[0].split()
+        uids = uids[-limit:] if uids else []
+        uids.reverse()
+        messages = []
+        for uid in uids:
+            _, msg_data = conn.fetch(uid, "(RFC822)")
+            if msg_data and msg_data[0]:
+                parsed = _parse_message(msg_data[0][1], uid.decode())
+                parsed["body"] = parsed["body"][:300]
+                messages.append(parsed)
+    finally:
+        conn.logout()
     return messages
 
 
 def read_message(uid):
     conn = _connect()
-    conn.select("INBOX")
-    _, msg_data = conn.fetch(str(uid), "(RFC822)")
-    if not msg_data or not msg_data[0]:
+    try:
+        conn.select("INBOX")
+        _, msg_data = conn.fetch(str(uid), "(RFC822)")
+        if not msg_data or not msg_data[0]:
+            return {"error": f"Message {uid} not found"}
+        parsed = _parse_message(msg_data[0][1], str(uid))
+    finally:
         conn.logout()
-        return {"error": f"Message {uid} not found"}
-    parsed = _parse_message(msg_data[0][1], str(uid))
-    conn.logout()
     return parsed
 
 
@@ -174,18 +186,20 @@ def get_thread(uid):
         return [msg]
     ref_ids = refs.split()
     conn = _connect()
-    conn.select("INBOX")
-    thread = [msg]
-    for ref_id in ref_ids[:20]:
-        ref_id = ref_id.strip("<>")
-        _, data = conn.search(None, f'HEADER Message-ID "<{ref_id}>"')
-        uids = data[0].split()
-        for u in uids:
-            _, msg_data = conn.fetch(u, "(RFC822)")
-            if msg_data and msg_data[0]:
-                parsed = _parse_message(msg_data[0][1], u.decode())
-                thread.append(parsed)
-    conn.logout()
+    try:
+        conn.select("INBOX")
+        thread = [msg]
+        for ref_id in ref_ids[:20]:
+            ref_id = _sanitize_imap_string(ref_id.strip("<>"))
+            _, data = conn.search(None, f'HEADER Message-ID "<{ref_id}>"')
+            uids = data[0].split()
+            for u in uids:
+                _, msg_data = conn.fetch(u, "(RFC822)")
+                if msg_data and msg_data[0]:
+                    parsed = _parse_message(msg_data[0][1], u.decode())
+                    thread.append(parsed)
+    finally:
+        conn.logout()
     seen = set()
     unique = []
     for m in thread:

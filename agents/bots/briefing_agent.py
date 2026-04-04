@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 from agents.config import (
-    DEFAULT_MODEL,
     SENTRY_AUTH_TOKEN,
     SONARQUBE_URL,
     VERCEL_TOKEN,
@@ -29,7 +28,10 @@ def _run_tool(module, *args):
 
 
 def gather_linear():
-    issues = _run_tool("agents.tools.linear_api", "my-issues", "--email", "")
+    from agents.config import CONSILIUM_SUPPORT_EMAIL as _email
+    if not _email:
+        return None
+    issues = _run_tool("agents.tools.linear_api", "my-issues", "--email", _email)
     if not issues:
         return None
     in_progress = [i for i in issues if i.get("state", {}).get("name") == "In Progress"]
