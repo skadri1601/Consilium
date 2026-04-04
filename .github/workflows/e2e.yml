@@ -7,46 +7,59 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   e2e:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 9
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
-      
+          node-version: "20"
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
-      - name: Install Playwright
-        run: cd apps/web && pnpm exec playwright install --with-deps
-      
+
+      - name: Generate Prisma client
+        run: cd packages/database && pnpm db:generate
+
+      - name: Install Playwright browsers
+        run: cd apps/web && pnpm exec playwright install --with-deps chromium
+
       - name: Build web
-        run: cd apps/web && pnpm build
+        run: pnpm --filter web build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
-      
+
       - name: Run E2E tests
         run: cd apps/web && pnpm test:e2e
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000
-      
-      - name: Upload test results
+
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: apps/web/playwright-report/
-          retention-days: 30
+          retention-days: 14
 
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: apps/web/test-results/
+          retention-days: 7
