@@ -60,8 +60,6 @@ def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, 
 
     if allowed_tools:
         cmd.extend(["--allowed-tools", ",".join(allowed_tools)])
-    else:
-        cmd.extend(["--allowed-tools", "Bash,Read,Glob,Grep,Task,Edit,Write"])
 
     temp_files = []
 
@@ -70,7 +68,10 @@ def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, 
             cmd.extend(["--system-prompt", system_prompt])
 
         if subagents:
-            agents_json = json.dumps({a["name"]: a for a in subagents})
+            agents_dict = {}
+            for a in subagents:
+                agents_dict[a["name"]] = {"description": a["description"], "prompt": a["prompt"]}
+            agents_json = json.dumps(agents_dict)
             cmd.extend(["--agents", agents_json])
 
         proc = subprocess.Popen(

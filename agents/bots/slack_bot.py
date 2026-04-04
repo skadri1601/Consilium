@@ -9,8 +9,8 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from agents.config import DEFAULT_MODEL, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
-from agents.core.base import build_base_prompt, run_claude, setup_logging
-from agents.core.subagents import get_subagents
+from agents.core.base import run_claude, setup_logging, AGENTS_DIR
+from agents.core.subagents import get_slack_subagents
 from agents.tools import linear_api
 from agents.tools.task_queue import (
     claim_next,
@@ -33,58 +33,16 @@ bot_user_id = None
 task_queue = []
 _active_threads = set()
 
-MASTER_RULES = """
-## Slack Assistant Rules
-
-1. You receive messages from Slack users. Understand what they need.
-2. Investigate context using all available tools before responding.
-3. Use the **plan** subagent to create a step-by-step action plan.
-4. Execute the plan using the appropriate tools.
-5. Before sending your final response, use the **verify-response** subagent.
-6. Keep responses concise and actionable.
-7. If you need to escalate, use `notify_slack --escalate`.
-8. Always respond in the context of the Consilium product.
-
-### Response Quality
-- Format responses for Slack readability (use *bold*, bullet points, code blocks).
-- Lead with the answer, then provide supporting details.
-- If you checked a ticket or looked something up, include the relevant info.
-- Never expose internal details (database IDs, API keys, raw error traces).
-- Keep responses under 1500 characters for quick reads. Use threads for detail.
-
-### Context Awareness
-- Check if the user has asked related questions before (use memory).
-- Look up the user's role and recent activity if relevant.
-- Reference ticket IDs and links when discussing issues.
-
-### Gmail Access
-- You can search emails: `python -m agents.tools.gmail_api search --email support@myconsilium.xyz --query "from:NAME"`
-- You can read full threads: `python -m agents.tools.gmail_api get-thread --email support@myconsilium.xyz --thread-id THREAD_ID`
-- You can get a specific message: `python -m agents.tools.gmail_api get-message --email support@myconsilium.xyz --message-id MSG_ID`
-- Common search queries: `from:name`, `to:name`, `subject:keyword`, `newer_than:7d`, `has:attachment`
-- When asked about emails from someone, search first, then fetch full threads to summarize.
-
-### Monitoring Tools
-- Sentry errors: `python -m agents.tools.sentry_api list-issues --query "is:unresolved"`
-- Sentry stats: `python -m agents.tools.sentry_api stats`
-- SonarQube quality: `python -m agents.tools.sonarqube_api quality-gate`
-- SonarQube issues: `python -m agents.tools.sonarqube_api issues --severity CRITICAL`
-- Vercel deploys: `python -m agents.tools.vercel_api latest`
-- Task priority: `python -m agents.tools.prioritizer summary`
-- When asked about production issues, check Sentry first. When asked about code quality, check SonarQube.
-"""
-
-
 def _build_system_prompt():
-    return build_base_prompt(
-        role_description="You are Consilium's Slack assistant. You help the team with support queries, ticket management, product questions, and operational tasks. You have access to Linear, GitHub, email, and database tools. Always be helpful, specific, and concise.",
-        agent_rules=MASTER_RULES,
-    )
+    prompt_path = AGENTS_DIR / "guides" / "consilium_bot_prompt.md"
+    if prompt_path.exists():
+        return prompt_path.read_text(encoding="utf-8")
+    return "You are Consilium Bot. Take action immediately when asked. Use all available tools."
 
 
 def run_master(prompt, model="haiku"):
     system_prompt = _build_system_prompt()
-    subagents = get_subagents("plan", "verify-response")
+    subagents = get_slack_subagents()
     return run_claude(prompt, system_prompt=system_prompt, model=model, subagents=subagents)
 
 
