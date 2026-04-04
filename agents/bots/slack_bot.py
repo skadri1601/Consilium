@@ -21,7 +21,7 @@ from agents.tools.task_queue import (
     recover_stale,
     timeout_stale,
 )
-from agents.tools.memory_tool import track, check, add_context, search
+from agents.tools.memory_tool import check, track
 
 logger = setup_logging("slack_bot")
 
