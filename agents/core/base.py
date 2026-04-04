@@ -22,7 +22,38 @@ def setup_logging(name):
     return logging.getLogger(name)
 
 
-def run_claude(prompt, system_prompt=None, model="sonnet", subagents=None, allowed_tools=None, max_duration=None):
+def run_claude(prompt, system_prompt=None, model="haiku", subagents=None, allowed_tools=None, max_duration=None, max_retries=1):
+    logger = logging.getLogger("run_claude")
+
+    if max_duration is None:
+        max_duration = 120
+
+    for attempt in range(max_retries + 1):
+        result = _run_claude_once(
+            prompt, system_prompt=system_prompt, model=model,
+            subagents=subagents, allowed_tools=allowed_tools, max_duration=max_duration,
+        )
+
+        if not result.startswith("Error:") or attempt >= max_retries:
+            return _cleanup_response(result)
+
+        logger.warning("Attempt %d failed: %s. Retrying...", attempt + 1, result[:100])
+        if len(prompt) > 2000:
+            prompt = prompt[-2000:]
+
+    return _cleanup_response(result)
+
+
+def _cleanup_response(text):
+    if not text:
+        return ""
+    text = text.strip()
+    if text.startswith("```") and text.endswith("```"):
+        text = text[3:-3].strip()
+    return text
+
+
+def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, allowed_tools=None, max_duration=None):
     logger = logging.getLogger("run_claude")
 
     cmd = [CLAUDE_CLI, "-p", "--model", model, "--verbose", "--output-format", "stream-json"]
@@ -68,7 +99,7 @@ def run_claude(prompt, system_prompt=None, model="sonnet", subagents=None, allow
             if deadline and time.time() > deadline:
                 proc.kill()
                 logger.warning("Process killed due to timeout (%ss)", max_duration)
-                break
+                return "Error: request timed out after %ds" % max_duration
 
             line = line.strip()
             if not line:
@@ -88,19 +119,23 @@ def run_claude(prompt, system_prompt=None, model="sonnet", subagents=None, allow
                         if isinstance(block, dict) and block.get("type") == "text":
                             result_text = block["text"]
 
-        proc.wait()
+        proc.wait(timeout=10)
 
         stderr_output = proc.stderr.read()
         if proc.returncode and proc.returncode != 0:
-            logger.error("claude exited with code %s: %s", proc.returncode, stderr_output)
+            logger.error("claude exited with code %s: %s", proc.returncode, stderr_output[:500])
             if not result_text:
-                return f"Error: claude exited with code {proc.returncode}"
+                return "Error: claude exited with code %s" % proc.returncode
 
         return result_text
 
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        return "Error: process did not exit cleanly"
+
     except Exception as e:
         logger.exception("run_claude failed")
-        return f"Error: {e}"
+        return "Error: %s" % e
 
     finally:
         for f in temp_files:

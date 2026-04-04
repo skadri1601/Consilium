@@ -19,6 +19,12 @@ LINEAR_TEAM_ID = os.getenv("LINEAR_TEAM_ID")
 GMAIL_CREDENTIALS_PATH = os.getenv("GMAIL_CREDENTIALS_PATH")
 GMAIL_TOKENS_DIR = os.getenv("GMAIL_TOKENS_DIR")
 
+IMAP_HOST = os.getenv("IMAP_HOST")
+IMAP_USER = os.getenv("IMAP_USER")
+IMAP_PASSWORD = os.getenv("IMAP_PASSWORD")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO")
 
@@ -30,5 +36,16 @@ RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "support@myconsilium.xyz")
 CONSILIUM_SUPPORT_EMAIL = os.getenv("CONSILIUM_SUPPORT_EMAIL", "support@myconsilium.xyz")
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
+SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")
+SENTRY_ORG = os.getenv("SENTRY_ORG", "consilium-pi")
+SENTRY_PROJECT = os.getenv("SENTRY_PROJECT", "javascript-nextjs")
 
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "sonnet")
+SONARQUBE_URL = os.getenv("SONARQUBE_URL")
+SONARQUBE_TOKEN = os.getenv("SONARQUBE_TOKEN")
+SONARQUBE_PROJECT_KEY = os.getenv("SONARQUBE_PROJECT_KEY")
+
+VERCEL_TOKEN = os.getenv("VERCEL_TOKEN")
+VERCEL_PROJECT_ID = os.getenv("VERCEL_PROJECT_ID")
+VERCEL_TEAM_ID = os.getenv("VERCEL_TEAM_ID")
+
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "haiku")
