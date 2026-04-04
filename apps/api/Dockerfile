@@ -14,6 +14,7 @@ COPY apps/api ./apps/api
 
 # Install dependencies and build
 RUN pnpm install --frozen-lockfile
+RUN pnpm db:generate
 RUN pnpm --filter @consilium/api build
 
 # Production
