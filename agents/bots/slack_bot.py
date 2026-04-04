@@ -378,6 +378,25 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
             _post_reply(client, channel, thread_ts, f"Failed to run email agent: {e}")
         return True
 
+    # Create ticket and start working on it in one command
+    m = re.match(r"create (?:a )?ticket (?:and )?(?:start|work)(?: on)?[:\s]+(.+)", text, re.IGNORECASE)
+    if m:
+        title = m.group(1).strip()
+        try:
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
+            ticket_id = issue["identifier"]
+            linear_api.assign_issue(ticket_id, email)
+            linear_api.transition_issue(ticket_id, "In Progress")
+            _post_reply(
+                client, channel, thread_ts,
+                f"Created *{ticket_id}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
+            )
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
+        return True
+
     return False
 
 
