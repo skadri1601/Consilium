@@ -7,6 +7,7 @@ Usage:
   python -m agents.tools.task_queue fail --task-id 1 --error "API timeout"
   python -m agents.tools.task_queue list [--status pending]
   python -m agents.tools.task_queue recover
+  python -m agents.tools.task_queue health
   python -m agents.tools.task_queue purge --days 7
 """
 
@@ -29,13 +30,15 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id TEXT NOT NULL,
     user_text TEXT NOT NULL,
     prompt TEXT NOT NULL DEFAULT '',
-    model TEXT NOT NULL DEFAULT 'sonnet',
+    model TEXT NOT NULL DEFAULT 'haiku',
     is_thread_reply INTEGER NOT NULL DEFAULT 0,
+    priority INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'pending',
     retries INTEGER NOT NULL DEFAULT 0,
-    max_retries INTEGER NOT NULL DEFAULT 2,
+    max_retries INTEGER NOT NULL DEFAULT 3,
     error TEXT,
     result TEXT,
+    next_retry_at TEXT,
     created_at TEXT NOT NULL,
     started_at TEXT,
     completed_at TEXT,
@@ -44,12 +47,24 @@ CREATE TABLE IF NOT EXISTS tasks (
 """
 
 
+_MIGRATIONS = [
+    "ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE tasks ADD COLUMN next_retry_at TEXT",
+]
+
+
 def _get_conn() -> sqlite3.Connection:
     DB_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     conn.execute(SCHEMA)
     conn.commit()
+    for sql in _MIGRATIONS:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
     return conn
 
 
@@ -66,18 +81,19 @@ def enqueue(
     user_id: str,
     text: str,
     prompt: str = "",
-    model: str = "sonnet",
+    model: str = "haiku",
     is_thread_reply: bool = False,
+    priority: int = 0,
 ) -> dict:
     conn = _get_conn()
     now = datetime.now(timezone.utc).isoformat()
     cursor = conn.execute(
         """INSERT OR IGNORE INTO tasks
            (slack_channel, slack_thread_ts, slack_message_ts, user_id, user_text,
-            prompt, model, is_thread_reply, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            prompt, model, is_thread_reply, priority, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (channel, thread_ts, message_ts, user_id, text, prompt, model,
-         int(is_thread_reply), now),
+         int(is_thread_reply), priority, now),
     )
     conn.commit()
     task_id = cursor.lastrowid if cursor.rowcount > 0 else None
@@ -90,9 +106,15 @@ def claim_next() -> dict | None:
     now = datetime.now(timezone.utc).isoformat()
     row = conn.execute(
         """UPDATE tasks SET status = 'in_progress', started_at = ?
-           WHERE id = (SELECT id FROM tasks WHERE status = 'pending' ORDER BY created_at ASC LIMIT 1)
+           WHERE id = (
+               SELECT id FROM tasks
+               WHERE status = 'pending'
+                 AND (next_retry_at IS NULL OR next_retry_at <= ?)
+               ORDER BY priority DESC, created_at ASC
+               LIMIT 1
+           )
            RETURNING *""",
-        (now,),
+        (now, now),
     ).fetchone()
     conn.commit()
     result = _row_to_dict(row)
@@ -121,9 +143,11 @@ def fail(task_id: int, error: str) -> dict:
 
     new_retries = row["retries"] + 1
     if new_retries < row["max_retries"]:
+        backoff_seconds = (2 ** new_retries) * 30
+        retry_at = (datetime.now(timezone.utc) + timedelta(seconds=backoff_seconds)).isoformat()
         conn.execute(
-            "UPDATE tasks SET status = 'pending', retries = ?, error = ?, started_at = NULL WHERE id = ?",
-            (new_retries, error, task_id),
+            "UPDATE tasks SET status = 'pending', retries = ?, error = ?, next_retry_at = ?, started_at = NULL WHERE id = ?",
+            (new_retries, error, retry_at, task_id),
         )
         new_status = "pending"
     else:
@@ -176,6 +200,20 @@ def purge_old(days: int = 7) -> dict:
     return {"purged": count}
 
 
+def get_health() -> dict:
+    conn = _get_conn()
+    stats = {}
+    for status in ("pending", "in_progress", "completed", "failed"):
+        row = conn.execute("SELECT COUNT(*) as cnt FROM tasks WHERE status = ?", (status,)).fetchone()
+        stats[status] = row["cnt"]
+    oldest = conn.execute(
+        "SELECT created_at FROM tasks WHERE status = 'pending' ORDER BY created_at ASC LIMIT 1"
+    ).fetchone()
+    stats["oldest_pending"] = oldest["created_at"] if oldest else None
+    conn.close()
+    return stats
+
+
 def list_tasks(status: str | None = None) -> list[dict]:
     conn = _get_conn()
     if status:
@@ -199,8 +237,9 @@ def main():
     eq.add_argument("--user-id", required=True)
     eq.add_argument("--text", required=True)
     eq.add_argument("--prompt", default="")
-    eq.add_argument("--model", default="sonnet")
+    eq.add_argument("--model", default="haiku")
     eq.add_argument("--is-thread-reply", action="store_true")
+    eq.add_argument("--priority", type=int, default=0)
 
     subs.add_parser("claim")
 
@@ -217,6 +256,8 @@ def main():
 
     subs.add_parser("recover")
 
+    subs.add_parser("health")
+
     pp = subs.add_parser("purge")
     pp.add_argument("--days", type=int, default=7)
 
@@ -226,7 +267,7 @@ def main():
         result = enqueue(
             args.channel, args.thread_ts, args.message_ts,
             args.user_id, args.text, args.prompt, args.model,
-            args.is_thread_reply,
+            args.is_thread_reply, args.priority,
         )
     elif args.command == "claim":
         result = claim_next()
@@ -238,6 +279,8 @@ def main():
         result = list_tasks(args.status)
     elif args.command == "recover":
         result = recover_stale()
+    elif args.command == "health":
+        result = get_health()
     elif args.command == "purge":
         result = purge_old(args.days)
 

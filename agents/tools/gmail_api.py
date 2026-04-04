@@ -8,6 +8,8 @@ Usage:
   python -m agents.tools.gmail_api mark-read --email support@example.com --message-id MSG_ID
   python -m agents.tools.gmail_api archive --email support@example.com --message-id MSG_ID
   python -m agents.tools.gmail_api star --email support@example.com --message-id MSG_ID
+  python -m agents.tools.gmail_api search --email support@example.com --query "from:ayush" [--limit 10]
+  python -m agents.tools.gmail_api get-thread --email support@example.com --thread-id THREAD_ID
 """
 
 import argparse
@@ -168,6 +170,65 @@ def star_message(email: str, message_id: str) -> dict:
     return {"id": message_id, "status": "starred"}
 
 
+def search_messages(email: str, query: str, limit: int = 10) -> list[dict]:
+    service = _get_service(email)
+    results = (
+        service.users()
+        .messages()
+        .list(userId="me", q=query, maxResults=limit)
+        .execute()
+    )
+    messages = results.get("messages", [])
+    output = []
+    for m in messages:
+        msg = (
+            service.users()
+            .messages()
+            .get(userId="me", id=m["id"], format="metadata")
+            .execute()
+        )
+        headers = {
+            h["name"].lower(): h["value"]
+            for h in msg.get("payload", {}).get("headers", [])
+        }
+        output.append({
+            "id": msg["id"],
+            "thread_id": msg["threadId"],
+            "from": headers.get("from", ""),
+            "to": headers.get("to", ""),
+            "subject": headers.get("subject", ""),
+            "date": headers.get("date", ""),
+            "snippet": msg.get("snippet", ""),
+        })
+    return output
+
+
+def get_thread(email: str, thread_id: str) -> list[dict]:
+    service = _get_service(email)
+    thread = (
+        service.users()
+        .threads()
+        .get(userId="me", id=thread_id, format="full")
+        .execute()
+    )
+    messages = []
+    for msg in thread.get("messages", []):
+        headers = {
+            h["name"].lower(): h["value"]
+            for h in msg.get("payload", {}).get("headers", [])
+        }
+        body = _extract_body(msg.get("payload", {}))
+        messages.append({
+            "id": msg["id"],
+            "from": headers.get("from", ""),
+            "to": headers.get("to", ""),
+            "subject": headers.get("subject", ""),
+            "date": headers.get("date", ""),
+            "body": body[:2000],
+        })
+    return messages
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gmail API tool")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -203,6 +264,15 @@ def main():
     p_star.add_argument("--email", required=True)
     p_star.add_argument("--message-id", required=True)
 
+    p_search = sub.add_parser("search")
+    p_search.add_argument("--email", required=True)
+    p_search.add_argument("--query", required=True)
+    p_search.add_argument("--limit", type=int, default=10)
+
+    p_thread = sub.add_parser("get-thread")
+    p_thread.add_argument("--email", required=True)
+    p_thread.add_argument("--thread-id", required=True)
+
     args = parser.parse_args()
 
     try:
@@ -227,6 +297,10 @@ def main():
             result = archive_message(args.email, args.message_id)
         elif args.command == "star":
             result = star_message(args.email, args.message_id)
+        elif args.command == "search":
+            result = search_messages(args.email, args.query, args.limit)
+        elif args.command == "get-thread":
+            result = get_thread(args.email, args.thread_id)
         json.dump(result, sys.stdout, indent=2)
     except Exception as e:
         json.dump({"error": str(e)}, sys.stdout)

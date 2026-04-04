@@ -16,7 +16,7 @@ shutdown = False
 
 def start_process(name, cmd):
     logger.info("Starting %s: %s", name, " ".join(cmd))
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     children[name] = proc
     restart_counts.setdefault(name, 0)
     return proc
@@ -55,6 +55,8 @@ def main():
     parser.add_argument("--no-email", action="store_true")
     parser.add_argument("--no-slack", action="store_true")
     parser.add_argument("--no-github", action="store_true")
+    parser.add_argument("--no-monitor", action="store_true")
+    parser.add_argument("--briefing", action="store_true")
     args = parser.parse_args()
 
     signal.signal(signal.SIGTERM, handle_signal)
@@ -77,8 +79,15 @@ def main():
             cmd.append("--dry-run")
         agents["github_listener"] = cmd
 
+    if not args.no_monitor:
+        agents["monitor"] = [sys.executable, "-m", "agents.bots.monitor_agent", "--interval", str(args.poll_interval)]
+
     for name, cmd in agents.items():
         start_process(name, cmd)
+
+    if args.briefing:
+        logger.info("Running morning briefing...")
+        subprocess.run([sys.executable, "-m", "agents.bots.briefing_agent"], timeout=120)
 
     logger.info("All agents started. Monitoring...")
 
