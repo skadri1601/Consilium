@@ -67,18 +67,11 @@ def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, 
 
     try:
         if system_prompt:
-            sp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8")
-            sp_file.write(system_prompt)
-            sp_file.close()
-            temp_files.append(sp_file.name)
-            cmd.extend(["--system-prompt", sp_file.name])
+            cmd.extend(["--system-prompt", system_prompt])
 
         if subagents:
-            agents_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
-            json.dump(subagents, agents_file)
-            agents_file.close()
-            temp_files.append(agents_file.name)
-            cmd.extend(["--agents", agents_file.name])
+            agents_json = json.dumps({a["name"]: a for a in subagents})
+            cmd.extend(["--agents", agents_json])
 
         proc = subprocess.Popen(
             cmd,
