@@ -65,8 +65,7 @@ class RedisClient:
     def _sync_delete(self, key: str) -> bool:
         """Synchronous delete operation."""
         if self.client:
-            self.client.delete(key)
-            return True
+            return bool(self.client.delete(key))
         return False
 
     async def get(self, key: str) -> Optional[str]:
@@ -75,7 +74,7 @@ class RedisClient:
         Wraps the synchronous Upstash Redis call in a thread executor
         to avoid blocking the event loop.
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, partial(self._sync_get, key))
 
     async def set(
@@ -89,7 +88,7 @@ class RedisClient:
         Wraps the synchronous Upstash Redis call in a thread executor
         to avoid blocking the event loop.
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             None, partial(self._sync_set, key, value, ex)
         )
@@ -100,7 +99,7 @@ class RedisClient:
         Wraps the synchronous Upstash Redis call in a thread executor
         to avoid blocking the event loop.
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, partial(self._sync_delete, key))
 
 

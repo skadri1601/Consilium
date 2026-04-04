@@ -47,6 +47,9 @@ class OpenAIAgent(BaseAgent):
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using OpenAI's API."""
+        # Note: `async with httpx.AsyncClient()` cannot wrap a `yield`, so we manage
+        # the client lifecycle manually here using http_client=None + finally: aclose().
+        # This is intentionally different from generate_response/health_check.
         http_client = None
         try:
             import openai

@@ -2,6 +2,15 @@ import os
 from typing import AsyncGenerator, Tuple
 from .base_agent import BaseAgent
 
+try:
+    import google.generativeai as genai
+    from google.api_core import exceptions as google_exceptions
+    HAS_GOOGLE = True
+except ImportError:
+    HAS_GOOGLE = False
+    genai = None  # type: ignore
+    google_exceptions = None  # type: ignore
+
 
 class GoogleAgent(BaseAgent):
     """Google Gemini agent implementation."""
@@ -18,9 +27,6 @@ class GoogleAgent(BaseAgent):
     async def generate_response(self, query: str) -> Tuple[str, int]:
         """Generate a response using Google's Gemini API."""
         try:
-            import google.generativeai as genai
-            from google.api_core import exceptions as google_exceptions
-
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
 
@@ -43,9 +49,6 @@ class GoogleAgent(BaseAgent):
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using Google's Gemini API."""
         try:
-            import google.generativeai as genai
-            from google.api_core import exceptions as google_exceptions
-
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
 
@@ -71,9 +74,6 @@ class GoogleAgent(BaseAgent):
             return False
 
         try:
-            import google.generativeai as genai
-            from google.api_core import exceptions as google_exceptions
-
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
             await model.generate_content_async("ping")

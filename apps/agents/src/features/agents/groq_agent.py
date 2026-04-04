@@ -48,6 +48,9 @@ class GroqAgent(BaseAgent):
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using Groq's OpenAI-compatible API."""
+        # Note: `async with httpx.AsyncClient()` cannot wrap a `yield`, so we manage
+        # the client lifecycle manually here using http_client=None + finally: aclose().
+        # This is intentionally different from generate_response/health_check.
         http_client = None
         try:
             import openai
