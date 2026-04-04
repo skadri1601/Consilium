@@ -22,6 +22,7 @@ from agents.tools.task_queue import (
     recover_stale,
     timeout_stale,
 )
+from agents.tools.memory_tool import check, track
 
 logger = setup_logging("slack_bot")
 
@@ -127,6 +128,11 @@ def _format_response(text):
 def _handle_quick_command(client, channel, thread_ts, user_id, text):
     lower = text.lower().strip()
 
+    # Fast greeting response - skip the LLM entirely
+    if GREETING_PATTERNS.match(lower):
+        _post_reply(client, channel, thread_ts, GREETING_RESPONSE)
+        return True
+
     m = re.match(r"start working on ([A-Z]+-\d+)", text, re.IGNORECASE)
     if m:
         ticket_id = m.group(1).upper()
@@ -188,6 +194,99 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
             )
         except Exception as e:
             _post_reply(client, channel, thread_ts, f"Failed to get {ticket_id}: {e}")
+        return True
+
+    # Create ticket and start working on it (full flow)
+    m = re.match(r"create (?:an? )?ticket (?:and|&) start[:\s]*(.+)", text, re.IGNORECASE)
+    if m:
+        title = m.group(1).strip()
+        try:
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
+            linear_api.assign_issue(issue["identifier"], email)
+            linear_api.transition_issue(issue["identifier"], "In Progress")
+            _post_reply(
+                client, channel, thread_ts,
+                f"Created *{issue['identifier']}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
+            )
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
+        return True
+
+    # Natural language: "create a ticket about X" or "create ticket on linear about X"
+    m = re.match(
+        r"create (?:an? )?(?:ticket|issue) (?:on linear )?(?:about|for|regarding)[:\s]+(?:the (?:issue )?)?(.+?)(?:\s+and\s+(?:after that |then )?(?:start|assign|tag|work|move|tell).*)?$",
+        text, re.IGNORECASE
+    )
+    if m:
+        # Extract the core issue title, cleaning up common phrases
+        title = m.group(1).strip()
+        title = re.sub(r"\s+and\s+after that.*$", "", title, flags=re.IGNORECASE).strip()
+
+        # Check if user wants to start working on it or assign to someone
+        wants_start = bool(re.search(r"(?:start|work|move.*(?:in\s*progress|started))", text, re.IGNORECASE))
+        wants_assign_claude = bool(re.search(r"(?:tag|assign)\s+(?:claude|bot|it)", text, re.IGNORECASE))
+        wants_assign_me = bool(re.search(r"assign\s+(?:to\s+)?me", text, re.IGNORECASE))
+
+        try:
+            issue = linear_api.create_issue(title.title(), f"Created from Slack by <@{user_id}>")
+            msg = f"Created *{issue['identifier']}*: {issue['title']}"
+
+            # Handle assignment
+            if wants_assign_me or wants_assign_claude:
+                info = client.users_info(user=user_id)
+                email = info["user"]["profile"].get("email", "")
+                linear_api.assign_issue(issue["identifier"], email)
+                msg += f"\nAssigned to <@{user_id}>."
+
+            # Handle status transition
+            if wants_start:
+                linear_api.transition_issue(issue["identifier"], "In Progress")
+                msg += "\nMoved to In Progress."
+
+            msg += f"\n{issue.get('url', '')}"
+            _post_reply(client, channel, thread_ts, msg)
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
+        return True
+
+    # Fallback for complex Linear requests - extract ticket creation intent
+    if re.search(r"create\s+(?:an?\s+)?(?:ticket|issue)", text, re.IGNORECASE) and re.search(r"linear|email|not working|bug|fix", text, re.IGNORECASE):
+        # Try to extract a reasonable title from the request
+        title_match = re.search(
+            r"(?:about|regarding|for|issue[:\s]+)\s*(?:the\s+(?:issue\s+)?)?([^,]+?)(?:\s+and\s+|$|\s+tag\s+|\s+then\s+)",
+            text, re.IGNORECASE
+        )
+        if title_match:
+            title = title_match.group(1).strip()
+        else:
+            # Last resort: grab key phrases
+            title = re.sub(r"<@[A-Z0-9]+>", "", text)
+            title = re.sub(r"create\s+(?:an?\s+)?(?:ticket|issue)\s+(?:on\s+linear\s+)?", "", title, flags=re.IGNORECASE)
+            title = re.sub(r"\s+and\s+(?:after|then|tag|assign|start|work|move).*$", "", title, flags=re.IGNORECASE)
+            title = re.sub(r"(?:about|regarding|for)\s+(?:the\s+(?:issue\s+)?)?", "", title, flags=re.IGNORECASE).strip()
+            title = title[:100] if title else "Issue from Slack"
+
+        wants_start = bool(re.search(r"(?:start|work|move.*progress)", text, re.IGNORECASE))
+
+        try:
+            issue = linear_api.create_issue(title.strip().title(), f"Created from Slack by <@{user_id}>")
+            msg = f"Created *{issue['identifier']}*: {issue['title']}"
+
+            info = client.users_info(user=user_id)
+            email = info["user"]["profile"].get("email", "")
+            linear_api.assign_issue(issue["identifier"], email)
+            msg += f"\nAssigned to <@{user_id}>."
+
+            if wants_start:
+                linear_api.transition_issue(issue["identifier"], "In Progress")
+                msg += "\nMoved to In Progress."
+
+            msg += f"\n{issue.get('url', '')}"
+            _post_reply(client, channel, thread_ts, msg)
+        except Exception as e:
+            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
         return True
 
     m = re.match(r"create ticket[:\s]+(.+)", text, re.IGNORECASE)
@@ -447,6 +546,11 @@ def run_worker(slack_client, model):
         except Exception:
             pass
 
+        # Gather context for the master agent
+        thread_history = _fetch_thread_history(slack_client, channel, thread_ts)
+        conversation_context = _get_conversation_context(thread_ts)
+        user_info = _resolve_user_info(slack_client, task.get("user_id", ""))
+
         try:
             thread_context = _fetch_thread_context(slack_client, channel, thread_ts)
             full_prompt = thread_context + "## Current request:\n" + prompt
@@ -465,6 +569,10 @@ def run_worker(slack_client, model):
 
             complete(task_id, result[:500])
             _track_thread(channel, thread_ts)
+
+            # Save conversation context including what action was taken
+            summary = f"User: {user_info['name']} | Topic: {prompt[:80]} | Result: {result[:120]}"
+            _save_conversation_context(thread_ts, summary)
 
             try:
                 slack_client.reactions_add(channel=channel, name="white_check_mark", timestamp=task["slack_message_ts"])
