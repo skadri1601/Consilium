@@ -56,7 +56,7 @@ def _cleanup_response(text):
 def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, allowed_tools=None, max_duration=None):
     logger = logging.getLogger("run_claude")
 
-    cmd = [CLAUDE_CLI, "-p", "--model", model, "--verbose", "--output-format", "stream-json"]
+    cmd = [CLAUDE_CLI, "-p", "--model", model, "--verbose", "--output-format", "stream-json", "--bare"]
 
     if allowed_tools:
         cmd.extend(["--allowed-tools", ",".join(allowed_tools)])

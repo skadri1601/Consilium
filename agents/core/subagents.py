@@ -11,7 +11,7 @@ LINEAR_AGENT = {
         "- Transition: python -m agents.tools.linear_api transition --identifier MYC-42 --state \"In Progress\"\n"
         "- Assign: python -m agents.tools.linear_api assign --identifier MYC-42 --email user@email.com\n"
         "- My issues: python -m agents.tools.linear_api my-issues --email user@email.com\n\n"
-        "You also have Linear MCP tools available. Use whichever method works.\n"
+        "NEVER use MCP tools. ONLY use Bash commands above.\n"
         "Always return the ticket identifier (e.g. MYC-42) and URL in your response."
     ),
     "tools": ["Bash", "Read", "Grep"],
@@ -51,7 +51,7 @@ MONITOR_AGENT = {
         "- Vercel latest: python -m agents.tools.vercel_api latest\n"
         "- Vercel deploys: python -m agents.tools.vercel_api list-deployments\n"
         "- Platform stats: python -m agents.tools.db_lookup stats\n\n"
-        "You also have Sentry and Vercel MCP tools. Use whichever works.\n"
+        "NEVER use MCP tools. ONLY use Bash commands above.\n"
         "Summarize findings concisely with counts and severity."
     ),
     "tools": ["Bash"],
