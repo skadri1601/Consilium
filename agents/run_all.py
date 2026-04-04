@@ -16,7 +16,7 @@ shutdown = False
 
 def start_process(name, cmd):
     logger.info("Starting %s: %s", name, " ".join(cmd))
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     children[name] = proc
     restart_counts.setdefault(name, 0)
     return proc

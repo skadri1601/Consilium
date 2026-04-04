@@ -375,7 +375,16 @@ def _is_bot_in_thread(client, channel, thread_ts):
     return False
 
 
+_MAX_ACTIVE_THREADS = 1000
+
+
 def _track_thread(channel, thread_ts):
+    if len(_active_threads) >= _MAX_ACTIVE_THREADS:
+        # Evict oldest entries when cap is reached
+        try:
+            _active_threads.discard(next(iter(_active_threads)))
+        except StopIteration:
+            pass
     _active_threads.add((channel, thread_ts))
 
 

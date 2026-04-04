@@ -88,7 +88,6 @@ def issue_events(issue_id, limit=5):
     resp.raise_for_status()
     events = []
     for e in resp.json():
-        ctx = e.get("context", {})
         events.append({
             "id": e["id"],
             "title": e.get("title", ""),

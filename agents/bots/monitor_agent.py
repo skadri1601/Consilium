@@ -2,11 +2,10 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 
 from agents.config import (
-    DEFAULT_MODEL,
     SENTRY_AUTH_TOKEN,
     SONARQUBE_URL,
     CONSILIUM_SUPPORT_EMAIL,
@@ -51,7 +50,7 @@ def check_sentry(state):
         return
     logger.info("Checking Sentry for new issues...")
     issues = _run_tool("agents.tools.sentry_api", "list-issues", "--query", "is:unresolved", "--limit", "20")
-    if not issues or isinstance(issues, dict) and "error" in issues:
+    if not issues or (isinstance(issues, dict) and "error" in issues):
         return
 
     seen = set(state.get("seen_sentry_ids", []))
@@ -77,7 +76,7 @@ def check_emails(state):
         return
     logger.info("Checking for new emails...")
     emails = _run_tool("agents.tools.gmail_api", "list-unreplied", "--email", CONSILIUM_SUPPORT_EMAIL, "--limit", "10")
-    if not emails or isinstance(emails, dict) and "error" in emails:
+    if not emails or (isinstance(emails, dict) and "error" in emails):
         return
 
     seen = set(state.get("seen_email_ids", []))
@@ -102,7 +101,7 @@ def check_sonarqube(state):
         return
     logger.info("Checking SonarQube...")
     qg = _run_tool("agents.tools.sonarqube_api", "quality-gate")
-    if not qg or isinstance(qg, dict) and "error" in qg:
+    if not qg or (isinstance(qg, dict) and "error" in qg):
         return
 
     if qg.get("status") == "ERROR":
