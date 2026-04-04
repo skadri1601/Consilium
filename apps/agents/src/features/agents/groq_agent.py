@@ -45,6 +45,8 @@ class GroqAgent(BaseAgent):
             return f"[Groq API Error: {str(e)}]", 0
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             return f"[Groq Network Error: {str(e)}]", 0
+        except Exception as e:
+            return f"[Groq Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using Groq's OpenAI-compatible API."""

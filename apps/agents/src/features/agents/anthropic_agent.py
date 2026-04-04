@@ -41,6 +41,8 @@ class AnthropicAgent(BaseAgent):
             return f"[Claude API Error: {str(e)}]", 0
         except anthropic.AuthenticationError as e:
             return f"[Claude Auth Error: {str(e)}]", 0
+        except Exception as e:
+            return f"[Claude Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using Anthropic's API."""

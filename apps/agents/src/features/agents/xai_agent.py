@@ -45,6 +45,8 @@ class XAIAgent(BaseAgent):
             return f"[X.AI API Error: {str(e)}]", 0
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             return f"[X.AI Network Error: {str(e)}]", 0
+        except Exception as e:
+            return f"[X.AI Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using X.AI's OpenAI-compatible API."""

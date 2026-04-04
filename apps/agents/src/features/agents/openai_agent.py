@@ -44,6 +44,8 @@ class OpenAIAgent(BaseAgent):
             return f"[GPT-4 API Error: {str(e)}]", 0
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             return f"[GPT-4 Network Error: {str(e)}]", 0
+        except Exception as e:
+            return f"[GPT-4 Error: {str(e)}]", 0
 
     async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
         """Stream a response using OpenAI's API."""
