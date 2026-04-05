@@ -35,7 +35,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: '--model sonnet --fallback-model haiku'
+          claude_args: '--model haiku'
+          settings: '{"model": "haiku"}'
           additional_permissions: |
             actions: read
 
