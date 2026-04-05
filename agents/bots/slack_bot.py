@@ -10,7 +10,11 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from agents.config import DEFAULT_MODEL, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
 from agents.core.base import run_claude, setup_logging, AGENTS_DIR
-from agents.core.subagents import get_slack_subagents
+<<<<<<< Updated upstream
+from agents.core.router import route, detect_intent
+from agents.core import session as sess
+=======
+>>>>>>> Stashed changes
 from agents.tools import linear_api
 from agents.tools.task_queue import (
     claim_next,
@@ -33,6 +37,43 @@ app = App(token=SLACK_BOT_TOKEN)
 bot_user_id = None
 task_queue = []
 _active_threads = set()
+_conversation_contexts = {}
+
+GREETING_PATTERNS = re.compile(
+    r"^(hi|hello|hey|yo|sup|what'?s up|howdy|good (morning|afternoon|evening))[\s!.?]*$"
+)
+GREETING_RESPONSE = "Hey! How can I help you today? Type `help` to see what I can do."
+
+def _fetch_thread_history(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
+    try:
+        result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit)
+        return result.get("messages", [])
+    except Exception:
+        return []
+
+
+def _get_conversation_context(thread_ts):
+    return _conversation_contexts.get(thread_ts, "")
+
+
+def _save_conversation_context(thread_ts, summary):
+    existing = _conversation_contexts.get(thread_ts, "")
+    _conversation_contexts[thread_ts] = (existing + "\n" + summary).strip()[-2000:]
+
+
+def _resolve_user_info(client, user_id):
+    if not user_id:
+        return {"name": "Unknown", "email": ""}
+    try:
+        info = client.users_info(user=user_id)
+        profile = info["user"]["profile"]
+        return {
+            "name": profile.get("real_name", profile.get("display_name", "Unknown")),
+            "email": profile.get("email", ""),
+        }
+    except Exception:
+        return {"name": user_id, "email": ""}
+
 
 def _build_system_prompt():
     prompt_path = AGENTS_DIR / "guides" / "consilium_bot_prompt.md"
@@ -43,8 +84,7 @@ def _build_system_prompt():
 
 def run_master(prompt, model="haiku"):
     system_prompt = _build_system_prompt()
-    subagents = get_slack_subagents()
-    return run_claude(prompt, system_prompt=system_prompt, model=model, subagents=subagents)
+    return run_claude(prompt, system_prompt=system_prompt, model=model)
 
 
 def _text_to_blocks(text):
@@ -102,35 +142,46 @@ def _fetch_thread_context(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
         result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit + 5)
         messages = result.get("messages", [])
         context_lines = []
-        for msg in messages[:-1]:
+        for msg in messages:
             user = msg.get("user", "bot")
             text = msg.get("text", "").strip()
-            if text and user != bot_user_id:
-                context_lines.append(f"User <@{user}>: {text}")
-            elif text and user == bot_user_id:
-                context_lines.append(f"Bot: {text}")
+            if not text:
+                continue
+            if user == bot_user_id or msg.get("bot_id"):
+                context_lines.append(f"Consilium_Bot: {text[:500]}")
+            else:
+                context_lines.append(f"User: {text}")
         if not context_lines:
             return ""
-        return "## Previous conversation in this thread:\n" + "\n".join(context_lines[-limit:]) + "\n\n"
-    except Exception:
+        return "## Full thread conversation so far:\n" + "\n".join(context_lines[-limit:]) + "\n\n## IMPORTANT: Use the conversation above to understand what the user is referring to. Do NOT ask for clarification if the answer is obvious from context.\n\n"
+    except Exception as e:
+        logger.warning("Failed to fetch thread context: %s", e)
         return ""
 
 
 def _format_response(text):
     if not text:
-        return "I wasn't able to generate a response. Please try again."
+        return "I processed your request but didn't get a response. Please try again."
     text = text.strip()
     if text.startswith("Error:"):
-        return "Sorry, I ran into an issue processing that. Please try again or rephrase your request."
+        return "Sorry, I ran into an issue. Please try again."
     return text
 
 
-def _handle_quick_command(client, channel, thread_ts, user_id, text):
-    lower = text.lower().strip()
+def _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session=None):
+    if thread_session is None:
+        thread_session = sess.load(thread_ts)
 
-    # Fast greeting response - skip the LLM entirely
-    if GREETING_PATTERNS.match(lower):
-        _post_reply(client, channel, thread_ts, GREETING_RESPONSE)
+<<<<<<< Updated upstream
+    response, intent, handled = route(text, thread_session)
+
+    if handled and response:
+        _post_reply(client, channel, thread_ts, response)
+        sess.add_exchange(thread_session, text, response, intent)
+        sess.save(thread_ts, thread_session)
+=======
+    if lower in ("hi", "hello", "hey", "sup", "yo"):
+        _post_reply(client, channel, thread_ts, "Hey! What can I help you with?")
         return True
 
     m = re.match(r"start working on ([A-Z]+-\d+)", text, re.IGNORECASE)
@@ -413,6 +464,7 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text):
             "_For anything else, just ask me and I'll figure it out!_"
         )
         _post_reply(client, channel, thread_ts, help_text)
+>>>>>>> Stashed changes
         return True
 
     return False
@@ -455,7 +507,9 @@ def handle_mention(event, client):
 
     _track_thread(channel, thread_ts)
 
-    if _handle_quick_command(client, channel, thread_ts, user_id, text):
+    thread_session = sess.load(thread_ts)
+
+    if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
         return
 
     enqueue(
@@ -486,7 +540,8 @@ def handle_message(event, client):
     is_thread_reply = thread_ts is not None and thread_ts != ts
 
     if is_dm:
-        if _handle_quick_command(client, channel, thread_ts or ts, user_id, text):
+        dm_session = sess.load(thread_ts or ts)
+        if _handle_quick_command(client, channel, thread_ts or ts, user_id, text, dm_session):
             return
         enqueue(
             channel=channel,
@@ -502,7 +557,8 @@ def handle_message(event, client):
         if not text:
             return
 
-        if _handle_quick_command(client, channel, thread_ts, user_id, text):
+        thread_session = sess.load(thread_ts)
+        if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
             return
 
         enqueue(
@@ -552,16 +608,39 @@ def run_worker(slack_client, model):
         user_info = _resolve_user_info(slack_client, task.get("user_id", ""))
 
         try:
+            thread_session = sess.load(thread_ts)
             thread_context = _fetch_thread_context(slack_client, channel, thread_ts)
-            full_prompt = thread_context + "## Current request:\n" + prompt
+<<<<<<< Updated upstream
+
+            session_context = sess.get_context_summary(thread_session)
+            if session_context:
+                context_block = "## Session history (what was discussed):\n" + session_context + "\n\n"
+            else:
+                context_block = ""
+
+            if thread_context and len(prompt.split()) <= 5:
+                full_prompt = thread_context + context_block + "## Current request:\n" + prompt + "\n\n## IMPORTANT: The user's message is short. This is a FOLLOW-UP to the conversation above. Look at the last exchange and continue from there."
+            else:
+                full_prompt = thread_context + context_block + "## Current request:\n" + prompt
+
+=======
+            if thread_context and len(prompt.split()) <= 5:
+                full_prompt = thread_context + "## Current request:\n" + prompt + "\n\n## IMPORTANT: The user's message is short (e.g. 'yes', 'do it', 'show me'). This is a FOLLOW-UP to the conversation above. Look at your LAST response in the thread and continue from there. Do NOT ask what they need help with."
+            else:
+                full_prompt = thread_context + "## Current request:\n" + prompt
+>>>>>>> Stashed changes
             result = run_master(full_prompt, model)
             response = _format_response(result)
 
             if thinking_msg:
                 try:
-                    slack_client.chat_update(
-                        channel=channel, ts=thinking_msg["ts"], text=response
-                    )
+                    if len(response) <= 3000:
+                        slack_client.chat_update(
+                            channel=channel, ts=thinking_msg["ts"], text=response
+                        )
+                    else:
+                        slack_client.chat_delete(channel=channel, ts=thinking_msg["ts"])
+                        _post_reply(slack_client, channel, thread_ts, response)
                 except Exception:
                     _post_reply(slack_client, channel, thread_ts, response)
             else:
@@ -570,9 +649,8 @@ def run_worker(slack_client, model):
             complete(task_id, result[:500])
             _track_thread(channel, thread_ts)
 
-            # Save conversation context including what action was taken
-            summary = f"User: {user_info['name']} | Topic: {prompt[:80]} | Result: {result[:120]}"
-            _save_conversation_context(thread_ts, summary)
+            sess.add_exchange(thread_session, prompt, response)
+            sess.save(thread_ts, thread_session)
 
             try:
                 slack_client.reactions_add(channel=channel, name="white_check_mark", timestamp=task["slack_message_ts"])

@@ -49,5 +49,7 @@
       "prettier --write"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "@sentry/nextjs": "^10.47.0"
+  }
 }
