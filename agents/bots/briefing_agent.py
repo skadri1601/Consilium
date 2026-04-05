@@ -1,9 +1,5 @@
 import argparse
 import json
-import subprocess
-import sys
-import os
-from pathlib import Path
 
 from agents.config import (
     SENTRY_AUTH_TOKEN,
@@ -13,24 +9,9 @@ from agents.config import (
     SLACK_BOT_TOKEN,
 )
 from agents.core.base import setup_logging
+from agents.core.utils import run_tool as _run_tool
 
 logger = setup_logging("briefing")
-
-PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
-
-
-def _run_tool(module, *args):
-    cmd = [sys.executable, "-m", module] + list(args)
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_DIR)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=str(PROJECT_DIR), env=env, encoding="utf-8", errors="replace")
-        if result.returncode == 0 and result.stdout.strip():
-            return json.loads(result.stdout)
-    except Exception as e:
-        logger.warning("Tool %s failed: %s", module, e)
-    return None
 
 
 def build_briefing():

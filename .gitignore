@@ -77,6 +77,11 @@ apps/agents/scripts/
 prisma/*.db
 prisma/*.db-journal
 
+# Agent state files
+agents/memory/*.db
+agents/memory/*.json
+agents/memory/sessions/
+
 # Vercel
 .vercel/
 

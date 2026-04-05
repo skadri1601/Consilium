@@ -1,7 +1,5 @@
 import argparse
 import json
-import subprocess
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,17 +7,16 @@ from agents.config import (
     SENTRY_AUTH_TOKEN,
     SONARQUBE_URL,
     CONSILIUM_SUPPORT_EMAIL,
+    CONSILIUM_ADMIN_EMAIL,
     SLACK_BOT_TOKEN,
     SLACK_NOTIFICATION_CHANNEL,
 )
 from agents.core.base import setup_logging
+from agents.core.utils import run_tool as _run_tool, post_slack as _post_slack
 
 logger = setup_logging("monitor")
 
 STATE_FILE = Path(__file__).resolve().parent.parent / "memory" / "monitor_state.json"
-PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
-
-SAAD_EMAIL = "er.saadk16@gmail.com"
 
 
 def _load_state():
@@ -42,41 +39,12 @@ def _save_state(state):
     STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
 
 
-def _run_tool(module, *args):
-    cmd = [sys.executable, "-m", module] + list(args)
-    import os
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_DIR)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=str(PROJECT_DIR), env=env, encoding="utf-8", errors="replace")
-        if result.returncode == 0 and result.stdout.strip():
-            return json.loads(result.stdout)
-    except Exception as e:
-        logger.warning("Tool %s failed: %s", module, e)
-    return None
-
-
-def _post_slack(text, channel=None):
-    if not SLACK_BOT_TOKEN:
-        return
-    from slack_sdk import WebClient
-    client = WebClient(token=SLACK_BOT_TOKEN)
-    ch = channel or SLACK_NOTIFICATION_CHANNEL
-    if not ch:
-        return
-    try:
-        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
-        client.chat_postMessage(channel=ch, blocks=blocks, text=text[:200])
-    except Exception as e:
-        logger.warning("Slack post failed: %s", e)
-
 
 def _create_ticket(title, description):
     result = _run_tool("agents.tools.linear_api", "create", "--title", title, "--description", description)
     if result and result.get("identifier"):
         try:
-            _run_tool("agents.tools.linear_api", "assign", "--identifier", result["identifier"], "--email", SAAD_EMAIL)
+            _run_tool("agents.tools.linear_api", "assign", "--identifier", result["identifier"], "--email", CONSILIUM_ADMIN_EMAIL)
             _run_tool("agents.tools.linear_api", "transition", "--identifier", result["identifier"], "--state", "In Progress")
         except Exception:
             pass

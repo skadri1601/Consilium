@@ -1,11 +1,8 @@
 import re
 import subprocess
 import sys
-import json
 import os
-from pathlib import Path
-
-PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
+from agents.core.utils import run_tool as _run_tool, PROJECT_DIR
 
 INTENT_PATTERNS = {
     "email_search": [
@@ -71,10 +68,11 @@ INTENT_PATTERNS = {
         r"(?:priorities|priority|what\s+next|next\s+task)",
     ],
     "briefing": [
-        r"(?:daily\s+)?(?:\w+\s+)?(?:briefing|report|digest|summary|update)",
-        r"(?:give|get|show|need|want)\s+(?:me\s+)?(?:the\s+)?(?:daily|status|full)?\s*(?:report|briefing|digest|summary|update)",
+        r"^(?:daily\s+)?(?:morning\s+|status\s+)?(?:briefing|digest)$",
+        r"(?:give|get|show|need|want)\s+(?:me\s+)?(?:the\s+)?(?:daily|status|full)\s+(?:report|briefing|digest|summary)",
         r"(?:set\s+up|configure|schedule)\s+(?:daily|automated)\s+(?:report|briefing)",
-        r"(?:status|daily)\s+(?:status\s+)?report",
+        r"^(?:status|daily)\s+(?:status\s+)?report$",
+        r"^(?:full\s+)?(?:report|summary|briefing)$",
     ],
     "db_stats": [
         r"(?:platform|app|system)\s+stat(?:istic)?s",
@@ -88,22 +86,6 @@ INTENT_PATTERNS = {
     ],
 }
 
-
-def _run_tool(module, *args):
-    cmd = [sys.executable, "-m", module] + list(args)
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_DIR)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=30,
-            cwd=str(PROJECT_DIR), encoding="utf-8", errors="replace", env=env,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return json.loads(result.stdout)
-        return None
-    except Exception:
-        return None
 
 
 def detect_intent(text):
@@ -323,6 +305,12 @@ def handle_linear_assign(groups, session):
     ticket_id = groups[0].upper() if groups else None
     if not ticket_id:
         return None
+    from agents.config import CONSILIUM_ADMIN_EMAIL
+    if not CONSILIUM_ADMIN_EMAIL:
+        return f"Cannot assign *{ticket_id}* — no admin email configured."
+    result = _run_tool("agents.tools.linear_api", "assign", "--identifier", ticket_id, "--email", CONSILIUM_ADMIN_EMAIL)
+    if not result:
+        return f"Failed to assign *{ticket_id}*."
     session["last_ticket_id"] = ticket_id
     return f":white_check_mark: Assigned *{ticket_id}* to you."
 

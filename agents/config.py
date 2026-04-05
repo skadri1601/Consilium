@@ -34,6 +34,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "support@myconsilium.xyz")
 
 CONSILIUM_SUPPORT_EMAIL = os.getenv("CONSILIUM_SUPPORT_EMAIL", "support@myconsilium.xyz")
+CONSILIUM_ADMIN_EMAIL = os.getenv("CONSILIUM_ADMIN_EMAIL", "")
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")

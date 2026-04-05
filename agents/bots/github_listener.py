@@ -1,19 +1,17 @@
 import argparse
 import json
 import re
-import subprocess
-import sys
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 from agents.config import GITHUB_TOKEN, GITHUB_REPO, SLACK_BOT_TOKEN, SLACK_NOTIFICATION_CHANNEL
 from agents.core.base import setup_logging, run_continuous
+from agents.core.utils import run_tool as _run_tool, post_slack as _post_slack
 
 logger = setup_logging("github_listener")
 
 STATE_FILE = Path(__file__).resolve().parent.parent / "memory" / "github_state.json"
-PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 
 TICKET_PATTERN = re.compile(r"(MYC-\d+)", re.IGNORECASE)
 
@@ -31,32 +29,6 @@ def _save_state(state):
     state["updated_at"] = datetime.now(timezone.utc).isoformat()
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
-
-
-def _run_tool(module, *args):
-    cmd = [sys.executable, "-m", module] + list(args)
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_DIR)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=str(PROJECT_DIR), env=env, encoding="utf-8", errors="replace")
-        if result.returncode == 0 and result.stdout.strip():
-            return json.loads(result.stdout)
-    except Exception as e:
-        logger.warning("Tool %s failed: %s", module, e)
-    return None
-
-
-def _post_slack(text):
-    if not SLACK_BOT_TOKEN or not SLACK_NOTIFICATION_CHANNEL:
-        return
-    from slack_sdk import WebClient
-    try:
-        client = WebClient(token=SLACK_BOT_TOKEN)
-        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
-        client.chat_postMessage(channel=SLACK_NOTIFICATION_CHANNEL, blocks=blocks, text=text[:200])
-    except Exception as e:
-        logger.warning("Slack failed: %s", e)
 
 
 def _extract_ticket(pr):

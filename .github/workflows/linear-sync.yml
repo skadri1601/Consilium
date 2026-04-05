@@ -14,9 +14,10 @@ jobs:
     steps:
       - name: Extract ticket ID
         id: ticket
+        env:
+          BRANCH: ${{ github.head_ref }}
+          TITLE: ${{ github.event.pull_request.title }}
         run: |
-          BRANCH="${{ github.head_ref }}"
-          TITLE="${{ github.event.pull_request.title }}"
           TICKET=$(echo "$BRANCH $TITLE" | grep -oP 'MYC-\d+' | head -1)
           echo "id=$TICKET" >> $GITHUB_OUTPUT
 
@@ -34,10 +35,10 @@ jobs:
         run: |
           if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "ready_for_review" ] || [ "$PR_ACTION" = "reopened" ]; then
             STATE_NAME="In Review"
-            MSG=":github: PR #${PR_NUMBER} opened for ${TICKET_ID}: ${PR_TITLE} - <${PR_URL}|View PR>"
+            MSG=":github: PR #${PR_NUMBER} opened for ${TICKET_ID} - <${PR_URL}|View PR>"
           elif [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
             STATE_NAME="Done"
-            MSG=":white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID}: ${PR_TITLE} - ticket marked Done"
+            MSG=":white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} - ticket marked Done"
           elif [ "$PR_ACTION" = "closed" ]; then
             STATE_NAME="In Progress"
             MSG=":x: PR #${PR_NUMBER} closed (not merged) for ${TICKET_ID} - ticket back to In Progress"
@@ -74,47 +75,49 @@ jobs:
               -d "{\"query\": \"mutation { issueUpdate(id: \\\"$ISSUE_ID\\\", input: { stateId: \\\"$STATE_ID\\\" }) { success } }\"}"
           fi
 
+          ESCAPED_TITLE=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
           curl -s -X POST https://api.linear.app/graphql \
             -H "Authorization: $LINEAR_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"query\": \"mutation { commentCreate(input: { issueId: \\\"$ISSUE_ID\\\", body: \\\"PR ${PR_ACTION}: [${PR_TITLE}](${PR_URL})\\\" }) { success } }\"}"
+            -d "{\"query\": \"mutation { commentCreate(input: { issueId: \\\"$ISSUE_ID\\\", body: \\\"PR ${PR_ACTION}: [${ESCAPED_TITLE}](${PR_URL})\\\" }) { success } }\"}"
 
           if [ -n "$MSG" ] && [ -n "$SLACK_WEBHOOK_URL" ]; then
             curl -s -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
-              -d "{\"text\": \"$MSG\"}"
+              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
           fi
 
   notify-review:
     if: github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Notify Slack of review
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REVIEWER: ${{ github.event.review.user.login }}
+          REVIEW_STATE: ${{ github.event.review.state }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REVIEW_BODY: ${{ github.event.review.body }}
         if: env.SLACK_WEBHOOK_URL != ''
         run: |
-          REVIEWER="${{ github.event.review.user.login }}"
-          STATE="${{ github.event.review.state }}"
-          PR_NUM="${{ github.event.pull_request.number }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          BODY=$(echo "${{ github.event.review.body }}" | head -c 300)
+          BODY=$(echo "$REVIEW_BODY" | head -c 300)
 
-          if [ "$STATE" = "approved" ]; then
+          if [ "$REVIEW_STATE" = "approved" ]; then
             ICON=":white_check_mark:"
-          elif [ "$STATE" = "changes_requested" ]; then
+          elif [ "$REVIEW_STATE" = "changes_requested" ]; then
             ICON=":x:"
           else
             ICON=":speech_balloon:"
           fi
 
-          MSG="${ICON} PR #${PR_NUM} review by ${REVIEWER}: ${STATE}\n${PR_TITLE}\n${BODY}\n<${PR_URL}|View>"
+          MSG="${ICON} PR #${PR_NUM} review by ${REVIEWER}: ${REVIEW_STATE}"
 
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
             curl -s -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
-              -d "{\"text\": \"$MSG\"}"
+              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
           fi
 
   notify-ci:
@@ -124,13 +127,12 @@ jobs:
       - name: Notify CI failure
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          CONCLUSION: ${{ github.event.check_suite.conclusion }}
+          BRANCH: ${{ github.event.check_suite.head_branch }}
         run: |
-          CONCLUSION="${{ github.event.check_suite.conclusion }}"
-          BRANCH="${{ github.event.check_suite.head_branch }}"
-          URL="${{ github.event.check_suite.url }}"
-
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            MSG=":x: CI/CD pipeline ${CONCLUSION} on branch ${BRANCH}"
             curl -s -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
-              -d "{\"text\": \":x: CI/CD pipeline ${CONCLUSION} on branch ${BRANCH}\"}"
+              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
           fi
