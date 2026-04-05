@@ -23,7 +23,10 @@ jobs:
       pull-requests: read
       issues: read
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
+    env:
+      ANTHROPIC_DEFAULT_SONNET_MODEL: claude-sonnet-4-20250514
+      ANTHROPIC_DEFAULT_HAIKU_MODEL: claude-haiku-4-5-20251001
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,11 +36,8 @@ jobs:
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_DEFAULT_SONNET_MODEL: claude-sonnet-4-20250514
-          ANTHROPIC_DEFAULT_HAIKU_MODEL: claude-haiku-4-5-20251001
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: '--model claude-sonnet-4-20250514'
           additional_permissions: |
             actions: read
-
