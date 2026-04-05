@@ -4,7 +4,6 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
-import type { Waitlist } from "@consilium/database";
 import { CreateWaitlistDto } from "./dto/create-waitlist.dto";
 
 @Injectable()
@@ -37,13 +36,13 @@ export class WaitlistService {
     };
   }
 
-  async findAll(): Promise<Waitlist[]> {
+  async findAll(): Promise<any[]> {
     return this.prisma.waitlist.findMany({
       orderBy: { createdAt: "desc" },
     });
   }
 
-  async markNotified(email: string): Promise<Waitlist> {
+  async markNotified(email: string): Promise<any> {
     return this.prisma.waitlist.update({
       where: { email },
       data: { notified: true },

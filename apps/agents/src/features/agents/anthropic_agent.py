@@ -36,6 +36,11 @@ class AnthropicAgent(BaseAgent):
 
             return content, tokens
 
+        except (anthropic.APIConnectionError, anthropic.RateLimitError,
+                anthropic.APIStatusError) as e:
+            return f"[Claude API Error: {str(e)}]", 0
+        except anthropic.AuthenticationError as e:
+            return f"[Claude Auth Error: {str(e)}]", 0
         except Exception as e:
             return f"[Claude Error: {str(e)}]", 0
 
@@ -57,8 +62,11 @@ class AnthropicAgent(BaseAgent):
                 async for text in stream.text_stream:
                     yield text
 
-        except Exception as e:
-            yield f"[Claude Stream Error: {str(e)}]"
+        except (anthropic.APIConnectionError, anthropic.RateLimitError,
+                anthropic.APIStatusError) as e:
+            yield f"[Claude API Error: {str(e)}]"
+        except anthropic.AuthenticationError as e:
+            yield f"[Claude Auth Error: {str(e)}]"
 
     async def health_check(self) -> bool:
         """Check if Anthropic API is accessible."""
@@ -75,5 +83,6 @@ class AnthropicAgent(BaseAgent):
                 messages=[{"role": "user", "content": "ping"}]
             )
             return True
-        except Exception:
+        except (anthropic.APIConnectionError, anthropic.RateLimitError,
+                anthropic.APIStatusError, anthropic.AuthenticationError):
             return False
