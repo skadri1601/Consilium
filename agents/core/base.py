@@ -13,6 +13,15 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 AGENTS_DIR = Path(__file__).resolve().parent.parent
 CLAUDE_CLI = shutil.which("claude") or shutil.which("claude.cmd") or "claude"
 
+ALLOWED_MODELS = {"haiku", "sonnet"}
+DEFAULT_FALLBACK_MODEL = "haiku"
+
+
+def sanitize_model(model):
+    if not model or model.lower() not in ALLOWED_MODELS:
+        return DEFAULT_FALLBACK_MODEL
+    return model.lower()
+
 
 def setup_logging(name):
     logging.basicConfig(
@@ -23,6 +32,7 @@ def setup_logging(name):
 
 
 def run_claude(prompt, system_prompt=None, model="haiku", subagents=None, allowed_tools=None, max_duration=None, max_retries=1):
+    model = sanitize_model(model)
     logger = logging.getLogger("run_claude")
 
     if max_duration is None:

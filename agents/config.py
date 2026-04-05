@@ -48,4 +48,6 @@ VERCEL_TOKEN = os.getenv("VERCEL_TOKEN")
 VERCEL_PROJECT_ID = os.getenv("VERCEL_PROJECT_ID")
 VERCEL_TEAM_ID = os.getenv("VERCEL_TEAM_ID")
 
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "haiku")
+_ALLOWED_MODELS = {"haiku", "sonnet"}
+_raw_model = os.getenv("DEFAULT_MODEL", "haiku").lower()
+DEFAULT_MODEL = _raw_model if _raw_model in _ALLOWED_MODELS else "haiku"
