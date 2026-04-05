@@ -80,6 +80,8 @@ def _run_claude_once(prompt, system_prompt=None, model="haiku", subagents=None, 
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             shell=(os.name == "nt"),
         )
 

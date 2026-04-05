@@ -74,7 +74,7 @@ def main():
         agents["slack_bot"] = [sys.executable, "-m", "agents.bots.slack_bot", "--model", args.model]
 
     if not args.no_github:
-        cmd = [sys.executable, "-m", "agents.bots.github_listener", "--continuous", "--poll-interval", "120", "--model", args.model]
+        cmd = [sys.executable, "-m", "agents.bots.github_listener", "--continuous", "--interval", "120", "--model", args.model]
         if args.dry_run:
             cmd.append("--dry-run")
         agents["github_listener"] = cmd
