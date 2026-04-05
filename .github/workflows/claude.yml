@@ -33,10 +33,12 @@ jobs:
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_MODEL: claude-haiku-4-5-20251001
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: '--model haiku'
-          settings: '{"model": "haiku"}'
+          claude_args: '--model claude-haiku-4-5-20251001'
+          settings: '{"model": "claude-haiku-4-5-20251001"}'
           additional_permissions: |
             actions: read
 
