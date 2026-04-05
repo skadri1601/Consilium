@@ -33,6 +33,43 @@ app = App(token=SLACK_BOT_TOKEN)
 bot_user_id = None
 task_queue = []
 _active_threads = set()
+_conversation_contexts = {}
+
+GREETING_PATTERNS = re.compile(
+    r"^(hi|hello|hey|yo|sup|what'?s up|howdy|good (morning|afternoon|evening))[\s!.?]*$"
+)
+GREETING_RESPONSE = "Hey! How can I help you today? Type `help` to see what I can do."
+
+def _fetch_thread_history(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
+    try:
+        result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit)
+        return result.get("messages", [])
+    except Exception:
+        return []
+
+
+def _get_conversation_context(thread_ts):
+    return _conversation_contexts.get(thread_ts, "")
+
+
+def _save_conversation_context(thread_ts, summary):
+    existing = _conversation_contexts.get(thread_ts, "")
+    _conversation_contexts[thread_ts] = (existing + "\n" + summary).strip()[-2000:]
+
+
+def _resolve_user_info(client, user_id):
+    if not user_id:
+        return {"name": "Unknown", "email": ""}
+    try:
+        info = client.users_info(user=user_id)
+        profile = info["user"]["profile"]
+        return {
+            "name": profile.get("real_name", profile.get("display_name", "Unknown")),
+            "email": profile.get("email", ""),
+        }
+    except Exception:
+        return {"name": user_id, "email": ""}
+
 
 def _build_system_prompt():
     prompt_path = AGENTS_DIR / "guides" / "consilium_bot_prompt.md"
@@ -101,31 +138,35 @@ def _fetch_thread_context(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
         result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit + 5)
         messages = result.get("messages", [])
         context_lines = []
-        for msg in messages[:-1]:
+        for msg in messages:
             user = msg.get("user", "bot")
             text = msg.get("text", "").strip()
-            if text and user != bot_user_id:
-                context_lines.append(f"User <@{user}>: {text}")
-            elif text and user == bot_user_id:
-                context_lines.append(f"Bot: {text}")
+            if not text:
+                continue
+            if user == bot_user_id or msg.get("bot_id"):
+                context_lines.append(f"Consilium_Bot: {text[:500]}")
+            else:
+                context_lines.append(f"User: {text}")
         if not context_lines:
             return ""
-        return "## Previous conversation in this thread:\n" + "\n".join(context_lines[-limit:]) + "\n\n"
-    except Exception:
+        return "## Full thread conversation so far:\n" + "\n".join(context_lines[-limit:]) + "\n\n## IMPORTANT: Use the conversation above to understand what the user is referring to. Do NOT ask for clarification if the answer is obvious from context.\n\n"
+    except Exception as e:
+        logger.warning("Failed to fetch thread context: %s", e)
         return ""
 
 
 def _format_response(text):
     if not text:
-        return "I wasn't able to generate a response. Please try again."
+        return "I processed your request but didn't get a response. Please try again."
     text = text.strip()
     if text.startswith("Error:"):
-        return "Sorry, I ran into an issue processing that. Please try again or rephrase your request."
+        return "Sorry, I ran into an issue. Please try again."
     return text
 
 
-def _handle_quick_command(client, channel, thread_ts, user_id, text):
-    lower = text.lower().strip()
+def _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session=None):
+    if thread_session is None:
+        thread_session = sess.load(thread_ts)
 
     thread_session = sess.load(thread_ts) if thread_ts else {}
 
@@ -178,7 +219,9 @@ def handle_mention(event, client):
 
     _track_thread(channel, thread_ts)
 
-    if _handle_quick_command(client, channel, thread_ts, user_id, text):
+    thread_session = sess.load(thread_ts)
+
+    if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
         return
 
     enqueue(
@@ -209,7 +252,8 @@ def handle_message(event, client):
     is_thread_reply = thread_ts is not None and thread_ts != ts
 
     if is_dm:
-        if _handle_quick_command(client, channel, thread_ts or ts, user_id, text):
+        dm_session = sess.load(thread_ts or ts)
+        if _handle_quick_command(client, channel, thread_ts or ts, user_id, text, dm_session):
             return
         enqueue(
             channel=channel,
@@ -225,7 +269,8 @@ def handle_message(event, client):
         if not text:
             return
 
-        if _handle_quick_command(client, channel, thread_ts, user_id, text):
+        thread_session = sess.load(thread_ts)
+        if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
             return
 
         enqueue(
@@ -286,9 +331,13 @@ def run_worker(slack_client, model):
 
             if thinking_msg:
                 try:
-                    slack_client.chat_update(
-                        channel=channel, ts=thinking_msg["ts"], text=response
-                    )
+                    if len(response) <= 3000:
+                        slack_client.chat_update(
+                            channel=channel, ts=thinking_msg["ts"], text=response
+                        )
+                    else:
+                        slack_client.chat_delete(channel=channel, ts=thinking_msg["ts"])
+                        _post_reply(slack_client, channel, thread_ts, response)
                 except Exception:
                     _post_reply(slack_client, channel, thread_ts, response)
             else:

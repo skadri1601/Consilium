@@ -12,7 +12,7 @@ ENV POETRY_NO_INTERACTION=1 \
 # Install dependencies
 FROM base AS deps
 WORKDIR /app
-COPY apps/agents/pyproject.toml apps/agents/poetry.lock apps/agents/README.md ./
+COPY apps/agents/pyproject.toml apps/agents/README.md ./
 # Create minimal src directory structure for Poetry
 RUN mkdir -p src && touch src/__init__.py
 RUN poetry install --without dev

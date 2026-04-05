@@ -50,10 +50,12 @@ export class ConversationV2Controller {
     @Query("limit") limit?: string,
     @Query("offset") offset?: string,
   ): Promise<any[]> {
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
     return this.conversationV2Service.list(
       user.userId,
-      limit ? parseInt(limit) : 20,
-      offset ? parseInt(offset) : 0,
+      Number.isNaN(parsedLimit) || parsedLimit < 1 ? 20 : Math.min(parsedLimit, 100),
+      Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset,
     );
   }
 

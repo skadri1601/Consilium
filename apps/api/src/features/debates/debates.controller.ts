@@ -83,10 +83,12 @@ export class DebatesController {
     @Query("offset") offset?: string,
     @Query("search") search?: string,
   ) {
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
     return this.debatesService.findAll(
       user.userId,
-      limit ? parseInt(limit) : 20,
-      offset ? parseInt(offset) : 0,
+      Number.isNaN(parsedLimit) || parsedLimit < 1 ? 20 : Math.min(parsedLimit, 100),
+      Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset,
       search,
     );
   }
