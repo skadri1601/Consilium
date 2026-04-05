@@ -21,6 +21,14 @@ from pathlib import Path
 DB_DIR = Path(__file__).resolve().parent.parent / "memory"
 DB_PATH = DB_DIR / "task_queue.db"
 
+_ALLOWED_MODELS = {"haiku", "sonnet"}
+
+
+def _sanitize_model(model):
+    if not model or model.lower() not in _ALLOWED_MODELS:
+        return "haiku"
+    return model.lower()
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,6 +93,7 @@ def enqueue(
     is_thread_reply: bool = False,
     priority: int = 0,
 ) -> dict:
+    model = _sanitize_model(model)
     conn = _get_conn()
     now = datetime.now(timezone.utc).isoformat()
     cursor = conn.execute(

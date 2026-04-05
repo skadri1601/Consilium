@@ -23,7 +23,9 @@ jobs:
       pull-requests: read
       issues: read
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
+    env:
+      ANTHROPIC_MODEL: claude-sonnet-4-20250514
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +37,5 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: "--model claude-sonnet-4-5-20250514 --max-turns 10"
           additional_permissions: |
             actions: read
-

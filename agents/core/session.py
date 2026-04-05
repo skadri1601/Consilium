@@ -17,8 +17,7 @@ def load(thread_ts):
     path = _session_path(thread_ts)
     if path.exists():
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            return data
+            return json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             pass
     return {
@@ -65,24 +64,3 @@ def get_context_summary(session):
         lines.append(f"User: {h['user']}")
         lines.append(f"Bot: {h['bot']}")
     return "\n".join(lines)
-
-
-def cleanup_old():
-    if not SESSIONS_DIR.exists():
-        return
-    now = datetime.now(timezone.utc)
-    sessions = sorted(SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime)
-    for path in sessions:
-        try:
-            age_hours = (now.timestamp() - path.stat().st_mtime) / 3600
-            if age_hours > MAX_SESSION_AGE_HOURS:
-                path.unlink()
-        except Exception:
-            pass
-    remaining = sorted(SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime)
-    if len(remaining) > MAX_SESSIONS:
-        for path in remaining[:len(remaining) - MAX_SESSIONS]:
-            try:
-                path.unlink()
-            except Exception:
-                pass

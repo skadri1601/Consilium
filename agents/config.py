@@ -34,6 +34,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "support@myconsilium.xyz")
 
 CONSILIUM_SUPPORT_EMAIL = os.getenv("CONSILIUM_SUPPORT_EMAIL", "support@myconsilium.xyz")
+CONSILIUM_ADMIN_EMAIL = os.getenv("CONSILIUM_ADMIN_EMAIL", "")
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")
@@ -50,4 +51,6 @@ VERCEL_TEAM_ID = os.getenv("VERCEL_TEAM_ID")
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "haiku")
+_ALLOWED_MODELS = {"haiku", "sonnet"}
+_raw_model = os.getenv("DEFAULT_MODEL", "haiku").lower()
+DEFAULT_MODEL = _raw_model if _raw_model in _ALLOWED_MODELS else "haiku"

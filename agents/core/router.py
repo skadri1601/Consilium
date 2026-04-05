@@ -1,17 +1,15 @@
 import re
 import subprocess
 import sys
-import json
 import os
-from pathlib import Path
-
-PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
+from agents.core.utils import run_tool as _run_tool, PROJECT_DIR
 
 INTENT_PATTERNS = {
     "email_search": [
-        r"(?:pull up|check|search|look up|find|get)\s+(?:my\s+)?(?:email|inbox|mail).*(?:for|from|about)\s+(.+)",
+        r"(?:pull up|check|search|look up|look for|find|get)\s+(?:my\s+)?(?:email|inbox|mail).*(?:for|from|about)\s+(.+)",
         r"(?:email|mail|inbox).*(?:from|about)\s+(.+)",
         r"(?:any\s+)?(?:email|mail)s?\s+from\s+(.+)",
+        r"(?:look|search)\s+for\s+(.+?)\s+in\s+(?:my\s+)?(?:email|inbox|mail)",
     ],
     "email_unread": [
         r"(?:any\s+)?(?:new|unread)\s+(?:email|mail)s?",
@@ -20,7 +18,12 @@ INTENT_PATTERNS = {
     ],
     "email_read": [
         r"(?:read|open|show|pull up)\s+(?:that\s+)?(?:email|thread|full)",
-        r"(?:yes|yeah|yep|sure|do it|show me|pull it up)",
+        r"pull\s+(?:it|that)\s+up",
+        r"(?:show|get)\s+(?:me\s+)?(?:the\s+)?(?:full|entire|whole)\s+(?:email|thread|message)",
+    ],
+    "followup_yes": [
+        r"^(?:yes|yeah|yep|sure|do it|ok|okay|go ahead|please|yea)$",
+        r"^(?:yes|yeah)\s+(?:please|do it|go ahead|show me)$",
     ],
     "linear_create": [
         r"create\s+(?:a\s+)?(?:ticket|issue|task|tckt)\s+(?:about|for|on|regarding)\s+(.+)",
@@ -66,10 +69,11 @@ INTENT_PATTERNS = {
         r"(?:priorities|priority|what\s+next|next\s+task)",
     ],
     "briefing": [
-        r"(?:daily\s+)?(?:\w+\s+)?(?:briefing|report|digest|summary|update)",
-        r"(?:give|get|show|need|want)\s+(?:me\s+)?(?:the\s+)?(?:daily|status|full)?\s*(?:report|briefing|digest|summary|update)",
+        r"^(?:daily\s+)?(?:morning\s+|status\s+)?(?:briefing|digest)$",
+        r"(?:give|get|show|need|want)\s+(?:me\s+)?(?:the\s+)?(?:daily|status|full)\s+(?:report|briefing|digest|summary)",
         r"(?:set\s+up|configure|schedule)\s+(?:daily|automated)\s+(?:report|briefing)",
-        r"(?:status|daily)\s+(?:status\s+)?report",
+        r"^(?:status|daily)\s+(?:status\s+)?report$",
+        r"^(?:full\s+)?(?:report|summary|briefing)$",
     ],
     "db_stats": [
         r"(?:platform|app|system)\s+stat(?:istic)?s",
@@ -83,22 +87,6 @@ INTENT_PATTERNS = {
     ],
 }
 
-
-def _run_tool(module, *args):
-    cmd = [sys.executable, "-m", module] + list(args)
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_DIR)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=30,
-            cwd=str(PROJECT_DIR), encoding="utf-8", errors="replace", env=env,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return json.loads(result.stdout)
-        return None
-    except Exception:
-        return None
 
 
 def detect_intent(text):
@@ -252,7 +240,6 @@ def handle_prioritizer(groups, session):
 
 
 def handle_briefing(groups, session):
-    text_lower = " ".join(groups).lower() if groups else ""
     cmd = [sys.executable, "-m", "agents.bots.briefing_agent", "--print-only"]
     env = os.environ.copy()
     env["PYTHONPATH"] = str(PROJECT_DIR)
@@ -319,6 +306,12 @@ def handle_linear_assign(groups, session):
     ticket_id = groups[0].upper() if groups else None
     if not ticket_id:
         return None
+    from agents.config import CONSILIUM_ADMIN_EMAIL
+    if not CONSILIUM_ADMIN_EMAIL:
+        return f"Cannot assign *{ticket_id}* — no admin email configured."
+    result = _run_tool("agents.tools.linear_api", "assign", "--identifier", ticket_id, "--email", CONSILIUM_ADMIN_EMAIL)
+    if not result:
+        return f"Failed to assign *{ticket_id}*."
     session["last_ticket_id"] = ticket_id
     return f":white_check_mark: Assigned *{ticket_id}* to you."
 
@@ -348,6 +341,17 @@ def handle_linear_list(groups, session):
     return "\n".join(lines)
 
 
+def handle_followup_yes(groups, session):
+    last_intent = session.get("last_intent")
+    if last_intent == "email_search" and session.get("last_email_uid"):
+        return handle_email_read((), session)
+    elif last_intent == "email_unread" and session.get("last_email_uid"):
+        return handle_email_read((), session)
+    elif last_intent == "sentry_status":
+        return handle_sentry((), session)
+    return None
+
+
 HANDLERS = {
     "email_search": handle_email_search,
     "email_unread": handle_email_unread,
@@ -365,6 +369,7 @@ HANDLERS = {
     "prioritizer": handle_prioritizer,
     "briefing": handle_briefing,
     "db_stats": handle_db_stats,
+    "followup_yes": handle_followup_yes,
     "greeting": lambda g, s: GREETING_RESPONSE,
     "help": lambda g, s: HELP_TEXT,
 }

@@ -1,0 +1,15 @@
+[Unit]
+Description=Consilium GitHub Listener
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/consilium-bot/repo
+Environment=PYTHONPATH=/opt/consilium-bot/repo
+Environment=PYTHONIOENCODING=utf-8
+ExecStart=/opt/consilium-bot/repo/agents/.venv/bin/python -m agents.bots.github_listener --continuous --interval 120
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

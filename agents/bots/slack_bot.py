@@ -10,12 +10,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from agents.config import DEFAULT_MODEL, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
 from agents.core.base import run_claude, setup_logging, AGENTS_DIR
-<<<<<<< Updated upstream
-from agents.core.router import route, detect_intent
+from agents.core.router import route
 from agents.core import session as sess
-=======
->>>>>>> Stashed changes
-from agents.tools import linear_api
 from agents.tools.task_queue import (
     claim_next,
     complete,
@@ -172,299 +168,15 @@ def _handle_quick_command(client, channel, thread_ts, user_id, text, thread_sess
     if thread_session is None:
         thread_session = sess.load(thread_ts)
 
-<<<<<<< Updated upstream
+    thread_session = sess.load(thread_ts) if thread_ts else {}
+
     response, intent, handled = route(text, thread_session)
 
     if handled and response:
         _post_reply(client, channel, thread_ts, response)
         sess.add_exchange(thread_session, text, response, intent)
-        sess.save(thread_ts, thread_session)
-=======
-    if lower in ("hi", "hello", "hey", "sup", "yo"):
-        _post_reply(client, channel, thread_ts, "Hey! What can I help you with?")
-        return True
-
-    m = re.match(r"start working on ([A-Z]+-\d+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            linear_api.transition_issue(ticket_id, "In Progress")
-            _post_reply(client, channel, thread_ts, f"Started *{ticket_id}* and moved to In Progress.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to start {ticket_id}: {e}")
-        return True
-
-    m = re.match(r"assign ([A-Z]+-\d+) to me", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            result = linear_api.assign_issue(ticket_id, email)
-            _post_reply(client, channel, thread_ts, f"Assigned *{ticket_id}* to you.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to assign {ticket_id}: {e}")
-        return True
-
-    m = re.match(r"move ([A-Z]+-\d+) to (.+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        state = m.group(2).strip()
-        try:
-            linear_api.transition_issue(ticket_id, state)
-            _post_reply(client, channel, thread_ts, f"Moved *{ticket_id}* to {state}.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to move {ticket_id}: {e}")
-        return True
-
-    if lower == "list my tickets":
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            issues = linear_api.list_my_issues(email)
-            if not issues:
-                _post_reply(client, channel, thread_ts, "No tickets assigned to you.")
-            else:
-                lines = [f"*{i['identifier']}* [{i['state']['name']}] {i['title']}" for i in issues]
-                _post_reply(client, channel, thread_ts, "\n".join(lines))
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to list tickets: {e}")
-        return True
-
-    m = re.match(r"(?:what'?s|status)\s+([A-Z]+-\d+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            issue = linear_api.get_issue(ticket_id)
-            assignee = issue.get("assignee", {})
-            assignee_name = assignee.get("name", "Unassigned") if assignee else "Unassigned"
-            state = issue.get("state", {}).get("name", "Unknown")
-            _post_reply(
-                client, channel, thread_ts,
-                f"*{issue['identifier']}*: {issue['title']}\nStatus: {state} | Assignee: {assignee_name}\n{issue.get('url', '')}",
-            )
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to get {ticket_id}: {e}")
-        return True
-
-    # Create ticket and start working on it (full flow)
-    m = re.match(r"create (?:an? )?ticket (?:and|&) start[:\s]*(.+)", text, re.IGNORECASE)
-    if m:
-        title = m.group(1).strip()
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
-            linear_api.assign_issue(issue["identifier"], email)
-            linear_api.transition_issue(issue["identifier"], "In Progress")
-            _post_reply(
-                client, channel, thread_ts,
-                f"Created *{issue['identifier']}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
-            )
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
-        return True
-
-    # Natural language: "create a ticket about X" or "create ticket on linear about X"
-    m = re.match(
-        r"create (?:an? )?(?:ticket|issue) (?:on linear )?(?:about|for|regarding)[:\s]+(?:the (?:issue )?)?(.+?)(?:\s+and\s+(?:after that |then )?(?:start|assign|tag|work|move|tell).*)?$",
-        text, re.IGNORECASE
-    )
-    if m:
-        # Extract the core issue title, cleaning up common phrases
-        title = m.group(1).strip()
-        title = re.sub(r"\s+and\s+after that.*$", "", title, flags=re.IGNORECASE).strip()
-
-        # Check if user wants to start working on it or assign to someone
-        wants_start = bool(re.search(r"(?:start|work|move.*(?:in\s*progress|started))", text, re.IGNORECASE))
-        wants_assign_claude = bool(re.search(r"(?:tag|assign)\s+(?:claude|bot|it)", text, re.IGNORECASE))
-        wants_assign_me = bool(re.search(r"assign\s+(?:to\s+)?me", text, re.IGNORECASE))
-
-        try:
-            issue = linear_api.create_issue(title.title(), f"Created from Slack by <@{user_id}>")
-            msg = f"Created *{issue['identifier']}*: {issue['title']}"
-
-            # Handle assignment
-            if wants_assign_me or wants_assign_claude:
-                info = client.users_info(user=user_id)
-                email = info["user"]["profile"].get("email", "")
-                linear_api.assign_issue(issue["identifier"], email)
-                msg += f"\nAssigned to <@{user_id}>."
-
-            # Handle status transition
-            if wants_start:
-                linear_api.transition_issue(issue["identifier"], "In Progress")
-                msg += "\nMoved to In Progress."
-
-            msg += f"\n{issue.get('url', '')}"
-            _post_reply(client, channel, thread_ts, msg)
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    # Fallback for complex Linear requests - extract ticket creation intent
-    if re.search(r"create\s+(?:an?\s+)?(?:ticket|issue)", text, re.IGNORECASE) and re.search(r"linear|email|not working|bug|fix", text, re.IGNORECASE):
-        # Try to extract a reasonable title from the request
-        title_match = re.search(
-            r"(?:about|regarding|for|issue[:\s]+)\s*(?:the\s+(?:issue\s+)?)?([^,]+?)(?:\s+and\s+|$|\s+tag\s+|\s+then\s+)",
-            text, re.IGNORECASE
-        )
-        if title_match:
-            title = title_match.group(1).strip()
-        else:
-            # Last resort: grab key phrases
-            title = re.sub(r"<@[A-Z0-9]+>", "", text)
-            title = re.sub(r"create\s+(?:an?\s+)?(?:ticket|issue)\s+(?:on\s+linear\s+)?", "", title, flags=re.IGNORECASE)
-            title = re.sub(r"\s+and\s+(?:after|then|tag|assign|start|work|move).*$", "", title, flags=re.IGNORECASE)
-            title = re.sub(r"(?:about|regarding|for)\s+(?:the\s+(?:issue\s+)?)?", "", title, flags=re.IGNORECASE).strip()
-            title = title[:100] if title else "Issue from Slack"
-
-        wants_start = bool(re.search(r"(?:start|work|move.*progress)", text, re.IGNORECASE))
-
-        try:
-            issue = linear_api.create_issue(title.strip().title(), f"Created from Slack by <@{user_id}>")
-            msg = f"Created *{issue['identifier']}*: {issue['title']}"
-
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            linear_api.assign_issue(issue["identifier"], email)
-            msg += f"\nAssigned to <@{user_id}>."
-
-            if wants_start:
-                linear_api.transition_issue(issue["identifier"], "In Progress")
-                msg += "\nMoved to In Progress."
-
-            msg += f"\n{issue.get('url', '')}"
-            _post_reply(client, channel, thread_ts, msg)
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    m = re.match(r"create ticket[:\s]+(.+)", text, re.IGNORECASE)
-    if m:
-        title = m.group(1).strip()
-        try:
-            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
-            _post_reply(client, channel, thread_ts, f"Created *{issue['identifier']}*: {issue['title']}\n{issue.get('url', '')}")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    if lower == "schedule list":
-        try:
-            tasks = list_tasks("pending")
-            if not tasks:
-                _post_reply(client, channel, thread_ts, "No pending tasks.")
-            else:
-                lines = [f"#{t['id']} [{t['status']}] {t['user_text'][:80]}" for t in tasks]
-                _post_reply(client, channel, thread_ts, "\n".join(lines))
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to list tasks: {e}")
-        return True
-
-    if lower == "run email":
-        try:
-            import subprocess
-            import sys
-            subprocess.Popen(
-                [sys.executable, "-m", "agents.bots.email_agent", "--model", DEFAULT_MODEL],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            )
-            _post_reply(client, channel, thread_ts, "Email agent triggered.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to run email agent: {e}")
-        return True
-
-    if lower in ("briefing", "morning briefing", "daily briefing"):
-        try:
-            import subprocess as _sp
-            result = _sp.run(
-                [sys.executable, "-m", "agents.bots.briefing_agent", "--print-only"],
-                capture_output=True, text=True, timeout=120,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                _post_reply(client, channel, thread_ts, result.stdout.strip())
-            else:
-                _post_reply(client, channel, thread_ts, "Failed to generate briefing.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Briefing failed: {e}")
-        return True
-
-    if lower in ("what should i work on", "what next", "priorities", "what should i work on next"):
-        try:
-            import subprocess as _sp
-            result = _sp.run(
-                [sys.executable, "-m", "agents.tools.prioritizer", "summary"],
-                capture_output=True, text=True, timeout=60,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                _post_reply(client, channel, thread_ts, result.stdout.strip())
-            else:
-                _post_reply(client, channel, thread_ts, "Couldn't determine priorities right now.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Prioritizer failed: {e}")
-        return True
-
-    if lower in ("sentry status", "errors", "sentry"):
-        try:
-            import subprocess as _sp
-            result = _sp.run(
-                [sys.executable, "-m", "agents.tools.sentry_api", "stats"],
-                capture_output=True, text=True, timeout=30,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                data = json.loads(result.stdout)
-                lines = [f":rotating_light: *Sentry Status*\nUnresolved: {data.get('unresolved_count', '?')}"]
-                for issue in data.get("top_issues", [])[:5]:
-                    lines.append(f"  - [{issue.get('level', '?')}] {issue['title']} ({issue.get('count', '?')}x)")
-                _post_reply(client, channel, thread_ts, "\n".join(lines))
-            else:
-                _post_reply(client, channel, thread_ts, "Couldn't fetch Sentry status.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Sentry check failed: {e}")
-        return True
-
-    if lower in ("deploy status", "vercel", "deployment"):
-        try:
-            import subprocess as _sp
-            result = _sp.run(
-                [sys.executable, "-m", "agents.tools.vercel_api", "latest"],
-                capture_output=True, text=True, timeout=30,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                data = json.loads(result.stdout)
-                state = data.get("state", "UNKNOWN")
-                icon = ":white_check_mark:" if state == "READY" else ":x:"
-                text = f"{icon} *Latest Deploy:* {state}\nBranch: {data.get('branch', '?')}\n{data.get('source', '')}"
-                if data.get("url"):
-                    text += f"\n<https://{data['url']}|View>"
-                _post_reply(client, channel, thread_ts, text)
-            else:
-                _post_reply(client, channel, thread_ts, "Couldn't fetch deploy status.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Deploy check failed: {e}")
-        return True
-
-    if lower in ("help", "commands", "what can you do"):
-        help_text = (
-            "*Available Commands:*\n"
-            "• `start working on [TICKET-ID]` - Move ticket to In Progress\n"
-            "• `assign [TICKET-ID] to me` - Assign ticket to yourself\n"
-            "• `move [TICKET-ID] to [STATE]` - Change ticket state\n"
-            "• `list my tickets` - Show your assigned tickets\n"
-            "• `status [TICKET-ID]` - Get ticket details\n"
-            "• `create ticket: [title]` - Create a new ticket\n"
-            "• `schedule list` - Show pending tasks\n"
-            "• `run email` - Trigger email agent\n"
-            "• `briefing` - Get daily briefing\n"
-            "• `what next` - Get prioritized task recommendations\n"
-            "• `sentry status` - Show Sentry error summary\n"
-            "• `deploy status` - Show latest Vercel deployment\n"
-            "• `help` - Show this message\n\n"
-            "_For anything else, just ask me and I'll figure it out!_"
-        )
-        _post_reply(client, channel, thread_ts, help_text)
->>>>>>> Stashed changes
+        if thread_ts:
+            sess.save(thread_ts, thread_session)
         return True
 
     return False
@@ -602,33 +314,18 @@ def run_worker(slack_client, model):
         except Exception:
             pass
 
-        # Gather context for the master agent
-        thread_history = _fetch_thread_history(slack_client, channel, thread_ts)
-        conversation_context = _get_conversation_context(thread_ts)
-        user_info = _resolve_user_info(slack_client, task.get("user_id", ""))
-
         try:
             thread_session = sess.load(thread_ts)
             thread_context = _fetch_thread_context(slack_client, channel, thread_ts)
-<<<<<<< Updated upstream
-
             session_context = sess.get_context_summary(thread_session)
+            context_block = ""
             if session_context:
-                context_block = "## Session history (what was discussed):\n" + session_context + "\n\n"
-            else:
-                context_block = ""
+                context_block = "## Session history:\n" + session_context + "\n\n"
 
             if thread_context and len(prompt.split()) <= 5:
-                full_prompt = thread_context + context_block + "## Current request:\n" + prompt + "\n\n## IMPORTANT: The user's message is short. This is a FOLLOW-UP to the conversation above. Look at the last exchange and continue from there."
+                full_prompt = thread_context + context_block + "## Current request:\n" + prompt + "\n\n## IMPORTANT: Short follow-up. Continue from last exchange."
             else:
                 full_prompt = thread_context + context_block + "## Current request:\n" + prompt
-
-=======
-            if thread_context and len(prompt.split()) <= 5:
-                full_prompt = thread_context + "## Current request:\n" + prompt + "\n\n## IMPORTANT: The user's message is short (e.g. 'yes', 'do it', 'show me'). This is a FOLLOW-UP to the conversation above. Look at your LAST response in the thread and continue from there. Do NOT ask what they need help with."
-            else:
-                full_prompt = thread_context + "## Current request:\n" + prompt
->>>>>>> Stashed changes
             result = run_master(full_prompt, model)
             response = _format_response(result)
 
