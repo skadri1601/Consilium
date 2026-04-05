@@ -6,9 +6,10 @@ from agents.core.utils import run_tool as _run_tool, PROJECT_DIR
 
 INTENT_PATTERNS = {
     "email_search": [
-        r"(?:pull up|check|search|look up|find|get)\s+(?:my\s+)?(?:email|inbox|mail).*(?:for|from|about)\s+(.+)",
+        r"(?:pull up|check|search|look up|look for|find|get)\s+(?:my\s+)?(?:email|inbox|mail).*(?:for|from|about)\s+(.+)",
         r"(?:email|mail|inbox).*(?:from|about)\s+(.+)",
         r"(?:any\s+)?(?:email|mail)s?\s+from\s+(.+)",
+        r"(?:look|search)\s+for\s+(.+?)\s+in\s+(?:my\s+)?(?:email|inbox|mail)",
     ],
     "email_unread": [
         r"(?:any\s+)?(?:new|unread)\s+(?:email|mail)s?",
