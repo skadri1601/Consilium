@@ -1,318 +1,147 @@
 # @consilium/cli
 
-> CLI for Consilium AI Council - Multi-agent debate platform
-
-Stop coding blindly. Let multiple AI models debate the best approach before you write a single line of code.
-
-## Like Gemini CLI / Cursor CLI
-
-Consilium CLI works the same way you use Gemini or Cursor in the terminal:
-
-| Action | Command |
-|--------|---------|
-| **Interactive session** (default) | `consilium` |
-| **One-shot question** | `consilium "Build a chat feature"` |
-| **Explicit debate** | `consilium debate "Your topic"` |
-| **Resume saved session** | `consilium sessions resume <id>` |
-
-```bash
-# Drop into interactive multi-agent chat (like gemini chat / cursor)
-consilium
-
-# Ask one question and exit (like cursor ask "..." )
-consilium "How should I implement auth?"
-
-# Classic debate with options
-consilium debate "Design API" --models gpt-4o-mini claude-haiku --output plan.md
-```
-
-In the REPL you get a simple `> ` prompt. Type a topic to start a debate, or use:
-
-- **`/ask <topic>`** – Run one debate (same as typing the topic)
-- **`/help`** – List all commands
-- **↑/↓** – Input history (previous topics and commands)
-- **`/exit`** – Save session and quit
-
-Streaming output shows each agent’s turn clearly (▶ model, streamed text, ✓ done) and a Golden Prompt section at the end.
-
-## Features
-
-- 🤖 **Multi-Agent Debates** - GPT-4, Claude, Gemini, and more debate your problem
-- ⚡ **Real-Time Streaming** - Watch AI responses as they happen
-- 📝 **Golden Prompt** - Get a synthesized "best approach" from all perspectives
-- 🔧 **Configurable** - BYOK (Bring Your Own Keys) - no markup, full privacy
-- 🎨 **Beautiful Output** - Colored, formatted terminal output
+Command-line interface for Consilium -- a multi-model debate platform that lets you pit AI models against each other before writing code.
 
 ## Installation
-
-### Global Installation
 
 ```bash
 npm install -g @consilium/cli
 ```
 
-### Use with npx (No Installation)
+Or run without installing:
 
 ```bash
-npx @consilium/cli "your question"
-```
-
-## Quick Start
-
-```bash
-# Interactive session (default)
-consilium
-
-# One-shot question
-consilium "Build a real-time chat feature"
-
-# Explicit debate with options
-consilium debate "Optimize database queries" --models gpt-4o-mini claude-haiku
-
-# Save output to file
-consilium debate "Design user authentication" --output plan.md
-```
-
-## Usage
-
-### Debate Command
-
-Start a multi-agent debate on any topic:
-
-```bash
-consilium debate "<your question>"
-```
-
-**Options:**
-- `-m, --models <models...>` - Specify which AI models to use
-  - Available: `gpt-4o-mini`, `claude-haiku`, `gemini-flash`, `groq-llama`
-- `-o, --output <file>` - Save the golden prompt to a file
-
-**Examples:**
-
-```bash
-# Basic debate
-consilium debate "How should I implement caching?"
-
-# Use specific models
-consilium debate "Build a payment system" \
-  --models gpt-4o-mini claude-haiku gemini-flash
-
-# Save to file
-consilium debate "Design API architecture" --output api-plan.md
-```
-
-### Config Command
-
-Manage CLI configuration:
-
-```bash
-# Set configuration values
-consilium config set <key> <value>
-
-# Get a configuration value
-consilium config get <key>
-
-# List all configuration
-consilium config list
-```
-
-**Configuration Keys:**
-- `apiUrl` - Consilium API endpoint (default: `http://localhost:4000`)
-- `apiKey` - Your Consilium API key (optional, for authenticated access)
-
-**Examples:**
-
-```bash
-# Set API URL
-consilium config set apiUrl "https://api.consilium.dev"
-
-# Set API key
-consilium config set apiKey "your-api-key-here"
-
-# View all config
-consilium config list
-```
-
-## Configuration File
-
-Configuration is stored in `~/.consilium/config.json`:
-
-```json
-{
-  "apiUrl": "http://localhost:4000",
-  "apiKey": "your-api-key"
-}
-```
-
-You can also set the API URL via environment variable:
-
-```bash
-export CONSILIUM_API_URL="http://localhost:4000"
-```
-
-## Development Workflow
-
-### 1. Plan Your Feature
-
-```bash
-consilium debate "Implement user authentication with JWT" > auth-plan.md
-```
-
-### 2. Review the Golden Prompt
-
-The CLI will show you:
-- Individual agent responses (what each AI thinks)
-- A synthesized "Golden Prompt" (the best combined approach)
-
-### 3. Code with Confidence
-
-Use the golden prompt as your implementation guide:
-
-```bash
-cursor auth-plan.md
-# Or: code auth-plan.md
-# Or: vim auth-plan.md
-```
-
-## Why Use the CLI?
-
-### Before Consilium CLI:
-1. Ask ChatGPT for help → Get one perspective
-2. Start coding → Realize there's a better approach
-3. Refactor → Waste hours
-
-### With Consilium CLI:
-1. `consilium debate "your problem"`
-2. Get multiple AI perspectives + synthesized best approach
-3. Code once, correctly
-
-## Use Cases
-
-### Planning New Features
-```bash
-consilium debate "Add real-time notifications to my app" > notifications-plan.md
-```
-
-### Debugging Architecture Decisions
-```bash
-consilium debate "Should I use WebSockets or Server-Sent Events?"
-```
-
-### Optimizing Performance
-```bash
-consilium debate "How can I reduce database query time by 50%?"
-```
-
-### Learning Best Practices
-```bash
-consilium debate "What's the best way to handle errors in async JavaScript?"
+npx @consilium/cli debate "your question"
 ```
 
 ## Requirements
 
 - Node.js >= 20.0.0
-- A running Consilium backend (or access to hosted instance)
+- A running Consilium backend (or access to a hosted instance)
 
-## Self-Hosting
-
-To run your own Consilium backend:
+## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/consilium
-cd consilium
-docker-compose up
+# Interactive REPL session
+consilium chat
+
+# Start a debate
+consilium debate "How should I implement auth?"
+
+# Debate with options
+consilium debate "Design API" --mode council -o output.md
+
+# Resume a previous session
+consilium sessions resume <id>
 ```
 
-Then configure the CLI:
+## Commands
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `consilium debate <topic>` | `ask` | Start a multi-model debate |
+| `consilium chat` | | Interactive REPL with session persistence |
+| `consilium config set\|get\|list` | | Configuration management |
+| `consilium login` | | Web-based authentication (opens browser) |
+| `consilium debug <debateId>` | | Full debate trace |
+| `consilium logs <debateId>` | | Query debate logs |
+| `consilium stats` | | Model performance dashboard |
+| `consilium sessions list\|resume\|rename\|delete` | | Manage saved sessions |
+
+## Debate Options
+
+| Flag | Description |
+|------|-------------|
+| `-m, --models <models...>` | Select models for the debate |
+| `-o, --output <file>` | Save output to file |
+| `--mode quick\|council\|deep\|blind` | Set debate mode |
+
+## Debate Modes
+
+| Mode | Rounds | Description |
+|------|--------|-------------|
+| `quick` | 1 | Single round, fast results |
+| `council` | 3 | Multiple rounds of deliberation (default) |
+| `deep` | 5 | Multi-round with sub-agents for deeper analysis |
+| `blind` | 3 | Anonymous mode, models don't see each other's names |
 
 ```bash
-consilium config set apiUrl "http://localhost:4000"
+consilium debate "Microservices vs monolith" --mode deep
 ```
 
-## Troubleshooting
+## Output Formats
 
-### Connection Refused
+| Format | Use Case |
+|--------|----------|
+| `markdown` | General documentation |
+| `cursorrules` | Cursor IDE rules file |
+| `claude-md` | CLAUDE.md instructions |
+| `json` | Programmatic consumption |
+| `text` | Plain text |
 
-```
-Error: ECONNREFUSED
-```
-
-**Solution:** Make sure the Consilium backend is running:
 ```bash
-docker-compose up
+consilium debate "Error handling strategy" --format cursorrules --output .cursorrules
 ```
 
-### Authentication Failed
+## REPL Mode
 
-```
-Error: 401 Unauthorized
-```
+Running `consilium chat` drops you into an interactive session with persistent history.
 
-**Solution:** Set your API key:
+REPL commands:
+
+- `/ask <topic>` -- Start a debate within the session
+- `/help` -- List available commands
+- `/exit` -- Save session and quit
+- Up/Down arrows -- Navigate input history
+
+## Codebase-Aware Debates
+
+Consilium scans your project via ProjectContext and feeds relevant context into the debate. Three specialized agents -- architecture, structure, and config -- analyze your codebase so models understand your tech stack, directory layout, and existing patterns before responding.
+
+## Context Support
+
+Attach files or images to provide additional context:
+
 ```bash
-consilium config set apiKey "your-key"
+consilium debate "Review this architecture" --file diagram.png
+consilium debate "Refactor this module" --file src/auth.ts
 ```
 
-### Command Not Found
+## Configuration
 
-```
-consilium: command not found
-```
+Manage API keys and settings with BYOK (Bring Your Own Keys). Supported providers: OpenAI, Anthropic, Google, Groq, XAI.
 
-**Solution:** Either install globally or use npx:
 ```bash
-npm install -g @consilium/cli
-# Or use: npx @consilium/cli debate "..."
+consilium config set openai_key sk-...
+consilium config set anthropic_key sk-ant-...
+consilium config list
 ```
 
-## Example Output
+Configuration is stored in `~/.consilium/config.json`.
 
+Environment variable override:
+
+```bash
+export CONSILIUM_API_URL="http://localhost:4000"
 ```
-$ consilium debate "Build a todo app"
 
-✔ Debate created!
+## Features
 
-🤖 Agents Debating:
+- **Real-time streaming** -- SSE streaming with progress bars and agent cards
+- **Cost estimation** -- See estimated cost before a debate runs
+- **Health check** -- Validates backend connectivity before operations
+- **Decision tracking** -- Tracks decisions across conversations (decided/tentative/open/superseded)
+- **Session persistence** -- Saved to `~/.consilium/sessions/`, resume with `consilium sessions resume <id>`
 
-[GPT-4o-mini] Thinking...
-For a todo app, I'd recommend using React with local storage...
-✓ Done
+## Dependencies
 
-[Claude Haiku] Thinking...
-Consider using a state management solution like Zustand...
-✓ Done
-
-[Gemini Flash] Thinking...
-Start with a simple component structure: TodoList, TodoItem...
-✓ Done
-
-📝 Golden Prompt:
-
-Build a React todo app with the following architecture:
-1. Use React hooks (useState, useEffect) for state
-2. Implement local storage persistence
-3. Add Zustand for state management (scalable approach)
-4. Component structure: App > TodoList > TodoItem
-5. Features: Add, delete, toggle completion, filter
-
-✓ Debate complete!
-```
+commander ^12.1.0, chalk ^5, ora ^8, eventsource ^2, zod ^3, dotenv, open
 
 ## License
 
-MIT License - Feel free to use commercially, fork, or build on top of it.
+MIT
 
 ## Links
 
-- **GitHub**: [https://github.com/yourusername/consilium](https://github.com/yourusername/consilium)
-- **Documentation**: [https://docs.consilium.dev](https://docs.consilium.dev)
-- **Issues**: [https://github.com/yourusername/consilium/issues](https://github.com/yourusername/consilium/issues)
-
-## Contributing
-
-Contributions welcome! See [CONTRIBUTING.md](../../CONTRIBUTING.md)
-
----
-
-**Built with ❤️ for developers who want to code smarter, not harder.**
+- [GitHub](https://github.com/skadri1601/Consilium)
+- [Issues](https://github.com/skadri1601/Consilium/issues)

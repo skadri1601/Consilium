@@ -1,360 +1,224 @@
-# [Consilium] - AI Council Platform
+# Consilium
 
-> Multi-AI agent orchestration system that enables collaborative problem-solving across different LLMs with blind evaluation and consensus features.
+Multi-LLM adversarial debate platform. Consilium orchestrates 5 AI providers through a structured council protocol -- 3-round debates with a 5-phase judge -- to produce higher-quality answers than any single model alone.
 
-## 🎯 Overview
+## Overview
 
-AI Council is a production-grade platform that orchestrates multiple AI models (GPT-4o-mini, Claude, Gemini, Grok etc.) to collaboratively solve complex problems. Instead of trying different AI models sequentially, AI Council runs them in parallel, analyzes their approaches, and presents the best solutions through blind evaluation.
+Consilium runs multiple LLM providers in parallel, pits them against each other in adversarial debate rounds, and synthesizes the best reasoning into a final verdict. Users bring their own API keys (BYOK) and pay only for the tokens they use.
 
-**Key Features:**
-- 🤝 Multi-agent deliberation with LangGraph orchestration
-- 🎭 Blind evaluation - removes model bias by anonymizing outputs
-- 📊 Consensus analysis showing where models agree/disagree
-- 🚀 Real-time streaming of agent responses via Server-Sent Events
-- 🔐 Multi-tenancy with Row-Level Security
-- 📈 Usage analytics and per-model cost tracking
+**Core capabilities:**
 
-## 🏗️ Architecture
+- Council Protocol: 3-round adversarial debate (Independent Analysis, Critique & Refinement, Final Convergence) with a 5-phase Judge (claim extraction, cross-reference, dispute resolution, scoring, synthesis)
+- 4 debate modes: `quick` (1 round), `council` (3 rounds), `deep` (5 rounds + sub-agents), `blind` (3 rounds, anonymous)
+- 5 LLM providers: OpenAI, Anthropic, Google, Groq, XAI
+- Real-time SSE streaming of all model responses
+- Convergence detection with early-exit when models reach agreement
+- Circuit breaker pattern for automatic provider failover
+- Model anonymization in blind mode
+- Per-model cost tracking with token-level granularity
+- Debate checkpointing
+- BYOK (bring your own keys) -- no markup on API costs
+
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  FRONTEND (Next.js 15 + Vercel AI SDK)                  │
-│  - Vercel Hobby (Free)                                  │
-│  - Real-time streaming UI with SSE                      │
-│  - Multi-agent conversation views                       │
-│  - Blind evaluation interface                           │
-└─────────────────┬───────────────────────────────────────┘
-                  │ REST API + Server-Sent Events
-┌─────────────────▼───────────────────────────────────────┐
-│  API LAYER (NestJS + TypeScript)                        │
-│  - Railway Hobby ($5/month)                             │
-│  - Clerk authentication                                 │
-│  - Rate limiting & tenant management                    │
-│  - BullMQ job queue                                     │
-└─────────────────┬───────────────────────────────────────┘
-                  │ Queue Jobs + HTTP
-┌─────────────────▼───────────────────────────────────────┐
-│  AI WORKERS (Python + LangGraph)                        │
-│  - Railway or same container                            │
-│  - Multi-agent orchestration                            │
-│  - LLM routing (GPT-4o-mini, Claude, Gemini)            │
-│  - Semantic caching with Redis                          │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────┐
-│  DATA LAYER                                             │
-│  - Neon PostgreSQL                                      │
-│  - Upstash Redis                                        │
-│  - 10,000 pooled connections                            │
-└─────────────────────────────────────────────────────────┘
++----------------------------------------------------------+
+|  FRONTEND (Next.js 15.2.3)                               |
+|  Vercel                                                  |
+|  Clerk auth, dark mode, Zustand + TanStack Query         |
+|  shadcn/ui + Radix, Framer Motion, Recharts              |
++----------------------------+-----------------------------+
+                             | REST + SSE
++----------------------------v-----------------------------+
+|  API (NestJS 11 + Fastify)           port 4000           |
+|  Render (free tier)                  prefix /api/v1      |
+|  Clerk auth, BullMQ + Redis, Prisma ORM                  |
+|  Swagger at /api/docs, Terminus health checks            |
++----------------------------+-----------------------------+
+                             | HTTP
++----------------------------v-----------------------------+
+|  AI WORKERS (Python FastAPI)         port 8000           |
+|  LLM routing, 3-round debate, convergence detection      |
+|  Circuit breaker, cost tracking, anonymizer              |
++----------------------------+-----------------------------+
+                             |
++----------------------------v-----------------------------+
+|  DATA LAYER                                              |
+|  Neon PostgreSQL (Prisma, 16 models) | Upstash Redis     |
++----------------------------------------------------------+
 ```
 
-## 🛠️ Tech Stack (Finalized for Bootstrap Launch)
+## Tech Stack
 
-### Frontend (`apps/web`)
-- **Framework**: Next.js 15 (App Router)
-- **Hosting**: Vercel Hobby (Free)
-- **UI Library**: React 18 + TypeScript
-- **AI Integration**: Vercel AI SDK 6
-- **State Management**: Zustand + TanStack Query
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Real-time**: Server-Sent Events
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15.2.3 (App Router), React, TypeScript, Tailwind CSS, shadcn/ui + Radix, Zustand, TanStack Query, Framer Motion, Recharts |
+| API | NestJS 11, Fastify, TypeScript, BullMQ, Prisma ORM, Swagger |
+| AI Workers | Python, FastAPI, 5 LLM providers |
+| Database | Neon PostgreSQL (Prisma, 16 models) |
+| Cache | Upstash Redis |
+| Auth | Clerk |
+| CLI | `@consilium/cli` -- TypeScript, Commander.js (`consilium` command) |
+| Shared Packages | `@consilium/shared` (debates, providers, ids, SSE types), `@consilium/ui` (Button, Card, Input), `@consilium/config` (ESLint, TypeScript, Prettier) |
+| Monitoring | Sentry (frontend, API, workers) |
+| CI/CD | GitHub Actions (9 workflows: CI, PR checks, Docker, Coverage, E2E, SonarQube, Security, Claude Code, Linear sync) |
+| Monorepo | pnpm 9.15.0 + Turborepo |
 
-### Backend (`apps/api`)
-- **Framework**: NestJS + Fastify adapter
-- **Hosting**: Railway Hobby ($5/month)
-- **Language**: TypeScript 5.7+
-- **API Protocol**: REST
-- **Authentication**: Clerk (Free for 10K MAU)
-- **Validation**: Zod schemas
-- **Job Queue**: BullMQ + Upstash Redis
-
-### AI Workers (`apps/agents`)
-- **Framework**: LangGraph (Python)
-- **LLM APIs**: GPT-4o-mini, Claude 3.5 Haiku, Gemini 2.0 Flash
-- **API Framework**: FastAPI
-- **Observability**: Langfuse (self-hosted)
-
-### Infrastructure
-- **Database**: Neon PostgreSQL (Free tier, upgrades to $19/month)
-- **Cache**: Upstash Redis (Free tier)
-- **Deployment**: Vercel + Railway
-- **Monitoring**: Sentry Free (5K errors/month)
-- **Email**: Resend Free (3K emails/month)
-- **Payments**: Stripe (2.9% + $0.30)
-- **Monorepo**: Turborepo + pnpm
-
-##
-
- 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-```bash
-# Required
-node >= 20.x
-pnpm >= 9.x
-python >= 3.11
-docker >= 24.x
-docker-compose >= 2.x (or docker compose for newer Docker Desktop)
-
-# Optional but recommended
-just (command runner)
-direnv (environment management)
-```
+- Node.js >= 20
+- pnpm >= 9.15.0
+- Python >= 3.11
+- Docker (optional)
 
 ### Installation
 
-**Windows (PowerShell):**
-```powershell
-# Clone repository
-git clone https://github.com/yourusername/ai-council.git
-cd ai-council
+```bash
+git clone https://github.com/skadri1601/Consilium.git
+cd Consilium
 
-# Install dependencies (all workspaces)
 pnpm install
 
-# Setup environment variables
-Copy-Item .env.example .env.local
-# Edit .env.local with your API keys and configuration
-
-# Start infrastructure (PostgreSQL, Redis)
-docker-compose up -d
-# Or with newer Docker Desktop: docker compose up -d
-
-# Run database migrations
-pnpm db:migrate
-
-# Start development servers (all apps in parallel)
-pnpm dev
+cp .env.example .env.local
+# Add your API keys to .env.local
 ```
 
-**macOS/Linux (Bash):**
+### Docker Setup
+
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/ai-council.git
-cd ai-council
-
-# Install dependencies (all workspaces)
-pnpm install
-
-# Setup environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys and configuration
-
-# Start infrastructure (PostgreSQL, Redis)
 docker-compose up -d
+```
 
-# Run database migrations
+Starts postgres, redis, api, agents, web, redis-commander, and mailhog.
+
+### Database Setup
+
+```bash
 pnpm db:migrate
+pnpm db:generate
+```
 
-# Start development servers (all apps in parallel)
+### Start Development
+
+```bash
 pnpm dev
 ```
 
 This starts:
+
 - Frontend: http://localhost:3000
-- API: http://localhost:4000
+- API: http://localhost:4000 (Swagger at http://localhost:4000/api/docs)
 - AI Workers: http://localhost:8000
-- Temporal UI: http://localhost:8233
 
-### Development Workflow
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# Run all workspaces in dev mode
-pnpm dev
-
-# Run specific workspace
-pnpm --filter @consilium/web dev
-pnpm --filter @consilium/api dev
-pnpm --filter @consilium/agents dev
-
-# Type checking
-pnpm type-check
-
-# Linting
-pnpm lint
-
-# Run tests
-pnpm test
-
-# Build all apps
-pnpm build
-```
-
-> **Note:** `pnpm` commands work identically on Windows, macOS, and Linux.
-
-## 📁 Project Structure
-
-The project uses a **feature-based architecture** where each feature contains all its related files (components, hooks, services, types).
+## Project Structure
 
 ```
-consilium/
+Consilium/
 ├── apps/
-│   ├── web/                    # Next.js 15 frontend
-│   │   ├── src/
-│   │   │   ├── app/           # App Router (routing only)
-│   │   │   ├── features/      # Feature modules
-│   │   │   │   ├── auth/      # Authentication
-│   │   │   │   ├── council/   # Multi-agent chat
-│   │   │   │   ├── agents/    # Agent management
-│   │   │   │   ├── history/   # Conversation history
-│   │   │   │   └── analytics/ # Usage analytics
-│   │   │   └── shared/        # Shared components, hooks, utils
-│   │   │       ├── components/ui/    # shadcn/ui
-│   │   │       ├── components/layout/
-│   │   │       ├── hooks/
-│   │   │       └── lib/
-│   │   └── package.json
-│   │
-│   ├── api/                    # NestJS backend
-│   │   ├── src/
-│   │   │   ├── features/      # Feature modules
-│   │   │   │   ├── auth/      # Clerk authentication
-│   │   │   │   ├── council/   # Council orchestration
-│   │   │   │   ├── agents/    # Agent CRUD
-│   │   │   │   ├── conversations/
-│   │   │   │   ├── users/
-│   │   │   │   └── analytics/
-│   │   │   ├── shared/        # Shared utilities
-│   │   │   │   ├── database/  # Prisma service
-│   │   │   │   ├── config/
-│   │   │   │   ├── guards/
-│   │   │   │   └── filters/
-│   │   │   └── main.ts
-│   │   └── package.json
-│   │
-│   └── agents/                 # Python AI workers
-│       ├── src/
-│       │   ├── features/      # Feature modules
-│       │   │   ├── council/   # Council logic
-│       │   │   ├── agents/    # LLM agents
-│       │   │   ├── streaming/ # SSE streaming
-│       │   │   └── health/
-│       │   ├── shared/        # Shared utilities
-│       │   │   ├── config/
-│       │   │   ├── database/
-│       │   │   └── utils/
-│       │   ├── workflows/     # LangGraph workflows
-│       │   └── main.py        # FastAPI app
-│       └── pyproject.toml
-│
+│   ├── web/                  # Next.js 15 frontend
+│   ├── api/                  # NestJS 11 + Fastify API
+│   └── agents/               # Python FastAPI AI workers
 ├── packages/
-│   ├── database/              # Prisma schema & migrations
-│   ├── config/                # Shared configs (ESLint, TS)
-│   └── ui/                    # Shared UI components (optional)
-│
-├── docker-compose.yml         # Local infrastructure
-├── turbo.json                 # Turborepo configuration
-├── pnpm-workspace.yaml        # pnpm workspace config
-└── README.md                  # This file
+│   ├── shared/               # @consilium/shared (debates, providers, ids, SSE types)
+│   ├── ui/                   # @consilium/ui (Button, Card, Input)
+│   ├── database/             # Prisma schema & migrations (16 models)
+│   └── config/               # @consilium/config (ESLint, TypeScript, Prettier)
+├── docker-compose.yml
+├── render.yaml               # Render deployment blueprint
+├── turbo.json
+├── pnpm-workspace.yaml
+└── README.md
 ```
 
-## 🔑 Environment Variables
+### Web Routes
 
-Create `.env.local` in the root directory:
+**App:** `/council`, `/debates/[id]`, `/history`, `/settings`, `/analytics`, `/personas`, `/agents`
 
-**Windows (PowerShell):**
-```powershell
-# Copy the example file
-Copy-Item .env.example .env.local
-# Then edit .env.local with your API keys and configuration
-```
+**Marketing:** `/`, `/about`, `/faq`, `/privacy`, `/terms`
 
-**macOS/Linux (Bash):**
+**Auth:** `/sign-in`, `/sign-up`
+
+## CLI
+
+`@consilium/cli` provides 8 commands and 4 debate modes.
+
 ```bash
-# Copy the example file
-cp .env.example .env.local
-# Then edit .env.local with your API keys and configuration
+pnpm cli:install
+
+consilium debate "your question"     # start a debate
+consilium ask "quick question"       # single-shot query
+consilium chat                       # interactive chat
+consilium config                     # manage settings
+consilium login                      # authenticate
+consilium debug                      # debug info
+consilium logs                       # view logs
+consilium stats                      # usage statistics
 ```
 
-**Environment Variables:**
+**Modes:** `--mode quick` (1 round), `--mode council` (3 rounds), `--mode deep` (5 rounds + sub-agents), `--mode blind` (3 rounds, anonymous)
+
+Features: codebase scanning, session management, BYOK key configuration.
+
+## Environment Variables
+
+Create `.env.local` in the project root:
 
 ```bash
 # Database (Neon PostgreSQL)
-# Get from: https://console.neon.tech → Project → Connect
-DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
-DIRECT_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
 
-# Redis (Upstash)
-# Get from: https://console.upstash.com → Database → Details
-UPSTASH_REDIS_REST_URL="https://xxx.upstash.io"
-UPSTASH_REDIS_REST_TOKEN="AXxxxxxxxxxxxx"
-REDIS_URL="rediss://default:xxx@xxx.upstash.io:6379"
+# Cache (Upstash Redis)
+UPSTASH_REDIS_REST_URL="https://..."
+UPSTASH_REDIS_REST_TOKEN="..."
 
-# LLM Provider API Keys
-OPENAI_API_KEY="sk-..."                    # https://platform.openai.com/api-keys
-ANTHROPIC_API_KEY="sk-ant-..."             # https://console.anthropic.com
-GOOGLE_API_KEY="AIza..."                   # https://aistudio.google.com/apikey
+# LLM Providers (BYOK)
+OPENAI_API_KEY="sk-..."
+ANTHROPIC_API_KEY="sk-ant-..."
+GOOGLE_API_KEY="AIza..."
+GROQ_API_KEY="gsk_..."
+XAI_API_KEY="xai-..."
 
-# Authentication (Clerk)
-# Get from: https://dashboard.clerk.com → API Keys
+# Auth (Clerk)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_SECRET_KEY="sk_test_..."
 
-# Payments (Stripe)
-# Get from: https://dashboard.stripe.com → Developers → API Keys
-STRIPE_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-
 # Monitoring (Sentry)
-# Get from: https://sentry.io → Project Settings → Client Keys
-SENTRY_DSN="https://xxx@xxx.ingest.sentry.io/xxx"
+SENTRY_DSN="https://..."
 
-# Email (Resend)
-# Get from: https://resend.com/api-keys
-RESEND_API_KEY="re_..."
-
-# Application
+# App URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_API_URL="http://localhost:4000"
-JWT_SECRET="your-32-character-secret-here"
 ```
 
-See `.env.example` for complete list with all variables.
+See `.env.example` for the complete list.
 
-## 🧪 Testing
+## Testing
 
-**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
-# Unit tests
-pnpm test:unit
-
-# Integration tests
-pnpm test:integration
-
-# E2E tests (Playwright)
-pnpm test:e2e
-
-# Coverage report
-pnpm test:coverage
+pnpm test              # all tests
+pnpm test:e2e          # end-to-end tests
 ```
 
-## 📦 Deployment
 
-### Production Build
+## CI/CD
 
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# Build all applications
-pnpm build
+9 GitHub Actions workflows:
 
-# Build specific app
-pnpm --filter @consilium/web build
-```
+- **CI** -- build, lint, type-check across all packages
+- **PR Checks** -- automated pull request validation
+- **Docker** -- container build and push
+- **Coverage** -- test coverage reporting
+- **E2E** -- end-to-end test suite
+- **SonarQube** -- code quality analysis
+- **Security** -- dependency and code scanning
+- **Claude Code** -- AI-assisted code review
+- **Linear Sync** -- issue tracker synchronization
 
-### Deployment Targets
+## Scripts
 
-- **Frontend**: Vercel (automatic via GitHub integration)
-- **Backend API**: Railway Hobby ($5/month)
-- **AI Workers**: Railway (same container or separate)
-- **Database**: Neon PostgreSQL (Free → Launch $19)
-
-### Quick Deploy to Production
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
 ```bash
 # 1. Push to GitHub
 git push origin main
