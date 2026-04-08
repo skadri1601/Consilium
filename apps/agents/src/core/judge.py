@@ -24,14 +24,10 @@ logger = logging.getLogger(__name__)
 CHEAP_MODELS = ["gpt-4o-mini", "gemini-2.0-flash", "claude-3-5-haiku-latest"]
 STRONG_MODELS = ["claude-3-opus-latest", "gemini-2.5-pro", "gpt-4o"]
 
-LABELS = [
-    "Response A", "Response B", "Response C", "Response D",
-    "Response E", "Response F", "Response G", "Response H",
-]
-
 _CALL_TIMEOUT = 60
 _MAX_RETRIES = 2
 _RETRY_DELAYS = [2, 5]
+_RETRY_DELAY_BETWEEN_STRATEGIES = 3
 
 
 @dataclass
@@ -437,6 +433,20 @@ def _compute_improvement_score(
     return round(improvement, 4)
 
 
+async def _persist_judge_result(debate_id: str, result: JudgeResult) -> None:
+    redis = get_redis()
+    await redis.set(
+        f"judge_result:{debate_id}",
+        json.dumps({
+            "golden_prompt": result.golden_prompt,
+            "synthesis_method": result.synthesis_method,
+            "scores": result.scores,
+            "improvement_score": result.improvement_score,
+        }),
+        ex=REDIS_TTL,
+    )
+
+
 async def _run_full_pipeline(
     question: str,
     responses: list[dict[str, str]],
@@ -459,7 +469,7 @@ async def _run_full_pipeline(
 
     anonymized, label_to_model, model_to_label = _anonymize_responses(responses)
 
-    yield _format_sse("judge:extracting", {
+    yield _sse("judge:extracting", {
         "debate_id": debate_id,
         "phase": 1,
         "model": cheap_model,
@@ -469,14 +479,14 @@ async def _run_full_pipeline(
     if not claims_by_label:
         raise RuntimeError("Claim extraction produced no results")
 
-    yield _format_sse("judge:cross-ref", {
+    yield _sse("judge:cross-ref", {
         "debate_id": debate_id,
         "phase": 2,
         "participants": list(claims_by_label.keys()),
     })
     cross_ref = await cross_reference_claims(claims_by_label, cheap_model, api_keys)
 
-    yield _format_sse("judge:disputes", {
+    yield _sse("judge:disputes", {
         "debate_id": debate_id,
         "phase": 3,
         "contradiction_count": len(cross_ref.get("contradictions", [])),
@@ -489,7 +499,7 @@ async def _run_full_pipeline(
         api_keys,
     )
 
-    yield _format_sse("judge:scoring", {
+    yield _sse("judge:scoring", {
         "debate_id": debate_id,
         "phase": 4,
     })
@@ -500,12 +510,12 @@ async def _run_full_pipeline(
         real_model = label_to_model.get(label, label)
         scores_with_models[real_model] = score_data
 
-    yield _format_sse("judge:scoring_complete", {
+    yield _sse("judge:scoring_complete", {
         "debate_id": debate_id,
         "scores": scores_with_models,
     })
 
-    yield _format_sse("judge:synthesizing", {
+    yield _sse("judge:synthesizing", {
         "debate_id": debate_id,
         "phase": 5,
         "model": strong_model,
@@ -524,7 +534,7 @@ async def _run_full_pipeline(
         mode,
     ):
         golden_chunks.append(chunk)
-        yield _format_sse("judge:chunk", {
+        yield _sse("judge:chunk", {
             "debate_id": debate_id,
             "content": chunk,
         })
@@ -557,7 +567,7 @@ async def _run_full_pipeline(
         ex=3600,
     )
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": result.synthesis_method,
         "improvement_score": result.improvement_score,
@@ -578,7 +588,7 @@ async def _run_emergency_synthesis(
     if emergency_model is None:
         raise RuntimeError("No model available for emergency synthesis")
 
-    yield _format_sse("judge:synthesizing", {
+    yield _sse("judge:synthesizing", {
         "debate_id": debate_id,
         "phase": "emergency",
         "model": emergency_model,
@@ -599,7 +609,7 @@ async def _run_emergency_synthesis(
     golden_chunks: list[str] = []
     async for chunk in _stream_model(emergency_model, api_keys, prompt):
         golden_chunks.append(chunk)
-        yield _format_sse("judge:chunk", {
+        yield _sse("judge:chunk", {
             "debate_id": debate_id,
             "content": chunk,
         })
@@ -626,7 +636,7 @@ async def _run_emergency_synthesis(
         ex=3600,
     )
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": "emergency",
         "improvement_score": 0.0,
@@ -660,7 +670,7 @@ async def _run_best_individual(
         ex=3600,
     )
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": "best_individual",
         "improvement_score": 0.0,
@@ -678,7 +688,7 @@ async def run_judge_with_fallback(
     mode: str = "web",
 ) -> AsyncGenerator[str, None]:
     if not responses:
-        yield _format_sse("judge:error", {
+        yield _sse("judge:error", {
             "debate_id": debate_id,
             "error": "No responses to judge",
         })
@@ -699,7 +709,7 @@ async def run_judge_with_fallback(
     for strategy, attempt_num in attempts:
         try:
             if strategy == "full_pipeline":
-                yield _format_sse("judge:attempt", {
+                yield _sse("judge:attempt", {
                     "debate_id": debate_id,
                     "strategy": strategy,
                     "attempt": attempt_num + 1,
@@ -711,7 +721,7 @@ async def run_judge_with_fallback(
                 return
 
             elif strategy == "emergency":
-                yield _format_sse("judge:fallback", {
+                yield _sse("judge:fallback", {
                     "debate_id": debate_id,
                     "strategy": "emergency",
                 })
@@ -722,7 +732,7 @@ async def run_judge_with_fallback(
                 return
 
             elif strategy == "best_individual":
-                yield _format_sse("judge:fallback", {
+                yield _sse("judge:fallback", {
                     "debate_id": debate_id,
                     "strategy": "best_individual",
                 })
@@ -734,7 +744,7 @@ async def run_judge_with_fallback(
             logger.error(
                 "Judge %s attempt %d failed: %s", strategy, attempt_num + 1, e
             )
-            yield _format_sse("judge:error", {
+            yield _sse("judge:error", {
                 "debate_id": debate_id,
                 "strategy": strategy,
                 "attempt": attempt_num + 1,
@@ -742,7 +752,7 @@ async def run_judge_with_fallback(
                 "retrying": strategy != "best_individual",
             })
 
-    yield _format_sse("judge:fatal", {
+    yield _sse("judge:fatal", {
         "debate_id": debate_id,
         "error": "All judge strategies exhausted",
     })
