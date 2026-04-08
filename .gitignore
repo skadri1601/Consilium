@@ -96,10 +96,15 @@ agents/memory/sessions/
 tmp/
 temp/
 
-# Documentation (ignore all markdown except README files)
+# Documentation (ignore all markdown except key project files)
 *.md
 !README.md
 !**/README.md
+!CLAUDE.md
+!AGENTS.md
+!PR-REVIEW.md
+!SKILLS.md
+!CONTRIBUTING.md
 
 # Temporary test files
 test_*.js
