@@ -15,7 +15,7 @@ from agents.config import (
     GITHUB_REPO,
 )
 from agents.core.base import setup_logging
-from agents.core.utils import run_tool as _run_tool, post_slack as _post_slack
+from agents.core.utils import run_tool as _run_tool, post_slack as _post_slack, sanitize_shell_arg
 
 try:
     from agents.core.recovery import RecoveryEngine, FailureScenario
@@ -100,15 +100,25 @@ def _save_state(state):
 
 
 def _create_ticket(title, description):
+    # Validate and sanitize inputs
+    if not title or not isinstance(title, str):
+        return None
+    if not description or not isinstance(description, str):
+        return None
+
+    # Sanitize inputs to prevent injection attacks
+    safe_title = sanitize_shell_arg(title)
+    safe_description = sanitize_shell_arg(description)
+
     ticket = None
     if _HAS_LINEAR:
         try:
-            ticket = _linear_create_issue(title, description)
+            ticket = _linear_create_issue(safe_title, safe_description)
         except Exception:
             ticket = None
 
     if not ticket:
-        ticket = _run_tool("agents.tools.linear_api", "create", "--title", title, "--description", description)
+        ticket = _run_tool("agents.tools.linear_api", "create", "--title", safe_title, "--description", safe_description)
 
     if ticket and ticket.get("identifier"):
         try:
@@ -125,17 +135,27 @@ def _create_ticket(title, description):
 
 
 def _add_comment_to_ticket(identifier, body):
+    # Validate and sanitize inputs
+    if not identifier or not isinstance(identifier, str):
+        return False
+    if not body or not isinstance(body, str):
+        return False
+
+    # Sanitize inputs to prevent injection attacks
+    safe_identifier = sanitize_shell_arg(identifier)
+    safe_body = sanitize_shell_arg(body)
+
     if _HAS_LINEAR:
         try:
-            issue = _linear_get_issue(identifier)
-            _linear_comment_on_issue(issue["id"], body)
+            issue = _linear_get_issue(safe_identifier)
+            _linear_comment_on_issue(issue["id"], safe_body)
             return True
         except Exception:
             pass
     try:
-        result = _run_tool("agents.tools.linear_api", "get", "--identifier", identifier)
+        result = _run_tool("agents.tools.linear_api", "get", "--identifier", safe_identifier)
         if result and result.get("id"):
-            _run_tool("agents.tools.linear_api", "comment", "--issue-id", result["id"], "--body", body)
+            _run_tool("agents.tools.linear_api", "comment", "--issue-id", result["id"], "--body", safe_body)
             return True
     except Exception:
         pass
@@ -143,14 +163,24 @@ def _add_comment_to_ticket(identifier, body):
 
 
 def _transition_ticket(identifier, state_name):
+    # Validate and sanitize inputs
+    if not identifier or not isinstance(identifier, str):
+        return False
+    if not state_name or not isinstance(state_name, str):
+        return False
+
+    # Sanitize inputs to prevent injection attacks
+    safe_identifier = sanitize_shell_arg(identifier)
+    safe_state_name = sanitize_shell_arg(state_name)
+
     if _HAS_LINEAR:
         try:
-            _linear_transition_issue(identifier, state_name)
+            _linear_transition_issue(safe_identifier, safe_state_name)
             return True
         except Exception:
             pass
     try:
-        _run_tool("agents.tools.linear_api", "transition", "--identifier", identifier, "--state", state_name)
+        _run_tool("agents.tools.linear_api", "transition", "--identifier", safe_identifier, "--state", safe_state_name)
         return True
     except Exception:
         pass
