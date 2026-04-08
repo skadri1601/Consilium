@@ -65,9 +65,12 @@ export interface CostUpdateEvent {
 export interface DoneEvent {
   event: "done";
   status: string;
+  totalCost: number;
+  totalTokens: number;
+  goldenPrompt: string;
 }
 
-export interface ErrorEvent {
+export interface DebateErrorEvent {
   event: "error";
   message: string;
   recoverable: boolean;
@@ -90,7 +93,7 @@ export type DebateSseEvent =
   | ConsensusEvent
   | CostUpdateEvent
   | DoneEvent
-  | ErrorEvent
+  | DebateErrorEvent
   | DebateCancelledEvent;
 
 export type SseEventType = DebateSseEvent["event"];

@@ -4,8 +4,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { hostname } from "os";
 import { DebateJobData } from "./debate-queue.service";
 import { DebatesService } from "../../features/debates/debates.service";
-import { DebateStatus } from "../../features/debates/debate-status";
 import { AiWorkersClient } from "../../features/debates/ai-workers.client";
+import { PrismaService } from "../../shared/database/prisma.service";
 
 @Processor("debate-jobs")
 @Injectable()
@@ -16,6 +16,7 @@ export class DebateQueueProcessor extends WorkerHost {
   constructor(
     private debatesService: DebatesService,
     private aiWorkersClient: AiWorkersClient,
+    private prisma: PrismaService,
   ) {
     super();
   }
@@ -27,9 +28,33 @@ export class DebateQueueProcessor extends WorkerHost {
     );
 
     try {
-      const { debateId, topic, models, userId, apiKeys } = job.data;
+      const { debateId, topic, models, apiKeys } = job.data;
 
       await job.updateProgress(10);
+
+      const existing = await this.prisma.debateSession.findUnique({
+        where: { id: debateId },
+        select: { status: true },
+      });
+
+      if (
+        existing &&
+        (existing.status === "completed" || existing.status === "processing")
+      ) {
+        this.logger.warn(
+          `[${this.workerId}] Debate ${debateId} already ${existing.status}, skipping`,
+        );
+        await job.updateProgress(100);
+        return {
+          success: true,
+          debateId,
+          skipped: true,
+          reason: `already ${existing.status}`,
+          workerId: this.workerId,
+          durationMs: Date.now() - startTime,
+        };
+      }
+
       await this.debatesService.updateStatus(debateId, "processing");
 
       await job.updateProgress(30);
@@ -41,6 +66,10 @@ export class DebateQueueProcessor extends WorkerHost {
       });
 
       await job.updateProgress(60);
+
+      await this.debatesService.updateStatus(debateId, "completed");
+
+      await job.updateProgress(80);
 
       await job.updateProgress(100);
 

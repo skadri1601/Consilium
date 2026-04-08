@@ -1,5 +1,5 @@
 import os
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Optional, Tuple
 from .base_agent import BaseAgent
 
 try:
@@ -24,14 +24,12 @@ class GoogleAgent(BaseAgent):
         self.model_id = model_id
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
 
-    async def generate_response(self, query: str) -> Tuple[str, int]:
-        """Generate a response using Google's Gemini API."""
+    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         try:
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
 
-            # Combine system prompt with query
-            full_prompt = f"{self.get_system_prompt()}\n\nUser Query: {query}"
+            full_prompt = f"{system_prompt or self.get_system_prompt()}\n\nUser Query: {query}"
 
             response = await model.generate_content_async(full_prompt)
 
@@ -46,13 +44,12 @@ class GoogleAgent(BaseAgent):
         except (google_exceptions.InvalidArgument, google_exceptions.PermissionDenied) as e:
             return f"[Gemini Auth Error: {str(e)}]", 0
 
-    async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
-        """Stream a response using Google's Gemini API."""
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
         try:
             genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(self.model_id)
 
-            full_prompt = f"{self.get_system_prompt()}\n\nUser Query: {query}"
+            full_prompt = f"{system_prompt or self.get_system_prompt()}\n\nUser Query: {query}"
 
             response = await model.generate_content_async(
                 full_prompt,

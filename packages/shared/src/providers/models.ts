@@ -25,14 +25,17 @@ export const MODELS: ModelDefinition[] = [
   { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", provider: "groq", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", provider: "groq", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
   { id: "grok-2", name: "Grok 2", provider: "xai", free: false, pricing: { inputPerMillion: 2, outputPerMillion: 10 } },
+  { id: "grok-2-mini", name: "Grok 2 Mini", provider: "xai", free: false, pricing: { inputPerMillion: 0.3, outputPerMillion: 1 } },
+  { id: "llama-4-scout-17b-16e-instruct", name: "Llama 4 Scout 17B", provider: "groq", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
 ];
 
 export const MODEL_BY_ID: Record<string, ModelDefinition> = Object.fromEntries(
   MODELS.map((m) => [m.id, m])
 );
 
-export const MODEL_PRICING: Record<string, { inputPerMillion: number; outputPerMillion: number }> = Object.fromEntries(
-  MODELS.map((m) => [m.id, m.pricing])
-);
+export const MODEL_PRICING: Record<string, { inputPerMillion: number; outputPerMillion: number }> = {
+  ...Object.fromEntries(MODELS.map((m) => [m.id, m.pricing])),
+  default: { inputPerMillion: 1.0, outputPerMillion: 3.0 },
+};
 
 export const FREE_MODEL_IDS: string[] = MODELS.filter((m) => m.free).map((m) => m.id);

@@ -1,5 +1,5 @@
 import os
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Optional, Tuple
 from .base_agent import BaseAgent
 
 
@@ -15,8 +15,7 @@ class AnthropicAgent(BaseAgent):
         self.model_id = model_id
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
 
-    async def generate_response(self, query: str) -> Tuple[str, int]:
-        """Generate a response using Anthropic's API."""
+    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         try:
             import anthropic
 
@@ -25,7 +24,7 @@ class AnthropicAgent(BaseAgent):
             response = await client.messages.create(
                 model=self.model_id,
                 max_tokens=2000,
-                system=self.get_system_prompt(),
+                system=system_prompt or self.get_system_prompt(),
                 messages=[
                     {"role": "user", "content": query}
                 ]
@@ -44,8 +43,7 @@ class AnthropicAgent(BaseAgent):
         except Exception as e:
             return f"[Claude Error: {str(e)}]", 0
 
-    async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
-        """Stream a response using Anthropic's API."""
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
         try:
             import anthropic
 
@@ -54,7 +52,7 @@ class AnthropicAgent(BaseAgent):
             async with client.messages.stream(
                 model=self.model_id,
                 max_tokens=2000,
-                system=self.get_system_prompt(),
+                system=system_prompt or self.get_system_prompt(),
                 messages=[
                     {"role": "user", "content": query}
                 ]

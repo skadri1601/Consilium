@@ -11,11 +11,10 @@ from .judge_prompts import (
     SYNTHESIS_PROMPT_WEB,
     SYNTHESIS_PROMPT_CLI,
     EMERGENCY_SYNTHESIS_PROMPT,
-    STYLE_NORMALIZER_PROMPT,
 )
 from .agent_factory import AgentFactory
 from .anonymizer import Anonymizer, AnonymityMap
-from .shared import FALLBACK_RESPONSE, _sse, RETRY_BACKOFF, REDIS_TTL
+from .shared import FALLBACK_RESPONSE, _sse, REDIS_TTL
 from ..shared.database.redis import get_redis
 from ..shared.config.models import get_provider_for_model
 
@@ -214,7 +213,11 @@ async def cross_reference_claims(
         label_a=label_a,
         label_b=label_b,
     )
-    result = await _call_model(cheap_model, api_keys, prompt)
+    try:
+        result = await _call_model(cheap_model, api_keys, prompt)
+    except Exception as e:
+        logger.warning("Cross-reference failed after retries: %s", e)
+        return {"agreements": [], "contradictions": [], "unique_claims": []}
     parsed = _parse_json_response(result)
     if not parsed:
         return {"agreements": [], "contradictions": [], "unique_claims": []}
@@ -614,17 +617,7 @@ async def _run_emergency_synthesis(
         improvement_score=0.0,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
     yield _sse("judge:complete", {
         "debate_id": debate_id,
@@ -648,17 +641,7 @@ async def _run_best_individual(
         improvement_score=0.0,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
     yield _sse("judge:complete", {
         "debate_id": debate_id,
@@ -699,6 +682,8 @@ async def run_judge_with_fallback(
     for strategy, attempt_num in attempts:
         try:
             if strategy == "full_pipeline":
+                if attempt_num > 0:
+                    await asyncio.sleep(_RETRY_DELAY_BETWEEN_STRATEGIES)
                 yield _sse("judge:attempt", {
                     "debate_id": debate_id,
                     "strategy": strategy,

@@ -10,7 +10,7 @@ export type {
   ConsensusEvent,
   CostUpdateEvent,
   DoneEvent,
-  ErrorEvent,
+  DebateErrorEvent,
   DebateCancelledEvent,
   DebateSseEvent,
   SseEventType,

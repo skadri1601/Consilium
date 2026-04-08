@@ -1,14 +1,17 @@
 """FastAPI application for Consilium AI Agents."""
 
+import logging
 import platform
 import socket
 import sys
+import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.features.council import council_router
 from src.features.agents import agents_router
@@ -17,6 +20,9 @@ from src.features.health import health_router
 from src.features.debates import debates_router
 
 from src.shared.config import settings
+from src.shared.database.redis import redis_client
+
+logger = logging.getLogger(__name__)
 
 API_V1_PREFIX = "/api/v1"
 
@@ -41,9 +47,9 @@ if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
         dsn=settings.sentry_dsn,
         traces_sample_rate=1.0,
         environment=settings.app_env,
-        send_default_pii=True,
+        send_default_pii=False,
         attach_stacktrace=True,
-        include_local_variables=True,
+        include_local_variables=False,
         max_breadcrumbs=50,
         server_name=socket.gethostname(),
     )
@@ -57,14 +63,24 @@ if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
     })
 
 
+class RequestTimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        start = time.perf_counter()
+        response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        response.headers["X-Process-Time-Ms"] = f"{elapsed_ms:.1f}"
+        logger.debug("%s %s completed in %.1fms", request.method, request.url.path, elapsed_ms)
+        return response
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
-    """Application lifespan handler."""
-    # Startup
-    print(f"Starting {settings.app_name} on {settings.host}:{settings.port}")
+    logger.info("Starting %s on %s:%s", settings.app_name, settings.host, settings.port)
+    redis_client.connect()
     yield
-    # Shutdown
-    print(f"Shutting down {settings.app_name}")
+    logger.info("Shutting down %s", settings.app_name)
+    if redis_client._client is not None:
+        redis_client._client = None
 
 
 app = FastAPI(
@@ -83,7 +99,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include feature routers
+app.add_middleware(RequestTimingMiddleware)
+
 app.include_router(health_router)
 app.include_router(council_router, prefix=API_V1_PREFIX)
 app.include_router(agents_router, prefix=API_V1_PREFIX)

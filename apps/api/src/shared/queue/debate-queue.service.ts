@@ -55,8 +55,19 @@ export class DebateQueueService {
 
   async removeJob(jobId: string) {
     const job = await this.debateQueue.getJob(jobId);
-    if (job) {
+    if (!job) return;
+
+    try {
       await job.remove();
+    } catch {
+      const state = await job.getState().catch(() => "unknown");
+      if (state === "active" || state === "unknown") {
+        await job.moveToFailed(
+          new Error("Removed while active"),
+          "0",
+          false,
+        );
+      }
     }
   }
 }
