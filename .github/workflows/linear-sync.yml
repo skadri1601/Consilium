@@ -17,9 +17,6 @@ jobs:
   pr-lifecycle:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
     steps:
       - name: Extract ticket ID
         id: ticket
@@ -127,9 +124,6 @@ jobs:
   pr-review:
     if: github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
     steps:
       - name: Extract ticket ID
         id: ticket
@@ -208,9 +202,6 @@ jobs:
       github.event_name == 'check_suite' &&
       (github.event.check_suite.conclusion == 'failure' || github.event.check_suite.conclusion == 'timed_out')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: read
     steps:
       - name: Notify Slack
         env:
@@ -231,10 +222,6 @@ jobs:
       github.event.issue.pull_request &&
       github.event.comment.user.login == 'claude[bot]'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
     steps:
       - name: Extract ticket ID
         id: ticket
