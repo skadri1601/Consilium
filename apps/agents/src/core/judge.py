@@ -555,17 +555,7 @@ async def _run_full_pipeline(
         disputes_resolved=disputes_resolved,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
     yield _sse("judge:complete", {
         "debate_id": debate_id,
