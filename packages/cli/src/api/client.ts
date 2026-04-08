@@ -76,8 +76,7 @@ export class ConsiliumClient {
   }
 
   private getApiKey(): string | undefined {
-    const config = loadConfig();
-    return config.apiKey ?? this.apiKey;
+    return this.apiKey;
   }
 
   async createDebate(options: DebateOptions): Promise<{ id: string }> {
@@ -96,7 +95,7 @@ export class ConsiliumClient {
     try {
       const body: Record<string, any> = {
         topic: options.topic,
-        models: options.models || ['gpt-4o-mini', 'claude-haiku', 'gemini-flash'],
+        models: options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
       };
       if (options.mode) body.mode = options.mode;
       if (options.conversationId) body.conversationId = options.conversationId;
@@ -164,22 +163,24 @@ export class ConsiliumClient {
       let eventCount = 0;
       let connectionEstablished = false;
 
-      const handleEvent = (eventType: string) => (event: any) => {
+      eventSource.onmessage = (event: any) => {
         try {
           if (!connectionEstablished) {
             this.log('SSE connection established');
             connectionEstablished = true;
           }
 
+          const data = JSON.parse(event.data);
+          const eventType = data.event ?? 'message';
           eventCount++;
           this.log(`Received event #${eventCount}: ${eventType}`);
 
-          const data = JSON.parse(event.data);
           const debateEvent: DebateEvent = {
-            type: eventType as any,
-            agent: data.agent,
-            text: data.chunk || data.consensus || data.response,
+            type: eventType as DebateEvent['type'],
+            agent: data.agent ?? data.agent_id,
+            text: data.chunk ?? data.consensus ?? data.golden_prompt ?? data.goldenPrompt ?? data.response ?? data.content,
             error: data.error,
+            debateId: data.debate_id ?? data.debateId,
           };
 
           onEvent(debateEvent);
@@ -195,18 +196,16 @@ export class ConsiliumClient {
             eventSource.close();
             reject(new Error(data.error || 'Server error'));
           }
+
+          if (eventType === 'debate:cancelled') {
+            this.log('Debate cancelled');
+            eventSource.close();
+            resolve();
+          }
         } catch (error: any) {
           this.logError('Failed to parse event data', error);
         }
       };
-
-      eventSource.addEventListener('debate_start', handleEvent('debate_start'));
-      eventSource.addEventListener('agent_start', handleEvent('agent_start'));
-      eventSource.addEventListener('agent_chunk', handleEvent('agent_chunk'));
-      eventSource.addEventListener('agent_complete', handleEvent('agent_complete'));
-      eventSource.addEventListener('consensus', handleEvent('consensus'));
-      eventSource.addEventListener('done', handleEvent('done'));
-      eventSource.addEventListener('error', handleEvent('error'));
 
       eventSource.onerror = (error: any) => {
         this.logError('SSE connection error', error);
@@ -226,8 +225,6 @@ export class ConsiliumClient {
         reject(new Error('Stream connection failed'));
       };
 
-      eventSource.addEventListener('debate:cancelled', handleEvent('debate:cancelled'));
-
       setTimeout(() => {
         this.log('Stream timeout - closing connection');
         eventSource.close();
@@ -241,8 +238,8 @@ export class ConsiliumClient {
     const apiKey = this.getApiKey();
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
-    const response = await fetch(`${this.apiUrl}/api/v1/debates/${debateId}`, {
-      method: 'DELETE',
+    const response = await fetch(`${this.apiUrl}/api/v1/debates/${debateId}/cancel`, {
+      method: 'POST',
       headers,
       signal: AbortSignal.timeout(5000),
     });

@@ -253,7 +253,7 @@ export class DebatesService {
   async findConversationDebates(
     conversationId: string,
     clerkId: string,
-  ): Promise<any[]> {
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -282,7 +282,7 @@ export class DebatesService {
     id: string,
     clerkId: string,
     newTopic: string,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -309,7 +309,7 @@ export class DebatesService {
     id: string,
     clerkId: string,
     archived: boolean,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -336,7 +336,7 @@ export class DebatesService {
     id: string,
     status: DebateStatus,
     goldenPrompt?: string,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     return this.prisma.debateSession.update({
       where: { id },
       data: {
@@ -405,7 +405,7 @@ export class DebatesService {
     return { id, deleted: true };
   }
 
-  async retryDebate(id: string, clerkId: string): Promise<any> {
+  async retryDebate(id: string, clerkId: string): Promise<DebateSession | null> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -455,7 +455,7 @@ export class DebatesService {
     });
   }
 
-  async updateTotalCost(sessionId: string, cost: number): Promise<any> {
+  async updateTotalCost(sessionId: string, cost: number): Promise<DebateSession> {
     return this.prisma.debateSession.update({
       where: { id: sessionId },
       data: { totalCost: { increment: cost } },

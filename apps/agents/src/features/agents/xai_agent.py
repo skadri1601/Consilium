@@ -1,5 +1,5 @@
 import os
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Optional, Tuple
 from .base_agent import BaseAgent
 
 
@@ -16,20 +16,18 @@ class XAIAgent(BaseAgent):
         self.api_key = api_key or os.getenv("XAI_API_KEY")
         self.base_url = "https://api.x.ai/v1"
 
-    async def generate_response(self, query: str) -> Tuple[str, int]:
-        """Generate a response using X.AI's OpenAI-compatible API."""
+    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         try:
             import openai
             import httpx
 
-            # Create custom HTTP client to avoid proxy detection issues in older SDK versions
             async with httpx.AsyncClient() as http_client:
                 client = openai.AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, http_client=http_client)
 
                 response = await client.chat.completions.create(
                     model=self.model_id,
                     messages=[
-                        {"role": "system", "content": self.get_system_prompt()},
+                        {"role": "system", "content": system_prompt or self.get_system_prompt()},
                         {"role": "user", "content": query}
                     ],
                     temperature=0.7,
@@ -48,24 +46,19 @@ class XAIAgent(BaseAgent):
         except Exception as e:
             return f"[X.AI Error: {str(e)}]", 0
 
-    async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
-        """Stream a response using X.AI's OpenAI-compatible API."""
-        # Note: `async with httpx.AsyncClient()` cannot wrap a `yield`, so we manage
-        # the client lifecycle manually here using http_client=None + finally: aclose().
-        # This is intentionally different from generate_response/health_check.
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
         http_client = None
         try:
             import openai
             import httpx
 
-            # Create custom HTTP client to avoid proxy detection issues in older SDK versions
             http_client = httpx.AsyncClient()
             client = openai.AsyncOpenAI(api_key=self.api_key, base_url=self.base_url, http_client=http_client)
 
             stream = await client.chat.completions.create(
                 model=self.model_id,
                 messages=[
-                    {"role": "system", "content": self.get_system_prompt()},
+                    {"role": "system", "content": system_prompt or self.get_system_prompt()},
                     {"role": "user", "content": query}
                 ],
                 temperature=0.7,

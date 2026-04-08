@@ -41,7 +41,7 @@ export async function debateCommand(
     console.log(st.warning(`Invalid output format "${options.output}". Using terminal output. Valid: markdown, cursorrules, claude-md, json`));
   }
 
-  const models = options.models || ['gpt-4o-mini', 'claude-haiku', 'gemini-flash'];
+  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
 
@@ -96,6 +96,14 @@ export async function debateCommand(
   let goldenPrompt = '';
   const handleEvent = createStreamHandlers({ topic });
 
+  const sigintHandler = async () => {
+    try {
+      await client.cancelDebate(debate.id);
+    } catch {}
+    process.exit(0);
+  };
+  process.on('SIGINT', sigintHandler);
+
   try {
     await client.streamDebate(debate.id, (event: DebateEvent) => {
       if (event.type === 'debate_start') {
@@ -118,6 +126,8 @@ export async function debateCommand(
       console.log(st.dim('consilium config set apiKey "your-key"\n'));
     }
     process.exit(1);
+  } finally {
+    process.removeListener('SIGINT', sigintHandler);
   }
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });

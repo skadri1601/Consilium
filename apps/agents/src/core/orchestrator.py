@@ -110,50 +110,44 @@ async def _call_agent(
 ) -> tuple[str, float]:
     provider = get_provider_for_model(model_id)
 
-    if provider and not circuit_breaker.is_available(provider):
+    if provider and not await circuit_breaker.is_available(provider):
         logger.warning("Circuit breaker OPEN for provider %s, skipping %s", provider, model_id)
         return FALLBACK_RESPONSE, 0.0
 
-    original_get_system_prompt = agent.get_system_prompt
-    agent.get_system_prompt = lambda: system_prompt
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            raw_response, tokens_used = await asyncio.wait_for(
+                agent.generate_response(user_prompt, system_prompt=system_prompt),
+                timeout=60,
+            )
+            validated = _validate_response(raw_response)
 
-    try:
-        for attempt in range(MAX_RETRIES + 1):
-            try:
-                raw_response, tokens_used = await asyncio.wait_for(
-                    agent.generate_response(user_prompt),
-                    timeout=60,
-                )
-                validated = _validate_response(raw_response)
-
-                if validated != FALLBACK_RESPONSE:
-                    input_tokens = max(tokens_used // 3, len(user_prompt.split()) * 2)
-                    output_tokens = max(tokens_used - input_tokens, len(validated.split()) * 2)
-                    cost = cost_tracker.record(model_id, input_tokens, output_tokens)
-                    if provider:
-                        circuit_breaker.record_success(provider)
-                    return validated, cost
-
-                logger.warning("Agent %s attempt %d returned insufficient response", model_id, attempt + 1)
-            except asyncio.TimeoutError:
-                logger.warning("Agent %s attempt %d timed out", model_id, attempt + 1)
+            if validated != FALLBACK_RESPONSE:
+                input_tokens = max(tokens_used // 3, len(user_prompt.split()) * 2)
+                output_tokens = max(tokens_used - input_tokens, len(validated.split()) * 2)
+                cost = cost_tracker.record(model_id, input_tokens, output_tokens)
                 if provider:
-                    circuit_breaker.record_failure(provider)
-            except ConnectionError as exc:
-                logger.warning("Agent %s attempt %d connection error: %s", model_id, attempt + 1, exc)
-                if provider:
-                    circuit_breaker.record_failure(provider)
-            except (OSError, RuntimeError) as exc:
-                logger.warning("Agent %s attempt %d failed: %s", model_id, attempt + 1, exc)
-                if provider:
-                    circuit_breaker.record_failure(provider)
+                    await circuit_breaker.record_success(provider)
+                return validated, cost
 
-            if attempt < MAX_RETRIES:
-                await asyncio.sleep(RETRY_BACKOFF[attempt])
+            logger.warning("Agent %s attempt %d returned insufficient response", model_id, attempt + 1)
+        except asyncio.TimeoutError:
+            logger.warning("Agent %s attempt %d timed out", model_id, attempt + 1)
+            if provider:
+                await circuit_breaker.record_failure(provider)
+        except ConnectionError as exc:
+            logger.warning("Agent %s attempt %d connection error: %s", model_id, attempt + 1, exc)
+            if provider:
+                await circuit_breaker.record_failure(provider)
+        except (OSError, RuntimeError) as exc:
+            logger.warning("Agent %s attempt %d failed: %s", model_id, attempt + 1, exc)
+            if provider:
+                await circuit_breaker.record_failure(provider)
 
-        return FALLBACK_RESPONSE, 0.0
-    finally:
-        agent.get_system_prompt = original_get_system_prompt
+        if attempt < MAX_RETRIES:
+            await asyncio.sleep(RETRY_BACKOFF[attempt])
+
+    return FALLBACK_RESPONSE, 0.0
 
 
 class DebateOrchestrator:

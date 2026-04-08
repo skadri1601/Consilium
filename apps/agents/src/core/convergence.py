@@ -1,11 +1,12 @@
+import asyncio
 import logging
 import math
 import os
 from dataclasses import dataclass, field
 
-logger = logging.getLogger(__name__)
+from .shared import FALLBACK_RESPONSE
 
-FALLBACK_RESPONSE = "[No response from this agent]"
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -47,9 +48,12 @@ def resolve_openai_key(api_keys: dict[str, str | None]) -> str | None:
 async def compute_embeddings(texts: list[str], api_key: str) -> list[list[float]]:
     from openai import AsyncOpenAI
     client = AsyncOpenAI(api_key=api_key)
-    response = await client.embeddings.create(
-        model="text-embedding-3-small",
-        input=texts,
+    response = await asyncio.wait_for(
+        client.embeddings.create(
+            model="text-embedding-3-small",
+            input=texts,
+        ),
+        timeout=30,
     )
     return [item.embedding for item in response.data]
 

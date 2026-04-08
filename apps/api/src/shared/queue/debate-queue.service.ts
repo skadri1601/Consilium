@@ -12,6 +12,7 @@ export interface DebateJobData {
     anthropicKey?: string;
     googleKey?: string;
     groqKey?: string;
+    xaiKey?: string;
   };
 }
 

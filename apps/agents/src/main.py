@@ -1,5 +1,3 @@
-"""FastAPI application for Consilium AI Agents."""
-
 import logging
 import platform
 import socket
@@ -90,7 +88,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

@@ -436,6 +436,70 @@ def _compute_improvement_score(
     return round(improvement, 4)
 
 
+async def run_judge_pipeline(
+    question: str,
+    responses: list[dict[str, str]],
+    api_keys: dict[str, str | None],
+) -> tuple[str, dict[str, dict[str, float]]] | None:
+    debate_models = [r["model_id"] for r in responses]
+    try:
+        cheap_model = _pick_available_model(CHEAP_MODELS, api_keys, exclude_models=debate_models)
+        if cheap_model is None:
+            cheap_model = _pick_available_model(CHEAP_MODELS, api_keys)
+        if cheap_model is None:
+            return None
+
+        strong_model = _pick_available_model(STRONG_MODELS, api_keys, exclude_models=debate_models)
+        if strong_model is None:
+            strong_model = _pick_available_model(STRONG_MODELS, api_keys)
+        if strong_model is None:
+            strong_model = cheap_model
+
+        anonymized, label_to_model, _ = _anonymize_responses(responses)
+
+        claims_by_label = await extract_claims(question, anonymized, cheap_model, api_keys)
+        if not claims_by_label:
+            return None
+
+        cross_ref = await cross_reference_claims(claims_by_label, cheap_model, api_keys)
+
+        disputes_resolved = await resolve_disputes(
+            question,
+            cross_ref.get("contradictions", []),
+            claims_by_label,
+            cheap_model,
+            api_keys,
+        )
+
+        model_scores = score_claims(claims_by_label, cross_ref, disputes_resolved)
+
+        golden_chunks: list[str] = []
+        async for chunk in synthesize_golden_prompt(
+            question,
+            claims_by_label,
+            cross_ref,
+            disputes_resolved,
+            model_scores,
+            label_to_model,
+            strong_model,
+            api_keys,
+        ):
+            golden_chunks.append(chunk)
+
+        raw_golden = "".join(golden_chunks)
+        consensus_text = _de_anonymize(raw_golden, label_to_model)
+
+        scores_dict: dict[str, dict[str, float]] = {}
+        for label, score_data in model_scores.items():
+            real_model = label_to_model.get(label, label)
+            scores_dict[real_model] = score_data
+
+        return consensus_text, scores_dict
+    except Exception:
+        logger.exception("run_judge_pipeline failed")
+        return None
+
+
 async def _persist_judge_result(debate_id: str, result: JudgeResult) -> None:
     redis = get_redis()
     await redis.set(

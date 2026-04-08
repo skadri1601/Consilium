@@ -25,7 +25,7 @@ import {
   CurrentUser,
   CurrentUserData,
 } from "../auth/decorators/current-user.decorator";
-import { Observable } from "rxjs";
+import { Observable, interval } from "rxjs";
 import { SseProxyService } from "./sse-proxy.service";
 
 @ApiTags("debates")
@@ -188,18 +188,54 @@ export class DebatesController {
     @CurrentUser() user: CurrentUserData,
     @Param("id") id: string,
   ): Observable<{ data: string }> {
+    const KEEPALIVE_MS = 15_000;
+    const TIMEOUT_MS = 10 * 60 * 1000;
+
     return new Observable((subscriber) => {
+      let done = false;
+
+      const keepalive = interval(KEEPALIVE_MS).subscribe(() => {
+        if (!done) {
+          subscriber.next({ data: JSON.stringify({ event: "keepalive" }) });
+        }
+      });
+
+      const timeout = setTimeout(() => {
+        if (!done) {
+          done = true;
+          subscriber.next({
+            data: JSON.stringify({ event: "timeout", message: "Stream timed out" }),
+          });
+          subscriber.complete();
+        }
+      }, TIMEOUT_MS);
+
+      const cleanup = () => {
+        done = true;
+        keepalive.unsubscribe();
+        clearTimeout(timeout);
+      };
+
       this.debatesService
         .findOne(id, user.userId)
         .then(() => {
           const proxyStream = this.sseProxy.proxyStream(id);
           proxyStream.subscribe({
-            next: (event) => subscriber.next(event),
-            error: (error) => subscriber.error(error),
-            complete: () => subscriber.complete(),
+            next: (event) => {
+              if (!done) subscriber.next(event);
+            },
+            error: (error) => {
+              cleanup();
+              subscriber.error(error);
+            },
+            complete: () => {
+              cleanup();
+              subscriber.complete();
+            },
           });
         })
         .catch((error) => {
+          cleanup();
           subscriber.next({
             data: JSON.stringify({
               event: "error",
@@ -208,6 +244,8 @@ export class DebatesController {
           });
           subscriber.complete();
         });
+
+      return cleanup;
     });
   }
 }
