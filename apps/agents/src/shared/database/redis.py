@@ -62,8 +62,23 @@ class RedisClient:
             return True
         return False
 
+    def _sync_rpush(self, key: str, *values: str) -> int:
+        if self.client:
+            return self.client.rpush(key, *values)
+        return 0
+
+    def _sync_lrange(self, key: str, start: int, stop: int) -> list[str]:
+        if self.client:
+            result = self.client.lrange(key, start, stop)
+            return [str(item) for item in result] if result else []
+        return []
+
+    def _sync_expire(self, key: str, seconds: int) -> bool:
+        if self.client:
+            return bool(self.client.expire(key, seconds))
+        return False
+
     def _sync_delete(self, key: str) -> bool:
-        """Synchronous delete operation."""
         if self.client:
             return bool(self.client.delete(key))
         return False
@@ -93,12 +108,19 @@ class RedisClient:
             None, partial(self._sync_set, key, value, ex)
         )
 
-    async def delete(self, key: str) -> bool:
-        """Delete a key from Redis asynchronously.
+    async def rpush(self, key: str, *values: str) -> int:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_rpush, key, *values))
 
-        Wraps the synchronous Upstash Redis call in a thread executor
-        to avoid blocking the event loop.
-        """
+    async def lrange(self, key: str, start: int, stop: int) -> list[str]:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_lrange, key, start, stop))
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_expire, key, seconds))
+
+    async def delete(self, key: str) -> bool:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, partial(self._sync_delete, key))
 

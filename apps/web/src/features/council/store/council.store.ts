@@ -32,7 +32,7 @@ interface CouncilState {
 export const useCouncilStore = create<CouncilState>((set, get) => ({
   messages: [],
   selectedAgents: [],
-  mode: "visible",
+  mode: "council",
   isLoading: false,
   _defaultsLoaded: false,
 
@@ -65,9 +65,10 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
 
   loadDefaults: (prefs) => {
     if (get()._defaultsLoaded) return;
+    const mode = prefs.defaultMode === ("visible" as string) ? "council" : prefs.defaultMode;
     set({
       selectedAgents: sanitizeAgentIds(prefs.defaultAgents),
-      mode: prefs.defaultMode,
+      mode: mode as CouncilMode,
       _defaultsLoaded: true,
     });
   },

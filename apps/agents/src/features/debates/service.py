@@ -1,9 +1,13 @@
 import json
+import traceback
 import uuid
 from typing import Optional, AsyncGenerator
+
+import sentry_sdk
+
 from .schema import DebateStartRequest, DebateStartResponse
 from ...shared.database.redis import get_redis
-from ...core.orchestrator import DebateOrchestrator
+from ...core.orchestrator import DebateOrchestrator, _set_runtime_context
 
 _LOCAL_STORAGE: dict[str, dict] = {}
 
@@ -19,6 +23,8 @@ class DebatesService:
     ) -> DebateStartResponse:
         debate_id = request.debate_id or str(uuid.uuid4())
 
+        sub_agents = request.sub_agents or request.mode == "deep"
+
         debate_data = {
             "debate_id": debate_id,
             "topic": request.topic,
@@ -27,6 +33,7 @@ class DebatesService:
             "system_prompt": request.system_prompt,
             "mode": request.mode,
             "round_count": request.round_count,
+            "sub_agents": sub_agents,
             "debate_source": request.debate_source,
             "status": "pending",
         }
@@ -68,7 +75,22 @@ class DebatesService:
         system_prompt = debate_data.get("system_prompt")
         mode = debate_data.get("mode", "debate")
 
+        sub_agents = debate_data.get("sub_agents", False)
         effective_rounds = 1 if mode == "single" else round_count
+
+        scope = None
+        try:
+            scope = sentry_sdk.push_scope()
+            scope.__enter__()
+            scope.set_tag("debate_id", debate_id)
+            scope.set_tag("mode", debate_data.get("mode", "council"))
+            scope.set_context("debate", {
+                "topic": debate_data.get("topic", "")[:200],
+                "models": debate_data.get("models", []),
+                "round_count": debate_data.get("round_count", 3),
+            })
+        except Exception:
+            scope = None
 
         try:
             async for event in orchestrator.run_debate(
@@ -78,7 +100,24 @@ class DebatesService:
                 api_keys=api_keys_raw,
                 round_count=effective_rounds,
                 system_prompt=system_prompt,
+                sub_agents=sub_agents,
             ):
                 yield event
         except Exception as exc:
+            try:
+                _set_runtime_context()
+                sentry_sdk.set_context("error_detail", {
+                    "type": type(exc).__name__,
+                    "message": str(exc),
+                    "traceback": traceback.format_exc(),
+                })
+                sentry_sdk.capture_exception(exc)
+            except Exception:
+                pass
             yield f"data: {json.dumps({'event': 'error', 'error': str(exc)})}\n\n"
+        finally:
+            if scope:
+                try:
+                    scope.__exit__(None, None, None)
+                except Exception:
+                    pass

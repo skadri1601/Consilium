@@ -35,6 +35,10 @@ class DebateStartRequest(BaseModel):
         le=5,
         description="Number of debate rounds (1-5)",
     )
+    sub_agents: bool = Field(
+        default=False,
+        description="Enable sub-agent research phase before Round 1",
+    )
     debate_source: str = Field(
         default="web",
         description="Source of the debate request: 'web', 'api', 'cli'",

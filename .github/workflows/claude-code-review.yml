@@ -13,6 +13,7 @@ jobs:
       issues: write
       id-token: write
     env:
+      ANTHROPIC_MODEL: claude-sonnet-4-20250514
       ANTHROPIC_DEFAULT_SONNET_MODEL: claude-sonnet-4-20250514
       ANTHROPIC_DEFAULT_HAIKU_MODEL: claude-haiku-4-5-20251001
 

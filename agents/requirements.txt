@@ -11,3 +11,4 @@ stripe
 resend
 sentry-sdk
 anthropic
+redis>=5.0.0

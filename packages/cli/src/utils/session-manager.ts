@@ -1,13 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import chalk from 'chalk';
-import { ChatSession, ChatSessionData } from '../commands/chat-session';
-import { ConsiliumClient } from '../api/client';
-import { ContextManager } from './context-manager';
-import { generateId } from './id';
+import fs from "fs";
+import path from "path";
+import os from "os";
+import chalk from "chalk";
+import { ChatSession, ChatSessionData } from "../commands/chat-session";
+import { ConsiliumClient } from "../api/client";
+import { ContextManager } from "./context-manager";
+import { generateId } from "./id";
 
-const SESSION_DIR = path.join(os.homedir(), '.consilium', 'sessions');
+const SESSION_DIR = path.join(os.homedir(), ".consilium", "sessions");
 
 export interface SessionMetadata {
   id: string;
@@ -25,7 +25,7 @@ export interface SearchResult {
   sessionName: string;
   debateTopic: string;
   matchSnippet: string;
-  matchType: 'topic' | 'synthesis';
+  matchType: "topic" | "synthesis";
 }
 
 export class SessionManager {
@@ -49,7 +49,7 @@ export class SessionManager {
     const filePath = this.getSessionPath(sessionId);
     if (!fs.existsSync(filePath)) return null;
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = fs.readFileSync(filePath, "utf-8");
       return JSON.parse(content) as ChatSessionData;
     } catch {
       return null;
@@ -59,12 +59,12 @@ export class SessionManager {
   saveSession(session: ChatSession): string {
     this.ensureSessionDir();
     const data = session.toJSON();
-    const sessionId = data.id || generateId('session');
+    const sessionId = data.id || generateId("session");
     data.id = sessionId;
     session.id = sessionId;
 
     const filePath = this.getSessionPath(sessionId);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
     return sessionId;
   }
 
@@ -73,31 +73,38 @@ export class SessionManager {
       return [];
     }
 
-    const files = fs.readdirSync(this.sessionDir).filter((f) => f.endsWith('.json'));
+    const files = fs
+      .readdirSync(this.sessionDir)
+      .filter((f) => f.endsWith(".json"));
     const result: SessionMetadata[] = [];
 
     for (const file of files) {
       try {
         const filePath = path.join(this.sessionDir, file);
-        const content = fs.readFileSync(filePath, 'utf-8');
+        const content = fs.readFileSync(filePath, "utf-8");
         const data: ChatSessionData = JSON.parse(content);
         const debateCount = data.debates?.length ?? 0;
-        const firstTopic = data.debates?.[0]?.topic || 'Untitled';
-        const topic = firstTopic.length > 40 ? firstTopic.substring(0, 40) + '...' : firstTopic;
+        const firstTopic = data.debates?.[0]?.topic ?? "Untitled";
+        const topic =
+          firstTopic.length > 40
+            ? firstTopic.substring(0, 40) + "..."
+            : firstTopic;
         const name = data.name || topic;
-        const lastDebate = debateCount > 0 ? data.debates[debateCount - 1] : null;
-        const lastSynthesis = lastDebate?.goldenPrompt || '';
-        const preview = lastSynthesis.length > 80
-          ? lastSynthesis.substring(0, 80) + '...'
-          : lastSynthesis || '(no synthesis)';
+        const lastDebate =
+          debateCount > 0 ? data.debates[debateCount - 1] : null;
+        const lastSynthesis = lastDebate?.goldenPrompt || "";
+        const preview =
+          lastSynthesis.length > 80
+            ? lastSynthesis.substring(0, 80) + "..."
+            : lastSynthesis || "(no synthesis)";
 
         result.push({
-          id: data.id || path.basename(file, '.json'),
+          id: data.id || path.basename(file, ".json"),
           name,
           topic,
           debateCount,
-          date: data.createdAt || '',
-          updatedAt: data.updatedAt || data.createdAt || '',
+          date: data.createdAt || "",
+          updatedAt: data.updatedAt || data.createdAt || "",
           modelCount: data.models?.length ?? 0,
           preview,
         });
@@ -117,7 +124,7 @@ export class SessionManager {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const data: ChatSessionData = JSON.parse(content);
 
     const client = new ConsiliumClient();
@@ -131,7 +138,7 @@ export class SessionManager {
         } catch (error: any) {
           console.warn(
             chalk.yellow(`Could not reload file: ${ctxFilePath}`),
-            error?.message || ''
+            error?.message || "",
           );
         }
       }
@@ -146,7 +153,7 @@ export class SessionManager {
     data.name = newName;
     data.updatedAt = new Date().toISOString();
     const filePath = this.getSessionPath(sessionId);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
     return true;
   }
 
@@ -160,51 +167,58 @@ export class SessionManager {
   searchSessions(query: string): SearchResult[] {
     if (!fs.existsSync(this.sessionDir)) return [];
 
-    const files = fs.readdirSync(this.sessionDir).filter((f) => f.endsWith('.json'));
+    const files = fs
+      .readdirSync(this.sessionDir)
+      .filter((f) => f.endsWith(".json"));
     const results: SearchResult[] = [];
     const lowerQuery = query.toLowerCase();
 
     for (const file of files) {
       try {
         const filePath = path.join(this.sessionDir, file);
-        const content = fs.readFileSync(filePath, 'utf-8');
+        const content = fs.readFileSync(filePath, "utf-8");
         const data: ChatSessionData = JSON.parse(content);
-        const sessionId = data.id || path.basename(file, '.json');
-        const sessionName = data.name || data.debates?.[0]?.topic || 'Untitled';
+        const sessionId = data.id || path.basename(file, ".json");
+        const sessionName = data.name || data.debates?.[0]?.topic || "Untitled";
 
-        for (const debate of (data.debates || [])) {
+        for (const debate of data.debates || []) {
           if (debate.topic.toLowerCase().includes(lowerQuery)) {
             const idx = debate.topic.toLowerCase().indexOf(lowerQuery);
             const start = Math.max(0, idx - 20);
             const end = Math.min(debate.topic.length, idx + query.length + 20);
-            const snippet = (start > 0 ? '...' : '') +
+            const snippet =
+              (start > 0 ? "..." : "") +
               debate.topic.substring(start, end) +
-              (end < debate.topic.length ? '...' : '');
+              (end < debate.topic.length ? "..." : "");
 
             results.push({
               sessionId,
               sessionName,
               debateTopic: debate.topic,
               matchSnippet: snippet,
-              matchType: 'topic',
+              matchType: "topic",
             });
           }
 
-          if (debate.goldenPrompt && debate.goldenPrompt.toLowerCase().includes(lowerQuery)) {
+          if (
+            debate.goldenPrompt &&
+            debate.goldenPrompt.toLowerCase().includes(lowerQuery)
+          ) {
             const text = debate.goldenPrompt;
             const idx = text.toLowerCase().indexOf(lowerQuery);
             const start = Math.max(0, idx - 30);
             const end = Math.min(text.length, idx + query.length + 30);
-            const snippet = (start > 0 ? '...' : '') +
+            const snippet =
+              (start > 0 ? "..." : "") +
               text.substring(start, end) +
-              (end < text.length ? '...' : '');
+              (end < text.length ? "..." : "");
 
             results.push({
               sessionId,
               sessionName,
               debateTopic: debate.topic,
               matchSnippet: snippet,
-              matchType: 'synthesis',
+              matchType: "synthesis",
             });
           }
         }
@@ -217,7 +231,7 @@ export class SessionManager {
   }
 
   formatRelativeTime(isoDate: string): string {
-    if (!isoDate) return '';
+    if (!isoDate) return "";
     const now = Date.now();
     const then = new Date(isoDate).getTime();
     const diffMs = now - then;
@@ -225,10 +239,10 @@ export class SessionManager {
     const diffHr = Math.floor(diffMs / 3600000);
     const diffDay = Math.floor(diffMs / 86400000);
 
-    if (diffMin < 1) return 'just now';
+    if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
     if (diffHr < 24) return `${diffHr}h ago`;
-    if (diffDay === 1) return 'yesterday';
+    if (diffDay === 1) return "yesterday";
     if (diffDay < 30) return `${diffDay}d ago`;
     return new Date(isoDate).toLocaleDateString();
   }

@@ -5,12 +5,12 @@ import { useCallback, useMemo } from "react";
 
 export interface UserPreferences {
   defaultAgents: string[];
-  defaultMode: "blind" | "visible";
+  defaultMode: "quick" | "council" | "deep" | "blind";
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   defaultAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
-  defaultMode: "visible",
+  defaultMode: "council",
 };
 
 /**
@@ -35,9 +35,11 @@ export function useUserPreferences() {
           ? meta.defaultAgents
           : DEFAULT_PREFERENCES.defaultAgents,
       defaultMode:
-        meta.defaultMode === "blind" || meta.defaultMode === "visible"
-          ? meta.defaultMode
-          : DEFAULT_PREFERENCES.defaultMode,
+        meta.defaultMode === "visible"
+          ? "council"
+          : meta.defaultMode === "quick" || meta.defaultMode === "council" || meta.defaultMode === "deep" || meta.defaultMode === "blind"
+            ? meta.defaultMode
+            : DEFAULT_PREFERENCES.defaultMode,
     };
   }, [user?.unsafeMetadata]);
 

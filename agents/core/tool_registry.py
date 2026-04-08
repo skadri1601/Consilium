@@ -1,138 +1,195 @@
-TOOL_DEFINITIONS = [
-    {
-        "name": "Email (IMAP)",
-        "module": "agents.tools.email_imap",
-        "commands": {
-            "inbox": {"args": "[--limit 10]", "desc": "List latest emails"},
-            "unread": {"args": "[--limit 10]", "desc": "List unread emails"},
-            "search": {"args": '--query "from:NAME"', "desc": "Search by sender/subject/text"},
-            "read": {"args": "--uid UID", "desc": "Read full email by UID"},
-            "thread": {"args": "--uid UID", "desc": "Get full conversation thread"},
-            "send": {"args": '--to X --subject "Y" --body "Z"', "desc": "Send new email"},
-            "reply": {"args": "--uid UID --body TEXT", "desc": "Reply to email"},
-        },
-    },
-    {
-        "name": "Linear",
-        "module": "agents.tools.linear_api",
-        "commands": {
-            "search": {"args": '"query" [--limit 10]', "desc": "Search issues"},
-            "create": {"args": '--title "..." --description "..."', "desc": "Create issue"},
-            "get": {"args": "--identifier MYC-42", "desc": "Get issue details"},
-            "comment": {"args": '--issue-id ID --body "..."', "desc": "Add comment"},
-            "transition": {"args": '--identifier MYC-42 --state "In Progress"', "desc": "Change state"},
-            "assign": {"args": "--identifier MYC-42 --email USER@EMAIL", "desc": "Assign issue"},
-            "my-issues": {"args": "--email USER@EMAIL", "desc": "List assigned issues"},
-            "states": {"args": "", "desc": "List workflow states"},
-            "teams": {"args": "", "desc": "List teams"},
-        },
-    },
-    {
-        "name": "Sentry",
-        "module": "agents.tools.sentry_api",
-        "commands": {
-            "list-issues": {"args": '[--query "is:unresolved"] [--limit 10]', "desc": "List issues"},
-            "get-issue": {"args": "--issue-id ID", "desc": "Get issue details"},
-            "issue-events": {"args": "--issue-id ID [--limit 5]", "desc": "Get error events"},
-            "stats": {"args": "[--period 24h]", "desc": "Error statistics overview"},
-            "search": {"args": '--query "error text"', "desc": "Search errors"},
-        },
-    },
-    {
-        "name": "SonarQube",
-        "module": "agents.tools.sonarqube_api",
-        "commands": {
-            "quality-gate": {"args": "", "desc": "Check quality gate pass/fail"},
-            "issues": {"args": "[--severity CRITICAL] [--limit 10]", "desc": "List code issues"},
-            "metrics": {"args": "", "desc": "Get coverage, bugs, smells, ratings"},
-            "hotspots": {"args": "[--limit 10]", "desc": "Security hotspots"},
-        },
-    },
-    {
-        "name": "Vercel",
-        "module": "agents.tools.vercel_api",
-        "commands": {
-            "latest": {"args": "", "desc": "Latest deployment status"},
-            "list-deployments": {"args": "[--limit 5]", "desc": "Recent deployments"},
-            "get-deployment": {"args": "--deployment-id ID", "desc": "Deployment details"},
-            "build-logs": {"args": "--deployment-id ID", "desc": "Build log output"},
-        },
-    },
-    {
-        "name": "GitHub",
-        "module": "agents.tools.github_api",
-        "commands": {
-            "list-prs": {"args": "[--state open] [--limit 10]", "desc": "List pull requests"},
-            "get-pr": {"args": "--number N", "desc": "PR details"},
-            "find-ticket-prs": {"args": "--ticket MYC-42", "desc": "PRs for a ticket"},
-        },
-    },
-    {
-        "name": "Database",
-        "module": "agents.tools.db_lookup",
-        "commands": {
-            "user": {"args": "--email X or --id Y", "desc": "User profile + debate count"},
-            "debate": {"args": "--id ID", "desc": "Debate session details"},
-            "debates": {"args": "--user-email X [--limit 10]", "desc": "User's debate history"},
-            "usage": {"args": "--user-email X [--days 30]", "desc": "Token/cost stats"},
-            "stats": {"args": "", "desc": "Global platform stats"},
-        },
-    },
-    {
-        "name": "Stripe",
-        "module": "agents.tools.stripe_api",
-        "commands": {
-            "get-subscription": {"args": "--email X", "desc": "Subscription status"},
-            "cancel": {"args": "--email X [--reason TEXT]", "desc": "Cancel subscription"},
-            "refund": {"args": "--email X --reason TEXT", "desc": "Refund latest invoice"},
-            "invoices": {"args": "--email X [--limit 5]", "desc": "Invoice history"},
-        },
-    },
-    {
-        "name": "Prioritizer",
-        "module": "agents.tools.prioritizer",
-        "commands": {
-            "recommend": {"args": "", "desc": "Ranked task recommendations (JSON)"},
-            "summary": {"args": "", "desc": "Formatted priority list"},
-        },
-    },
-    {
-        "name": "Notifications",
-        "module": "agents.tools.notify_slack",
-        "commands": {
-            "": {"args": '--action "X" --summary "Y" [--link URL] [--escalate] [--severity info|warning|error]', "desc": "Send Slack notification"},
-        },
-    },
-    {
-        "name": "Memory",
-        "module": "agents.tools.memory_tool",
-        "commands": {
-            "read": {"args": "[--key KEY]", "desc": "Read shared memory"},
-            "write": {"args": "--key K --value V", "desc": "Write to memory"},
-            "search": {"args": '--query "text"', "desc": "Search memory"},
-            "track": {"args": "--type X --id Y --status Z --summary S", "desc": "Track processed item"},
-            "check": {"args": "--type X --id Y", "desc": "Check if item processed"},
-            "context": {"args": "--email X --note Y", "desc": "Add user context"},
-        },
-    },
-]
+import enum
+import inspect
+import typing
+from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 
 
-def format_tools_prompt():
-    lines = []
-    for tool in TOOL_DEFINITIONS:
-        lines.append(f"### {tool['name']}")
-        for cmd, info in tool["commands"].items():
-            prefix = f"python -m {tool['module']}"
-            if cmd:
-                prefix += f" {cmd}"
-            lines.append(f"  `{prefix} {info['args']}` — {info['desc']}")
-        lines.append("")
-    return "\n".join(lines)
+class PermissionLevel(enum.IntEnum):
+    READ_ONLY = 1
+    WORKSPACE_WRITE = 2
+    DANGER = 3
 
 
-def get_tool_module(name):
-    for tool in TOOL_DEFINITIONS:
-        if tool["name"].lower() == name.lower():
-            return tool["module"]
-    return None
+PYTHON_TYPE_TO_JSON = {
+    str: "string",
+    int: "integer",
+    float: "number",
+    bool: "boolean",
+    list: "array",
+    dict: "object",
+}
+
+
+def _schema_from_signature(fn: typing.Callable) -> dict:
+    sig = inspect.signature(fn)
+    hints = typing.get_type_hints(fn)
+    properties = {}
+    required = []
+    for param_name, param in sig.parameters.items():
+        if param_name in ("self", "cls"):
+            continue
+        hint = hints.get(param_name, str)
+        origin = typing.get_origin(hint)
+        if origin is typing.Union:
+            args = typing.get_args(hint)
+            non_none = [a for a in args if a is not type(None)]
+            hint = non_none[0] if non_none else str
+        json_type = PYTHON_TYPE_TO_JSON.get(hint, "string")
+        prop = {"type": json_type}
+        if param.default is not inspect.Parameter.empty:
+            prop["default"] = param.default
+        else:
+            required.append(param_name)
+        properties[param_name] = prop
+    schema = {"type": "object", "properties": properties}
+    if required:
+        schema["required"] = required
+    return schema
+
+
+@dataclass
+class ToolSpec:
+    name: str
+    description: str
+    input_schema: dict
+    permission: PermissionLevel = PermissionLevel.READ_ONLY
+    handler: typing.Optional[typing.Callable] = None
+    source: str = "builtin"
+
+    def to_api_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "description": self.description,
+            "input_schema": self.input_schema,
+        }
+
+
+TOOL_PERMISSION_MAP = {
+    "bash": PermissionLevel.DANGER,
+    "db_lookup": PermissionLevel.READ_ONLY,
+    "search_email": PermissionLevel.READ_ONLY,
+    "read_email": PermissionLevel.READ_ONLY,
+    "email_thread": PermissionLevel.READ_ONLY,
+    "unread_emails": PermissionLevel.READ_ONLY,
+    "linear_search": PermissionLevel.READ_ONLY,
+    "linear_get_issue": PermissionLevel.READ_ONLY,
+    "linear_create_ticket": PermissionLevel.WORKSPACE_WRITE,
+    "linear_transition": PermissionLevel.WORKSPACE_WRITE,
+    "sentry_issues": PermissionLevel.READ_ONLY,
+    "sentry_stats": PermissionLevel.READ_ONLY,
+    "vercel_status": PermissionLevel.READ_ONLY,
+    "sonarqube_quality": PermissionLevel.READ_ONLY,
+    "github_prs": PermissionLevel.READ_ONLY,
+}
+
+
+class ToolRegistry:
+    _instance: typing.Optional["ToolRegistry"] = None
+
+    def __new__(cls) -> "ToolRegistry":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._tools = {}
+        return cls._instance
+
+    def register(self, spec: ToolSpec) -> None:
+        if spec.name in self._tools:
+            raise ValueError(f"Tool already registered: {spec.name}")
+        self._tools[spec.name] = spec
+
+    def get(self, name: str) -> typing.Optional[ToolSpec]:
+        return self._tools.get(name)
+
+    def list_tools(self, permission_filter: typing.Optional[PermissionLevel] = None) -> list[ToolSpec]:
+        if permission_filter is None:
+            return list(self._tools.values())
+        return [t for t in self._tools.values() if t.permission <= permission_filter]
+
+    def execute(self, name: str, input_dict: dict) -> str:
+        spec = self._tools.get(name)
+        if spec is None:
+            return f"Unknown tool: {name}"
+        if spec.handler is None:
+            return f"No handler registered for tool: {name}"
+        try:
+            result = spec.handler(**input_dict)
+            return str(result) if result is not None else ""
+        except Exception as e:
+            return f"Error executing {name}: {e}"
+
+    def search(self, query: str) -> list[ToolSpec]:
+        query_lower = query.lower()
+        scored = []
+        for spec in self._tools.values():
+            name_ratio = SequenceMatcher(None, query_lower, spec.name.lower()).ratio()
+            desc_ratio = SequenceMatcher(None, query_lower, spec.description.lower()).ratio()
+            if query_lower in spec.name.lower():
+                name_ratio = max(name_ratio, 0.8)
+            if query_lower in spec.description.lower():
+                desc_ratio = max(desc_ratio, 0.6)
+            score = max(name_ratio, desc_ratio)
+            if score > 0.3:
+                scored.append((score, spec))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [spec for _, spec in scored]
+
+    def to_api_format(self) -> list[dict]:
+        return [spec.to_api_dict() for spec in self._tools.values()]
+
+    def reset(self) -> None:
+        self._tools.clear()
+
+
+def get_registry() -> ToolRegistry:
+    return ToolRegistry()
+
+
+def tool(
+    name: str,
+    description: str,
+    permission: PermissionLevel = PermissionLevel.READ_ONLY,
+    source: str = "builtin",
+):
+    def decorator(fn: typing.Callable) -> typing.Callable:
+        input_schema = _schema_from_signature(fn)
+        spec = ToolSpec(
+            name=name,
+            description=description,
+            input_schema=input_schema,
+            permission=permission,
+            handler=fn,
+            source=source,
+        )
+        get_registry().register(spec)
+        return fn
+    return decorator
+
+
+def register_builtin_tools(tools_list: typing.Optional[list[dict]] = None) -> None:
+    if tools_list is None:
+        from agents.core.base import TOOLS
+        tools_list = TOOLS
+
+    registry = get_registry()
+    for tool_dict in tools_list:
+        tool_name = tool_dict["name"]
+        if registry.get(tool_name) is not None:
+            continue
+        permission = TOOL_PERMISSION_MAP.get(tool_name, PermissionLevel.READ_ONLY)
+        spec = ToolSpec(
+            name=tool_name,
+            description=tool_dict["description"],
+            input_schema=tool_dict["input_schema"],
+            permission=permission,
+            handler=None,
+            source="builtin",
+        )
+        registry.register(spec)
+
+
+def check_permission(tool_name: str, current_level: PermissionLevel) -> bool:
+    spec = get_registry().get(tool_name)
+    if spec is None:
+        return False
+    return current_level >= spec.permission

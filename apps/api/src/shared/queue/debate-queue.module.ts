@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { DebateQueueService } from "./debate-queue.service";
 import { DebateQueueProcessor } from "./debate-queue.processor";
@@ -8,7 +8,7 @@ import { DebatesModule } from "../../features/debates/debates.module";
 @Module({
   imports: [
     BullMQConfig,
-    DebatesModule, // Import to get DebatesService and AiWorkersClient
+    forwardRef(() => DebatesModule),
     BullModule.registerQueue({
       name: "debate-jobs",
       defaultJobOptions: {

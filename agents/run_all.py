@@ -1,22 +1,37 @@
 import argparse
+import os
 import signal
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from agents.config import DEFAULT_MODEL
 from agents.core.base import setup_logging
 
 logger = setup_logging("orchestrator")
 
+LOGS_DIR = Path(__file__).resolve().parent / "logs"
+MAX_RESTARTS = 10
+
 children = {}
 restart_counts = {}
+log_files = {}
 shutdown = False
+
+
+def _open_log(name):
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = LOGS_DIR / f"{name}.log"
+    fh = open(log_path, "a", encoding="utf-8")
+    log_files[name] = fh
+    return fh
 
 
 def start_process(name, cmd):
     logger.info("Starting %s: %s", name, " ".join(cmd))
-    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    fh = _open_log(name)
+    proc = subprocess.Popen(cmd, stdout=fh, stderr=fh)
     children[name] = proc
     restart_counts.setdefault(name, 0)
     return proc
@@ -37,6 +52,9 @@ def stop_all():
             logger.warning("Force killing %s (pid %d)", name, proc.pid)
             proc.kill()
 
+    for fh in log_files.values():
+        fh.close()
+
 
 def handle_signal(signum, frame):
     global shutdown
@@ -48,13 +66,11 @@ def main():
     global shutdown
 
     parser = argparse.ArgumentParser(description="Consilium Agent Orchestrator")
-    parser.add_argument("--poll-interval", type=int, default=300)
+    parser.add_argument("--interval", type=int, default=300)
     parser.add_argument("--restart-delay", type=int, default=15)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--no-email", action="store_true")
     parser.add_argument("--no-slack", action="store_true")
-    parser.add_argument("--no-github", action="store_true")
     parser.add_argument("--no-monitor", action="store_true")
     parser.add_argument("--briefing", action="store_true")
     args = parser.parse_args()
@@ -64,20 +80,11 @@ def main():
 
     agents = {}
 
-    if not args.no_email:
-        cmd = [sys.executable, "-m", "agents.bots.email_agent", "--continuous", "--poll-interval", str(args.poll_interval), "--model", args.model]
-        if args.dry_run:
-            cmd.append("--dry-run")
-        agents["email_agent"] = cmd
-
     if not args.no_slack:
         agents["slack_bot"] = [sys.executable, "-m", "agents.bots.slack_bot", "--model", args.model]
 
-    if not args.no_github:
-        agents["github_listener"] = [sys.executable, "-m", "agents.bots.github_listener", "--continuous", "--interval", "120"]
-
     if not args.no_monitor:
-        agents["monitor"] = [sys.executable, "-m", "agents.bots.monitor_agent", "--interval", str(args.poll_interval)]
+        agents["monitor_agent"] = [sys.executable, "-m", "agents.bots.monitor_agent", "--interval", str(args.interval)]
 
     for name, cmd in agents.items():
         start_process(name, cmd)
@@ -93,6 +100,12 @@ def main():
             proc = children.get(name)
             if proc and proc.poll() is not None:
                 restart_counts[name] += 1
+                if restart_counts[name] > MAX_RESTARTS:
+                    logger.error(
+                        "%s exceeded max restarts (%d). Giving up.",
+                        name, MAX_RESTARTS,
+                    )
+                    continue
                 logger.warning(
                     "%s exited with code %s (restart #%d). Restarting in %ds...",
                     name, proc.returncode, restart_counts[name], args.restart_delay,

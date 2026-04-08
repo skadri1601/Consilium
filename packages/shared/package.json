@@ -1,0 +1,20 @@
+{
+  "name": "@consilium/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./debates": "./src/debates/index.ts",
+    "./providers": "./src/providers/index.ts",
+    "./ids": "./src/ids/index.ts",
+    "./sse": "./src/sse/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

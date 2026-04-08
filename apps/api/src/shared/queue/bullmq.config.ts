@@ -13,13 +13,13 @@ export const BullMQConfig = BullModule.forRootAsync({
       connection: {
         url: redisUrl,
         retryStrategy: (times: number) => {
-          if (times > 3) {
+          if (times > 20) {
             logger.warn(
-              "BullMQ Redis connection failed after multiple retries. Queue features will be unavailable.",
+              `BullMQ Redis connection retry #${times}, backing off to 30s`,
             );
-            return null; // Stop retrying
+            return 30_000;
           }
-          return Math.min(times * 200, 2000);
+          return Math.min(times * 200, 5000);
         },
         maxRetriesPerRequest: 1,
         enableOfflineQueue: false,

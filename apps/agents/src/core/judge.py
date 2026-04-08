@@ -1,5 +1,4 @@
 import json
-import random
 import asyncio
 import logging
 from dataclasses import dataclass, field
@@ -12,9 +11,10 @@ from .judge_prompts import (
     SYNTHESIS_PROMPT_WEB,
     SYNTHESIS_PROMPT_CLI,
     EMERGENCY_SYNTHESIS_PROMPT,
-    STYLE_NORMALIZER_PROMPT,
 )
 from .agent_factory import AgentFactory
+from .anonymizer import Anonymizer, AnonymityMap
+from .shared import FALLBACK_RESPONSE, _sse, REDIS_TTL
 from ..shared.database.redis import get_redis
 from ..shared.config.models import get_provider_for_model
 
@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 CHEAP_MODELS = ["gpt-4o-mini", "gemini-2.0-flash", "claude-3-5-haiku-latest"]
 STRONG_MODELS = ["claude-3-opus-latest", "gemini-2.5-pro", "gpt-4o"]
 
-LABELS = [
-    "Response A", "Response B", "Response C", "Response D",
-    "Response E", "Response F", "Response G", "Response H",
-]
+_CALL_TIMEOUT = 60
+_MAX_RETRIES = 2
+_RETRY_DELAYS = [2, 5]
+_RETRY_DELAY_BETWEEN_STRATEGIES = 3
 
 
 @dataclass
@@ -65,19 +65,27 @@ def _pick_available_model(
     return None
 
 
-def _format_sse(event: str, data: dict) -> str:
-    payload = {**data, "event": event}
-    return f"data: {json.dumps(payload)}\n\n"
-
-
 async def _call_model(
     model_id: str,
     api_keys: dict[str, str | None],
     prompt: str,
 ) -> str:
-    agent = AgentFactory.create(model_id, api_keys)
-    response, _ = await agent.generate_response(prompt)
-    return response
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            agent = AgentFactory.create(model_id, api_keys)
+            response, _ = await asyncio.wait_for(
+                agent.generate_response(prompt),
+                timeout=_CALL_TIMEOUT,
+            )
+            return response
+        except Exception as e:
+            last_exc = e
+            if attempt < _MAX_RETRIES:
+                delay = _RETRY_DELAYS[attempt] if attempt < len(_RETRY_DELAYS) else _RETRY_DELAYS[-1]
+                logger.warning("_call_model attempt %d failed (%s), retrying in %ds", attempt + 1, e, delay)
+                await asyncio.sleep(delay)
+    raise last_exc  # type: ignore[misc]
 
 
 async def _stream_model(
@@ -85,9 +93,26 @@ async def _stream_model(
     api_keys: dict[str, str | None],
     prompt: str,
 ) -> AsyncGenerator[str, None]:
-    agent = AgentFactory.create(model_id, api_keys)
-    async for chunk in agent.stream_response(prompt):
-        yield chunk
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            agent = AgentFactory.create(model_id, api_keys)
+            chunks_received = False
+            async for chunk in agent.stream_response(prompt):
+                chunks_received = True
+                yield chunk
+            if chunks_received:
+                return
+        except Exception as e:
+            last_exc = e
+            if attempt < _MAX_RETRIES:
+                delay = _RETRY_DELAYS[attempt] if attempt < len(_RETRY_DELAYS) else _RETRY_DELAYS[-1]
+                logger.warning("_stream_model attempt %d failed (%s), retrying in %ds", attempt + 1, e, delay)
+                await asyncio.sleep(delay)
+            else:
+                raise
+    if last_exc:
+        raise last_exc
 
 
 def _parse_json_response(text: str) -> dict:
@@ -114,20 +139,21 @@ def _parse_json_response(text: str) -> dict:
 def _anonymize_responses(
     responses: list[dict[str, str]],
 ) -> tuple[list[dict[str, str]], dict[str, str], dict[str, str]]:
-    shuffled = list(responses)
-    random.shuffle(shuffled)
+    model_ids = [r["model_id"] for r in responses]
+    anon_map = AnonymityMap(model_ids)
+    responses_dict = {r["model_id"]: r["text"] for r in responses}
+    redis_stub = type("_Stub", (), {"set": staticmethod(lambda *a, **kw: None)})()
+    anonymizer = Anonymizer(redis_stub)  # type: ignore[arg-type]
+    anonymized_raw = anonymizer.anonymize_responses(anon_map, responses_dict, round_number=1)
     label_to_model: dict[str, str] = {}
     model_to_label: dict[str, str] = {}
     anonymized: list[dict[str, str]] = []
-    for i, entry in enumerate(shuffled):
-        label = LABELS[i] if i < len(LABELS) else f"Response {chr(65 + i)}"
+    for entry in anonymized_raw:
+        label = entry["label"]
         model_id = entry["model_id"]
         label_to_model[label] = model_id
         model_to_label[model_id] = label
-        anonymized.append({
-            "label": label,
-            "text": entry["text"],
-        })
+        anonymized.append({"label": label, "text": entry["text"]})
     return anonymized, label_to_model, model_to_label
 
 
@@ -187,7 +213,11 @@ async def cross_reference_claims(
         label_a=label_a,
         label_b=label_b,
     )
-    result = await _call_model(cheap_model, api_keys, prompt)
+    try:
+        result = await _call_model(cheap_model, api_keys, prompt)
+    except Exception as e:
+        logger.warning("Cross-reference failed after retries: %s", e)
+        return {"agreements": [], "contradictions": [], "unique_claims": []}
     parsed = _parse_json_response(result)
     if not parsed:
         return {"agreements": [], "contradictions": [], "unique_claims": []}
@@ -406,6 +436,84 @@ def _compute_improvement_score(
     return round(improvement, 4)
 
 
+async def run_judge_pipeline(
+    question: str,
+    responses: list[dict[str, str]],
+    api_keys: dict[str, str | None],
+) -> tuple[str, dict[str, dict[str, float]]] | None:
+    debate_models = [r["model_id"] for r in responses]
+    try:
+        cheap_model = _pick_available_model(CHEAP_MODELS, api_keys, exclude_models=debate_models)
+        if cheap_model is None:
+            cheap_model = _pick_available_model(CHEAP_MODELS, api_keys)
+        if cheap_model is None:
+            return None
+
+        strong_model = _pick_available_model(STRONG_MODELS, api_keys, exclude_models=debate_models)
+        if strong_model is None:
+            strong_model = _pick_available_model(STRONG_MODELS, api_keys)
+        if strong_model is None:
+            strong_model = cheap_model
+
+        anonymized, label_to_model, _ = _anonymize_responses(responses)
+
+        claims_by_label = await extract_claims(question, anonymized, cheap_model, api_keys)
+        if not claims_by_label:
+            return None
+
+        cross_ref = await cross_reference_claims(claims_by_label, cheap_model, api_keys)
+
+        disputes_resolved = await resolve_disputes(
+            question,
+            cross_ref.get("contradictions", []),
+            claims_by_label,
+            cheap_model,
+            api_keys,
+        )
+
+        model_scores = score_claims(claims_by_label, cross_ref, disputes_resolved)
+
+        golden_chunks: list[str] = []
+        async for chunk in synthesize_golden_prompt(
+            question,
+            claims_by_label,
+            cross_ref,
+            disputes_resolved,
+            model_scores,
+            label_to_model,
+            strong_model,
+            api_keys,
+        ):
+            golden_chunks.append(chunk)
+
+        raw_golden = "".join(golden_chunks)
+        consensus_text = _de_anonymize(raw_golden, label_to_model)
+
+        scores_dict: dict[str, dict[str, float]] = {}
+        for label, score_data in model_scores.items():
+            real_model = label_to_model.get(label, label)
+            scores_dict[real_model] = score_data
+
+        return consensus_text, scores_dict
+    except Exception:
+        logger.exception("run_judge_pipeline failed")
+        return None
+
+
+async def _persist_judge_result(debate_id: str, result: JudgeResult) -> None:
+    redis = get_redis()
+    await redis.set(
+        f"judge_result:{debate_id}",
+        json.dumps({
+            "golden_prompt": result.golden_prompt,
+            "synthesis_method": result.synthesis_method,
+            "scores": result.scores,
+            "improvement_score": result.improvement_score,
+        }),
+        ex=REDIS_TTL,
+    )
+
+
 async def _run_full_pipeline(
     question: str,
     responses: list[dict[str, str]],
@@ -428,7 +536,7 @@ async def _run_full_pipeline(
 
     anonymized, label_to_model, model_to_label = _anonymize_responses(responses)
 
-    yield _format_sse("judge:extracting", {
+    yield _sse("judge:extracting", {
         "debate_id": debate_id,
         "phase": 1,
         "model": cheap_model,
@@ -438,14 +546,14 @@ async def _run_full_pipeline(
     if not claims_by_label:
         raise RuntimeError("Claim extraction produced no results")
 
-    yield _format_sse("judge:cross-ref", {
+    yield _sse("judge:cross-ref", {
         "debate_id": debate_id,
         "phase": 2,
         "participants": list(claims_by_label.keys()),
     })
     cross_ref = await cross_reference_claims(claims_by_label, cheap_model, api_keys)
 
-    yield _format_sse("judge:disputes", {
+    yield _sse("judge:disputes", {
         "debate_id": debate_id,
         "phase": 3,
         "contradiction_count": len(cross_ref.get("contradictions", [])),
@@ -458,7 +566,7 @@ async def _run_full_pipeline(
         api_keys,
     )
 
-    yield _format_sse("judge:scoring", {
+    yield _sse("judge:scoring", {
         "debate_id": debate_id,
         "phase": 4,
     })
@@ -469,12 +577,12 @@ async def _run_full_pipeline(
         real_model = label_to_model.get(label, label)
         scores_with_models[real_model] = score_data
 
-    yield _format_sse("judge:scoring_complete", {
+    yield _sse("judge:scoring_complete", {
         "debate_id": debate_id,
         "scores": scores_with_models,
     })
 
-    yield _format_sse("judge:synthesizing", {
+    yield _sse("judge:synthesizing", {
         "debate_id": debate_id,
         "phase": 5,
         "model": strong_model,
@@ -493,7 +601,7 @@ async def _run_full_pipeline(
         mode,
     ):
         golden_chunks.append(chunk)
-        yield _format_sse("judge:chunk", {
+        yield _sse("judge:chunk", {
             "debate_id": debate_id,
             "content": chunk,
         })
@@ -514,19 +622,9 @@ async def _run_full_pipeline(
         disputes_resolved=disputes_resolved,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": result.synthesis_method,
         "improvement_score": result.improvement_score,
@@ -547,7 +645,7 @@ async def _run_emergency_synthesis(
     if emergency_model is None:
         raise RuntimeError("No model available for emergency synthesis")
 
-    yield _format_sse("judge:synthesizing", {
+    yield _sse("judge:synthesizing", {
         "debate_id": debate_id,
         "phase": "emergency",
         "model": emergency_model,
@@ -568,7 +666,7 @@ async def _run_emergency_synthesis(
     golden_chunks: list[str] = []
     async for chunk in _stream_model(emergency_model, api_keys, prompt):
         golden_chunks.append(chunk)
-        yield _format_sse("judge:chunk", {
+        yield _sse("judge:chunk", {
             "debate_id": debate_id,
             "content": chunk,
         })
@@ -583,19 +681,9 @@ async def _run_emergency_synthesis(
         improvement_score=0.0,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": "emergency",
         "improvement_score": 0.0,
@@ -617,19 +705,9 @@ async def _run_best_individual(
         improvement_score=0.0,
     )
 
-    redis = get_redis()
-    await redis.set(
-        f"judge_result:{debate_id}",
-        json.dumps({
-            "golden_prompt": result.golden_prompt,
-            "synthesis_method": result.synthesis_method,
-            "scores": result.scores,
-            "improvement_score": result.improvement_score,
-        }),
-        ex=3600,
-    )
+    await _persist_judge_result(debate_id, result)
 
-    yield _format_sse("judge:complete", {
+    yield _sse("judge:complete", {
         "debate_id": debate_id,
         "synthesis_method": "best_individual",
         "improvement_score": 0.0,
@@ -647,7 +725,7 @@ async def run_judge_with_fallback(
     mode: str = "web",
 ) -> AsyncGenerator[str, None]:
     if not responses:
-        yield _format_sse("judge:error", {
+        yield _sse("judge:error", {
             "debate_id": debate_id,
             "error": "No responses to judge",
         })
@@ -668,7 +746,9 @@ async def run_judge_with_fallback(
     for strategy, attempt_num in attempts:
         try:
             if strategy == "full_pipeline":
-                yield _format_sse("judge:attempt", {
+                if attempt_num > 0:
+                    await asyncio.sleep(_RETRY_DELAY_BETWEEN_STRATEGIES)
+                yield _sse("judge:attempt", {
                     "debate_id": debate_id,
                     "strategy": strategy,
                     "attempt": attempt_num + 1,
@@ -680,7 +760,7 @@ async def run_judge_with_fallback(
                 return
 
             elif strategy == "emergency":
-                yield _format_sse("judge:fallback", {
+                yield _sse("judge:fallback", {
                     "debate_id": debate_id,
                     "strategy": "emergency",
                 })
@@ -691,7 +771,7 @@ async def run_judge_with_fallback(
                 return
 
             elif strategy == "best_individual":
-                yield _format_sse("judge:fallback", {
+                yield _sse("judge:fallback", {
                     "debate_id": debate_id,
                     "strategy": "best_individual",
                 })
@@ -703,7 +783,7 @@ async def run_judge_with_fallback(
             logger.error(
                 "Judge %s attempt %d failed: %s", strategy, attempt_num + 1, e
             )
-            yield _format_sse("judge:error", {
+            yield _sse("judge:error", {
                 "debate_id": debate_id,
                 "strategy": strategy,
                 "attempt": attempt_num + 1,
@@ -711,7 +791,7 @@ async def run_judge_with_fallback(
                 "retrying": strategy != "best_individual",
             })
 
-    yield _format_sse("judge:fatal", {
+    yield _sse("judge:fatal", {
         "debate_id": debate_id,
         "error": "All judge strategies exhausted",
     })

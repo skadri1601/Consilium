@@ -1,5 +1,4 @@
-import os
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Optional, Tuple
 from .base_agent import BaseAgent
 
 
@@ -10,79 +9,70 @@ class AnthropicAgent(BaseAgent):
         super().__init__(
             name="Claude",
             provider="Anthropic",
-            model=model_id
+            model=model_id,
+            api_key_env_var="ANTHROPIC_API_KEY"
         )
         self.model_id = model_id
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        # Override API key if explicitly provided
+        if api_key:
+            self.api_key = api_key
 
-    async def generate_response(self, query: str) -> Tuple[str, int]:
-        """Generate a response using Anthropic's API."""
+    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
+        if not self._validate_api_key():
+            return f"[{self.name} Error: No API key provided]", 0
+
         try:
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-
             response = await client.messages.create(
                 model=self.model_id,
                 max_tokens=2000,
-                system=self.get_system_prompt(),
-                messages=[
-                    {"role": "user", "content": query}
-                ]
+                system=system_prompt or self.get_system_prompt(),
+                messages=[{"role": "user", "content": query}]
             )
 
             content = response.content[0].text if response.content else ""
             tokens = response.usage.input_tokens + response.usage.output_tokens
-
             return content, tokens
 
-        except (anthropic.APIConnectionError, anthropic.RateLimitError,
-                anthropic.APIStatusError) as e:
-            return f"[Claude API Error: {str(e)}]", 0
-        except anthropic.AuthenticationError as e:
-            return f"[Claude Auth Error: {str(e)}]", 0
         except Exception as e:
-            return f"[Claude Error: {str(e)}]", 0
+            return self._handle_common_errors(e, "API"), 0
 
-    async def stream_response(self, query: str) -> AsyncGenerator[str, None]:
-        """Stream a response using Anthropic's API."""
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
+        if not self._validate_api_key():
+            yield f"[{self.name} Error: No API key provided]"
+            return
+
         try:
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-
             async with client.messages.stream(
                 model=self.model_id,
                 max_tokens=2000,
-                system=self.get_system_prompt(),
-                messages=[
-                    {"role": "user", "content": query}
-                ]
+                system=system_prompt or self.get_system_prompt(),
+                messages=[{"role": "user", "content": query}]
             ) as stream:
                 async for text in stream.text_stream:
                     yield text
 
-        except (anthropic.APIConnectionError, anthropic.RateLimitError,
-                anthropic.APIStatusError) as e:
-            yield f"[Claude API Error: {str(e)}]"
-        except anthropic.AuthenticationError as e:
-            yield f"[Claude Auth Error: {str(e)}]"
+        except Exception as e:
+            yield self._handle_common_errors(e, "Streaming")
 
     async def health_check(self) -> bool:
         """Check if Anthropic API is accessible."""
-        if not self.api_key:
+        if not self._validate_api_key():
             return False
 
         try:
             import anthropic
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-            # Simple validation - attempt to create a minimal message
             await client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=10,
                 messages=[{"role": "user", "content": "ping"}]
             )
             return True
-        except (anthropic.APIConnectionError, anthropic.RateLimitError,
-                anthropic.APIStatusError, anthropic.AuthenticationError):
+        except Exception:
             return False

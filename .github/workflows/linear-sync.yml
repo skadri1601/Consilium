@@ -2,14 +2,20 @@ name: Linear Sync
 
 on:
   pull_request:
-    types: [opened, closed, reopened, ready_for_review, converted_to_draft]
+    types: [opened, closed, reopened, ready_for_review]
   pull_request_review:
     types: [submitted]
   check_suite:
     types: [completed]
+  issue_comment:
+    types: [created]
+
+env:
+  TICKET_PREFIX: MYC
 
 jobs:
-  sync:
+  pr-lifecycle:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Extract ticket ID
@@ -18,121 +24,261 @@ jobs:
           BRANCH: ${{ github.head_ref }}
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          TICKET=$(echo "$BRANCH $TITLE" | grep -oP 'MYC-\d+' | head -1)
-          echo "id=$TICKET" >> $GITHUB_OUTPUT
+          TICKET=$(echo "$BRANCH $TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          echo "id=$TICKET" >> "$GITHUB_OUTPUT"
 
-      - name: Update Linear and notify Slack
+      - name: Determine state and message
+        id: resolve
+        if: steps.ticket.outputs.id != ''
+        env:
+          PR_ACTION: ${{ github.event.action }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          TICKET_ID: ${{ steps.ticket.outputs.id }}
+        run: |
+          if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "ready_for_review" ] || [ "$PR_ACTION" = "reopened" ]; then
+            echo "state=In Review" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:github: PR #${PR_NUMBER} opened for ${TICKET_ID} by ${PR_AUTHOR} — <${PR_URL}|View PR>" >> "$GITHUB_OUTPUT"
+            echo "linear_comment=PR #${PR_NUMBER} opened by ${PR_AUTHOR}: ${PR_URL}" >> "$GITHUB_OUTPUT"
+          elif [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
+            echo "state=Done" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} — ticket marked Done" >> "$GITHUB_OUTPUT"
+            echo "linear_comment=PR #${PR_NUMBER} merged" >> "$GITHUB_OUTPUT"
+          elif [ "$PR_ACTION" = "closed" ]; then
+            echo "state=In Progress" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:x: PR #${PR_NUMBER} closed for ${TICKET_ID} — back to In Progress" >> "$GITHUB_OUTPUT"
+            echo "linear_comment=PR #${PR_NUMBER} closed without merge" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Look up Linear issue
+        id: linear
+        if: steps.resolve.outputs.state != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          TICKET_ID: ${{ steps.ticket.outputs.id }}
+        run: |
+          TICKET_NUM="${TICKET_ID#*-}"
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg q "query { issueSearch(filter: { number: { eq: $TICKET_NUM } }) { nodes { id team { id } } } }" '{query: $q}')")
+
+          ISSUE_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].id // empty')
+          TEAM_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].team.id // empty')
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+          echo "team_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Update Linear state
+        if: steps.linear.outputs.issue_id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.linear.outputs.issue_id }}
+          TEAM_ID: ${{ steps.linear.outputs.team_id }}
+          STATE_NAME: ${{ steps.resolve.outputs.state }}
+        run: |
+          STATE_ID=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg q "query { workflowStates(filter: { team: { id: { eq: \"$TEAM_ID\" } }, name: { eq: \"$STATE_NAME\" } }) { nodes { id } } }" '{query: $q}')" \
+            | jq -r '.data.workflowStates.nodes[0].id // empty')
+
+          if [ -n "$STATE_ID" ]; then
+            curl -sf -X POST https://api.linear.app/graphql \
+              -H "Authorization: $LINEAR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                --arg id "$ISSUE_ID" \
+                --arg sid "$STATE_ID" \
+                '{query: "mutation($id: String!, $sid: String!) { issueUpdate(id: $id, input: { stateId: $sid }) { success } }", variables: {id: $id, sid: $sid}}')"
+          fi
+
+      - name: Add Linear comment
+        if: steps.linear.outputs.issue_id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.linear.outputs.issue_id }}
+          COMMENT_BODY: ${{ steps.resolve.outputs.linear_comment }}
+        run: |
+          curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg id "$ISSUE_ID" \
+              --arg body "$COMMENT_BODY" \
+              '{query: "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", variables: {id: $id, body: $body}}')"
+
+      - name: Notify Slack
+        if: steps.resolve.outputs.slack_msg != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MSG: ${{ steps.resolve.outputs.slack_msg }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg text "$SLACK_MSG" '{text: $text}')"
+          fi
+
+  pr-review:
+    if: github.event_name == 'pull_request_review'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract ticket ID
+        id: ticket
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          TICKET=$(echo "$BRANCH $TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          echo "id=$TICKET" >> "$GITHUB_OUTPUT"
+
+      - name: Build Slack message
+        id: msg
+        env:
+          REVIEW_STATE: ${{ github.event.review.state }}
+          REVIEWER: ${{ github.event.review.user.login }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          REVIEW_BODY: ${{ github.event.review.body }}
+        run: |
+          BODY=$(printf '%s' "$REVIEW_BODY" | head -c 300)
+
+          if [ "$REVIEW_STATE" = "approved" ]; then
+            echo "slack_msg=:white_check_mark: PR #${PR_NUM} approved by ${REVIEWER}" >> "$GITHUB_OUTPUT"
+          elif [ "$REVIEW_STATE" = "changes_requested" ]; then
+            echo "slack_msg=:x: PR #${PR_NUM} changes requested by ${REVIEWER}: ${BODY}" >> "$GITHUB_OUTPUT"
+          else
+            echo "slack_msg=:speech_balloon: PR #${PR_NUM} review by ${REVIEWER}: ${BODY}" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "linear_comment=Review (${REVIEW_STATE}) by ${REVIEWER}: ${BODY}" >> "$GITHUB_OUTPUT"
+
+      - name: Look up Linear issue
+        id: linear
         if: steps.ticket.outputs.id != ''
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           TICKET_ID: ${{ steps.ticket.outputs.id }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_ACTION: ${{ github.event.action }}
-          PR_MERGED: ${{ github.event.pull_request.merged }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "ready_for_review" ] || [ "$PR_ACTION" = "reopened" ]; then
-            STATE_NAME="In Review"
-            MSG=":github: PR #${PR_NUMBER} opened for ${TICKET_ID} - <${PR_URL}|View PR>"
-          elif [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
-            STATE_NAME="Done"
-            MSG=":white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} - ticket marked Done"
-          elif [ "$PR_ACTION" = "closed" ]; then
-            STATE_NAME="In Progress"
-            MSG=":x: PR #${PR_NUMBER} closed (not merged) for ${TICKET_ID} - ticket back to In Progress"
-          elif [ "$PR_ACTION" = "converted_to_draft" ]; then
-            STATE_NAME="In Progress"
-            MSG=""
-          else
-            exit 0
-          fi
-
-          ISSUE_DATA=$(curl -s -X POST https://api.linear.app/graphql \
+          TICKET_NUM="${TICKET_ID#*-}"
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
             -H "Authorization: $LINEAR_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"query\": \"query { issueSearch(filter: { number: { eq: ${TICKET_ID#MYC-} } }) { nodes { id team { id } } } }\"}")
+            -d "$(jq -n --arg q "query { issueSearch(filter: { number: { eq: $TICKET_NUM } }) { nodes { id } } }" '{query: $q}')")
 
-          ISSUE_ID=$(echo "$ISSUE_DATA" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['issueSearch']['nodes'][0]['id'])" 2>/dev/null)
-          TEAM_ID=$(echo "$ISSUE_DATA" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['issueSearch']['nodes'][0]['team']['id'])" 2>/dev/null)
+          ISSUE_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].id // empty')
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
 
-          if [ -z "$ISSUE_ID" ]; then
-            echo "Could not find Linear issue for $TICKET_ID"
-            exit 0
-          fi
-
-          STATE_ID=$(curl -s -X POST https://api.linear.app/graphql \
+      - name: Add Linear comment
+        if: steps.linear.outputs.issue_id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.linear.outputs.issue_id }}
+          COMMENT_BODY: ${{ steps.msg.outputs.linear_comment }}
+        run: |
+          curl -sf -X POST https://api.linear.app/graphql \
             -H "Authorization: $LINEAR_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"query\": \"query { workflowStates(filter: { team: { id: { eq: \\\"$TEAM_ID\\\" } }, name: { eq: \\\"$STATE_NAME\\\" } }) { nodes { id } } }\"}" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['workflowStates']['nodes'][0]['id'])" 2>/dev/null)
+            -d "$(jq -n \
+              --arg id "$ISSUE_ID" \
+              --arg body "$COMMENT_BODY" \
+              '{query: "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", variables: {id: $id, body: $body}}')"
 
-          if [ -n "$STATE_ID" ]; then
-            curl -s -X POST https://api.linear.app/graphql \
-              -H "Authorization: $LINEAR_API_KEY" \
-              -H "Content-Type: application/json" \
-              -d "{\"query\": \"mutation { issueUpdate(id: \\\"$ISSUE_ID\\\", input: { stateId: \\\"$STATE_ID\\\" }) { success } }\"}"
-          fi
-
-          ESCAPED_TITLE=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
-          curl -s -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{\"query\": \"mutation { commentCreate(input: { issueId: \\\"$ISSUE_ID\\\", body: \\\"PR ${PR_ACTION}: [${ESCAPED_TITLE}](${PR_URL})\\\" }) { success } }\"}"
-
-          if [ -n "$MSG" ] && [ -n "$SLACK_WEBHOOK_URL" ]; then
-            curl -s -X POST "$SLACK_WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
-          fi
-
-  notify-review:
-    if: github.event_name == 'pull_request_review'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Notify Slack of review
+      - name: Notify Slack
+        if: steps.msg.outputs.slack_msg != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          REVIEWER: ${{ github.event.review.user.login }}
-          REVIEW_STATE: ${{ github.event.review.state }}
-          PR_NUM: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          REVIEW_BODY: ${{ github.event.review.body }}
-        if: env.SLACK_WEBHOOK_URL != ''
+          SLACK_MSG: ${{ steps.msg.outputs.slack_msg }}
         run: |
-          BODY=$(echo "$REVIEW_BODY" | head -c 300)
-
-          if [ "$REVIEW_STATE" = "approved" ]; then
-            ICON=":white_check_mark:"
-          elif [ "$REVIEW_STATE" = "changes_requested" ]; then
-            ICON=":x:"
-          else
-            ICON=":speech_balloon:"
-          fi
-
-          MSG="${ICON} PR #${PR_NUM} review by ${REVIEWER}: ${REVIEW_STATE}"
-
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
-              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
+              -d "$(jq -n --arg text "$SLACK_MSG" '{text: $text}')"
           fi
 
-  notify-ci:
-    if: github.event_name == 'check_suite' && github.event.check_suite.conclusion != 'success'
+  ci-failure:
+    if: >-
+      github.event_name == 'check_suite' &&
+      (github.event.check_suite.conclusion == 'failure' || github.event.check_suite.conclusion == 'timed_out')
     runs-on: ubuntu-latest
     steps:
-      - name: Notify CI failure
+      - name: Notify Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           CONCLUSION: ${{ github.event.check_suite.conclusion }}
           BRANCH: ${{ github.event.check_suite.head_branch }}
         run: |
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            MSG=":x: CI/CD pipeline ${CONCLUSION} on branch ${BRANCH}"
-            curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            MSG=":x: CI failed on branch ${BRANCH} — ${CONCLUSION}"
+            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d "$(jq -n --arg text "$MSG" '{text: $text}')"
+          fi
+
+  claude-review:
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'claude[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract ticket ID
+        id: ticket
+        env:
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          TICKET=$(echo "$TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          echo "id=$TICKET" >> "$GITHUB_OUTPUT"
+
+      - name: Build message
+        id: msg
+        env:
+          PR_NUM: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          PREVIEW=$(printf '%s' "$COMMENT_BODY" | head -c 300)
+          echo "slack_msg=:robot_face: Claude Code reviewed PR #${PR_NUM}: ${PREVIEW}" >> "$GITHUB_OUTPUT"
+          echo "linear_comment=Claude Code review on PR #${PR_NUM}: ${PREVIEW}" >> "$GITHUB_OUTPUT"
+
+      - name: Look up Linear issue
+        id: linear
+        if: steps.ticket.outputs.id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          TICKET_ID: ${{ steps.ticket.outputs.id }}
+        run: |
+          TICKET_NUM="${TICKET_ID#*-}"
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg q "query { issueSearch(filter: { number: { eq: $TICKET_NUM } }) { nodes { id } } }" '{query: $q}')")
+
+          ISSUE_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].id // empty')
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Add Linear comment
+        if: steps.linear.outputs.issue_id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.linear.outputs.issue_id }}
+          COMMENT_BODY: ${{ steps.msg.outputs.linear_comment }}
+        run: |
+          curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg id "$ISSUE_ID" \
+              --arg body "$COMMENT_BODY" \
+              '{query: "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", variables: {id: $id, body: $body}}')"
+
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MSG: ${{ steps.msg.outputs.slack_msg }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg text "$SLACK_MSG" '{text: $text}')"
           fi
