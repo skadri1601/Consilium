@@ -42,6 +42,17 @@ export class DebateQueueService {
     };
   }
 
+  async getActiveJobs(): Promise<
+    { debateId: string; progress: number; startedAt: Date }[]
+  > {
+    const activeJobs = await this.debateQueue.getActive();
+    return activeJobs.map((job) => ({
+      debateId: job.data.debateId,
+      progress: job.progress as number,
+      startedAt: new Date(job.processedOn || job.timestamp),
+    }));
+  }
+
   async removeJob(jobId: string) {
     const job = await this.debateQueue.getJob(jobId);
     if (job) {

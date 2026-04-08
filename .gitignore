@@ -69,6 +69,7 @@ htmlcov/
 playwright-report/
 test-results/
 apps/agents/scripts/
+agents/scripts/
 
 # Turbo
 .turbo/

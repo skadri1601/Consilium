@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
+import sentry_sdk
 from .service import DebatesService
 from .schema import DebateStartRequest, DebateStartResponse
 
@@ -96,6 +97,11 @@ async def stream_debate(
             detail=f"Debate {debate_id} not found"
         )
 
+    try:
+        sentry_sdk.set_user({"id": debate.get("user_id", "unknown")})
+    except Exception:
+        pass
+
     return StreamingResponse(
         service.stream_debate(debate_id, debate),
         media_type="text/event-stream",
@@ -105,3 +111,16 @@ async def stream_debate(
             "X-Accel-Buffering": "no"
         }
     )
+
+
+@router.get("/{debate_id}/events")
+async def get_debate_events(debate_id: str, since_id: int = 0):
+    from ...shared.database.redis import get_redis
+    redis = await get_redis()
+    if not redis:
+        raise HTTPException(status_code=503, detail="Redis unavailable")
+    try:
+        events = await redis.lrange(f"debate:{debate_id}:events", since_id, -1)
+        return {"events": events or [], "total": len(events or []), "since_id": since_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

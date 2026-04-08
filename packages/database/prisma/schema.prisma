@@ -153,6 +153,7 @@ model DebateSession {
   judgeModel       String?
   improvementScore Float?
   projectContext   Json?
+  queueJobId       String?
   conversationId   String?
   conversation     ConversationV2? @relation(fields: [conversationId], references: [id])
 

@@ -1,5 +1,7 @@
 """FastAPI application for Consilium AI Agents."""
 
+import platform
+import socket
 import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -8,32 +10,51 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 
-# Feature routers
 from src.features.council import council_router
 from src.features.agents import agents_router
 from src.features.streaming import streaming_router
 from src.features.health import health_router
 from src.features.debates import debates_router
 
-# Shared configuration
 from src.shared.config import settings
 
-# API prefix constant
 API_V1_PREFIX = "/api/v1"
 
-# Windows-specific event loop policy fix
 if sys.platform == "win32":
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-# Initialize Sentry
+def _get_local_ip() -> str:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "unknown"
+
+
 if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         traces_sample_rate=1.0,
         environment=settings.app_env,
+        send_default_pii=True,
+        attach_stacktrace=True,
+        include_local_variables=True,
+        max_breadcrumbs=50,
+        server_name=socket.gethostname(),
     )
+
+    sentry_sdk.set_context("system", {
+        "hostname": socket.gethostname(),
+        "os": f"{platform.system()} {platform.release()}",
+        "python_version": platform.python_version(),
+        "arch": platform.machine(),
+        "ip": _get_local_ip(),
+    })
 
 
 @asynccontextmanager

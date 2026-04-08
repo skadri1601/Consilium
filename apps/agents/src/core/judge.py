@@ -1,5 +1,4 @@
 import json
-import random
 import asyncio
 import logging
 from dataclasses import dataclass, field
@@ -15,6 +14,8 @@ from .judge_prompts import (
     STYLE_NORMALIZER_PROMPT,
 )
 from .agent_factory import AgentFactory
+from .anonymizer import Anonymizer, AnonymityMap
+from .shared import FALLBACK_RESPONSE, _sse, RETRY_BACKOFF, REDIS_TTL
 from ..shared.database.redis import get_redis
 from ..shared.config.models import get_provider_for_model
 
@@ -27,6 +28,10 @@ LABELS = [
     "Response A", "Response B", "Response C", "Response D",
     "Response E", "Response F", "Response G", "Response H",
 ]
+
+_CALL_TIMEOUT = 60
+_MAX_RETRIES = 2
+_RETRY_DELAYS = [2, 5]
 
 
 @dataclass
@@ -65,19 +70,27 @@ def _pick_available_model(
     return None
 
 
-def _format_sse(event: str, data: dict) -> str:
-    payload = {**data, "event": event}
-    return f"data: {json.dumps(payload)}\n\n"
-
-
 async def _call_model(
     model_id: str,
     api_keys: dict[str, str | None],
     prompt: str,
 ) -> str:
-    agent = AgentFactory.create(model_id, api_keys)
-    response, _ = await agent.generate_response(prompt)
-    return response
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            agent = AgentFactory.create(model_id, api_keys)
+            response, _ = await asyncio.wait_for(
+                agent.generate_response(prompt),
+                timeout=_CALL_TIMEOUT,
+            )
+            return response
+        except Exception as e:
+            last_exc = e
+            if attempt < _MAX_RETRIES:
+                delay = _RETRY_DELAYS[attempt] if attempt < len(_RETRY_DELAYS) else _RETRY_DELAYS[-1]
+                logger.warning("_call_model attempt %d failed (%s), retrying in %ds", attempt + 1, e, delay)
+                await asyncio.sleep(delay)
+    raise last_exc  # type: ignore[misc]
 
 
 async def _stream_model(
@@ -85,9 +98,26 @@ async def _stream_model(
     api_keys: dict[str, str | None],
     prompt: str,
 ) -> AsyncGenerator[str, None]:
-    agent = AgentFactory.create(model_id, api_keys)
-    async for chunk in agent.stream_response(prompt):
-        yield chunk
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            agent = AgentFactory.create(model_id, api_keys)
+            chunks_received = False
+            async for chunk in agent.stream_response(prompt):
+                chunks_received = True
+                yield chunk
+            if chunks_received:
+                return
+        except Exception as e:
+            last_exc = e
+            if attempt < _MAX_RETRIES:
+                delay = _RETRY_DELAYS[attempt] if attempt < len(_RETRY_DELAYS) else _RETRY_DELAYS[-1]
+                logger.warning("_stream_model attempt %d failed (%s), retrying in %ds", attempt + 1, e, delay)
+                await asyncio.sleep(delay)
+            else:
+                raise
+    if last_exc:
+        raise last_exc
 
 
 def _parse_json_response(text: str) -> dict:
@@ -114,20 +144,21 @@ def _parse_json_response(text: str) -> dict:
 def _anonymize_responses(
     responses: list[dict[str, str]],
 ) -> tuple[list[dict[str, str]], dict[str, str], dict[str, str]]:
-    shuffled = list(responses)
-    random.shuffle(shuffled)
+    model_ids = [r["model_id"] for r in responses]
+    anon_map = AnonymityMap(model_ids)
+    responses_dict = {r["model_id"]: r["text"] for r in responses}
+    redis_stub = type("_Stub", (), {"set": staticmethod(lambda *a, **kw: None)})()
+    anonymizer = Anonymizer(redis_stub)  # type: ignore[arg-type]
+    anonymized_raw = anonymizer.anonymize_responses(anon_map, responses_dict, round_number=1)
     label_to_model: dict[str, str] = {}
     model_to_label: dict[str, str] = {}
     anonymized: list[dict[str, str]] = []
-    for i, entry in enumerate(shuffled):
-        label = LABELS[i] if i < len(LABELS) else f"Response {chr(65 + i)}"
+    for entry in anonymized_raw:
+        label = entry["label"]
         model_id = entry["model_id"]
         label_to_model[label] = model_id
         model_to_label[model_id] = label
-        anonymized.append({
-            "label": label,
-            "text": entry["text"],
-        })
+        anonymized.append({"label": label, "text": entry["text"]})
     return anonymized, label_to_model, model_to_label
 
 

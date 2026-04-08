@@ -341,6 +341,109 @@ def _run_anthropic(prompt, system_prompt=None, model="haiku", max_duration=300):
     return "\n".join(text_parts) if text_parts else "Error: max turns reached"
 
 
+def run_claude_streaming(prompt, on_chunk, system_prompt=None, model="haiku", max_duration=None, max_retries=1):
+    model = sanitize_model(model)
+    logger = logging.getLogger("run_claude")
+
+    if max_duration is None:
+        max_duration = 300
+
+    for attempt in range(max_retries + 1):
+        try:
+            result = _run_anthropic_streaming(prompt, on_chunk, system_prompt=system_prompt, model=model, max_duration=max_duration)
+        except Exception as e:
+            logger.exception("run_claude_streaming attempt %d failed", attempt + 1)
+            result = f"Error: {e}"
+
+        if not result.startswith("Error:") or attempt >= max_retries:
+            return _cleanup_response(result)
+
+        logger.warning("Attempt %d failed: %s. Retrying...", attempt + 1, result[:100])
+
+    return _cleanup_response(result)
+
+
+def _run_anthropic_streaming(prompt, on_chunk, system_prompt=None, model="haiku", max_duration=300):
+    from agents.config import ANTHROPIC_API_KEY
+    import anthropic
+
+    logger = logging.getLogger("run_claude")
+
+    if not ANTHROPIC_API_KEY:
+        return "Error: ANTHROPIC_API_KEY not configured"
+
+    model_id = MODEL_MAP.get(model, model)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    messages = [{"role": "user", "content": prompt}]
+    system = system_prompt or ""
+
+    max_turns = 15
+    deadline = time.time() + max_duration
+    last_chunk_time = 0
+    throttle_interval = 3
+
+    for turn in range(max_turns):
+        if time.time() > deadline:
+            return "Error: request timed out"
+
+        accumulated_text = ""
+        has_tool_use = False
+        tool_results = []
+        content_blocks = []
+
+        with client.messages.stream(
+            model=model_id,
+            max_tokens=4096,
+            system=system,
+            tools=TOOLS,
+            messages=messages,
+        ) as stream:
+            for event in stream:
+                if hasattr(event, 'type'):
+                    if event.type == 'content_block_delta':
+                        if hasattr(event.delta, 'text'):
+                            accumulated_text += event.delta.text
+                            now = time.time()
+                            if now - last_chunk_time >= throttle_interval:
+                                last_chunk_time = now
+                                try:
+                                    on_chunk(accumulated_text)
+                                except Exception:
+                                    pass
+
+            response = stream.get_final_message()
+
+        text_parts = []
+        for block in response.content:
+            content_blocks.append(block)
+            if block.type == "text":
+                text_parts.append(block.text)
+            elif block.type == "tool_use":
+                has_tool_use = True
+                logger.info("Tool call: %s(%s)", block.name, json.dumps(block.input)[:100])
+                result = _execute_tool(block.name, block.input)
+                logger.info("Tool result: %s", result[:200])
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result,
+                })
+
+        if not has_tool_use:
+            final_text = "\n".join(text_parts)
+            try:
+                on_chunk(final_text)
+            except Exception:
+                pass
+            return final_text
+
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({"role": "user", "content": tool_results})
+
+    return "\n".join(text_parts) if text_parts else "Error: max turns reached"
+
+
 def _cleanup_response(text):
     if not text:
         return ""

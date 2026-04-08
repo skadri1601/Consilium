@@ -51,7 +51,8 @@ class CouncilService:
         # Generate consensus using council agent
         consensus = await self.council_agent.synthesize_consensus(
             query.query,
-            agent_responses
+            agent_responses,
+            api_keys=query.api_keys,
         )
 
         return CouncilResponse(

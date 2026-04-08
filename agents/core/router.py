@@ -4,6 +4,9 @@ import sys
 import os
 from agents.core.utils import run_tool as _run_tool, PROJECT_DIR
 
+TICKET_PREFIX = os.getenv("TICKET_PREFIX", "MYC")
+_TICKET_RE = rf"({TICKET_PREFIX}-\d+)"
+
 INTENT_PATTERNS = {
     "email_search": [
         r"(?:pull up|check|search|look up|look for|find|get)\s+(?:my\s+)?(?:email|inbox|mail).*(?:for|from|about)\s+(.+)",
@@ -30,17 +33,17 @@ INTENT_PATTERNS = {
         r"(?:make|open|file)\s+(?:a\s+)?(?:ticket|issue|task)\s+(?:about|for|on)\s+(.+)",
     ],
     "linear_status": [
-        r"(?:what'?s?|status|check)\s+(?:the\s+)?(?:status\s+(?:of\s+)?)?([A-Z]+-\d+)",
-        r"(?:show|get|pull up)\s+([A-Z]+-\d+)",
+        rf"(?:what'?s?|status|check)\s+(?:the\s+)?(?:status\s+(?:of\s+)?)?({TICKET_PREFIX}-\d+)",
+        rf"(?:show|get|pull up)\s+({TICKET_PREFIX}-\d+)",
     ],
     "linear_start": [
-        r"(?:start|begin)\s+(?:working\s+on\s+)?([A-Z]+-\d+)",
+        rf"(?:start|begin)\s+(?:working\s+on\s+)?({TICKET_PREFIX}-\d+)",
     ],
     "linear_assign": [
-        r"assign\s+([A-Z]+-\d+)\s+to\s+me",
+        rf"assign\s+({TICKET_PREFIX}-\d+)\s+to\s+me",
     ],
     "linear_move": [
-        r"move\s+([A-Z]+-\d+)\s+to\s+(.+)",
+        rf"move\s+({TICKET_PREFIX}-\d+)\s+to\s+(.+)",
     ],
     "linear_list": [
         r"(?:list|show|my)\s+(?:my\s+)?(?:ticket|issue|task)s",
@@ -69,11 +72,11 @@ INTENT_PATTERNS = {
         r"(?:priorities|priority|what\s+next|next\s+task)",
     ],
     "briefing": [
-        r"^(?:daily\s+)?(?:morning\s+|status\s+)?(?:briefing|digest)$",
-        r"(?:give|get|show|need|want)\s+(?:me\s+)?(?:the\s+)?(?:daily|status|full)\s+(?:report|briefing|digest|summary)",
-        r"(?:set\s+up|configure|schedule)\s+(?:daily|automated)\s+(?:report|briefing)",
-        r"^(?:status|daily)\s+(?:status\s+)?report$",
-        r"^(?:full\s+)?(?:report|summary|briefing)$",
+        r"^(?:daily\s+)?(?:morning\s+)?(?:briefing|digest)$",
+        r"(?:give|get|run|show)\s+(?:me\s+)?(?:the\s+)?(?:daily\s+)?(?:briefing|digest)",
+        r"(?:set\s+up|configure|schedule)\s+(?:daily|automated)\s+(?:briefing|digest)",
+        r"^daily\s+report$",
+        r"^(?:full\s+)?briefing$",
     ],
     "db_stats": [
         r"(?:platform|app|system)\s+stat(?:istic)?s",
@@ -123,11 +126,18 @@ def handle_email_unread(groups, session):
     if not results or not results.get("messages"):
         return "No unread emails! :white_check_mark:"
     msgs = results["messages"]
-    session["last_email_results"] = msgs
-    if msgs:
-        session["last_email_uid"] = msgs[0].get("uid")
-    lines = [f":email: *{results.get('unread_count', len(msgs))} unread emails:*\n"]
-    for i, e in enumerate(msgs[:10], 1):
+    notified_uids = session.setdefault("notified_email_uids", set())
+    new_msgs = [m for m in msgs if m.get("uid") not in notified_uids]
+    if not new_msgs:
+        return "No new unread emails since last check. :white_check_mark:"
+    session["last_email_results"] = new_msgs
+    session["last_email_uid"] = new_msgs[0].get("uid")
+    for m in new_msgs:
+        uid = m.get("uid")
+        if uid:
+            notified_uids.add(uid)
+    lines = [f":email: *{len(new_msgs)} unread emails:*\n"]
+    for i, e in enumerate(new_msgs[:10], 1):
         sender = e.get("from", "Unknown")[:40]
         subject = e.get("subject", "(no subject)")[:50]
         lines.append(f"{i}. *{subject}* — from {sender}")
@@ -273,9 +283,9 @@ HELP_TEXT = (
     "• `pull up the thread` — read last email\n\n"
     ":ticket: *Linear*\n"
     "• `create ticket about [X]` — new ticket\n"
-    "• `status MYC-42` — ticket details\n"
-    "• `start MYC-42` — move to In Progress\n"
-    "• `assign MYC-42 to me` — self-assign\n"
+    f"• `status {TICKET_PREFIX}-42` — ticket details\n"
+    f"• `start {TICKET_PREFIX}-42` — move to In Progress\n"
+    f"• `assign {TICKET_PREFIX}-42 to me` — self-assign\n"
     "• `list my tickets` — your tickets\n\n"
     ":rotating_light: *Monitoring*\n"
     "• `sentry status` — error summary\n"
@@ -329,7 +339,8 @@ def handle_linear_move(groups, session):
 
 
 def handle_linear_list(groups, session):
-    result = _run_tool("agents.tools.linear_api", "my-issues", "--email", "")
+    from agents.config import CONSILIUM_ADMIN_EMAIL
+    result = _run_tool("agents.tools.linear_api", "my-issues", "--email", CONSILIUM_ADMIN_EMAIL or "")
     if not result:
         return "No tickets found."
     if isinstance(result, list) and len(result) == 0:

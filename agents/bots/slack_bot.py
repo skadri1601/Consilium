@@ -1,44 +1,67 @@
 import argparse
-import json
 import re
-import sys
+import signal
 import threading
 import time
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from agents.config import DEFAULT_MODEL, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
+from agents.config import DEFAULT_MODEL, SENTRY_DSN, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
 from agents.core.base import run_claude, setup_logging, AGENTS_DIR
+try:
+    from agents.core.base import run_claude_streaming
+except ImportError:
+    run_claude_streaming = None
 from agents.core.router import route
-from agents.core import session as sess
-from agents.tools.task_queue import (
-    claim_next,
-    complete,
-    enqueue,
-    fail,
-    list_tasks,
-    purge_old,
-    recover_stale,
-    timeout_stale,
-)
-from agents.tools.memory_tool import check, track
+
+try:
+    from agents.core.worker_registry import WorkerRegistry, WorkerStatus
+except ImportError:
+    WorkerRegistry = None
+    WorkerStatus = None
+
+try:
+    from agents.core.telemetry import get_tracer
+    _tracer = get_tracer() if get_tracer else None
+except ImportError:
+    _tracer = None
+
+try:
+    from agents.core.redis_session import load, save, add_exchange, get_context_summary
+    class _SessionShim:
+        load = staticmethod(load)
+        save = staticmethod(save)
+        add_exchange = staticmethod(add_exchange)
+        get_context_summary = staticmethod(get_context_summary)
+    sess = _SessionShim()
+except ImportError:
+    from agents.core import session as sess
+
+try:
+    from agents.core.redis_queue import (
+        enqueue, claim_next, complete, fail, list_tasks, purge_old, recover_stale, timeout_stale,
+        heartbeat,
+    )
+except ImportError:
+    from agents.tools.task_queue import (
+        enqueue, claim_next, complete, fail, list_tasks, purge_old, recover_stale, timeout_stale,
+    )
+    heartbeat = None
 
 logger = setup_logging("slack_bot")
 
 MAX_THREAD_CONTEXT = 10
+NUM_WORKERS = 3
 
 app = App(token=SLACK_BOT_TOKEN)
 
 bot_user_id = None
-task_queue = []
 _active_threads = set()
 _conversation_contexts = {}
+_shutdown = threading.Event()
+_worker_registry = WorkerRegistry() if WorkerRegistry else None
 
-GREETING_PATTERNS = re.compile(
-    r"^(hi|hello|hey|yo|sup|what'?s up|howdy|good (morning|afternoon|evening))[\s!.?]*$"
-)
-GREETING_RESPONSE = "Hey! How can I help you today? Type `help` to see what I can do."
 
 def _fetch_thread_history(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
     try:
@@ -81,6 +104,13 @@ def _build_system_prompt():
 def run_master(prompt, model="haiku"):
     system_prompt = _build_system_prompt()
     return run_claude(prompt, system_prompt=system_prompt, model=model)
+
+
+def run_master_streaming(prompt, on_chunk, model="haiku"):
+    if run_claude_streaming is None:
+        return run_master(prompt, model)
+    system_prompt = _build_system_prompt()
+    return run_claude_streaming(prompt, on_chunk, system_prompt=system_prompt, model=model)
 
 
 def _text_to_blocks(text):
@@ -166,9 +196,7 @@ def _format_response(text):
 
 def _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session=None):
     if thread_session is None:
-        thread_session = sess.load(thread_ts)
-
-    thread_session = sess.load(thread_ts) if thread_ts else {}
+        thread_session = sess.load(thread_ts) if thread_ts else {}
 
     response, intent, handled = route(text, thread_session)
 
@@ -217,6 +245,12 @@ def handle_mention(event, client):
     thread_ts = event.get("thread_ts", ts)
     user_id = event.get("user", "")
 
+    try:
+        import sentry_sdk
+        sentry_sdk.set_user({"id": user_id, "username": event.get("user", "unknown")})
+    except Exception:
+        pass
+
     _track_thread(channel, thread_ts)
 
     thread_session = sess.load(thread_ts)
@@ -248,6 +282,13 @@ def handle_message(event, client):
     ts = event["ts"]
     thread_ts = event.get("thread_ts")
     user_id = event.get("user", "")
+
+    try:
+        import sentry_sdk
+        sentry_sdk.set_user({"id": user_id, "username": event.get("user", "unknown")})
+    except Exception:
+        pass
+
     is_dm = event.get("channel_type") == "im"
     is_thread_reply = thread_ts is not None and thread_ts != ts
 
@@ -282,16 +323,26 @@ def handle_message(event, client):
         )
 
 
-def run_worker(slack_client, model):
-    logger.info("Worker started")
+def run_worker(slack_client, model, worker_name="worker"):
+    logger.info("[%s] Started", worker_name)
+    if _worker_registry:
+        _worker_registry.register(worker_name)
     recover_stale()
 
     maintenance_counter = 0
 
-    while True:
-        task = claim_next()
+    while not _shutdown.is_set():
+        if _worker_registry and WorkerStatus:
+            _worker_registry.transition(worker_name, WorkerStatus.CLAIMING)
+        try:
+            task = claim_next(worker_id=worker_name)
+        except TypeError:
+            task = claim_next()
         if not task:
-            time.sleep(2)
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.IDLE)
+            if _shutdown.wait(timeout=2):
+                break
             maintenance_counter += 1
             if maintenance_counter >= 30:
                 timeout_stale(15)
@@ -304,7 +355,14 @@ def run_worker(slack_client, model):
         thread_ts = task["slack_thread_ts"]
         prompt = task["user_text"]
 
-        logger.info("Processing task %d: %s", task_id, prompt[:100])
+        logger.info("[%s] Processing task %d: %s", worker_name, task_id, prompt[:100])
+        if _worker_registry and WorkerStatus:
+            _worker_registry.transition(worker_name, WorkerStatus.PROCESSING, task_id=task_id)
+        if _tracer:
+            try:
+                _tracer.trace_task("claim", worker=worker_name, task_id=task_id)
+            except Exception:
+                pass
 
         thinking_msg = None
         try:
@@ -314,7 +372,18 @@ def run_worker(slack_client, model):
         except Exception:
             pass
 
+        _sentry_scope = None
         try:
+            try:
+                import sentry_sdk
+                _sentry_scope = sentry_sdk.push_scope()
+                scope = _sentry_scope.__enter__()
+                scope.set_tag("worker", worker_name)
+                scope.set_tag("task_id", task_id)
+                scope.set_context("task", {"channel": channel, "prompt": prompt[:200]})
+            except Exception:
+                pass
+
             thread_session = sess.load(thread_ts)
             thread_context = _fetch_thread_context(slack_client, channel, thread_ts)
             session_context = sess.get_context_summary(thread_session)
@@ -326,7 +395,37 @@ def run_worker(slack_client, model):
                 full_prompt = thread_context + context_block + "## Current request:\n" + prompt + "\n\n## IMPORTANT: Short follow-up. Continue from last exchange."
             else:
                 full_prompt = thread_context + context_block + "## Current request:\n" + prompt
-            result = run_master(full_prompt, model)
+
+            if thinking_msg and run_claude_streaming is not None:
+                if _worker_registry and WorkerStatus:
+                    _worker_registry.transition(worker_name, WorkerStatus.STREAMING, task_id=task_id)
+
+                def _stream_callback(partial_text):
+                    try:
+                        slack_client.chat_update(
+                            channel=channel,
+                            ts=thinking_msg["ts"],
+                            text=partial_text[:3000],
+                        )
+                    except Exception:
+                        pass
+
+                if heartbeat:
+                    try:
+                        heartbeat(task_id)
+                    except Exception:
+                        pass
+                try:
+                    result = run_master_streaming(full_prompt, _stream_callback, model)
+                except Exception:
+                    result = run_master(full_prompt, model)
+            else:
+                if heartbeat:
+                    try:
+                        heartbeat(task_id)
+                    except Exception:
+                        pass
+                result = run_master(full_prompt, model)
             response = _format_response(result)
 
             if thinking_msg:
@@ -343,34 +442,73 @@ def run_worker(slack_client, model):
             else:
                 _post_reply(slack_client, channel, thread_ts, response)
 
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.COMPLETING, task_id=task_id)
             complete(task_id, result[:500])
             _track_thread(channel, thread_ts)
 
             sess.add_exchange(thread_session, prompt, response)
             sess.save(thread_ts, thread_session)
 
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.IDLE)
+            if _tracer:
+                try:
+                    _tracer.trace_task("complete", worker=worker_name, task_id=task_id)
+                except Exception:
+                    pass
+
             try:
                 slack_client.reactions_add(channel=channel, name="white_check_mark", timestamp=task["slack_message_ts"])
             except Exception:
                 pass
 
+            if _sentry_scope:
+                try:
+                    _sentry_scope.__exit__(None, None, None)
+                except Exception:
+                    pass
+
         except Exception as e:
+            if _sentry_scope:
+                try:
+                    _sentry_scope.__exit__(type(e), e, e.__traceback__)
+                except Exception:
+                    pass
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.FAILED, task_id=task_id, detail=str(e)[:200])
+            if _tracer:
+                try:
+                    _tracer.trace_task("fail", worker=worker_name, task_id=task_id, error=str(e)[:200])
+                except Exception:
+                    pass
             logger.exception("Task %d failed", task_id)
             error_msg = "Sorry, I hit an issue processing that. Please try again."
+            posted = False
             if thinking_msg:
                 try:
                     slack_client.chat_update(channel=channel, ts=thinking_msg["ts"], text=error_msg)
+                    posted = True
                 except Exception:
                     pass
-            try:
-                slack_client.chat_postMessage(channel=channel, thread_ts=thread_ts, text=error_msg)
-            except Exception:
-                pass
+            if not posted:
+                try:
+                    slack_client.chat_postMessage(channel=channel, thread_ts=thread_ts, text=error_msg)
+                except Exception:
+                    pass
             fail(task_id, str(e))
+
+    if _worker_registry and WorkerStatus:
+        _worker_registry.transition(worker_name, WorkerStatus.SHUTDOWN)
+    logger.info("[%s] Stopped", worker_name)
 
 
 def main():
     global bot_user_id
+
+    if SENTRY_DSN:
+        import sentry_sdk
+        sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=0.1)
 
     parser = argparse.ArgumentParser(description="Consilium Slack Bot")
     parser.add_argument("--model", default=DEFAULT_MODEL)
@@ -380,11 +518,31 @@ def main():
     bot_user_id = auth["user_id"]
     logger.info("Bot user ID: %s", bot_user_id)
 
-    worker = threading.Thread(target=run_worker, args=(app.client, args.model), daemon=True)
-    worker.start()
+    def _signal_handler(sig, frame):
+        logger.info("Shutdown signal received, stopping workers...")
+        _shutdown.set()
+
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+
+    workers = []
+    for i in range(1, NUM_WORKERS + 1):
+        name = f"worker-{i}"
+        t = threading.Thread(target=run_worker, args=(app.client, args.model, name), daemon=True, name=name)
+        t.start()
+        workers.append(t)
+        logger.info("Started %s", name)
 
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
-    handler.start()
+    try:
+        handler.start()
+    except (KeyboardInterrupt, SystemExit):
+        _shutdown.set()
+
+    logger.info("Waiting for workers to finish (30s max)...")
+    for t in workers:
+        t.join(timeout=30)
+    logger.info("All workers stopped")
 
 
 if __name__ == "__main__":

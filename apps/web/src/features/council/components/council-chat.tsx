@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useCouncilStore } from "../store/council.store";
 import { AgentSelector } from "./agent-selector";
+import { DebateModeSelector } from "./debate-mode-selector";
 import { SynthesisOutput } from "@/components/council/synthesis-output";
 import { FeatureTooltip } from "../../../components/onboarding/feature-tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -71,7 +72,7 @@ export function CouncilChat() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents } = useCouncilStore();
+  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents, mode, setMode } = useCouncilStore();
   const { isLoaded: isAuthLoaded } = useAuth();
   const { preferences, isLoaded: isPrefsLoaded } = useUserPreferences();
   const selectedAgentNames = selectedAgents.map(
@@ -193,6 +194,7 @@ export function CouncilChat() {
         body: JSON.stringify({
           topic,
           models: selectedAgents,
+          mode,
           ...(selectedPersonaId && { personaId: selectedPersonaId }),
         }),
       });
@@ -364,6 +366,8 @@ export function CouncilChat() {
   return (
     <div className="flex flex-col gap-4">
       <AgentSelector />
+
+      <DebateModeSelector selectedMode={mode} onModeChange={setMode} disabled={isLoading} />
 
       {usingFreeModels && (
         <div className="rounded-lg border border-green-500/30 bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400 flex items-center justify-between">

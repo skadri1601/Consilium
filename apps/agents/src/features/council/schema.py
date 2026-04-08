@@ -15,6 +15,7 @@ class CouncilQuery(BaseModel):
     )
     user_id: str = Field(..., description="User ID for authentication")
     tenant_id: str = Field(..., description="Tenant ID for multi-tenancy")
+    api_keys: Optional[dict] = Field(None, description="API keys for model providers")
 
 
 class AgentResponse(BaseModel):
@@ -46,3 +47,4 @@ class CouncilResponse(BaseModel):
         None,
         description="Total cost in USD"
     )
+    scores: Optional[dict] = Field(None, description="Per-model judge scores")

@@ -2,6 +2,8 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
@@ -12,6 +14,7 @@ import { ApiKeysService } from "../api-keys/api-keys.service";
 import { AiWorkersClient } from "./ai-workers.client";
 import { PersonasService } from "../personas/personas.service";
 import { MODEL_PRICING, FREE_FALLBACK_MODELS } from "./model-pricing";
+import { DebateQueueService } from "../../shared/queue/debate-queue.service";
 
 @Injectable()
 export class DebatesService {
@@ -20,6 +23,8 @@ export class DebatesService {
     private apiKeysService: ApiKeysService,
     private aiWorkersClient: AiWorkersClient,
     private personasService: PersonasService,
+    @Inject(forwardRef(() => DebateQueueService))
+    private debateQueueService: DebateQueueService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -117,6 +122,93 @@ export class DebatesService {
     }
 
     return debate;
+  }
+
+  async createDebateViaQueue(
+    userId: string,
+    dto: CreateDebateDto,
+  ): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        "User not found. Please ensure your account is synced.",
+      );
+    }
+
+    const apiKeys = await this.apiKeysService.getUserApiKeys(userId);
+
+    const hasKeys =
+      apiKeys.openaiKey ||
+      apiKeys.anthropicKey ||
+      apiKeys.googleKey ||
+      apiKeys.groqKey ||
+      apiKeys.xaiKey;
+
+    let useFallback = false;
+    if (!hasKeys) {
+      useFallback = true;
+    }
+
+    const mode = dto.mode || "council";
+    const debateSource = dto.debateSource || "web";
+
+    const effectiveModels = useFallback
+      ? Array.from(
+          { length: Math.max(dto.models.length, 2) },
+          () => FREE_FALLBACK_MODELS.debater,
+        )
+      : dto.models;
+
+    const estimated = this.estimateCost(dto.topic, effectiveModels, mode);
+
+    let conversationId = dto.conversationId;
+    if (!conversationId) {
+      const conversation = await this.prisma.conversationV2.create({
+        data: {
+          userId: user.id,
+          title: dto.topic.slice(0, 100),
+        },
+      });
+      conversationId = conversation.id;
+    }
+
+    const debate = await this.prisma.debateSession.create({
+      data: {
+        userId: user.id,
+        topic: dto.topic,
+        status: "pending",
+        modelsUsed: effectiveModels,
+        totalCost: 0,
+        mode,
+        debateSource,
+        estimatedCost: estimated.estimatedCost,
+        conversationId,
+        ...(dto.projectContext && { projectContext: dto.projectContext }),
+      },
+    });
+
+    const job = await this.debateQueueService.addDebateJob({
+      debateId: debate.id,
+      topic: dto.topic,
+      models: effectiveModels,
+      userId,
+      apiKeys: {
+        openaiKey: apiKeys.openaiKey,
+        anthropicKey: apiKeys.anthropicKey,
+        googleKey: apiKeys.googleKey,
+        groqKey: apiKeys.groqKey,
+      },
+    });
+
+    await this.prisma.debateSession.update({
+      where: { id: debate.id },
+      data: { queueJobId: job.id },
+    });
+
+    return { ...debate, queueJobId: job.id };
   }
 
   async findAll(
