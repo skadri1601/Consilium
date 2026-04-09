@@ -111,6 +111,12 @@ test_*.js
 debug_*.js
 scratch.*
 
+# Test files
+**/test_*.py
+**/tests/
+**/benchmark_results/
+**/.pytest_cache/
+
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md
 /files/backend-README.md

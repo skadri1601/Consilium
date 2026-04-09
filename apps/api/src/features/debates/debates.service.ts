@@ -175,12 +175,14 @@ export class DebatesService {
       apiKeys,
     });
 
+    const queueJobId = job.id ?? debate.id;
+
     await this.prisma.debateSession.update({
       where: { id: debate.id },
-      data: { queueJobId: job.id },
+      data: { queueJobId },
     });
 
-    return { ...debate, queueJobId: job.id };
+    return { ...debate, queueJobId };
   }
 
   async findAll(
@@ -250,10 +252,7 @@ export class DebatesService {
     return debate;
   }
 
-  async findConversationDebates(
-    conversationId: string,
-    clerkId: string,
-  ) {
+  async findConversationDebates(conversationId: string, clerkId: string) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -405,7 +404,10 @@ export class DebatesService {
     return { id, deleted: true };
   }
 
-  async retryDebate(id: string, clerkId: string): Promise<DebateSession | null> {
+  async retryDebate(
+    id: string,
+    clerkId: string,
+  ): Promise<DebateSession | null> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -455,7 +457,10 @@ export class DebatesService {
     });
   }
 
-  async updateTotalCost(sessionId: string, cost: number): Promise<DebateSession> {
+  async updateTotalCost(
+    sessionId: string,
+    cost: number,
+  ): Promise<DebateSession> {
     return this.prisma.debateSession.update({
       where: { id: sessionId },
       data: { totalCost: { increment: cost } },
@@ -500,7 +505,8 @@ export class DebatesService {
   }
 
   estimateCost(topic: string, models: string[], mode: string) {
-    const rounds = (DEBATE_MODES as Record<string, { rounds: number }>)[mode]?.rounds || 3;
+    const rounds =
+      (DEBATE_MODES as Record<string, { rounds: number }>)[mode]?.rounds || 3;
     const avgInputTokens = Math.min(topic.length * 2, 2000);
     const avgOutputTokens = 800;
 

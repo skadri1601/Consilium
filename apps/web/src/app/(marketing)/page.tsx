@@ -1,65 +1,449 @@
-import { Hero } from "@/components/hero";
-import { FeatureGrid } from "@/components/features";
-import { Zap, Shield, Code, Activity, FileText, Settings } from "lucide-react";
+"use client";
 
-const features = [
+import { useState } from "react";
+import Link from "next/link";
+import { buttonVariants } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { cn } from "@/shared/lib/utils";
+import {
+  Zap,
+  Shield,
+  Users,
+  Eye,
+  Target,
+  BarChart3,
+  Sparkles,
+  ArrowRight,
+  ExternalLink,
+  Code,
+  FileText,
+  Settings,
+  Key,
+  CheckCircle2,
+  X,
+  MessageSquare,
+  AlertTriangle,
+  History,
+  Search,
+  Send,
+} from "lucide-react";
+
+const steps = [
   {
-    icon: <Zap className="h-8 w-8" />,
-    title: "Open Source",
-    description:
-      "Fully open source. Self-host or contribute to the project on GitHub.",
+    icon: <MessageSquare className="h-6 w-6" />,
+    title: "Propose",
+    description: "Each model independently analyzes the problem and presents its initial position.",
   },
   {
-    icon: <Shield className="h-8 w-8" />,
-    title: "Bring Your Own Keys",
-    description:
-      "Use your own API keys for OpenAI, Anthropic, Google, XAI, and Groq. Your keys, your control.",
+    icon: <AlertTriangle className="h-6 w-6" />,
+    title: "Challenge",
+    description: "Models cross-examine each other, probing assumptions and identifying weaknesses.",
   },
   {
-    icon: <Code className="h-8 w-8" />,
-    title: "Latest AI Models",
-    description:
-      "Claude Opus 4.6, Sonnet 4.5, GPT-4o, o1, Gemini 2.0, Grok, and more. Mix the best models for optimal results.",
+    icon: <History className="h-6 w-6" />,
+    title: "Rebut",
+    description: "Models refine their positions based on challenges, strengthening or revising arguments.",
   },
   {
-    icon: <Activity className="h-8 w-8" />,
-    title: "Real-Time Streaming",
-    description:
-      "Watch agents debate in real-time with Server-Sent Events streaming.",
+    icon: <Search className="h-6 w-6" />,
+    title: "Evaluate",
+    description: "A judge model assesses argument quality, evidence strength, and logical consistency.",
   },
   {
-    icon: <FileText className="h-8 w-8" />,
-    title: "Export Formats",
-    description:
-      "Export synthesis as Markdown, .cursorrules files, or plain text.",
+    icon: <Send className="h-6 w-6" />,
+    title: "Vote",
+    description: "Models cast confidence-weighted votes on the strongest positions.",
   },
   {
-    icon: <Settings className="h-8 w-8" />,
-    title: "Self-Hostable",
-    description:
-      "Run Consilium on your own infrastructure with Docker Compose.",
+    icon: <Sparkles className="h-6 w-6" />,
+    title: "Synthesize",
+    description: "A final synthesis integrates the best arguments into a single, rigorous answer.",
   },
 ];
 
+const modes = [
+  {
+    key: "quick",
+    icon: <Zap className="h-5 w-5" />,
+    title: "Quick",
+    description: "Single round, fastest response. Best for simple questions needing a fast sanity check.",
+    time: "~15s",
+  },
+  {
+    key: "council",
+    icon: <Users className="h-5 w-5" />,
+    title: "Council",
+    description: "Multi-round deliberation between models. The default mode for most decisions.",
+    time: "~45s",
+  },
+  {
+    key: "deep",
+    icon: <FileText className="h-5 w-5" />,
+    title: "Deep",
+    description: "Extended deliberation with sub-agent research for complex, high-stakes questions.",
+    time: "~90s",
+  },
+  {
+    key: "blind",
+    icon: <Eye className="h-5 w-5" />,
+    title: "Blind",
+    description: "Model names hidden until scored. Eliminates brand bias from evaluation.",
+    time: "~45s",
+  },
+  {
+    key: "redteam",
+    icon: <Target className="h-5 w-5" />,
+    title: "Red Team",
+    description: "Adversarial assessment where models actively try to break each other's arguments.",
+    time: "~120s",
+  },
+  {
+    key: "jury",
+    icon: <Shield className="h-5 w-5" />,
+    title: "Jury",
+    description: "Panel deliberation with structured voting. Models must reach consensus or declare dissent.",
+    time: "~60s",
+  },
+  {
+    key: "market",
+    icon: <BarChart3 className="h-5 w-5" />,
+    title: "Market",
+    description: "Prediction market style confidence aggregation. Models stake credibility on positions.",
+    time: "~90s",
+  },
+  {
+    key: "auto",
+    icon: <Sparkles className="h-5 w-5" />,
+    title: "Auto",
+    description: "Automatically selects the best deliberation mode based on topic complexity.",
+    time: "~45s",
+  },
+];
+
+const comparisonRows = [
+  { feature: "Multiple model perspectives", deliberation: true, orchestration: true },
+  { feature: "Models challenge each other", deliberation: true, orchestration: false },
+  { feature: "Structured argumentation", deliberation: true, orchestration: false },
+  { feature: "Dissent tracking", deliberation: true, orchestration: false },
+  { feature: "Confidence-weighted voting", deliberation: true, orchestration: false },
+  { feature: "Adversarial red-teaming", deliberation: true, orchestration: false },
+  { feature: "Blind evaluation mode", deliberation: true, orchestration: false },
+  { feature: "Audit trail of reasoning", deliberation: true, orchestration: false },
+];
+
+const pythonCode = `from consilium import Consilium
+
+client = Consilium(api_key="your-key")
+
+result = client.deliberate(
+    question="Should we migrate to microservices?",
+    mode="council",
+    models=["claude-sonnet-4-20250514",
+            "gpt-4o", "gemini-2.0-flash"],
+)
+
+print(result.synthesis)
+print(result.confidence)
+print(result.dissenting_views)`;
+
+const typescriptCode = `import { Consilium } from "@consilium/sdk";
+
+const client = new Consilium({ apiKey: "your-key" });
+
+const result = await client.deliberate({
+  question: "Should we migrate to microservices?",
+  mode: "council",
+  models: ["claude-sonnet-4-20250514",
+           "gpt-4o", "gemini-2.0-flash"],
+});
+
+console.log(result.synthesis);
+console.log(result.confidence);
+console.log(result.dissentingViews);`;
+
+const cliCode = `# Quick deliberation
+consilium deliberate \\
+  --question "Should we migrate to microservices?" \\
+  --mode council \\
+  --models claude-sonnet-4,gpt-4o,gemini-2.0
+
+# Red team assessment
+consilium deliberate \\
+  --question "Is our auth system secure?" \\
+  --mode redteam \\
+  --output markdown`;
+
+const papers = [
+  {
+    title: "Debating with More Persuasive LLMs Leads to More Truthful Answers",
+    authors: "Akbir Khan et al.",
+    venue: "ICML 2024",
+    insight: "AI debate produces more truthful answers than single-model prompting, even when one debater argues for the wrong answer.",
+  },
+  {
+    title: "Improving Factuality and Reasoning via Multiagent Debate",
+    authors: "Yilun Du et al.",
+    venue: "ICML 2024",
+    insight: "Multi-agent debate significantly improves factual accuracy and mathematical reasoning across multiple benchmarks.",
+  },
+  {
+    title: "LLM Discussion: Enhancing the Creativity of LLMs via Discussion Framework",
+    authors: "Li et al.",
+    venue: "AAAI 2024",
+    insight: "Structured discussion between LLMs produces more creative and diverse outputs than individual generation.",
+  },
+  {
+    title: "Scalable AI Safety via Doubly-Efficient Debate",
+    authors: "Irving et al.",
+    venue: "AI Safety Research",
+    insight: "Debate between AI systems provides a scalable mechanism for aligning AI behavior with human values.",
+  },
+];
+
+const tabs = ["Python", "TypeScript", "CLI"] as const;
+type Tab = (typeof tabs)[number];
+
+function CodeBlock({ code }: { code: string }) {
+  return (
+    <pre className="overflow-x-auto rounded-lg bg-muted/50 border p-4 text-sm leading-relaxed">
+      <code className="text-muted-foreground">{code}</code>
+    </pre>
+  );
+}
+
 export default function LandingPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("Python");
+
   return (
     <>
-      <Hero
-        capsuleText="🎉 Now supporting Claude Opus 4.6, Sonnet 4.5, GPT-4o & more"
-        capsuleLink="https://github.com/skadri1601/"
-        title="Multi-Agent Debate for Better Prompts"
-        subtitle="Get a clear, synthesized recommendation. Consilium runs multiple AI models in debate and produces a single prompt you can use in Cursor, Copilot, or any editor."
-        primaryCtaText="Get Started"
-        primaryCtaLink="/sign-up"
-        secondaryCtaText="View on GitHub"
-        secondaryCtaLink="https://github.com/skadri1601/"
-      />
+      <section className="space-y-6 py-32 md:py-48 lg:py-52">
+        <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
+          <Link
+            href="https://github.com/skadri1601/Consilium"
+            className="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
+            target="_blank"
+          >
+            Open source under MIT license
+          </Link>
+          <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
+            Structured Deliberation Between AI Models
+          </h1>
+          <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
+            Not another orchestration tool. Consilium makes AI models argue, challenge, and
+            synthesize — producing answers with tracked confidence, dissent, and audit trails.
+          </p>
+          <div className="flex gap-4 flex-wrap justify-center">
+            <Link
+              href="https://github.com/skadri1601/Consilium"
+              target="_blank"
+              className={cn(buttonVariants({ size: "lg" }))}
+            >
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+            <Link
+              href="/council"
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+            >
+              View Demo
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
 
-      <FeatureGrid
-        title="Features"
-        subtitle="Everything you need to build better prompts with multi-agent AI debate."
-        items={features}
-      />
+      <section id="how-it-works" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">How It Works</h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            A structured 6-phase deliberation process inspired by academic debate and jury systems.
+          </p>
+        </div>
+        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
+          {steps.map((step, i) => (
+            <div key={i} className="relative overflow-hidden rounded-lg border bg-background p-2">
+              <div className="flex h-[180px] flex-col rounded-md p-6 gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    {i + 1}
+                  </span>
+                  {step.icon}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="modes" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">8 Deliberation Modes</h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Choose the right deliberation strategy for your use case.
+          </p>
+        </div>
+        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-4">
+          {modes.map((mode) => (
+            <Card key={mode.key} variant="interactive" className="h-full">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {mode.icon}
+                    <CardTitle className="text-base">{mode.title}</CardTitle>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{mode.time}</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{mode.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section id="comparison" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Why Deliberation {'>'} Orchestration
+          </h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Orchestration runs models in parallel and picks the best. Deliberation makes them argue until the truth emerges.
+          </p>
+        </div>
+        <div className="mx-auto max-w-3xl overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3 px-4 font-medium">Capability</th>
+                <th className="text-center py-3 px-4 font-medium">Deliberation</th>
+                <th className="text-center py-3 px-4 font-medium text-muted-foreground">Orchestration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map((row, i) => (
+                <tr key={i} className="border-b border-border/50">
+                  <td className="py-3 px-4">{row.feature}</td>
+                  <td className="py-3 px-4 text-center">
+                    {row.deliberation ? (
+                      <CheckCircle2 className="h-4 w-4 mx-auto text-green-500" />
+                    ) : (
+                      <X className="h-4 w-4 mx-auto text-muted-foreground" />
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    {row.orchestration ? (
+                      <CheckCircle2 className="h-4 w-4 mx-auto text-green-500" />
+                    ) : (
+                      <X className="h-4 w-4 mx-auto text-muted-foreground" />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="sdk" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">SDK Examples</h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Integrate deliberation into your stack in minutes.
+          </p>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <div className="flex border-b mb-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
+                  activeTab === tab
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          {activeTab === "Python" && <CodeBlock code={pythonCode} />}
+          {activeTab === "TypeScript" && <CodeBlock code={typescriptCode} />}
+          {activeTab === "CLI" && <CodeBlock code={cliCode} />}
+        </div>
+      </section>
+
+      <section id="research" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">Research Backed</h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Consilium&apos;s deliberation approach is grounded in peer-reviewed research.
+          </p>
+        </div>
+        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl">
+          {papers.map((paper, i) => (
+            <Card key={i} variant="default" className="h-full">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base leading-snug">{paper.title}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {paper.authors} — {paper.venue}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{paper.insight}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section id="open-source" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">Open Source</h2>
+          <p className="text-muted-foreground sm:text-lg">
+            Run it your way. No vendor lock-in.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
+              <Shield className="h-4 w-4" />
+              MIT License
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
+              <Settings className="h-4 w-4" />
+              Self-Hostable
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
+              <Key className="h-4 w-4" />
+              Bring Your Own Keys
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
+              <Code className="h-4 w-4" />
+              Fork & Extend
+            </span>
+          </div>
+          <div className="flex gap-4 pt-4">
+            <Link
+              href="https://github.com/skadri1601/Consilium"
+              target="_blank"
+              className={cn(buttonVariants({ size: "lg" }))}
+            >
+              View on GitHub
+            </Link>
+            <Link
+              href="/sign-up"
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+            >
+              Try Hosted Version
+            </Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

@@ -14,4 +14,4 @@ def _now_iso() -> str:
 
 def _sse(event: str, data: dict) -> str:
     payload = {**data, "event": event}
-    return f"data: {json.dumps(payload)}\n\n"
+    return f"event: {event}\ndata: {json.dumps(payload)}\n\n"

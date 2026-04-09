@@ -39,6 +39,7 @@ model User {
   agents           Agent[]
   debateSessions   DebateSession[]
   personas         AgentPersona[]
+  deliberationRuns DeliberationRun[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -342,4 +343,55 @@ model AgentFailure {
   @@index([modelId])
   @@index([debateId])
   @@index([createdAt])
+}
+
+// ============================================
+// Deliberation Runs & Audit Trail
+// ============================================
+
+model DeliberationRun {
+  id             String    @id @default(cuid())
+  topic          String    @db.Text
+  mode           String
+  models         Json      @default("[]")
+  judgeModel     String?
+  status         String    @default("pending")
+  goldenPrompt   String?   @db.Text
+  dissentReport  Json?
+  costTotal      Float     @default(0)
+  tokensTotal    Int       @default(0)
+  startedAt      DateTime?
+  completedAt    DateTime?
+
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  auditEntries   AuditEntry[]
+
+  createdAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AuditEntry {
+  id              String          @id @default(cuid())
+  deliberationId  String
+  deliberation    DeliberationRun @relation(fields: [deliberationId], references: [id], onDelete: Cascade)
+  step            String
+  modelId         String
+  inputSummary    String          @db.Text
+  outputSummary   String          @db.Text
+  latencyMs       Int             @default(0)
+  tokensIn        Int             @default(0)
+  tokensOut       Int             @default(0)
+  cost            Float           @default(0)
+  roundNumber     Int
+  timestamp       DateTime        @default(now())
+
+  createdAt       DateTime        @default(now())
+
+  @@index([deliberationId])
+  @@index([modelId])
+  @@index([timestamp])
 }

@@ -87,7 +87,9 @@ export class DebatesController {
     const parsedOffset = offset ? parseInt(offset, 10) : 0;
     return this.debatesService.findAll(
       user.userId,
-      Number.isNaN(parsedLimit) || parsedLimit < 1 ? 20 : Math.min(parsedLimit, 100),
+      Number.isNaN(parsedLimit) || parsedLimit < 1
+        ? 20
+        : Math.min(parsedLimit, 100),
       Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset,
       search,
     );
@@ -204,7 +206,10 @@ export class DebatesController {
         if (!done) {
           done = true;
           subscriber.next({
-            data: JSON.stringify({ event: "timeout", message: "Stream timed out" }),
+            data: JSON.stringify({
+              event: "timeout",
+              message: "Stream timed out",
+            }),
           });
           subscriber.complete();
         }

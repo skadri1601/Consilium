@@ -19,8 +19,8 @@ import { cn } from "@/shared/lib/utils";
 export function PreferencesSettings() {
   const { preferences, updatePreferences, isLoaded } = useUserPreferences();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  const [selectedMode, setSelectedMode] = useState<"blind" | "visible">(
-    "visible"
+  const [selectedMode, setSelectedMode] = useState<"quick" | "council" | "deep" | "blind">(
+    "council"
   );
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -48,7 +48,7 @@ export function PreferencesSettings() {
     });
   };
 
-  const handleModeChange = (mode: "blind" | "visible") => {
+  const handleModeChange = (mode: "quick" | "council" | "deep" | "blind") => {
     setSelectedMode(mode);
     setDirty(true);
   };
@@ -176,10 +176,10 @@ export function PreferencesSettings() {
           <div className="flex flex-col gap-3">
             <button
               type="button"
-              onClick={() => handleModeChange("visible")}
+              onClick={() => handleModeChange("council")}
               className={cn(
                 "w-full rounded-lg border p-4 text-left transition-colors",
-                selectedMode === "visible"
+                selectedMode === "council"
                   ? "border-primary bg-primary/10"
                   : "border-border hover:bg-accent"
               )}
@@ -188,12 +188,12 @@ export function PreferencesSettings() {
                 <div
                   className={cn(
                     "h-4 w-4 rounded-full border-2 flex items-center justify-center",
-                    selectedMode === "visible"
+                    selectedMode === "council"
                       ? "border-primary"
                       : "border-muted-foreground"
                   )}
                 >
-                  {selectedMode === "visible" && (
+                  {selectedMode === "council" && (
                     <div className="h-2 w-2 rounded-full bg-primary" />
                   )}
                 </div>

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "consilium": {
+      "command": "python",
+      "args": ["-m", "src.features.deliberation.mcp_server"],
+      "cwd": "apps/agents"
+    }
+  }
+}

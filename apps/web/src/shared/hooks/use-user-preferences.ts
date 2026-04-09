@@ -27,19 +27,22 @@ export function useUserPreferences() {
       return DEFAULT_PREFERENCES;
     }
 
-    const meta = user.unsafeMetadata as Partial<UserPreferences>;
+    const meta = user.unsafeMetadata as Record<string, unknown>;
+
+    const rawMode = meta.defaultMode as string | undefined;
+    const resolvedMode =
+      rawMode === "visible"
+        ? "council"
+        : rawMode === "quick" || rawMode === "council" || rawMode === "deep" || rawMode === "blind"
+          ? rawMode
+          : DEFAULT_PREFERENCES.defaultMode;
 
     return {
       defaultAgents:
         Array.isArray(meta.defaultAgents) && meta.defaultAgents.length > 0
-          ? meta.defaultAgents
+          ? (meta.defaultAgents as string[])
           : DEFAULT_PREFERENCES.defaultAgents,
-      defaultMode:
-        meta.defaultMode === "visible"
-          ? "council"
-          : meta.defaultMode === "quick" || meta.defaultMode === "council" || meta.defaultMode === "deep" || meta.defaultMode === "blind"
-            ? meta.defaultMode
-            : DEFAULT_PREFERENCES.defaultMode,
+      defaultMode: resolvedMode,
     };
   }, [user?.unsafeMetadata]);
 

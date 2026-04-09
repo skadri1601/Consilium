@@ -2,10 +2,11 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 import { MarketingFooter } from "@/components/layout/marketing-footer";
 
 const navItems = [
-  { title: "Features", href: "/#features" },
+  { title: "How It Works", href: "/#how-it-works" },
+  { title: "Modes", href: "/#modes" },
+  { title: "SDK", href: "/#sdk" },
   { title: "About", href: "/about" },
-  { title: "FAQ", href: "/faq" },
-  { title: "GitHub", href: "https://github.com/skadri1601/", external: true },
+  { title: "GitHub", href: "https://github.com/skadri1601/Consilium", external: true },
 ];
 
 export default function MarketingLayout({

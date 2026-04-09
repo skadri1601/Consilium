@@ -63,11 +63,7 @@ export class DebateQueueService {
     } catch {
       const state = await job.getState().catch(() => "unknown");
       if (state === "active" || state === "unknown") {
-        await job.moveToFailed(
-          new Error("Removed while active"),
-          "0",
-          false,
-        );
+        await job.moveToFailed(new Error("Removed while active"), "0", false);
       }
     }
   }

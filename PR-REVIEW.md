@@ -41,11 +41,12 @@ path/to/file.ts  — what changed
 ```
 
 ### How I Tested
-- Unit tests: `python -m agents.scripts.test_pipeline_e2e` (44/44 pass)
+- Start all services: `./run.sh`
+- Deliberation tests: `cd apps/agents && python -m pytest tests/deliberation/ --noconftest`
+- Bot tests: `python -m agents.scripts.test_pipeline_e2e`
+- Type check: `pnpm typecheck`
+- Lint: `pnpm lint`
 - Manual test: [describe what you did]
-- Import check: `python -c "from module import thing; print('OK')"`
-- Syntax check: `python -c "import ast; ast.parse(open('file.py').read())"`
-- Type check: `pnpm typecheck` (for TypeScript)
 
 ### Checklist
 - [ ] No duplicate types (use packages/shared/)

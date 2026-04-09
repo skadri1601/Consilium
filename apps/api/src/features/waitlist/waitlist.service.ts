@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-} from "@nestjs/common";
+import { Injectable, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { CreateWaitlistDto } from "./dto/create-waitlist.dto";
 

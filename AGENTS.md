@@ -19,62 +19,61 @@ agents/
 │   ├── lanes.py          — Pipeline state machine (error → ticket → PR → merge → verify)
 │   ├── recovery.py       — 10 failure scenarios with multi-step recipes + escalation
 │   ├── telemetry.py      — Structured event recording (Redis + JSONL)
-│   ├── hooks.py          — Pre/post tool execution hooks
-│   ├── worker_registry.py — Worker lifecycle (7 states: IDLE→CLAIMING→PROCESSING→...)
-│   ├── task_packet.py    — Structured task specs with acceptance criteria
-│   └── tool_registry.py  — @tool decorator, auto-schema, permission levels
+│   └── worker_registry.py — Worker lifecycle (7 states)
 ├── tools/                — CLI tool modules (linear_api, sentry_api, email_imap, etc.)
 ├── config.py             — All env vars, model validation
 └── run_all.py            — Orchestrator (slack_bot + monitor_agent)
 ```
 
-### 2. Debate Engine (apps/agents/)
-Multi-model AI debate orchestration.
+### 2. Deliberation Engine (apps/agents/)
+Multi-model structured deliberation with 8 modes and 13 core modules.
 
 ```
 apps/agents/src/
 ├── core/
-│   ├── orchestrator.py   — 3-round debate with convergence detection
-│   ├── judge.py          — 5-phase synthesis (claims → cross-ref → disputes → scoring → synthesis)
-│   ├── shared.py         — Constants (FALLBACK_RESPONSE, _sse, _now_iso)
-│   ├── circuit_breaker.py — Per-provider failure tracking (async-safe)
-│   ├── convergence.py    — Cosine similarity via OpenAI embeddings
-│   ├── cost_tracker.py   — Per-model token/cost accounting
-│   └── anonymizer.py     — Blind mode response anonymization
+│   ├── orchestrator.py   — Legacy 3-round debate (being replaced by deliberation engine)
+│   ├── agent_factory.py  — Multi-provider LLM routing (OpenAI, Anthropic, Google, Groq, xAI)
+│   ├── circuit_breaker.py — Per-provider failure tracking
+│   └── cost_tracker.py   — Per-model token/cost accounting
 ├── features/
-│   ├── agents/           — 5 LLM providers (OpenAI, Anthropic, Google, Groq, xAI)
+│   ├── deliberation/     — NEW: Full deliberation engine
+│   │   ├── deliberation_graph.py  — State machine: 13 phases, 8 modes
+│   │   ├── argumentation.py       — Structured Claim/Challenge/Rebuttal JSON prompts
+│   │   ├── voting.py              — Condorcet, Borda, Ranked Pairs, Copeland
+│   │   ├── convergence_v2.py      — Kendall tau + Jaccard + concession rate (threshold 0.85)
+│   │   ├── dissent.py             — Agglomerative clustering for minority positions
+│   │   ├── confidence.py          — Behavioral calibration via explanation stability
+│   │   ├── blind_eval.py          — Identity stripping + K=3 orderings + verbosity normalization
+│   │   ├── cost_router.py         — Feature extraction → complexity score → mode routing
+│   │   ├── red_team.py            — 8-category attack/defend/judge cycle
+│   │   ├── truth_market.py        — Log-opinion-pool probabilistic consensus
+│   │   ├── audit.py               — Per-call cost/latency/token tracking
+│   │   ├── mcp_server.py          — FastMCP server (3 tools)
+│   │   ├── types.py               — All shared dataclasses and enums
+│   │   ├── router.py              — FastAPI endpoints for deliberation
+│   │   ├── templates/             — Vertical templates (6 templates)
+│   │   └── benchmarks/            — MMLU, TruthfulQA, HumanEval benchmark suite
 │   ├── council/          — Council consensus synthesis
 │   ├── debates/          — Debate creation + SSE streaming
 │   └── streaming/        — Real-time event streaming
-└── main.py               — FastAPI app with Sentry + request timing
+└── main.py               — FastAPI app with all routers
 ```
 
-## Key Patterns
-
-### Recovery (agents/core/recovery.py)
-Every external API call is wrapped in recovery context:
-```python
-with recovery_engine.with_recovery(FailureScenario.SENTRY_UNREACHABLE):
-    check_sentry(state)
-```
-10 scenarios, each with multi-step recipes and escalation policies.
-
-### Lanes (agents/core/lanes.py)
-Pipeline tracking from error detection through resolution:
-STARTED → TICKET_CREATED → BRANCH_CREATED → PR_OPENED → CI_GREEN → MERGED → VERIFIED → CLOSED
-
-### Worker Lifecycle (agents/core/worker_registry.py)
-IDLE → CLAIMING → PROCESSING → STREAMING → COMPLETING → (back to IDLE or FAILED)
-
-### Tool Execution
-- Bot layer: subprocess for safety (router), direct imports for speed (monitor)
-- Debate engine: direct async calls to LLM providers
-
-### Session Compaction
-Sessions auto-compact when history exceeds 15 entries. Older exchanges get summarized, recent 5 preserved verbatim.
+## 8 Deliberation Modes
+| Mode | Flow | Rounds |
+|------|------|--------|
+| quick | PROPOSAL → EVALUATION → OUTPUT | 1 |
+| council | PROPOSAL → CHALLENGE → REBUTTAL → EVALUATION → VOTING → AGGREGATION → CONVERGENCE → OUTPUT | 3 |
+| deep | Same as council, higher convergence threshold | 5 |
+| blind | Same as council + identity stripping | 3 |
+| redteam | PROPOSAL → ATTACK → DEFEND → JUDGE_ATTACK → OUTPUT | 4 |
+| jury | Same as council with panel judges | 3 |
+| market | PROPOSAL → BET → MARKET_UPDATE → CONVERGENCE → OUTPUT | 5 |
+| auto | Routes to appropriate mode via cost_router | varies |
 
 ## Model Rules
 - Bot: haiku only, sonnet as fallback, opus BLOCKED
 - Debate: any model the user's API keys support
-- Judge: strong model (sonnet/gpt-4o) for synthesis, cheap model (haiku/gpt-4o-mini) for analysis phases
-- Circuit breaker: if a provider fails 3x, it's marked unavailable for 60s
+- Judge: non-participant model required in blind mode
+- Circuit breaker: provider unavailable for 60s after 3 failures
+- Model registry: apps/agents/src/shared/config/models.py (includes aliases for dated IDs)

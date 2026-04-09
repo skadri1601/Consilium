@@ -35,7 +35,7 @@ export class CliTokenService {
           if (clerkUser.emailAddresses?.length) {
             email = clerkUser.emailAddresses[0].emailAddress;
           }
-        } catch (e) {
+        } catch {
           this.logger.warn(
             `Clerk getUser failed for ${clerkId}, using fallback email`,
           );

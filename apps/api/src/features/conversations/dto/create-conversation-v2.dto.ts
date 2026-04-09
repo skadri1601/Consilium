@@ -1,5 +1,5 @@
-import { IsString, IsOptional, MinLength, MaxLength } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, MinLength, MaxLength } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateConversationV2Dto {
   @ApiProperty({

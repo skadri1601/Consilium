@@ -1,12 +1,12 @@
 import fs from 'fs';
 import logUpdate from 'log-update';
-import { ConsiliumClient, DebateEvent } from '../api/client';
+import { ConsiliumClient, DebateEvent, DeliberationEvent } from '../api/client';
 import { createStreamHandlers } from '../utils/stream-renderer';
 import { requireAuth } from '../utils/require-auth';
 import { createStepTracker } from '../utils/progress-renderer';
 import { style } from '../utils/visual-system';
 import { terminal } from '../utils/terminal-capabilities';
-import { isValidMode, getDefaultMode, estimateCost, formatCostEstimate, DebateMode } from '../utils/debate-modes';
+import { isValidMode, getDefaultMode, estimateCost, formatCostEstimate, DebateMode, ALL_MODES } from '../utils/debate-modes';
 import { isValidOutputFormat, formatOutput, getDefaultFilename, OutputFormat } from '../utils/output-formatter';
 import { log } from '../utils/logger';
 
@@ -24,6 +24,67 @@ const STEP_LABELS: Record<string, string> = {
   startStream: 'Establishing event stream',
 };
 
+const PHASE_LABELS: Record<string, string> = {
+  proposing: 'Proposing',
+  challenging: 'Challenging',
+  rebutting: 'Rebutting',
+  evaluating: 'Evaluating',
+  voting: 'Voting',
+  synthesizing: 'Synthesizing',
+};
+
+function renderPhaseDisplay(
+  phase: string,
+  modelProgress: Map<string, number>,
+  convergence: number | null,
+  dissents: Array<{ agent: string; reason: string }>,
+  costs: Array<{ model: string; tokens: number; cost: number }>,
+): string {
+  const lines: string[] = [];
+
+  const phaseLabel = PHASE_LABELS[phase] || phase;
+  lines.push(st.brand(`  Phase: ${phaseLabel}...`));
+  lines.push('');
+
+  for (const [model, progress] of modelProgress) {
+    const filled = Math.round((20 * Math.min(100, progress)) / 100);
+    const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(20 - filled);
+    const pct = `${Math.round(progress)}%`;
+    const name = model.length > 24 ? model.slice(0, 21) + '...' : model.padEnd(24);
+    lines.push(`  ${name} [${bar}] ${pct}`);
+  }
+
+  if (convergence !== null) {
+    lines.push('');
+    const cvgPct = Math.round(convergence * 100);
+    lines.push(st.dim(`  Convergence: ${cvgPct}%`));
+  }
+
+  if (dissents.length > 0) {
+    lines.push('');
+    lines.push(st.warning('  Dissent detected:'));
+    for (const d of dissents) {
+      lines.push(st.warning(`    ${d.agent}: ${d.reason}`));
+    }
+  }
+
+  return lines.join('\n');
+}
+
+function renderCostBreakdown(
+  costs: Array<{ model: string; tokens: number; cost: number }>,
+): string {
+  if (costs.length === 0) return '';
+  const lines: string[] = ['', st.dim('  Cost breakdown:')];
+  let total = 0;
+  for (const c of costs) {
+    total += c.cost;
+    lines.push(st.dim(`    ${c.model.padEnd(28)} ${c.tokens.toLocaleString()} tokens  $${c.cost.toFixed(4)}`));
+  }
+  lines.push(st.dim(`    ${'Total'.padEnd(28)} $${total.toFixed(4)}`));
+  return lines.join('\n');
+}
+
 export async function debateCommand(
   topic: string,
   options: DebateCommandOptions
@@ -34,7 +95,7 @@ export async function debateCommand(
   const outputFormat: OutputFormat = (options.output && isValidOutputFormat(options.output)) ? options.output : 'text';
 
   if (options.mode && !isValidMode(options.mode)) {
-    console.log(st.warning(`Invalid mode "${options.mode}". Using "${mode}". Valid: quick, council, deep, blind`));
+    console.log(st.warning(`Invalid mode "${options.mode}". Using "${mode}". Valid: ${ALL_MODES.join(', ')}`));
   }
 
   if (options.output && !isValidOutputFormat(options.output)) {
@@ -46,9 +107,16 @@ export async function debateCommand(
   console.log(st.dim(formatCostEstimate(estimate)));
 
   const client = new ConsiliumClient();
+  const useLiveProgress = terminal.isTTY && !terminal.usePlain;
+  const useDeliberation = ['redteam', 'jury', 'market'].includes(mode);
+
+  if (useDeliberation) {
+    await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress);
+    return;
+  }
+
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
-  const useLiveProgress = terminal.isTTY && !terminal.usePlain;
 
   function renderProgress() {
     if (useLiveProgress) {
@@ -117,7 +185,7 @@ export async function debateCommand(
     if (useLiveProgress) logUpdate.clear();
     const msg = error instanceof Error ? error.message : 'Unknown error';
     log('ERROR', 'debate_failed', { debateId: debate.id, error: msg, durationMs: Date.now() - debateStartTime });
-    console.log(st.error('\n  ✗ Error: ' + msg + '\n'));
+    console.log(st.error('\n  Error: ' + msg + '\n'));
     if (msg.includes('ECONNREFUSED')) {
       console.log(st.warning('Make sure the Consilium backend is running.'));
       console.log(st.dim('Try: docker-compose up\n'));
@@ -151,4 +219,162 @@ export async function debateCommand(
   }
 
   console.log(st.success('Debate complete.\n'));
+}
+
+async function runDeliberation(
+  client: ConsiliumClient,
+  topic: string,
+  mode: DebateMode,
+  models: string[],
+  outputFormat: OutputFormat,
+  useLiveProgress: boolean,
+): Promise<void> {
+  const startTime = Date.now();
+
+  console.log(st.brand(`\n  Deliberation mode: ${mode}\n`));
+
+  let deliberation: { id: string };
+  try {
+    deliberation = await client.createDeliberation(topic, { models, mode });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Create failed';
+    log('ERROR', 'deliberation_failed', { error: msg });
+    console.log(st.error('Deliberation creation failed: ' + msg));
+    process.exit(1);
+  }
+
+  log('INFO', 'deliberation_started', { debateId: deliberation.id, data: { topic, mode, models } });
+
+  let currentPhase = '';
+  const modelProgress = new Map<string, number>();
+  let convergence: number | null = null;
+  const dissents: Array<{ agent: string; reason: string }> = [];
+  const votes: Array<{ agent: string; position: string; confidence: number }> = [];
+  const costs: Array<{ model: string; tokens: number; cost: number }> = [];
+  let resultText = '';
+
+  try {
+    await client.streamDeliberation(deliberation.id, (event: DeliberationEvent) => {
+      switch (event.type) {
+        case 'deliberation_start':
+          if (!useLiveProgress) {
+            console.log(st.dim(`  Deliberation ${deliberation.id} started`));
+          }
+          break;
+
+        case 'phase_change':
+          currentPhase = event.phase || '';
+          modelProgress.clear();
+          if (useLiveProgress) {
+            logUpdate(renderPhaseDisplay(currentPhase, modelProgress, convergence, dissents, costs));
+          } else {
+            const label = PHASE_LABELS[currentPhase] || currentPhase;
+            console.log(st.brand(`\n  ${label}...`));
+          }
+          break;
+
+        case 'model_progress':
+          if (event.agent && event.progress !== undefined) {
+            modelProgress.set(event.agent, event.progress);
+          }
+          if (useLiveProgress) {
+            logUpdate(renderPhaseDisplay(currentPhase, modelProgress, convergence, dissents, costs));
+          }
+          break;
+
+        case 'convergence_update':
+          if (event.convergence !== undefined) {
+            convergence = event.convergence;
+          }
+          if (useLiveProgress) {
+            logUpdate(renderPhaseDisplay(currentPhase, modelProgress, convergence, dissents, costs));
+          } else {
+            const cvg = Math.round((convergence ?? 0) * 100);
+            console.log(st.dim(`  Convergence: ${cvg}%`));
+          }
+          break;
+
+        case 'dissent_detected':
+          if (event.dissent) {
+            dissents.push(event.dissent);
+            if (!useLiveProgress) {
+              console.log(st.warning(`  Dissent: ${event.dissent.agent} - ${event.dissent.reason}`));
+            }
+          }
+          break;
+
+        case 'vote_cast':
+          if (event.vote) {
+            votes.push(event.vote);
+            if (!useLiveProgress) {
+              console.log(st.dim(`  Vote: ${event.vote.agent} -> ${event.vote.position} (${Math.round(event.vote.confidence * 100)}%)`));
+            }
+          }
+          break;
+
+        case 'cost_update':
+          if (event.cost) {
+            costs.push(event.cost);
+          }
+          break;
+
+        case 'deliberation_complete':
+          if (event.text) resultText = event.text;
+          if (useLiveProgress) logUpdate.clear();
+          break;
+
+        case 'error':
+          if (useLiveProgress) logUpdate.clear();
+          throw new Error(event.error || 'Deliberation error');
+      }
+    });
+  } catch (error: unknown) {
+    if (useLiveProgress) logUpdate.clear();
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    log('ERROR', 'deliberation_failed', { debateId: deliberation.id, error: msg, durationMs: Date.now() - startTime });
+    console.log(st.error('\n  Error: ' + msg + '\n'));
+    process.exit(1);
+  }
+
+  log('INFO', 'deliberation_completed', { debateId: deliberation.id, durationMs: Date.now() - startTime });
+
+  if (dissents.length > 0) {
+    console.log(st.warning('\n  Dissent report:'));
+    for (const d of dissents) {
+      console.log(st.warning(`    ${d.agent}: ${d.reason}`));
+    }
+  }
+
+  if (votes.length > 0) {
+    console.log(st.dim('\n  Votes:'));
+    for (const v of votes) {
+      console.log(st.dim(`    ${v.agent}: ${v.position} (${Math.round(v.confidence * 100)}% confidence)`));
+    }
+  }
+
+  if (resultText) {
+    console.log('\n' + resultText);
+  }
+
+  console.log(renderCostBreakdown(costs));
+
+  if (resultText && outputFormat !== 'text') {
+    const formatted = formatOutput(resultText, {
+      format: outputFormat,
+      topic,
+      models,
+      mode,
+      debateId: deliberation.id,
+      timestamp: new Date().toISOString(),
+    });
+    if (outputFormat === 'cursorrules' || outputFormat === 'claude-md') {
+      const filename = getDefaultFilename(outputFormat, topic);
+      fs.writeFileSync(filename, formatted, 'utf-8');
+      console.log(st.success(`Saved to ${filename}`));
+    } else if (outputFormat === 'json' || outputFormat === 'markdown') {
+      console.log(formatted);
+    }
+  }
+
+  console.log(st.success('\nDeliberation complete.\n'));
 }

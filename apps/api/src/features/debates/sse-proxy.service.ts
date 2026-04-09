@@ -175,7 +175,7 @@ export class SseProxyService {
     debateId: string,
     goldenPrompt?: string,
     totalCost?: number,
-    totalTokens?: number,
+    _totalTokens?: number,
   ): Promise<void> {
     try {
       this.logger.log(
