@@ -54,7 +54,9 @@ export class ConversationV2Controller {
     const parsedOffset = offset ? parseInt(offset, 10) : 0;
     return this.conversationV2Service.list(
       user.userId,
-      Number.isNaN(parsedLimit) || parsedLimit < 1 ? 20 : Math.min(parsedLimit, 100),
+      Number.isNaN(parsedLimit) || parsedLimit < 1
+        ? 20
+        : Math.min(parsedLimit, 100),
       Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset,
     );
   }

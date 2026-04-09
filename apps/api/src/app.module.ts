@@ -13,6 +13,7 @@ import { UsersModule } from "./features/users";
 import { AnalyticsModule } from "./features/analytics";
 import { ApiKeysModule } from "./features/api-keys";
 import { DebatesModule } from "./features/debates";
+import { DeliberationModule } from "./features/deliberation";
 import { PersonasModule } from "./features/personas";
 import { WebhooksModule } from "./features/webhooks";
 import { WaitlistModule } from "./features/waitlist";
@@ -60,6 +61,7 @@ import { HealthController } from "./health.controller";
     AnalyticsModule,
     ApiKeysModule,
     DebatesModule,
+    DeliberationModule,
     PersonasModule,
     WebhooksModule,
     WaitlistModule,

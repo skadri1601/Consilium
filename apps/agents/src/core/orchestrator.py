@@ -201,7 +201,7 @@ class DebateOrchestrator:
         self._event_counter += 1
         data["_event_id"] = self._event_counter
         payload = {**data, "event": event}
-        return f"id: {self._event_counter}\ndata: {json.dumps(payload)}\n\n"
+        return f"id: {self._event_counter}\nevent: {event}\ndata: {json.dumps(payload)}\n\n"
 
     def _build_round_user_prompt(
         self,

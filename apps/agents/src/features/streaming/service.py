@@ -73,4 +73,5 @@ class StreamingService:
             yield self._format_sse("error", {"message": str(e)})
 
     def _format_sse(self, event: str, data: dict) -> str:
-        return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+        payload = {**data, "event": event}
+        return f"event: {event}\ndata: {json.dumps(payload)}\n\n"

@@ -1,115 +1,100 @@
 # Claude Code Skills & Capabilities for Consilium
 
-## Available Skills
+## Starting Services
 
-### ui-ux-pro-max
-UI/UX design intelligence with 67 styles, 96 palettes, 57 font pairings, 25 chart types across 13 tech stacks. Use for any frontend work on apps/web/.
+```bash
+./run.sh    # Starts ALL services (web :3000, API :4000, agents :8000)
+```
+
+## Available Skills to Call
+- **ui-ux-pro-max** — UI/UX design for apps/web/ (67 styles, 96 palettes, shadcn/ui)
+- **systematic-debugging** — For any bug, test failure, or unexpected behavior
+- **test-driven-development** — Before implementing features
+- **verification-before-completion** — Before claiming work is done
+- **requesting-code-review** — Before merging PRs
+- **api-design-principles** — When designing/modifying REST endpoints
+
+## MCP Servers Available
+- **Linear** — Ticket management (MYC- prefix), use for project tracking
+- **Sentry** — Error monitoring, use when debugging production issues
+- **Slack** — Bot notifications, use for team communication
+- **Vercel** — Web deployment status and logs
 
 ## Project-Specific Commands
 
-### Bot Development
+### All Services
 ```bash
-# Run bot locally
-source agents/.venv/Scripts/activate
-PYTHONPATH=. python -m agents.bots.slack_bot --model haiku
-
-# Run monitor
-PYTHONPATH=. python -m agents.bots.monitor_agent --interval 300 --once
-
-# Run all agents
-PYTHONPATH=. python -m agents.run_all
-
-# Run tests
-python -m agents.scripts.test_pipeline_e2e
-
-# Check model/API access
-python -m agents.scripts.test_claude_action
+./run.sh                    # Start everything
 ```
 
-### Web Development
+### Testing
 ```bash
-pnpm install
-pnpm dev          # starts web on :3000
-pnpm typecheck    # type check all packages
-pnpm lint         # lint all packages
+cd apps/agents && python -m pytest tests/deliberation/ --noconftest   # 137 deliberation tests
+pnpm lint                   # Lint all TypeScript
+pnpm typecheck              # Type check all TypeScript
 ```
 
-### API Development
+### CLI
 ```bash
-cd apps/api
-pnpm start:dev    # starts API on :4000
-pnpm db:migrate   # run Prisma migrations
-pnpm db:studio    # open Prisma Studio
+consilium debate "topic" --mode council
+consilium debate "topic" --mode redteam
+consilium debate "topic" --mode blind
+consilium benchmark --benchmark mmlu --models claude-sonnet-4-5,gpt-4o --n 10
+consilium redteam "content to assess"
+consilium eval "topic" --responses file.json
 ```
 
-### CLI Development
-```bash
-cd packages/cli
-pnpm dev debate "topic" --mode council
-pnpm dev chat
-```
-
-### Debate Engine
+### Benchmarks
 ```bash
 cd apps/agents
-pip install -r requirements.txt
-uvicorn src.main:app --reload --port 8000
+python -m src.features.deliberation.benchmarks.runner --benchmark mmlu --models claude-sonnet-4-5,gpt-4o --mode council --n 50
+```
+
+### Database
+```bash
+pnpm db:generate            # Generate Prisma client
+pnpm db:migrate             # Run migrations
+pnpm db:studio              # Open Prisma Studio
+```
+
+### Docker
+```bash
+docker compose -f docker-compose.selfhost.yml up -d
 ```
 
 ## When Working On Each System
 
-### agents/ (Bot Layer)
-- Always run test_pipeline_e2e after changes
-- Model validation: only haiku/sonnet
-- External calls: wrap in recovery engine
-- Redis: always handle ConnectionError
-- Sessions: auto-compact at 15 entries
-- Workers: 3 threads, track lifecycle via WorkerRegistry
-
-### apps/agents/ (Debate Engine)
-- Use shared.py for constants (FALLBACK_RESPONSE, _sse, _now_iso)
-- Circuit breaker checks before LLM calls
-- Judge _call_model has retry+timeout — don't add more
-- base_agent.py: pass system_prompt as parameter, don't monkey-patch
-- Sentry: send_default_pii=False (don't leak PII)
+### apps/agents/ (Deliberation Engine)
+- All types in deliberation/types.py — never duplicate
+- DeliberationEngine in deliberation_graph.py is the main orchestrator
+- Model IDs must be in shared/config/models.py MODEL_ALIASES or AVAILABLE_MODELS
+- Cost tracking: _estimate_cost() in deliberation_graph.py calculates per-model costs
+- Templates in deliberation/templates/ follow a standard pattern (read registry.py)
 
 ### apps/api/ (NestJS)
-- Types come from packages/shared/ — never duplicate
+- Types from packages/shared/ — never duplicate
+- Deliberation endpoints in features/deliberation/
+- SSE streaming via deliberation-sse.service.ts
 - BullMQ retryStrategy must never return null
-- SSE endpoints need keepalive heartbeat
-- debates.service: use _prepareDebate() for shared setup
-- findAll excludes deleted/cancelled by default
 
 ### packages/cli/
-- Model IDs match packages/shared/src/providers/models.ts
-- cancelDebate uses POST (not DELETE)
-- SIGINT handler for graceful debate cancellation
-- SSE uses onmessage (not addEventListener) — NestJS sends unnamed events
+- Commands in src/commands/ (debate, eval, redteam, benchmark)
+- Judge config in src/utils/cli-judge.ts — mode-specific via getJudgeConfig()
+- Decision extraction in src/utils/decision-extractor.ts — LLM semantic + regex fallback
+- SSE uses onmessage (not addEventListener)
 
 ### packages/shared/
-- Single source of truth for: model IDs, pricing, debate modes, SSE events, status types
-- If you add a model, add it HERE first, then consumers import
+- Single source of truth for: model IDs, debate modes, SSE events, status types
+- If adding a model, add it HERE first
 
-## Deployment
-
-### Droplet (bot agents)
-```bash
-ssh root@droplet
-cd /opt/consilium-bot/repo
-git pull origin feature/Consilium_bot
-pip install -r agents/requirements.txt
-systemctl restart consilium-bot
-```
-
-### Vercel (web)
-Auto-deploys on push to main via vercel.json.
-
-### Render (API)
-Auto-deploys on push to main.
+### packages/sdk/ and packages/python-sdk/
+- TypeScript SDK: ESM + CJS dual export, native fetch
+- Python SDK: httpx + pydantic, sync + async clients
 
 ## Key Files to Read First
-1. CLAUDE.md — architecture overview
-2. AGENTS.md — agent system details
-3. PR-REVIEW.md — PR standards
-4. agents/config.py — all env vars
-5. packages/shared/src/ — canonical types
+1. **CLAUDE.md** — Architecture overview, conventions
+2. **AGENTS.md** — Dual agent system details
+3. **PR-REVIEW.md** — Pull request standards
+4. **SKILLS.md** (this file) — Commands, skills, system guidelines
+5. **apps/agents/src/features/deliberation/types.py** — All deliberation types
+6. **packages/shared/src/debates/debate-mode.ts** — Mode definitions

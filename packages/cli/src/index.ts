@@ -4,6 +4,9 @@ import { Command } from "commander";
 import path from "path";
 import os from "os";
 import { debateCommand } from "./commands/debate.js";
+import { redteamCommand } from "./commands/redteam.js";
+import { evalCommand } from "./commands/eval.js";
+import { benchmarkCommand } from "./commands/benchmark.js";
 import {
   configSetCommand,
   configGetCommand,
@@ -28,6 +31,9 @@ const KNOWN_SUBCOMMANDS = [
   "debug",
   "logs",
   "stats",
+  "redteam",
+  "eval",
+  "benchmark",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -69,7 +75,7 @@ if (isDefaultRepl) {
     )
     .option(
       "--mode <mode>",
-      "Debate mode: quick, council, deep, blind (default: council)",
+      "Debate mode: quick, council, deep, blind, redteam, jury, market, auto (default: auto)",
     )
     .option(
       "--output <format>",
@@ -83,12 +89,42 @@ if (isDefaultRepl) {
     .description("Ask a question (alias for debate)")
     .argument("<topic>", "Question or topic")
     .option("-m, --models <models...>", "Models to use")
-    .option("--mode <mode>", "Debate mode: quick, council, deep, blind")
+    .option("--mode <mode>", "Debate mode: quick, council, deep, blind, redteam, jury, market, auto")
     .option(
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json",
     )
     .action(debateCommand);
+
+  // Red team command
+  program
+    .command("redteam")
+    .description("Run adversarial red team assessment")
+    .argument("<content>", "Content to assess")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--categories <categories...>", "Assessment categories")
+    .action(redteamCommand);
+
+  // Eval command
+  program
+    .command("eval")
+    .description("Run blind evaluation of responses")
+    .argument("<topic>", "Topic or question")
+    .option("--responses <file>", "JSON file with responses to evaluate")
+    .option("-m, --models <models...>", "Models to use as evaluators")
+    .action(evalCommand);
+
+  // Benchmark command
+  program
+    .command("benchmark")
+    .description("Run deliberation benchmarks (MMLU, TruthfulQA, HumanEval)")
+    .requiredOption("--benchmark <name>", "Benchmark: mmlu, truthfulqa, humaneval")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Deliberation mode (default: council)")
+    .option("-n, --n <count>", "Number of questions")
+    .option("--output <path>", "Save results to JSON file")
+    .option("--local", "Run benchmark locally via Python")
+    .action(benchmarkCommand);
 
   // Chat command
   program

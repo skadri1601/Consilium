@@ -1,0 +1,27 @@
+title: "[Idea] "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: Share your ideas for Consilium. All suggestions are welcome.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: Describe your idea or concept.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why would this be valuable?
+    validations:
+      required: false
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: Any references, examples, or mockups.
+    validations:
+      required: false

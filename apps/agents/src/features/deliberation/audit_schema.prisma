@@ -1,0 +1,15 @@
+model AuditEntry {
+  id            String   @id @default(cuid())
+  debateId      String
+  step          String
+  modelId       String
+  inputSummary  String
+  outputSummary String
+  latencyMs     Int
+  tokensIn      Int
+  tokensOut     Int
+  cost          Float
+  roundNumber   Int
+  timestamp     DateTime @default(now())
+  debate        DebateSession @relation(fields: [debateId], references: [id])
+}

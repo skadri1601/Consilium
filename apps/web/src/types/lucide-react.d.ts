@@ -98,4 +98,14 @@ declare module 'lucide-react' {
   export const ArrowUp: LucideIcon;
   export const Bot: LucideIcon;
   export const SlidersHorizontal: LucideIcon;
+  export const TrendingDown: LucideIcon;
+  export const ArrowUpRight: LucideIcon;
+  export const ArrowDownRight: LucideIcon;
+  export const Brain: LucideIcon;
+  export const Scale: LucideIcon;
+  export const Columns2: LucideIcon;
+  export const List: LucideIcon;
+  export const Lightbulb: LucideIcon;
+  export const Trophy: LucideIcon;
+  export const Award: LucideIcon;
 }

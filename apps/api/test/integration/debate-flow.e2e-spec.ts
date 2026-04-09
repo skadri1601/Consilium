@@ -45,7 +45,7 @@ describe("Debate Flow Integration (e2e)", () => {
   let userId: string;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = "test";
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

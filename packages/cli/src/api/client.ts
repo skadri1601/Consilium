@@ -4,11 +4,39 @@ import { loadConfig } from '../utils/config';
 export interface DebateOptions {
   topic: string;
   models?: string[];
-  mode?: 'quick' | 'council' | 'deep' | 'blind';
+  mode?: 'quick' | 'council' | 'deep' | 'blind' | 'redteam' | 'jury' | 'market' | 'auto';
   conversationId?: string;
   files?: Array<{ name: string; content: string }>;
   images?: Array<{ name: string; base64: string }>;
   projectFiles?: Array<{ path: string; content: string; category: string }>;
+}
+
+export interface DeliberationOptions {
+  topic: string;
+  models?: string[];
+  mode?: string;
+  rounds?: number;
+  convergenceThreshold?: number;
+}
+
+export interface RedTeamOptions {
+  content: string;
+  models?: string[];
+  categories?: string[];
+}
+
+export interface DeliberationEvent {
+  type: 'deliberation_start' | 'phase_change' | 'model_progress' | 'convergence_update' | 'dissent_detected' | 'vote_cast' | 'cost_update' | 'deliberation_complete' | 'done' | 'error';
+  phase?: string;
+  agent?: string;
+  text?: string;
+  error?: string;
+  deliberationId?: string;
+  progress?: number;
+  convergence?: number;
+  dissent?: { agent: string; reason: string };
+  vote?: { agent: string; position: string; confidence: number };
+  cost?: { model: string; tokens: number; cost: number };
 }
 
 export interface DebateEvent {
@@ -297,6 +325,124 @@ export class ConsiliumClient {
 
     if (!response.ok) return null;
     return response.json();
+  }
+
+  async createDeliberation(topic: string, options: Partial<DeliberationOptions> = {}): Promise<{ id: string }> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const url = `${this.apiUrl}/api/v1/deliberation`;
+    this.log(`Creating deliberation at: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ topic, ...options }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+    }
+
+    return (await response.json()) as { id: string };
+  }
+
+  async streamDeliberation(
+    id: string,
+    onEvent: (event: DeliberationEvent) => void
+  ): Promise<void> {
+    const streamUrl = `${this.apiUrl}/api/v1/deliberation/${id}/stream`;
+    this.log(`Opening deliberation stream: ${streamUrl}`);
+
+    const init: { headers?: Record<string, string> } = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
+
+    return new Promise((resolve, reject) => {
+      const eventSource = new EventSource(streamUrl, init);
+      let eventCount = 0;
+      let connectionEstablished = false;
+
+      eventSource.onmessage = (event: any) => {
+        try {
+          if (!connectionEstablished) {
+            this.log('Deliberation SSE connection established');
+            connectionEstablished = true;
+          }
+
+          const data = JSON.parse(event.data);
+          const eventType = data.event ?? 'message';
+          eventCount++;
+          this.log(`Deliberation event #${eventCount}: ${eventType}`);
+
+          const deliberationEvent: DeliberationEvent = {
+            type: eventType as DeliberationEvent['type'],
+            phase: data.phase,
+            agent: data.agent ?? data.agent_id,
+            text: data.chunk ?? data.text ?? data.content ?? data.response,
+            error: data.error,
+            deliberationId: data.deliberation_id ?? data.deliberationId,
+            progress: data.progress,
+            convergence: data.convergence,
+            dissent: data.dissent,
+            vote: data.vote,
+            cost: data.cost,
+          };
+
+          onEvent(deliberationEvent);
+
+          if (eventType === 'done' || eventType === 'deliberation_complete') {
+            this.log(`Deliberation stream completed after ${eventCount} events`);
+            eventSource.close();
+            resolve();
+          }
+
+          if (eventType === 'error') {
+            eventSource.close();
+            reject(new Error(data.error || 'Deliberation error'));
+          }
+        } catch (error: any) {
+          this.logError('Failed to parse deliberation event', error);
+        }
+      };
+
+      eventSource.onerror = (error: any) => {
+        this.logError('Deliberation SSE error', error);
+        eventSource.close();
+        reject(new Error('Deliberation stream failed'));
+      };
+
+      setTimeout(() => {
+        eventSource.close();
+        reject(new Error('Deliberation stream timeout after 10 minutes'));
+      }, 10 * 60 * 1000);
+    });
+  }
+
+  async createRedTeam(content: string, options: Partial<RedTeamOptions> = {}): Promise<{ id: string }> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const url = `${this.apiUrl}/api/v1/deliberation/red-team`;
+    this.log(`Creating red team assessment at: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ content, ...options }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+    }
+
+    return (await response.json()) as { id: string };
   }
 
   getApiUrl(): string {
