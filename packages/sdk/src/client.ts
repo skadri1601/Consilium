@@ -30,7 +30,8 @@ export class ConsiliumClient {
   private readonly retryDelay: number;
 
   constructor(config: ClientConfig = {}) {
-    this.apiUrl = (config.apiUrl ?? 'http://localhost:3000/api').replace(/\/+$/, '');
+    const url = config.apiUrl ?? 'http://localhost:3000/api';
+    this.apiUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     this.apiKey = config.apiKey;
     this.timeout = config.timeout ?? DEFAULT_TIMEOUT;
     this.maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;

@@ -2,6 +2,10 @@ name: Publish Python SDK
 on:
   push:
     tags: ['python-v*']
+
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest

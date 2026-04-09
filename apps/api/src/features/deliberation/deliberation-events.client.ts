@@ -94,6 +94,17 @@ export class DeliberationEventsClient {
   }
 
   getStreamUrl(deliberationId: string): string {
+    if (!this.isValidUuid(deliberationId)) {
+      throw new HttpException(
+        'Invalid deliberation ID format',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return `${this.baseUrl}/api/v1/deliberation/${deliberationId}/stream`;
+  }
+
+  private isValidUuid(uuid: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
   }
 }

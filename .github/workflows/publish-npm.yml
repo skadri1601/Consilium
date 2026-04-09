@@ -2,6 +2,10 @@ name: Publish TypeScript SDK
 on:
   push:
     tags: ['sdk-v*']
+
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest

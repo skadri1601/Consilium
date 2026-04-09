@@ -1,96 +1,93 @@
 # Consilium - AI Council Platform
 
 ## What This Is
-Consilium is a multi-AI agent deliberation platform where models argue, critique, and synthesize consensus through structured debate. It implements 8 deliberation modes backed by peer-reviewed research (MIT multi-agent debate, ReConcile ACL 2024, Anthropic debate as oversight).
+Consilium is a multi-AI agent debate platform where models argue, critique, and synthesize consensus. It is NOT a Claude Code wrapper — it is an independent platform.
 
 ## Architecture
 
 ```
 Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
                                              ↓
-                                    Deliberation Engine
-                                    ├── Phase 1: Proposal (structured claims)
-                                    ├── Phase 2: Challenge (cross-examination)
-                                    ├── Phase 3: Rebuttal (concede/refute/qualify)
-                                    ├── Phase 4: Evaluation (rubric scoring)
-                                    ├── Phase 5: Voting (Condorcet/Ranked Pairs)
-                                    ├── Phase 6: Convergence detection
-                                    └── Phase 7: Synthesis (golden prompt + dissent)
+                                    Debate Orchestrator
+                                    ├── Round 1: Independent Analysis
+                                    ├── Round 2: Cross-Examination
+                                    ├── Round 3: Rebuttal & Refinement
+                                    └── Judge: 5-Phase Synthesis
 ```
 
 ### Systems
-| System | Path | Stack |
-|--------|------|-------|
-| Web App | apps/web/ | Next.js 15, Clerk auth, Stripe, shadcn/ui |
-| API | apps/api/ | NestJS 11, Fastify, BullMQ, Prisma |
-| Deliberation Engine | apps/agents/ | FastAPI, 5 LLM providers, 13 deliberation modules |
-| Bot/DevOps | agents/ | Python, Slack bolt, Redis queue |
-| CLI | packages/cli/ | TypeScript, Commander.js, SSE, 6 commands |
-| Python SDK | packages/python-sdk/ | httpx, pydantic, async support |
-| TypeScript SDK | packages/sdk/ | fetch, ESM/CJS dual export |
-| Database | packages/database/ | Prisma, Neon PostgreSQL |
-| Shared Types | packages/shared/ | TypeScript |
+| System | Path | Stack | Runs On |
+|--------|------|-------|---------|
+| Web App | apps/web/ | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel |
+| API | apps/api/ | NestJS 11, Fastify, BullMQ, Prisma | Render |
+| Debate Engine | apps/agents/ | FastAPI, 5 LLM providers | Render / Droplet |
+| Bot/DevOps | agents/ | Python, Slack bolt, Redis queue | DigitalOcean droplet |
+| CLI | packages/cli/ | TypeScript, Commander.js, SSE | User's machine |
+| Database | packages/database/ | Prisma, Neon PostgreSQL | Neon |
+| Shared Types | packages/shared/ | TypeScript | N/A (library) |
 
-### Deliberation Modules (apps/agents/src/features/deliberation/)
-| Module | Purpose |
-|--------|---------|
-| deliberation_graph.py | State machine orchestrating all 8 modes |
-| argumentation.py | Structured Claim/Challenge/Rebuttal prompts |
-| voting.py | Condorcet, Borda, Ranked Pairs, Copeland |
-| convergence_v2.py | Kendall tau + Jaccard + concession rate |
-| dissent.py | Agglomerative clustering for minority positions |
-| confidence.py | Behavioral confidence via explanation stability |
-| blind_eval.py | Identity stripping + multi-ordering debiasing |
-| cost_router.py | Complexity-based mode routing |
-| red_team.py | 8-category adversarial assessment |
-| truth_market.py | Log-opinion-pool probabilistic consensus |
-| audit.py | Per-call cost/latency/token tracking |
-| mcp_server.py | 3 MCP tools for external integration |
-| templates/ | Vertical templates (code review, research, risk, healthcare, legal, finance) |
+### Bot Infrastructure (agents/)
+- **slack_bot.py** — 3 Redis-backed workers, intent router, session management
+- **monitor_agent.py** — Polls Sentry/SonarQube/email every 5 min with recovery recipes
+- **run_all.py** — Orchestrator with max 10 restarts per agent, logs to agents/logs/
 
 ### Key Infrastructure
-- **Redis**: Upstash (queue + sessions + cache)
+- **Redis**: Upstash (shared between debate engine + bot queue + sessions)
 - **DB**: Neon PostgreSQL via Prisma
 - **Auth**: Clerk (web) + CLI tokens
 - **Monitoring**: Sentry (consilium-pi org)
 - **CI**: GitHub Actions (lint, typecheck, security, Claude Code review)
-
-## Starting All Services
-
-```bash
-./run.sh
-```
-
-This single command checks prerequisites, installs deps, generates Prisma client, and starts web (:3000), API (:4000), and agents (:8000).
+- **Linear**: Project management (MYC- ticket prefix)
 
 ## Code Conventions
 
 ### Python (agents/, apps/agents/)
-- No comments in code
-- Direct imports over subprocess
-- All models validated: only haiku/sonnet for bot, opus blocked
-- Types in apps/agents/src/features/deliberation/types.py
+- No comments in code — use descriptive names
+- Direct imports over subprocess where possible
+- All models validated: only haiku/sonnet allowed for bot, opus blocked
+- Recovery engine wraps external API calls
+- Telemetry traces on task claim/complete/fail
 
 ### TypeScript (apps/web/, apps/api/, packages/)
-- Shared types in packages/shared/
-- Model IDs: use registry names (claude-sonnet-4-5, gpt-4o)
+- Shared types in packages/shared/ — never duplicate
+- Model IDs use full versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-20250514`
 - BullMQ for async debate processing
 - SSE for real-time streaming
 
 ## What NOT To Do
-- Never push to GitHub directly
+- Never push to GitHub directly — provide git commands instead
 - Never use opus model in bot agents
 - Never add "Co-Authored-By" or "Generated by Claude Code" to commits
+- Never copy code from C:\Users\kadri\answerThis (reference only)
 - Never duplicate types that exist in packages/shared/
+- Don't create documentation files unless explicitly asked
 - Don't add comments to code unless asked
 
-## Testing
-- Python deliberation tests: `cd apps/agents && python -m pytest tests/deliberation/ --noconftest`
-- TypeScript: `pnpm lint && pnpm typecheck`
-- Bot tests: `python -m agents.scripts.test_pipeline_e2e`
+## External Integrations
+| Service | Purpose | Config |
+|---------|---------|--------|
+| Slack | Bot commands + notifications | SLACK_BOT_TOKEN, SLACK_APP_TOKEN |
+| Linear | Ticket management | LINEAR_API_KEY (MYC- prefix) |
+| Sentry | Error monitoring | SENTRY_DSN, SENTRY_AUTH_TOKEN |
+| SonarQube | Code quality | SONARQUBE_URL, SONARQUBE_TOKEN |
+| Vercel | Web deployment | VERCEL_TOKEN |
+| GitHub | CI/CD, PRs | GITHUB_TOKEN |
+| Upstash Redis | Queue, sessions, cache | REDIS_URL |
+| Neon | Database | DATABASE_URL |
+| Clerk | Authentication | CLERK_SECRET_KEY |
+| Stripe | Payments | STRIPE_SECRET_KEY |
 
-## Session Docs
-- **CLAUDE.md** (this file) — Architecture overview, conventions, start commands
-- **AGENTS.md** — Dual agent system details (bot + deliberation engine)
-- **PR-REVIEW.md** — Pull request standards and auto-review process
-- **SKILLS.md** — Available skills, MCP servers, and system-specific guidelines
+## GitHub Actions Workflows
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| claude.yml | @claude mention | Claude responds to issues/PRs (write perms) |
+| claude-code-review.yml | PR open/sync | Auto code review (sonnet + haiku fallback) |
+| linear-sync.yml | PR/review/CI events | Single source of truth for GitHub→Linear→Slack |
+| ci.yml | Push/PR | Lint + typecheck |
+| security.yml | Push/PR/weekly | CodeQL, pip-audit, bandit, gitleaks |
+
+## Testing
+- Bot tests: `python -m agents.scripts.test_pipeline_e2e` (44 tests)
+- Action diagnostics: `python -m agents.scripts.test_claude_action`
+- Web: Vitest + Playwright
+- API: NestJS spec files
