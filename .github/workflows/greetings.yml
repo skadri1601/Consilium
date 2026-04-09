@@ -9,8 +9,24 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Message that will be displayed on users' first issue"
-        pr-message: "Message that will be displayed on users' first pull request"
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Thanks for opening your first issue! We appreciate your contribution to Consilium.
+
+            Please make sure you've included:
+            - A clear description of the issue
+            - Steps to reproduce (if it's a bug)
+            - Expected vs actual behavior
+
+            We'll review this shortly!
+          pr-message: |
+            Thanks for your first PR to Consilium! We're excited to review your contribution.
+
+            Please ensure:
+            - All CI checks pass
+            - Code follows the project's style guidelines
+            - Tests are included for new functionality
+
+            A maintainer will review your PR soon!
