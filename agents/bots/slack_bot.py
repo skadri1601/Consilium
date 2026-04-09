@@ -1,280 +1,240 @@
 import argparse
-import json
 import re
+import signal
 import threading
 import time
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from agents.config import DEFAULT_MODEL, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
-from agents.core.base import build_base_prompt, run_claude, setup_logging
-from agents.core.subagents import get_subagents
-from agents.tools import linear_api
-from agents.tools.task_queue import (
-    claim_next,
-    complete,
-    enqueue,
-    fail,
-    list_tasks,
-    purge_old,
-    recover_stale,
-    timeout_stale,
-)
+from agents.config import DEFAULT_MODEL, SENTRY_DSN, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
+from agents.core.base import run_claude, setup_logging, AGENTS_DIR
+try:
+    from agents.core.base import run_claude_streaming
+except ImportError:
+    run_claude_streaming = None
+from agents.core.router import route
+
+try:
+    from agents.core.worker_registry import WorkerRegistry, WorkerStatus
+except ImportError:
+    WorkerRegistry = None
+    WorkerStatus = None
+
+try:
+    from agents.core.telemetry import get_tracer
+    _tracer = get_tracer() if get_tracer else None
+except ImportError:
+    _tracer = None
+
+try:
+    from agents.core.redis_session import load, save, add_exchange, get_context_summary
+    class _SessionShim:
+        load = staticmethod(load)
+        save = staticmethod(save)
+        add_exchange = staticmethod(add_exchange)
+        get_context_summary = staticmethod(get_context_summary)
+    sess = _SessionShim()
+except ImportError:
+    from agents.core import session as sess
+
+try:
+    from agents.core.redis_queue import (
+        enqueue, claim_next, complete, fail, list_tasks, purge_old, recover_stale, timeout_stale,
+        heartbeat,
+    )
+except ImportError:
+    from agents.tools.task_queue import (
+        enqueue, claim_next, complete, fail, list_tasks, purge_old, recover_stale, timeout_stale,
+    )
+    heartbeat = None
 
 logger = setup_logging("slack_bot")
+
+MAX_THREAD_CONTEXT = 10
+NUM_WORKERS = 3
 
 app = App(token=SLACK_BOT_TOKEN)
 
 bot_user_id = None
-task_queue = []
+_active_threads = set()
+_conversation_contexts = {}
+_shutdown = threading.Event()
+_worker_registry = WorkerRegistry() if WorkerRegistry else None
 
-MASTER_RULES = """
-## Slack Master Agent Rules
 
-1. You receive messages from Slack users. Understand what they need.
-2. Be DECISIVE and ACTION-ORIENTED. Do not ask for permissions repeatedly.
-3. When users say "approved", "done", "yes", "sure", "go ahead" - PROCEED immediately.
-4. Execute tasks end-to-end: create + assign + update status in one action.
-5. Keep responses concise and actionable. No unnecessary confirmations.
-6. If you cannot execute a Linear operation directly, suggest the quick command format.
-7. Always respond in the context of the Consilium product.
+def _fetch_thread_history(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
+    try:
+        result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit)
+        return result.get("messages", [])
+    except Exception:
+        return []
 
-## Quick Command Reference
-Tell users they can use these patterns for immediate Linear actions:
-- "create ticket: <title>" - Creates a new ticket
-- "create ticket and start: <title>" - Creates, assigns to you, moves to In Progress
-- "create ticket about <topic>" - Creates a ticket about that topic
-- "start working on <TICKET-ID>" - Moves ticket to In Progress
-- "assign <TICKET-ID> to me" - Assigns ticket to you
-- "move <TICKET-ID> to <status>" - Changes ticket status
-- "list my tickets" - Shows your assigned tickets
-- "status <TICKET-ID>" - Shows ticket details
 
-## Important
-- Do NOT ask for tool permissions. Tools are already authorized.
-- Do NOT repeatedly ask if user wants to proceed. Just do it.
-- If a task involves Linear, suggest the quick command format above.
-"""
+def _get_conversation_context(thread_ts):
+    return _conversation_contexts.get(thread_ts, "")
+
+
+def _save_conversation_context(thread_ts, summary):
+    existing = _conversation_contexts.get(thread_ts, "")
+    _conversation_contexts[thread_ts] = (existing + "\n" + summary).strip()[-2000:]
+
+
+def _resolve_user_info(client, user_id):
+    if not user_id:
+        return {"name": "Unknown", "email": ""}
+    try:
+        info = client.users_info(user=user_id)
+        profile = info["user"]["profile"]
+        return {
+            "name": profile.get("real_name", profile.get("display_name", "Unknown")),
+            "email": profile.get("email", ""),
+        }
+    except Exception:
+        return {"name": user_id, "email": ""}
 
 
 def _build_system_prompt():
-    return build_base_prompt(
-        role_description="You are Consilium's Slack assistant. You help the team with support queries, ticket management, and product questions.",
-        agent_rules=MASTER_RULES,
-    )
+    prompt_path = AGENTS_DIR / "guides" / "consilium_bot_prompt.md"
+    if prompt_path.exists():
+        return prompt_path.read_text(encoding="utf-8")
+    return "You are Consilium Bot. Take action immediately when asked. Use all available tools."
 
 
-def run_master(prompt, model="sonnet"):
+def run_master(prompt, model="haiku"):
     system_prompt = _build_system_prompt()
-    subagents = get_subagents("plan", "verify-response")
-    return run_claude(prompt, system_prompt=system_prompt, model=model, subagents=subagents)
+    return run_claude(prompt, system_prompt=system_prompt, model=model)
+
+
+def run_master_streaming(prompt, on_chunk, model="haiku"):
+    if run_claude_streaming is None:
+        return run_master(prompt, model)
+    system_prompt = _build_system_prompt()
+    return run_claude_streaming(prompt, on_chunk, system_prompt=system_prompt, model=model)
+
+
+def _text_to_blocks(text):
+    if not text:
+        return [{"type": "section", "text": {"type": "mrkdwn", "text": "_No response_"}}]
+    blocks = []
+    sections = text.split("\n\n")
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
+        if len(section) > 3000:
+            section = section[:2997] + "..."
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": section}})
+    if not blocks:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text[:3000]}})
+    return blocks[:50]
+
+
+def _split_text(text, max_len=3000):
+    if len(text) <= max_len:
+        return [text]
+    chunks = []
+    while text:
+        if len(text) <= max_len:
+            chunks.append(text)
+            break
+        split_at = text.rfind("\n", 0, max_len)
+        if split_at <= 0:
+            split_at = text.rfind(" ", 0, max_len)
+        if split_at <= 0:
+            split_at = max_len
+        chunks.append(text[:split_at])
+        text = text[split_at:].lstrip()
+    return chunks
 
 
 def _post_reply(client, channel, thread_ts, text):
-    if len(text) <= 4000:
-        client.chat_postMessage(channel=channel, thread_ts=thread_ts, text=text)
-        return
-    chunks = [text[i:i + 4000] for i in range(0, len(text), 4000)]
-    for chunk in chunks:
-        client.chat_postMessage(channel=channel, thread_ts=thread_ts, text=chunk)
-
-
-def _handle_quick_command(client, channel, thread_ts, user_id, text):
-    lower = text.lower().strip()
-
-    m = re.match(r"start working on ([A-Z]+-\d+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            linear_api.transition_issue(ticket_id, "In Progress")
-            _post_reply(client, channel, thread_ts, f"Started *{ticket_id}* and moved to In Progress.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to start {ticket_id}: {e}")
-        return True
-
-    m = re.match(r"assign ([A-Z]+-\d+) to me", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            result = linear_api.assign_issue(ticket_id, email)
-            _post_reply(client, channel, thread_ts, f"Assigned *{ticket_id}* to you.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to assign {ticket_id}: {e}")
-        return True
-
-    m = re.match(r"move ([A-Z]+-\d+) to (.+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        state = m.group(2).strip()
-        try:
-            linear_api.transition_issue(ticket_id, state)
-            _post_reply(client, channel, thread_ts, f"Moved *{ticket_id}* to {state}.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to move {ticket_id}: {e}")
-        return True
-
-    if lower == "list my tickets":
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            issues = linear_api.list_my_issues(email)
-            if not issues:
-                _post_reply(client, channel, thread_ts, "No tickets assigned to you.")
-            else:
-                lines = [f"*{i['identifier']}* [{i['state']['name']}] {i['title']}" for i in issues]
-                _post_reply(client, channel, thread_ts, "\n".join(lines))
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to list tickets: {e}")
-        return True
-
-    m = re.match(r"(?:what'?s|status)\s+([A-Z]+-\d+)", text, re.IGNORECASE)
-    if m:
-        ticket_id = m.group(1).upper()
-        try:
-            issue = linear_api.get_issue(ticket_id)
-            assignee = issue.get("assignee", {})
-            assignee_name = assignee.get("name", "Unassigned") if assignee else "Unassigned"
-            state = issue.get("state", {}).get("name", "Unknown")
-            _post_reply(
-                client, channel, thread_ts,
-                f"*{issue['identifier']}*: {issue['title']}\nStatus: {state} | Assignee: {assignee_name}\n{issue.get('url', '')}",
-            )
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to get {ticket_id}: {e}")
-        return True
-
-    m = re.match(r"create ticket[:\s]+(.+)", text, re.IGNORECASE)
-    if m:
-        title = m.group(1).strip()
-        try:
-            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
-            _post_reply(client, channel, thread_ts, f"Created *{issue['identifier']}*: {issue['title']}\n{issue.get('url', '')}")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    # Create ticket and start working on it (full flow)
-    m = re.match(r"create (?:an? )?ticket (?:and|&) start[:\s]*(.+)", text, re.IGNORECASE)
-    if m:
-        title = m.group(1).strip()
-        try:
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            issue = linear_api.create_issue(title, f"Created from Slack by <@{user_id}>")
-            linear_api.assign_issue(issue["identifier"], email)
-            linear_api.transition_issue(issue["identifier"], "In Progress")
-            _post_reply(
-                client, channel, thread_ts,
-                f"Created *{issue['identifier']}*: {issue['title']}\nAssigned to you and moved to In Progress.\n{issue.get('url', '')}",
-            )
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create and start ticket: {e}")
-        return True
-
-    # Natural language: "create a ticket about X" or "create ticket on linear about X"
-    m = re.match(
-        r"create (?:an? )?(?:ticket|issue) (?:on linear )?(?:about|for|regarding)[:\s]+(?:the (?:issue )?)?(.+?)(?:\s+and\s+(?:after that |then )?(?:start|assign|tag|work|move|tell).*)?$",
-        text, re.IGNORECASE
-    )
-    if m:
-        # Extract the core issue title, cleaning up common phrases
-        title = m.group(1).strip()
-        title = re.sub(r"\s+and\s+after that.*$", "", title, flags=re.IGNORECASE).strip()
-
-        # Check if user wants to start working on it or assign to someone
-        wants_start = bool(re.search(r"(?:start|work|move.*(?:in\s*progress|started))", text, re.IGNORECASE))
-        wants_assign_claude = bool(re.search(r"(?:tag|assign)\s+(?:claude|bot|it)", text, re.IGNORECASE))
-        wants_assign_me = bool(re.search(r"assign\s+(?:to\s+)?me", text, re.IGNORECASE))
-
-        try:
-            issue = linear_api.create_issue(title.title(), f"Created from Slack by <@{user_id}>")
-            msg = f"Created *{issue['identifier']}*: {issue['title']}"
-
-            # Handle assignment
-            if wants_assign_me or wants_assign_claude:
-                info = client.users_info(user=user_id)
-                email = info["user"]["profile"].get("email", "")
-                linear_api.assign_issue(issue["identifier"], email)
-                msg += f"\nAssigned to <@{user_id}>."
-
-            # Handle status transition
-            if wants_start:
-                linear_api.transition_issue(issue["identifier"], "In Progress")
-                msg += "\nMoved to In Progress."
-
-            msg += f"\n{issue.get('url', '')}"
-            _post_reply(client, channel, thread_ts, msg)
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    # Fallback for complex Linear requests - extract ticket creation intent
-    if re.search(r"create\s+(?:an?\s+)?(?:ticket|issue)", text, re.IGNORECASE) and re.search(r"linear|email|not working|bug|fix", text, re.IGNORECASE):
-        # Try to extract a reasonable title from the request
-        title_match = re.search(
-            r"(?:about|regarding|for|issue[:\s]+)\s*(?:the\s+(?:issue\s+)?)?([^,]+?)(?:\s+and\s+|$|\s+tag\s+|\s+then\s+)",
-            text, re.IGNORECASE
+    blocks = _text_to_blocks(text)
+    if len(text) <= 3000:
+        client.chat_postMessage(
+            channel=channel, thread_ts=thread_ts, blocks=blocks, text=text[:200]
         )
-        if title_match:
-            title = title_match.group(1).strip()
-        else:
-            # Last resort: grab key phrases
-            title = re.sub(r"<@[A-Z0-9]+>", "", text)
-            title = re.sub(r"create\s+(?:an?\s+)?(?:ticket|issue)\s+(?:on\s+linear\s+)?", "", title, flags=re.IGNORECASE)
-            title = re.sub(r"\s+and\s+(?:after|then|tag|assign|start|work|move).*$", "", title, flags=re.IGNORECASE)
-            title = re.sub(r"(?:about|regarding|for)\s+(?:the\s+(?:issue\s+)?)?", "", title, flags=re.IGNORECASE).strip()
-            title = title[:100] if title else "Issue from Slack"
+        return
+    chunks = _split_text(text, 3000)
+    for chunk in chunks:
+        chunk_blocks = _text_to_blocks(chunk)
+        client.chat_postMessage(
+            channel=channel, thread_ts=thread_ts, blocks=chunk_blocks, text=chunk[:200]
+        )
 
-        wants_start = bool(re.search(r"(?:start|work|move.*progress)", text, re.IGNORECASE))
 
-        try:
-            issue = linear_api.create_issue(title.strip().title(), f"Created from Slack by <@{user_id}>")
-            msg = f"Created *{issue['identifier']}*: {issue['title']}"
-
-            info = client.users_info(user=user_id)
-            email = info["user"]["profile"].get("email", "")
-            linear_api.assign_issue(issue["identifier"], email)
-            msg += f"\nAssigned to <@{user_id}>."
-
-            if wants_start:
-                linear_api.transition_issue(issue["identifier"], "In Progress")
-                msg += "\nMoved to In Progress."
-
-            msg += f"\n{issue.get('url', '')}"
-            _post_reply(client, channel, thread_ts, msg)
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to create ticket: {e}")
-        return True
-
-    if lower == "schedule list":
-        try:
-            tasks = list_tasks("pending")
-            if not tasks:
-                _post_reply(client, channel, thread_ts, "No pending tasks.")
+def _fetch_thread_context(client, channel, thread_ts, limit=MAX_THREAD_CONTEXT):
+    try:
+        result = client.conversations_replies(channel=channel, ts=thread_ts, limit=limit + 5)
+        messages = result.get("messages", [])
+        context_lines = []
+        for msg in messages:
+            user = msg.get("user", "bot")
+            text = msg.get("text", "").strip()
+            if not text:
+                continue
+            if user == bot_user_id or msg.get("bot_id"):
+                context_lines.append(f"Consilium_Bot: {text[:500]}")
             else:
-                lines = [f"#{t['id']} [{t['status']}] {t['user_text'][:80]}" for t in tasks]
-                _post_reply(client, channel, thread_ts, "\n".join(lines))
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to list tasks: {e}")
-        return True
+                context_lines.append(f"User: {text}")
+        if not context_lines:
+            return ""
+        return "## Full thread conversation so far:\n" + "\n".join(context_lines[-limit:]) + "\n\n## IMPORTANT: Use the conversation above to understand what the user is referring to. Do NOT ask for clarification if the answer is obvious from context.\n\n"
+    except Exception as e:
+        logger.warning("Failed to fetch thread context: %s", e)
+        return ""
 
-    if lower == "run email":
-        try:
-            import subprocess
-            import sys
-            subprocess.Popen(
-                [sys.executable, "-m", "agents.bots.email_agent", "--model", DEFAULT_MODEL],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            )
-            _post_reply(client, channel, thread_ts, "Email agent triggered.")
-        except Exception as e:
-            _post_reply(client, channel, thread_ts, f"Failed to run email agent: {e}")
+
+def _format_response(text):
+    if not text:
+        return "I processed your request but didn't get a response. Please try again."
+    text = text.strip()
+    if text.startswith("Error:"):
+        return "Sorry, I ran into an issue. Please try again."
+    return text
+
+
+def _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session=None):
+    if thread_session is None:
+        thread_session = sess.load(thread_ts) if thread_ts else {}
+
+    response, intent, handled = route(text, thread_session)
+
+    if handled and response:
+        _post_reply(client, channel, thread_ts, response)
+        sess.add_exchange(thread_session, text, response, intent)
+        if thread_ts:
+            sess.save(thread_ts, thread_session)
         return True
 
     return False
+
+
+def _is_bot_in_thread(client, channel, thread_ts):
+    if (channel, thread_ts) in _active_threads:
+        return True
+    try:
+        result = client.conversations_replies(channel=channel, ts=thread_ts, limit=50)
+        for msg in result.get("messages", []):
+            if msg.get("user") == bot_user_id:
+                _active_threads.add((channel, thread_ts))
+                return True
+    except Exception:
+        pass
+    return False
+
+
+_MAX_ACTIVE_THREADS = 1000
+
+
+def _track_thread(channel, thread_ts):
+    if len(_active_threads) >= _MAX_ACTIVE_THREADS:
+        # Evict oldest entries when cap is reached
+        try:
+            _active_threads.discard(next(iter(_active_threads)))
+        except StopIteration:
+            pass
+    _active_threads.add((channel, thread_ts))
 
 
 @app.event("app_mention")
@@ -285,7 +245,17 @@ def handle_mention(event, client):
     thread_ts = event.get("thread_ts", ts)
     user_id = event.get("user", "")
 
-    if _handle_quick_command(client, channel, thread_ts, user_id, text):
+    try:
+        import sentry_sdk
+        sentry_sdk.set_user({"id": user_id, "username": event.get("user", "unknown")})
+    except Exception:
+        pass
+
+    _track_thread(channel, thread_ts)
+
+    thread_session = sess.load(thread_ts)
+
+    if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
         return
 
     enqueue(
@@ -298,40 +268,81 @@ def handle_mention(event, client):
 
 
 @app.event("message")
-def handle_dm(event, client):
-    if event.get("channel_type") != "im":
-        return
+def handle_message(event, client):
     if event.get("user") == bot_user_id or event.get("bot_id"):
+        return
+    if event.get("subtype"):
         return
 
     text = event.get("text", "").strip()
-    channel = event["channel"]
-    ts = event["ts"]
-    thread_ts = event.get("thread_ts", ts)
-    user_id = event.get("user", "")
-
-    if _handle_quick_command(client, channel, thread_ts, user_id, text):
+    if not text:
         return
 
-    enqueue(
-        channel=channel,
-        thread_ts=thread_ts,
-        message_ts=ts,
-        user_id=user_id,
-        text=text,
-    )
+    channel = event["channel"]
+    ts = event["ts"]
+    thread_ts = event.get("thread_ts")
+    user_id = event.get("user", "")
+
+    try:
+        import sentry_sdk
+        sentry_sdk.set_user({"id": user_id, "username": event.get("user", "unknown")})
+    except Exception:
+        pass
+
+    is_dm = event.get("channel_type") == "im"
+    is_thread_reply = thread_ts is not None and thread_ts != ts
+
+    if is_dm:
+        dm_session = sess.load(thread_ts or ts)
+        if _handle_quick_command(client, channel, thread_ts or ts, user_id, text, dm_session):
+            return
+        enqueue(
+            channel=channel,
+            thread_ts=thread_ts or ts,
+            message_ts=ts,
+            user_id=user_id,
+            text=text,
+        )
+        return
+
+    if is_thread_reply and _is_bot_in_thread(client, channel, thread_ts):
+        text = re.sub(r"<@[A-Z0-9]+>", "", text).strip()
+        if not text:
+            return
+
+        thread_session = sess.load(thread_ts)
+        if _handle_quick_command(client, channel, thread_ts, user_id, text, thread_session):
+            return
+
+        enqueue(
+            channel=channel,
+            thread_ts=thread_ts,
+            message_ts=ts,
+            user_id=user_id,
+            text=text,
+        )
 
 
-def run_worker(slack_client, model):
-    logger.info("Worker started")
+def run_worker(slack_client, model, worker_name="worker"):
+    logger.info("[%s] Started", worker_name)
+    if _worker_registry:
+        _worker_registry.register(worker_name)
     recover_stale()
 
     maintenance_counter = 0
 
-    while True:
-        task = claim_next()
+    while not _shutdown.is_set():
+        if _worker_registry and WorkerStatus:
+            _worker_registry.transition(worker_name, WorkerStatus.CLAIMING)
+        try:
+            task = claim_next(worker_id=worker_name)
+        except TypeError:
+            task = claim_next()
         if not task:
-            time.sleep(2)
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.IDLE)
+            if _shutdown.wait(timeout=2):
+                break
             maintenance_counter += 1
             if maintenance_counter >= 30:
                 timeout_stale(15)
@@ -344,37 +355,160 @@ def run_worker(slack_client, model):
         thread_ts = task["slack_thread_ts"]
         prompt = task["user_text"]
 
-        logger.info("Processing task %d: %s", task_id, prompt[:100])
+        logger.info("[%s] Processing task %d: %s", worker_name, task_id, prompt[:100])
+        if _worker_registry and WorkerStatus:
+            _worker_registry.transition(worker_name, WorkerStatus.PROCESSING, task_id=task_id)
+        if _tracer:
+            try:
+                _tracer.trace_task("claim", worker=worker_name, task_id=task_id)
+            except Exception:
+                pass
 
+        thinking_msg = None
         try:
-            slack_client.reactions_add(channel=channel, name="hourglass_flowing_sand", timestamp=task["slack_message_ts"])
+            thinking_msg = slack_client.chat_postMessage(
+                channel=channel, thread_ts=thread_ts, text=":hourglass: Working on it..."
+            )
         except Exception:
             pass
 
+        _sentry_scope = None
         try:
-            result = run_master(prompt, model)
-            _post_reply(slack_client, channel, thread_ts, result)
+            try:
+                import sentry_sdk
+                _sentry_scope = sentry_sdk.push_scope()
+                scope = _sentry_scope.__enter__()
+                scope.set_tag("worker", worker_name)
+                scope.set_tag("task_id", task_id)
+                scope.set_context("task", {"channel": channel, "prompt": prompt[:200]})
+            except Exception:
+                pass
+
+            thread_session = sess.load(thread_ts)
+            thread_context = _fetch_thread_context(slack_client, channel, thread_ts)
+            session_context = sess.get_context_summary(thread_session)
+            context_block = ""
+            if session_context:
+                context_block = "## Session history:\n" + session_context + "\n\n"
+
+            if thread_context and len(prompt.split()) <= 5:
+                full_prompt = thread_context + context_block + "## Current request:\n" + prompt + "\n\n## IMPORTANT: Short follow-up. Continue from last exchange."
+            else:
+                full_prompt = thread_context + context_block + "## Current request:\n" + prompt
+
+            if thinking_msg and run_claude_streaming is not None:
+                if _worker_registry and WorkerStatus:
+                    _worker_registry.transition(worker_name, WorkerStatus.STREAMING, task_id=task_id)
+
+                def _stream_callback(partial_text):
+                    try:
+                        slack_client.chat_update(
+                            channel=channel,
+                            ts=thinking_msg["ts"],
+                            text=partial_text[:3000],
+                        )
+                    except Exception:
+                        pass
+
+                if heartbeat:
+                    try:
+                        heartbeat(task_id)
+                    except Exception:
+                        pass
+                try:
+                    result = run_master_streaming(full_prompt, _stream_callback, model)
+                except Exception:
+                    result = run_master(full_prompt, model)
+            else:
+                if heartbeat:
+                    try:
+                        heartbeat(task_id)
+                    except Exception:
+                        pass
+                result = run_master(full_prompt, model)
+            response = _format_response(result)
+
+            if thinking_msg:
+                try:
+                    if len(response) <= 3000:
+                        slack_client.chat_update(
+                            channel=channel, ts=thinking_msg["ts"], text=response
+                        )
+                    else:
+                        slack_client.chat_delete(channel=channel, ts=thinking_msg["ts"])
+                        _post_reply(slack_client, channel, thread_ts, response)
+                except Exception:
+                    _post_reply(slack_client, channel, thread_ts, response)
+            else:
+                _post_reply(slack_client, channel, thread_ts, response)
+
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.COMPLETING, task_id=task_id)
             complete(task_id, result[:500])
+            _track_thread(channel, thread_ts)
+
+            sess.add_exchange(thread_session, prompt, response)
+            sess.save(thread_ts, thread_session)
+
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.IDLE)
+            if _tracer:
+                try:
+                    _tracer.trace_task("complete", worker=worker_name, task_id=task_id)
+                except Exception:
+                    pass
 
             try:
                 slack_client.reactions_add(channel=channel, name="white_check_mark", timestamp=task["slack_message_ts"])
             except Exception:
                 pass
 
+            if _sentry_scope:
+                try:
+                    _sentry_scope.__exit__(None, None, None)
+                except Exception:
+                    pass
+
         except Exception as e:
+            if _sentry_scope:
+                try:
+                    _sentry_scope.__exit__(type(e), e, e.__traceback__)
+                except Exception:
+                    pass
+            if _worker_registry and WorkerStatus:
+                _worker_registry.transition(worker_name, WorkerStatus.FAILED, task_id=task_id, detail=str(e)[:200])
+            if _tracer:
+                try:
+                    _tracer.trace_task("fail", worker=worker_name, task_id=task_id, error=str(e)[:200])
+                except Exception:
+                    pass
             logger.exception("Task %d failed", task_id)
-            try:
-                slack_client.chat_postMessage(
-                    channel=channel, thread_ts=thread_ts,
-                    text=f"Sorry, I hit an error processing that: {e}",
-                )
-            except Exception:
-                pass
+            error_msg = "Sorry, I hit an issue processing that. Please try again."
+            posted = False
+            if thinking_msg:
+                try:
+                    slack_client.chat_update(channel=channel, ts=thinking_msg["ts"], text=error_msg)
+                    posted = True
+                except Exception:
+                    pass
+            if not posted:
+                try:
+                    slack_client.chat_postMessage(channel=channel, thread_ts=thread_ts, text=error_msg)
+                except Exception:
+                    pass
             fail(task_id, str(e))
+
+    if _worker_registry and WorkerStatus:
+        _worker_registry.transition(worker_name, WorkerStatus.SHUTDOWN)
+    logger.info("[%s] Stopped", worker_name)
 
 
 def main():
     global bot_user_id
+
+    if SENTRY_DSN:
+        import sentry_sdk
+        sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=0.1)
 
     parser = argparse.ArgumentParser(description="Consilium Slack Bot")
     parser.add_argument("--model", default=DEFAULT_MODEL)
@@ -384,11 +518,31 @@ def main():
     bot_user_id = auth["user_id"]
     logger.info("Bot user ID: %s", bot_user_id)
 
-    worker = threading.Thread(target=run_worker, args=(app.client, args.model), daemon=True)
-    worker.start()
+    def _signal_handler(sig, frame):
+        logger.info("Shutdown signal received, stopping workers...")
+        _shutdown.set()
+
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+
+    workers = []
+    for i in range(1, NUM_WORKERS + 1):
+        name = f"worker-{i}"
+        t = threading.Thread(target=run_worker, args=(app.client, args.model, name), daemon=True, name=name)
+        t.start()
+        workers.append(t)
+        logger.info("Started %s", name)
 
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
-    handler.start()
+    try:
+        handler.start()
+    except (KeyboardInterrupt, SystemExit):
+        _shutdown.set()
+
+    logger.info("Waiting for workers to finish (30s max)...")
+    for t in workers:
+        t.join(timeout=30)
+    logger.info("All workers stopped")
 
 
 if __name__ == "__main__":

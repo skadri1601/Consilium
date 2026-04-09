@@ -69,6 +69,7 @@ htmlcov/
 playwright-report/
 test-results/
 apps/agents/scripts/
+agents/scripts/
 
 # Turbo
 .turbo/
@@ -76,6 +77,11 @@ apps/agents/scripts/
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Agent state files
+agents/memory/*.db
+agents/memory/*.json
+agents/memory/sessions/
 
 # Vercel
 .vercel/
@@ -90,15 +96,26 @@ prisma/*.db-journal
 tmp/
 temp/
 
-# Documentation (ignore all markdown except README files)
+# Documentation (ignore all markdown except key project files)
 *.md
 !README.md
 !**/README.md
+!CLAUDE.md
+!AGENTS.md
+!PR-REVIEW.md
+!SKILLS.md
+!CONTRIBUTING.md
 
 # Temporary test files
 test_*.js
 debug_*.js
 scratch.*
+
+# Test files
+**/test_*.py
+**/tests/
+**/benchmark_results/
+**/.pytest_cache/
 
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md

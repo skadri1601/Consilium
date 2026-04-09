@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { WelcomeModal } from "./welcome-modal";
 
 interface OnboardingContextType {
@@ -20,7 +20,7 @@ export function useOnboarding() {
   return context;
 }
 
-export function OnboardingProvider({ children }: { children: React.ReactNode }) {
+export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 

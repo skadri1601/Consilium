@@ -1,0 +1,192 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectRedis } from "@nestjs-modules/ioredis";
+import Redis from "ioredis";
+import { PrismaService } from "../../shared/database/prisma.service";
+import { ApiKeysService } from "../api-keys/api-keys.service";
+import { DeliberationEventsClient } from "./deliberation-events.client";
+import { CreateDeliberationDto } from "./dto/create-deliberation.dto";
+import { FREE_FALLBACK_MODELS } from "../debates/model-pricing";
+
+@Injectable()
+export class DeliberationService {
+  constructor(
+    private prisma: PrismaService,
+    private apiKeysService: ApiKeysService,
+    private eventsClient: DeliberationEventsClient,
+    @InjectRedis() private readonly redis: Redis,
+  ) {}
+
+  async createDeliberation(userId: string, dto: CreateDeliberationDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        "User not found. Please ensure your account is synced.",
+      );
+    }
+
+    const storedKeys = await this.apiKeysService.getUserApiKeys(userId);
+    const apiKeys = dto.apiKeys || {
+      openaiKey: storedKeys.openaiKey,
+      anthropicKey: storedKeys.anthropicKey,
+      googleKey: storedKeys.googleKey,
+      groqKey: storedKeys.groqKey,
+      xaiKey: storedKeys.xaiKey,
+    };
+
+    const hasKeys =
+      apiKeys.openaiKey ||
+      apiKeys.anthropicKey ||
+      apiKeys.googleKey ||
+      apiKeys.groqKey ||
+      apiKeys.xaiKey;
+
+    const effectiveModels = !hasKeys
+      ? Array.from(
+          { length: Math.max(dto.models.length, 2) },
+          () => FREE_FALLBACK_MODELS.debater,
+        )
+      : dto.models;
+
+    const mode = dto.mode || "council";
+
+    const conversation = await this.prisma.conversationV2.create({
+      data: {
+        userId: user.id,
+        title: dto.topic.slice(0, 100),
+      },
+    });
+
+    const deliberation = await this.prisma.debateSession.create({
+      data: {
+        userId: user.id,
+        topic: dto.topic,
+        status: "pending",
+        modelsUsed: effectiveModels,
+        totalCost: 0,
+        mode,
+        debateSource: "deliberation",
+        conversationId: conversation.id,
+      },
+    });
+
+    try {
+      await this.eventsClient.startDeliberation({
+        deliberationId: deliberation.id,
+        topic: dto.topic,
+        mode,
+        models: effectiveModels,
+        maxRounds: dto.maxRounds,
+        apiKeys: {
+          openaiKey: apiKeys.openaiKey,
+          anthropicKey: apiKeys.anthropicKey,
+          googleKey: apiKeys.googleKey,
+          groqKey: apiKeys.groqKey,
+          xaiKey: apiKeys.xaiKey,
+        },
+      });
+
+      await this.prisma.debateSession.update({
+        where: { id: deliberation.id },
+        data: { status: "processing" },
+      });
+    } catch (error) {
+      await this.prisma.debateSession.update({
+        where: { id: deliberation.id },
+        data: { status: "failed" },
+      });
+      throw error;
+    }
+
+    return deliberation;
+  }
+
+  async createRedTeam(userId: string, dto: CreateDeliberationDto) {
+    return this.createDeliberation(userId, { ...dto, mode: "red-team" });
+  }
+
+  async createBlindEval(userId: string, dto: CreateDeliberationDto) {
+    return this.createDeliberation(userId, { ...dto, mode: "blind-eval" });
+  }
+
+  async getDeliberation(id: string, clerkId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const deliberation = await this.prisma.debateSession.findFirst({
+      where: { id, userId: user.id, debateSource: "deliberation" },
+      include: {
+        rounds: {
+          include: {
+            messages: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+          orderBy: { roundNumber: "asc" },
+        },
+      },
+    });
+
+    if (!deliberation) {
+      throw new NotFoundException("Deliberation not found");
+    }
+
+    return deliberation;
+  }
+
+  async cancelDeliberation(id: string, clerkId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const deliberation = await this.prisma.debateSession.findFirst({
+      where: { id, userId: user.id, debateSource: "deliberation" },
+    });
+
+    if (!deliberation) {
+      throw new NotFoundException("Deliberation not found");
+    }
+
+    if (
+      deliberation.status !== "pending" &&
+      deliberation.status !== "processing"
+    ) {
+      throw new BadRequestException(
+        "Only active deliberations can be cancelled",
+      );
+    }
+
+    await this.prisma.debateSession.update({
+      where: { id },
+      data: { status: "cancelled" },
+    });
+
+    try {
+      if (this.redis.status === "ready") {
+        await this.redis.publish(
+          `deliberation:${id}:cancel`,
+          JSON.stringify({ deliberationId: id, action: "cancel" }),
+        );
+      }
+    } catch {
+      /* cancel publish may fail silently */
+    }
+
+    return { id, cancelled: true };
+  }
+}

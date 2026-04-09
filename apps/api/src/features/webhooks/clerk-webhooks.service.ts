@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { AuditLoggerService } from "../../shared/services/audit-logger.service";
 import { SessionService } from "../../shared/services/session.service";

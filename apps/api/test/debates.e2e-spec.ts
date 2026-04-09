@@ -65,7 +65,10 @@ describe("DebatesController (e2e)", () => {
     app.useGlobalFilters(new HttpExceptionFilter());
 
     await app.init();
-    await (app as NestFastifyApplication).getHttpAdapter().getInstance().ready();
+    await (app as NestFastifyApplication)
+      .getHttpAdapter()
+      .getInstance()
+      .ready();
   });
 
   afterAll(async () => {

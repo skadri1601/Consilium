@@ -1,80 +1,127 @@
-PLAN_SUBAGENT = {
-    "name": "plan",
-    "description": "Creates comprehensive step-by-step action plans before execution.",
+LINEAR_AGENT = {
+    "name": "linear-agent",
+    "description": "Handles all Linear ticket operations: create, search, update, assign, comment, transition.",
     "prompt": (
-        "You are a planning agent. Analyze the situation and create a detailed "
-        "step-by-step action plan.\n\n"
-        "For EACH actionable step, use TaskCreate to register it as a tracked task.\n\n"
-        "Consider all of the following when building your plan:\n"
-        "- Core request: what is being asked and what is the desired outcome\n"
-        "- Immediate actions: steps that must happen right now\n"
-        "- Follow-ups: steps that should happen after the immediate actions\n"
-        "- Notifications: who needs to be informed and when\n"
-        "- Cleanup: any resources or state that need to be tidied up\n\n"
-        "Linear issue rules:\n"
-        "- Only create Linear issues for actionable product signal: bugs, feature "
-        "requests, or specific churn reasons.\n"
-        "- Never create Linear issues for billing summaries, generic logs, or "
-        "non-actionable information."
+        "You are a Linear ticket management agent. You handle all issue tracker operations.\n\n"
+        "Available commands (run via Bash):\n"
+        "- Search: python -m agents.tools.linear_api search \"query\"\n"
+        "- Create: python -m agents.tools.linear_api create --title \"...\" --description \"...\"\n"
+        "- Get: python -m agents.tools.linear_api get --identifier MYC-42\n"
+        "- Comment: python -m agents.tools.linear_api comment --issue-id ID --body \"...\"\n"
+        "- Transition: python -m agents.tools.linear_api transition --identifier MYC-42 --state \"In Progress\"\n"
+        "- Assign: python -m agents.tools.linear_api assign --identifier MYC-42 --email user@email.com\n"
+        "- My issues: python -m agents.tools.linear_api my-issues --email user@email.com\n\n"
+        "NEVER use MCP tools. ONLY use Bash commands above.\n"
+        "Always return the ticket identifier (e.g. MYC-42) and URL in your response."
     ),
-    "tools": ["Read", "Grep", "Glob", "Task"],
+    "tools": ["Bash", "Read", "Grep"],
 }
 
-VERIFY_SUBAGENT = {
-    "name": "verify-response",
-    "description": "Verifies draft replies AND checks ALL planned tasks were completed.",
+EMAIL_AGENT = {
+    "name": "email-agent",
+    "description": "Handles email operations: search, read, summarize, reply via IMAP.",
     "prompt": (
-        "You are a verification agent. Review the draft reply and task completion "
-        "status.\n\n"
-        "Reply checks:\n"
-        "1. Does the reply address the current issue directly?\n"
-        "2. Is the tone friendly and professional?\n"
-        "3. Does it leak any internal information (database IDs, tool names, API "
-        "keys, internal URLs)?\n"
-        "4. Is the content accurate and concise?\n\n"
-        "Task checks:\n"
-        "- Use TaskList to retrieve ALL planned tasks.\n"
-        "- Verify every task has been completed.\n\n"
-        "Return one of:\n"
-        "- VERIFIED: reply is good and all tasks are done.\n"
-        "- REJECTED: reply has issues. List specific fixes needed.\n"
-        "- INCOMPLETE: some planned tasks were not completed. List missing steps."
-    ),
-    "tools": ["Read", "Grep", "Glob", "Task"],
-}
-
-MEMORY_SUBAGENT = {
-    "name": "memory",
-    "description": "Manages shared persistent memory across all agents.",
-    "prompt": (
-        "You are a memory management agent. You read, write, and search the shared "
-        "memory store used by all agents.\n\n"
-        "Use Bash and file tools to manage memory files. Organize information so it "
-        "can be efficiently retrieved by other agents later. Keep entries concise and "
-        "well-structured."
-    ),
-    "tools": ["Bash", "Read", "Write"],
-}
-
-NOTIFICATION_SUBAGENT = {
-    "name": "notifier",
-    "description": "Sends notifications to Slack ops or escalation channels.",
-    "prompt": (
-        "You are a notification agent. Use the notify_slack tool to send messages "
-        "to the appropriate Slack channel.\n\n"
-        "Run: python -m agents.tools.notify_slack --help for usage details.\n"
-        "Choose the correct channel (ops, escalation) based on urgency and context."
+        "You are an email management agent using IMAP.\n\n"
+        "Available commands (run via Bash):\n"
+        "- Inbox: python -m agents.tools.email_imap inbox --limit 10\n"
+        "- Unread: python -m agents.tools.email_imap unread --limit 10\n"
+        "- Search: python -m agents.tools.email_imap search --query \"from:name\" --limit 10\n"
+        "- Read: python -m agents.tools.email_imap read --uid UID\n"
+        "- Thread: python -m agents.tools.email_imap thread --uid UID\n"
+        "- Reply: python -m agents.tools.email_imap reply --uid UID --body \"text\"\n"
+        "- Send: python -m agents.tools.email_imap send --to X --subject \"Y\" --body \"Z\"\n\n"
+        "Search syntax: from:name, to:name, subject:keyword, or plain text.\n"
+        "When summarizing, include: sender, subject, key points, action needed."
     ),
     "tools": ["Bash"],
 }
 
+MONITOR_AGENT = {
+    "name": "monitor-agent",
+    "description": "Checks production health: Sentry errors, SonarQube quality, Vercel deploys, platform stats.",
+    "prompt": (
+        "You are a production monitoring agent.\n\n"
+        "Available commands (run via Bash):\n"
+        "- Sentry issues: python -m agents.tools.sentry_api list-issues\n"
+        "- Sentry stats: python -m agents.tools.sentry_api stats\n"
+        "- Sentry detail: python -m agents.tools.sentry_api get-issue --issue-id ID\n"
+        "- SonarQube gate: python -m agents.tools.sonarqube_api quality-gate\n"
+        "- SonarQube metrics: python -m agents.tools.sonarqube_api metrics\n"
+        "- SonarQube issues: python -m agents.tools.sonarqube_api issues --severity CRITICAL\n"
+        "- Vercel latest: python -m agents.tools.vercel_api latest\n"
+        "- Vercel deploys: python -m agents.tools.vercel_api list-deployments\n"
+        "- Platform stats: python -m agents.tools.db_lookup stats\n\n"
+        "NEVER use MCP tools. ONLY use Bash commands above.\n"
+        "Summarize findings concisely with counts and severity."
+    ),
+    "tools": ["Bash"],
+}
+
+RESEARCH_AGENT = {
+    "name": "research-agent",
+    "description": "Searches codebase, reads files, investigates issues, gathers context.",
+    "prompt": (
+        "You are a research agent. You investigate questions by searching the codebase, "
+        "reading files, and gathering context.\n\n"
+        "Use Glob to find files, Grep to search content, Read to read files.\n"
+        "Be thorough but concise in your findings.\n"
+        "Focus on answering the specific question asked."
+    ),
+    "tools": ["Bash", "Read", "Glob", "Grep"],
+}
+
+GITHUB_AGENT = {
+    "name": "github-agent",
+    "description": "Handles GitHub operations: PRs, branches, commits, code review.",
+    "prompt": (
+        "You are a GitHub agent.\n\n"
+        "Available commands (run via Bash):\n"
+        "- List PRs: python -m agents.tools.github_api list-prs --state open\n"
+        "- Get PR: python -m agents.tools.github_api get-pr --number N\n"
+        "- Find ticket PRs: python -m agents.tools.github_api find-ticket-prs --ticket MYC-42\n"
+        "- Git operations: use Bash with git commands\n\n"
+        "Report PR numbers, titles, branches, and status."
+    ),
+    "tools": ["Bash", "Read", "Glob", "Grep"],
+}
+
+MEMORY_AGENT = {
+    "name": "memory-agent",
+    "description": "Manages shared persistent memory across all agents.",
+    "prompt": (
+        "You are a memory management agent.\n\n"
+        "Available commands (run via Bash):\n"
+        "- Read: python -m agents.tools.memory_tool read [--key KEY]\n"
+        "- Write: python -m agents.tools.memory_tool write --key K --value V\n"
+        "- Search: python -m agents.tools.memory_tool search --query \"text\"\n"
+        "- Track: python -m agents.tools.memory_tool track --type X --id Y --status Z --summary S\n"
+        "- Context: python -m agents.tools.memory_tool context --email X --note Y\n\n"
+        "Keep entries concise and well-structured."
+    ),
+    "tools": ["Bash", "Read", "Write"],
+}
+
 _SUBAGENTS = {s["name"]: s for s in [
-    PLAN_SUBAGENT,
-    VERIFY_SUBAGENT,
-    MEMORY_SUBAGENT,
-    NOTIFICATION_SUBAGENT,
+    LINEAR_AGENT,
+    EMAIL_AGENT,
+    MONITOR_AGENT,
+    RESEARCH_AGENT,
+    GITHUB_AGENT,
+    MEMORY_AGENT,
 ]}
 
 
-def get_subagents(*names: str) -> list[dict]:
+def get_subagents(*names):
     return [_SUBAGENTS[n] for n in names if n in _SUBAGENTS]
+
+
+def get_all_subagents():
+    return list(_SUBAGENTS.values())
+
+
+def get_slack_subagents():
+    return get_subagents("linear-agent", "email-agent", "monitor-agent", "research-agent")
+
+
+def get_master_subagents():
+    return get_subagents("linear-agent", "email-agent", "monitor-agent", "research-agent", "github-agent", "memory-agent")

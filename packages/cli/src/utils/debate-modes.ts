@@ -1,4 +1,4 @@
-export type DebateMode = 'quick' | 'council' | 'deep' | 'blind';
+export type DebateMode = 'quick' | 'council' | 'deep' | 'blind' | 'redteam' | 'jury' | 'market' | 'auto';
 
 export interface DebateModeConfig {
   rounds: number;
@@ -30,7 +30,7 @@ export const DEBATE_MODES: Record<DebateMode, DebateModeConfig> = {
     rounds: 3,
     subAgents: false,
     estimatedCost: 0.04,
-    description: 'Multi-round deliberation (default)',
+    description: 'Multi-round deliberation',
     estimatedTime: '~45s',
   },
   deep: {
@@ -47,14 +47,44 @@ export const DEBATE_MODES: Record<DebateMode, DebateModeConfig> = {
     description: 'Names hidden until scored',
     estimatedTime: '~45s',
   },
+  redteam: {
+    rounds: 4,
+    subAgents: true,
+    estimatedCost: 0.10,
+    description: 'Adversarial red team assessment',
+    estimatedTime: '~120s',
+  },
+  jury: {
+    rounds: 3,
+    subAgents: false,
+    estimatedCost: 0.05,
+    description: 'Panel deliberation with voting',
+    estimatedTime: '~60s',
+  },
+  market: {
+    rounds: 5,
+    subAgents: true,
+    estimatedCost: 0.09,
+    description: 'Prediction market style confidence aggregation',
+    estimatedTime: '~90s',
+  },
+  auto: {
+    rounds: 3,
+    subAgents: false,
+    estimatedCost: 0.04,
+    description: 'Automatically selects best mode for topic',
+    estimatedTime: '~45s',
+  },
 };
+
+export const ALL_MODES = Object.keys(DEBATE_MODES) as DebateMode[];
 
 export function isValidMode(mode: string): mode is DebateMode {
   return mode in DEBATE_MODES;
 }
 
 export function getDefaultMode(): DebateMode {
-  return 'council';
+  return 'auto';
 }
 
 export function estimateCost(mode: DebateMode, modelCount: number): CostEstimate {

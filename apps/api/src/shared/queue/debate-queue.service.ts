@@ -12,6 +12,7 @@ export interface DebateJobData {
     anthropicKey?: string;
     googleKey?: string;
     groqKey?: string;
+    xaiKey?: string;
   };
 }
 
@@ -42,10 +43,28 @@ export class DebateQueueService {
     };
   }
 
+  async getActiveJobs(): Promise<
+    { debateId: string; progress: number; startedAt: Date }[]
+  > {
+    const activeJobs = await this.debateQueue.getActive();
+    return activeJobs.map((job) => ({
+      debateId: job.data.debateId,
+      progress: job.progress as number,
+      startedAt: new Date(job.processedOn || job.timestamp),
+    }));
+  }
+
   async removeJob(jobId: string) {
     const job = await this.debateQueue.getJob(jobId);
-    if (job) {
+    if (!job) return;
+
+    try {
       await job.remove();
+    } catch {
+      const state = await job.getState().catch(() => "unknown");
+      if (state === "active" || state === "unknown") {
+        await job.moveToFailed(new Error("Removed while active"), "0", false);
+      }
     }
   }
 }

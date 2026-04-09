@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { DebatesService } from "./debates.service";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { ApiKeysService } from "../api-keys/api-keys.service";
@@ -8,8 +8,8 @@ import { PersonasService } from "../personas/personas.service";
 
 describe("DebatesService", () => {
   let service: DebatesService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let apiKeysService: jest.Mocked<ApiKeysService>;
+  let _prismaService: jest.Mocked<PrismaService>;
+  let _apiKeysService: jest.Mocked<ApiKeysService>;
 
   const mockPrismaService = {
     user: {
@@ -66,8 +66,8 @@ describe("DebatesService", () => {
     }).compile();
 
     service = module.get<DebatesService>(DebatesService);
-    prismaService = module.get(PrismaService);
-    apiKeysService = module.get(ApiKeysService);
+    _prismaService = module.get(PrismaService);
+    _apiKeysService = module.get(ApiKeysService);
 
     jest.clearAllMocks();
   });

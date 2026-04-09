@@ -1,0 +1,154 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: consilium-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-consilium}
+      POSTGRES_USER: ${POSTGRES_USER:-consilium}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-consilium_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consilium"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - consilium
+
+  redis:
+    image: redis:7-alpine
+    container_name: consilium-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+    networks:
+      - consilium
+
+  agents:
+    build:
+      context: .
+      dockerfile: apps/agents/Dockerfile
+    container_name: consilium-agents
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - BACKEND_API_URL=http://api:4000
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+    ports:
+      - "${AGENTS_PORT:-8000}:8000"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+    networks:
+      - consilium
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: consilium-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      agents:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-consilium}:${POSTGRES_PASSWORD:-consilium_dev}@postgres:5432/${POSTGRES_DB:-consilium}
+      - REDIS_URL=redis://redis:6379
+      - AI_WORKERS_URL=http://agents:8000
+      - NODE_ENV=production
+      - PORT=4000
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+    ports:
+      - "${API_PORT:-4000}:4000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - consilium
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+    container_name: consilium-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+      - NODE_ENV=production
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - consilium
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  consilium:
+    name: consilium-network

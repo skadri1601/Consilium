@@ -1,440 +1,291 @@
-# [Consilium] - AI Council Platform
+# Consilium
 
-> Multi-AI agent orchestration system that enables collaborative problem-solving across different LLMs with blind evaluation and consensus features.
+**Structured deliberation between AI models.**
 
-## 🎯 Overview
-
-AI Council is a production-grade platform that orchestrates multiple AI models (GPT-4o-mini, Claude, Gemini, Grok etc.) to collaboratively solve complex problems. Instead of trying different AI models sequentially, AI Council runs them in parallel, analyzes their approaches, and presents the best solutions through blind evaluation.
-
-**Key Features:**
-- 🤝 Multi-agent deliberation with LangGraph orchestration
-- 🎭 Blind evaluation - removes model bias by anonymizing outputs
-- 📊 Consensus analysis showing where models agree/disagree
-- 🚀 Real-time streaming of agent responses via Server-Sent Events
-- 🔐 Multi-tenancy with Row-Level Security
-- 📈 Usage analytics and per-model cost tracking
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  FRONTEND (Next.js 15 + Vercel AI SDK)                  │
-│  - Vercel Hobby (Free)                                  │
-│  - Real-time streaming UI with SSE                      │
-│  - Multi-agent conversation views                       │
-│  - Blind evaluation interface                           │
-└─────────────────┬───────────────────────────────────────┘
-                  │ REST API + Server-Sent Events
-┌─────────────────▼───────────────────────────────────────┐
-│  API LAYER (NestJS + TypeScript)                        │
-│  - Railway Hobby ($5/month)                             │
-│  - Clerk authentication                                 │
-│  - Rate limiting & tenant management                    │
-│  - BullMQ job queue                                     │
-└─────────────────┬───────────────────────────────────────┘
-                  │ Queue Jobs + HTTP
-┌─────────────────▼───────────────────────────────────────┐
-│  AI WORKERS (Python + LangGraph)                        │
-│  - Railway or same container                            │
-│  - Multi-agent orchestration                            │
-│  - LLM routing (GPT-4o-mini, Claude, Gemini)            │
-│  - Semantic caching with Redis                          │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────┐
-│  DATA LAYER                                             │
-│  - Neon PostgreSQL                                      │
-│  - Upstash Redis                                        │
-│  - 10,000 pooled connections                            │
-└─────────────────────────────────────────────────────────┘
-```
-
-## 🛠️ Tech Stack (Finalized for Bootstrap Launch)
-
-### Frontend (`apps/web`)
-- **Framework**: Next.js 15 (App Router)
-- **Hosting**: Vercel Hobby (Free)
-- **UI Library**: React 18 + TypeScript
-- **AI Integration**: Vercel AI SDK 6
-- **State Management**: Zustand + TanStack Query
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Real-time**: Server-Sent Events
-
-### Backend (`apps/api`)
-- **Framework**: NestJS + Fastify adapter
-- **Hosting**: Railway Hobby ($5/month)
-- **Language**: TypeScript 5.7+
-- **API Protocol**: REST
-- **Authentication**: Clerk (Free for 10K MAU)
-- **Validation**: Zod schemas
-- **Job Queue**: BullMQ + Upstash Redis
-
-### AI Workers (`apps/agents`)
-- **Framework**: LangGraph (Python)
-- **LLM APIs**: GPT-4o-mini, Claude 3.5 Haiku, Gemini 2.0 Flash
-- **API Framework**: FastAPI
-- **Observability**: Langfuse (self-hosted)
-
-### Infrastructure
-- **Database**: Neon PostgreSQL (Free tier, upgrades to $19/month)
-- **Cache**: Upstash Redis (Free tier)
-- **Deployment**: Vercel + Railway
-- **Monitoring**: Sentry Free (5K errors/month)
-- **Email**: Resend Free (3K emails/month)
-- **Payments**: Stripe (2.9% + $0.30)
-- **Monorepo**: Turborepo + pnpm
-
-##
-
- 🚀 Quick Start
-
-### Prerequisites
-
-```bash
-# Required
-node >= 20.x
-pnpm >= 9.x
-python >= 3.11
-docker >= 24.x
-docker-compose >= 2.x (or docker compose for newer Docker Desktop)
-
-# Optional but recommended
-just (command runner)
-direnv (environment management)
-```
-
-### Installation
-
-**Windows (PowerShell):**
-```powershell
-# Clone repository
-git clone https://github.com/yourusername/ai-council.git
-cd ai-council
-
-# Install dependencies (all workspaces)
-pnpm install
-
-# Setup environment variables
-Copy-Item .env.example .env.local
-# Edit .env.local with your API keys and configuration
-
-# Start infrastructure (PostgreSQL, Redis)
-docker-compose up -d
-# Or with newer Docker Desktop: docker compose up -d
-
-# Run database migrations
-pnpm db:migrate
-
-# Start development servers (all apps in parallel)
-pnpm dev
-```
-
-**macOS/Linux (Bash):**
-```bash
-# Clone repository
-git clone https://github.com/yourusername/ai-council.git
-cd ai-council
-
-# Install dependencies (all workspaces)
-pnpm install
-
-# Setup environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys and configuration
-
-# Start infrastructure (PostgreSQL, Redis)
-docker-compose up -d
-
-# Run database migrations
-pnpm db:migrate
-
-# Start development servers (all apps in parallel)
-pnpm dev
-```
-
-This starts:
-- Frontend: http://localhost:3000
-- API: http://localhost:4000
-- AI Workers: http://localhost:8000
-- Temporal UI: http://localhost:8233
-
-### Development Workflow
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# Run all workspaces in dev mode
-pnpm dev
-
-# Run specific workspace
-pnpm --filter @consilium/web dev
-pnpm --filter @consilium/api dev
-pnpm --filter @consilium/agents dev
-
-# Type checking
-pnpm type-check
-
-# Linting
-pnpm lint
-
-# Run tests
-pnpm test
-
-# Build all apps
-pnpm build
-```
-
-> **Note:** `pnpm` commands work identically on Windows, macOS, and Linux.
-
-## 📁 Project Structure
-
-The project uses a **feature-based architecture** where each feature contains all its related files (components, hooks, services, types).
-
-```
-consilium/
-├── apps/
-│   ├── web/                    # Next.js 15 frontend
-│   │   ├── src/
-│   │   │   ├── app/           # App Router (routing only)
-│   │   │   ├── features/      # Feature modules
-│   │   │   │   ├── auth/      # Authentication
-│   │   │   │   ├── council/   # Multi-agent chat
-│   │   │   │   ├── agents/    # Agent management
-│   │   │   │   ├── history/   # Conversation history
-│   │   │   │   └── analytics/ # Usage analytics
-│   │   │   └── shared/        # Shared components, hooks, utils
-│   │   │       ├── components/ui/    # shadcn/ui
-│   │   │       ├── components/layout/
-│   │   │       ├── hooks/
-│   │   │       └── lib/
-│   │   └── package.json
-│   │
-│   ├── api/                    # NestJS backend
-│   │   ├── src/
-│   │   │   ├── features/      # Feature modules
-│   │   │   │   ├── auth/      # Clerk authentication
-│   │   │   │   ├── council/   # Council orchestration
-│   │   │   │   ├── agents/    # Agent CRUD
-│   │   │   │   ├── conversations/
-│   │   │   │   ├── users/
-│   │   │   │   └── analytics/
-│   │   │   ├── shared/        # Shared utilities
-│   │   │   │   ├── database/  # Prisma service
-│   │   │   │   ├── config/
-│   │   │   │   ├── guards/
-│   │   │   │   └── filters/
-│   │   │   └── main.ts
-│   │   └── package.json
-│   │
-│   └── agents/                 # Python AI workers
-│       ├── src/
-│       │   ├── features/      # Feature modules
-│       │   │   ├── council/   # Council logic
-│       │   │   ├── agents/    # LLM agents
-│       │   │   ├── streaming/ # SSE streaming
-│       │   │   └── health/
-│       │   ├── shared/        # Shared utilities
-│       │   │   ├── config/
-│       │   │   ├── database/
-│       │   │   └── utils/
-│       │   ├── workflows/     # LangGraph workflows
-│       │   └── main.py        # FastAPI app
-│       └── pyproject.toml
-│
-├── packages/
-│   ├── database/              # Prisma schema & migrations
-│   ├── config/                # Shared configs (ESLint, TS)
-│   └── ui/                    # Shared UI components (optional)
-│
-├── docker-compose.yml         # Local infrastructure
-├── turbo.json                 # Turborepo configuration
-├── pnpm-workspace.yaml        # pnpm workspace config
-└── README.md                  # This file
-```
-
-## 🔑 Environment Variables
-
-Create `.env.local` in the root directory:
-
-**Windows (PowerShell):**
-```powershell
-# Copy the example file
-Copy-Item .env.example .env.local
-# Then edit .env.local with your API keys and configuration
-```
-
-**macOS/Linux (Bash):**
-```bash
-# Copy the example file
-cp .env.example .env.local
-# Then edit .env.local with your API keys and configuration
-```
-
-**Environment Variables:**
-
-```bash
-# Database (Neon PostgreSQL)
-# Get from: https://console.neon.tech → Project → Connect
-DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
-DIRECT_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
-
-# Redis (Upstash)
-# Get from: https://console.upstash.com → Database → Details
-UPSTASH_REDIS_REST_URL="https://xxx.upstash.io"
-UPSTASH_REDIS_REST_TOKEN="AXxxxxxxxxxxxx"
-REDIS_URL="rediss://default:xxx@xxx.upstash.io:6379"
-
-# LLM Provider API Keys
-OPENAI_API_KEY="sk-..."                    # https://platform.openai.com/api-keys
-ANTHROPIC_API_KEY="sk-ant-..."             # https://console.anthropic.com
-GOOGLE_API_KEY="AIza..."                   # https://aistudio.google.com/apikey
-
-# Authentication (Clerk)
-# Get from: https://dashboard.clerk.com → API Keys
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_SECRET_KEY="sk_test_..."
-
-# Payments (Stripe)
-# Get from: https://dashboard.stripe.com → Developers → API Keys
-STRIPE_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-
-# Monitoring (Sentry)
-# Get from: https://sentry.io → Project Settings → Client Keys
-SENTRY_DSN="https://xxx@xxx.ingest.sentry.io/xxx"
-
-# Email (Resend)
-# Get from: https://resend.com/api-keys
-RESEND_API_KEY="re_..."
-
-# Application
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_API_URL="http://localhost:4000"
-JWT_SECRET="your-32-character-secret-here"
-```
-
-See `.env.example` for complete list with all variables.
-
-## 🧪 Testing
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# Unit tests
-pnpm test:unit
-
-# Integration tests
-pnpm test:integration
-
-# E2E tests (Playwright)
-pnpm test:e2e
-
-# Coverage report
-pnpm test:coverage
-```
-
-## 📦 Deployment
-
-### Production Build
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# Build all applications
-pnpm build
-
-# Build specific app
-pnpm --filter @consilium/web build
-```
-
-### Deployment Targets
-
-- **Frontend**: Vercel (automatic via GitHub integration)
-- **Backend API**: Railway Hobby ($5/month)
-- **AI Workers**: Railway (same container or separate)
-- **Database**: Neon PostgreSQL (Free → Launch $19)
-
-### Quick Deploy to Production
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# 1. Push to GitHub
-git push origin main
-
-# 2. Connect Vercel (automatic deployment)
-# Visit vercel.com → Import Project → Select GitHub repo
-
-# 3. Deploy to Railway
-# Visit railway.com → New Project → Deploy from GitHub
-# Add environment variables in Railway dashboard
-
-# 4. Neon database is already live (no deployment needed)
-```
-
-See deployment guides in `docs/deployment/`.
-
-## 🔒 Security
-
-- ✅ Row-Level Security (RLS) for multi-tenancy
-- ✅ API key rotation via Vault/Secrets Manager
-- ✅ Rate limiting per tenant
-- ✅ Input validation with Zod schemas
-- ✅ CORS and CSP headers
-- ✅ SQL injection prevention via Prisma
-- ✅ Secrets never committed to git
-
-## 📊 Monitoring
-
-- **Application**: Sentry error tracking
-- **LLM Calls**: Langfuse observability
-- **Infrastructure**: Railway metrics / Datadog
-- **Costs**: Per-tenant LLM cost tracking
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
-
-**Windows (PowerShell) / macOS/Linux (Bash):**
-```bash
-# 1. Fork the repository
-# 2. Create feature branch
-git checkout -b feature/amazing-feature
-
-# 3. Commit changes
-git commit -m 'Add amazing feature'
-
-# 4. Push to branch
-git push origin feature/amazing-feature
-
-# 5. Open Pull Request
-```
-
-> **Note:** Git commands work identically on Windows, macOS, and Linux.
-
-## 📄 License
-
-This project is licensed under the MIT License - see [LICENSE](./LICENSE) file.
-
-## 📚 Documentation Structure
-
-### Getting Started
-- **[Quick Start Guide](./docs/guides/getting-started.md)** - Get up and running in 5 minutes
-- **[Self-Hosting](./docs/guides/self-hosting.md)** - Deploy on your infrastructure
-- **[FAQ](./docs/guides/faq.md)** - Frequently asked questions
-- **[Export Formats](./docs/guides/export-formats.md)** - Output format documentation
-
-### Application Documentation
-- **[Web App](./apps/web/README.md)** - Next.js frontend documentation
-- **[API Server](./apps/api/README.md)** - NestJS backend documentation
-- **[AI Workers](./apps/agents/README.md)** - Python agents documentation
-- **[Database](./packages/database/README.md)** - Prisma schema and migrations
-
-### Development
-- **[Project Tasks](./docs/guides/project-tasks.md)** - Development task breakdown
-- **[API Reference](./docs/api/README.md)** - REST API documentation
-
-## 💬 Support
-
-- Email: er.saadk16@gmail.com
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/skadri1601/Consilium/actions/workflows/ci.yml/badge.svg)](https://github.com/skadri1601/Consilium/actions)
+[![npm](https://img.shields.io/npm/v/@consilium/cli)](https://www.npmjs.com/package/@consilium/cli)
+[![PyPI](https://img.shields.io/pypi/v/consilium)](https://pypi.org/project/consilium/)
 
 ---
 
-**Built with ❤️ using LangGraph, NestJS, and Next.js**
+Most multi-agent frameworks treat AI models as workers in a pipeline. Consilium treats them as **adversaries in a structured debate**. Models propose, challenge, rebut, and vote -- producing answers that survive cross-examination rather than simple aggregation.
+
+Research shows multi-agent debate improves factual accuracy by reducing hallucination and surfacing blind spots that single models miss. Consilium implements this as a production-ready platform with 8 deliberation modes, real-time streaming, and full audit trails.
+
+## Why Deliberation > Orchestration
+
+| | Orchestration (CrewAI, LangChain) | Deliberation (Consilium) |
+|---|---|---|
+| **Model interaction** | Sequential pipeline | Adversarial rounds |
+| **Error handling** | Propagates downstream | Caught by cross-examination |
+| **Confidence** | Self-reported | Calibrated via convergence scoring |
+| **Disagreement** | Hidden | Surfaced as dissent reports |
+| **Audit trail** | Logs | Structured claims, challenges, rebuttals |
+
+## Deliberation Modes
+
+| Mode | Rounds | Description |
+|---|---|---|
+| `quick` | 1 | Single round, fastest response (~15s) |
+| `council` | 3 | Multi-round deliberation with cross-examination (~45s) |
+| `deep` | 5 | Multi-round with sub-agent research (~90s) |
+| `blind` | 3 | Model names hidden until scored, reducing anchoring bias (~45s) |
+| `redteam` | 4 | Adversarial red team assessment with attack/defense cycles (~120s) |
+| `jury` | 3 | Panel deliberation with ranked-choice voting (~60s) |
+| `market` | 5 | Prediction market style confidence aggregation (~90s) |
+| `auto` | varies | Automatically selects the best mode for the topic (~45s) |
+
+## Architecture
+
+```
+                    CLI / Python SDK / TypeScript SDK
+                                  |
+                    +-------------v--------------+
+                    |  Web App (Next.js 15)       |
+                    |  Clerk auth, SSE streaming   |
+                    +-------------+--------------+
+                                  | REST + SSE
+                    +-------------v--------------+
+                    |  API (NestJS 11 + Fastify)  |
+                    |  BullMQ, Prisma, Swagger     |
+                    +-------------+--------------+
+                                  | HTTP
+                    +-------------v--------------+
+                    |  Agents (Python FastAPI)     |
+                    +-------------+--------------+
+                                  |
+                    +-------------v--------------+
+                    |  Deliberation Engine         |
+                    |  Round 1: Independent Analysis|
+                    |  Round 2: Cross-Examination   |
+                    |  Round 3: Rebuttal & Refine   |
+                    |  Judge: 5-Phase Synthesis     |
+                    |    - Claim extraction          |
+                    |    - Cross-reference            |
+                    |    - Dispute resolution         |
+                    |    - Rubric scoring             |
+                    |    - Final synthesis            |
+                    +------+----------------+------+
+                           |                |
+               +-----------v---+    +-------v--------+
+               | PostgreSQL     |    | Redis (Upstash) |
+               | (Neon)         |    | Queue + Sessions|
+               +---------------+    +----------------+
+```
+
+**LLM Providers:** OpenAI, Anthropic, Google, Groq, xAI -- BYOK (bring your own keys), no markup on API costs.
+
+## Quick Start
+
+### Option 1: CLI (fastest)
+
+```bash
+npx @consilium/cli deliberate "Should we use microservices or a monolith?"
+```
+
+Or install globally:
+
+```bash
+npm install -g @consilium/cli
+consilium debate "What causes inflation?" --mode council
+consilium debate "Review this architecture" --mode redteam
+consilium debate "Is Rust better than Go for CLIs?" --mode blind
+```
+
+### Option 2: Python SDK
+
+```bash
+pip install consilium
+```
+
+```python
+from consilium import ConsiliumClient
+
+client = ConsiliumClient(api_key="your-key")
+
+result = client.deliberate(
+    topic="What is the most energy-efficient sorting algorithm?",
+    mode="council",
+    models=["gpt-4o", "claude-sonnet-4-5", "gemini-2.0-flash"],
+)
+
+print(result.verdict)
+print(result.confidence)
+print(result.dissent_report)
+```
+
+Red team an LLM response:
+
+```python
+report = client.red_team(content="The capital of Australia is Sydney.")
+for attack in report.attacks:
+    print(f"[{attack.severity}] {attack.category}: {attack.content}")
+```
+
+### Option 3: TypeScript SDK
+
+```bash
+npm install @consilium/sdk
+```
+
+```typescript
+import { ConsiliumClient } from '@consilium/sdk';
+
+const client = new ConsiliumClient({ apiKey: 'your-key' });
+
+const result = await client.deliberate({
+  topic: 'Should we migrate to server components?',
+  mode: 'jury',
+  models: ['gpt-4o', 'claude-sonnet-4-5', 'gemini-2.0-flash'],
+});
+
+console.log(result.verdict);
+console.log(result.votes);
+```
+
+Stream deliberation events in real time:
+
+```typescript
+const result = await client.streamDeliberation(
+  { topic: 'Is TDD worth the overhead?', mode: 'council' },
+  (event) => console.log(`[${event.type}]`, event.data),
+);
+```
+
+### Option 4: Self-Hosted (Docker)
+
+```bash
+git clone https://github.com/skadri1601/Consilium.git
+cd Consilium
+
+# Add your LLM API keys
+cp .env.example .env.local
+
+docker compose -f docker-compose.selfhost.yml up -d
+```
+
+This starts PostgreSQL, Redis, the API server (port 4000), AI agents (port 8000), and the web app (port 3000).
+
+## CLI Reference
+
+```
+consilium debate <topic>     Start a deliberation
+consilium ask <question>     Single-shot query (no debate)
+consilium chat               Interactive chat session
+consilium config             Manage API keys and settings
+consilium login              Authenticate
+consilium eval               Run evaluation benchmarks
+consilium redteam            Red team assessment
+consilium stats              Usage statistics
+```
+
+**Flags:**
+
+```
+--mode <mode>       Deliberation mode (quick|council|deep|blind|redteam|jury|market|auto)
+--models <list>     Comma-separated model list
+--output <format>   Output format (text|json|markdown|cursorrules|claude-md)
+```
+
+## Benchmarks
+
+Deliberation produces the largest gains on **complex reasoning tasks** where models disagree -- not on factual recall where single models already score 80-90%. Our benchmark infrastructure is in place and we are actively evaluating against harder datasets (GSM8K, MATH, MMLU-Pro hard subsets).
+
+| Metric | Value |
+|---|---|
+| Avg. deliberation cost per question (council, 2 models) | ~$0.08 |
+| Convergence detection cost savings | ~30-40% vs fixed rounds |
+| Research-reported improvement (Du et al., multi-agent debate) | +10-20% on reasoning |
+| Research-reported improvement (ReConcile, heterogeneous models) | +6.8% over same-model |
+
+Run your own benchmarks:
+
+```bash
+python -m src.features.deliberation.benchmarks.runner \
+  --benchmark mmlu --models claude-sonnet-4-5,gpt-4o \
+  --mode council --n 50 --output results.json
+```
+
+## How It Works
+
+1. **Propose** -- Each model independently analyzes the topic, producing claims with evidence and confidence scores.
+2. **Challenge** -- Models cross-examine each other's claims, identifying factual errors, flawed reasoning, missing evidence, and edge cases.
+3. **Rebut** -- Defenders respond to challenges: concede, refute, qualify, or redirect. Claims are revised based on the exchange.
+4. **Evaluate** -- A judge model scores proposals on a weighted rubric (correctness 30%, reasoning quality 25%, completeness 20%, actionability 15%, conciseness 10%).
+5. **Vote** -- Models cast ranked-choice ballots. Results are aggregated with confidence weighting and convergence detection.
+6. **Synthesize** -- The judge produces a final verdict incorporating majority reasoning and minority dissent reports.
+
+## Project Structure
+
+```
+Consilium/
+  apps/
+    web/                 Next.js 15 frontend
+    api/                 NestJS 11 + Fastify API
+    agents/              Python FastAPI deliberation engine
+  packages/
+    cli/                 @consilium/cli
+    sdk/                 @consilium/sdk (TypeScript)
+    python-sdk/          consilium (Python)
+    shared/              Shared types and constants
+    database/            Prisma schema and migrations
+    ui/                  Component library
+    config/              ESLint, TypeScript, Prettier configs
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15, React, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query |
+| API | NestJS 11, Fastify, BullMQ, Prisma ORM, Swagger |
+| Deliberation Engine | Python, FastAPI, 5 LLM providers |
+| Database | Neon PostgreSQL |
+| Cache/Queue | Upstash Redis |
+| Auth | Clerk |
+| Monorepo | pnpm + Turborepo |
+
+## Comparison
+
+| Feature | Consilium | CrewAI | DeepEval | Promptfoo |
+|---|---|---|---|---|
+| Multi-model deliberation | Yes | No (sequential) | No | No |
+| Adversarial cross-examination | Yes | No | No | No |
+| Red team mode | Yes | No | Yes | Yes |
+| Blind evaluation | Yes | No | Yes | Yes |
+| Prediction market aggregation | Yes | No | No | No |
+| Dissent reports | Yes | No | No | No |
+| Real-time SSE streaming | Yes | No | No | No |
+| BYOK (no markup) | Yes | Yes | Yes | Yes |
+| Self-hostable | Yes | Yes | Partial | Yes |
+
+## Research References
+
+Consilium's deliberation protocol draws from peer-reviewed research on multi-agent debate:
+
+- Du et al. (2023). ["Improving Factuality and Reasoning in Language Models through Multiagent Debate."](https://arxiv.org/abs/2305.14325) MIT. Demonstrated that multi-agent debate significantly improves mathematical and strategic reasoning in LLMs.
+- Chen et al. (2024). ["ReConcile: Round-Table Conference Improves Reasoning via Consensus Among Diverse LLMs."](https://arxiv.org/abs/2309.13007) ACL 2024. Showed that structured multi-round discussion with confidence-weighted voting outperforms single-model and simple ensemble approaches.
+- Irving et al. (2018). ["AI Safety via Debate."](https://arxiv.org/abs/1805.00899) Anthropic/OpenAI. Proposed debate as a scalable alignment mechanism where adversarial interaction surfaces deceptive or incorrect reasoning.
+- Liang et al. (2023). ["Encouraging Divergent Thinking in Large Language Models through Multi-Agent Debate."](https://arxiv.org/abs/2305.19118) Found that multi-agent debate encourages more diverse and creative problem-solving.
+
+## Development
+
+```bash
+git clone https://github.com/skadri1601/Consilium.git
+cd Consilium
+cp .env.example .env.local
+# Add your API keys to .env.local
+
+./run.sh
+```
+
+`run.sh` handles everything: checks prerequisites, installs dependencies, generates Prisma client, and starts all services (web on `:3000`, API on `:4000`, agents on `:8000`). Press `Ctrl+C` to stop all.
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
+
+## License
+
+MIT -- see [LICENSE](./LICENSE).

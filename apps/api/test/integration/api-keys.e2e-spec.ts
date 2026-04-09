@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, UnauthorizedException, ValidationPipe } from "@nestjs/common";
+import {
+  INestApplication,
+  UnauthorizedException,
+  ValidationPipe,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -39,10 +43,10 @@ describe("API Keys Integration (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authToken: string;
-  let userId: string;
+  let _userId: string;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = "test";
     let moduleBuilder = Test.createTestingModule({
       imports: [AppModule],
     });
@@ -73,7 +77,10 @@ describe("API Keys Integration (e2e)", () => {
     app.useGlobalFilters(new HttpExceptionFilter());
 
     await app.init();
-    await (app as NestFastifyApplication).getHttpAdapter().getInstance().ready();
+    await (app as NestFastifyApplication)
+      .getHttpAdapter()
+      .getInstance()
+      .ready();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
 
@@ -85,7 +92,7 @@ describe("API Keys Integration (e2e)", () => {
         tenantId: "test_tenant",
       },
     });
-    userId = user.id;
+    _userId = user.id;
     authToken = "mock_clerk_token";
   });
 

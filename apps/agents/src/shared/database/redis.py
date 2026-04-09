@@ -1,3 +1,5 @@
+import asyncio
+from functools import partial
 from typing import Optional, TYPE_CHECKING, Any
 from ..config import settings
 
@@ -46,11 +48,49 @@ class RedisClient:
             self.connect()
         return self._client
 
-    async def get(self, key: str) -> Optional[str]:
-        """Get a value from Redis."""
+    def _sync_get(self, key: str) -> Optional[str]:
+        """Synchronous get operation."""
         if self.client:
-            return self.client.get(key)
+            result = self.client.get(key)
+            return str(result) if result is not None else None
         return None
+
+    def _sync_set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
+        """Synchronous set operation."""
+        if self.client:
+            self.client.set(key, value, ex=ex)
+            return True
+        return False
+
+    def _sync_rpush(self, key: str, *values: str) -> int:
+        if self.client:
+            return self.client.rpush(key, *values)
+        return 0
+
+    def _sync_lrange(self, key: str, start: int, stop: int) -> list[str]:
+        if self.client:
+            result = self.client.lrange(key, start, stop)
+            return [str(item) for item in result] if result else []
+        return []
+
+    def _sync_expire(self, key: str, seconds: int) -> bool:
+        if self.client:
+            return bool(self.client.expire(key, seconds))
+        return False
+
+    def _sync_delete(self, key: str) -> bool:
+        if self.client:
+            return bool(self.client.delete(key))
+        return False
+
+    async def get(self, key: str) -> Optional[str]:
+        """Get a value from Redis asynchronously.
+
+        Wraps the synchronous Upstash Redis call in a thread executor
+        to avoid blocking the event loop.
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_get, key))
 
     async def set(
         self,
@@ -58,18 +98,31 @@ class RedisClient:
         value: str,
         ex: Optional[int] = None
     ) -> bool:
-        """Set a value in Redis with optional expiration."""
-        if self.client:
-            self.client.set(key, value, ex=ex)
-            return True
-        return False
+        """Set a value in Redis with optional expiration asynchronously.
+
+        Wraps the synchronous Upstash Redis call in a thread executor
+        to avoid blocking the event loop.
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None, partial(self._sync_set, key, value, ex)
+        )
+
+    async def rpush(self, key: str, *values: str) -> int:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_rpush, key, *values))
+
+    async def lrange(self, key: str, start: int, stop: int) -> list[str]:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_lrange, key, start, stop))
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_expire, key, seconds))
 
     async def delete(self, key: str) -> bool:
-        """Delete a key from Redis."""
-        if self.client:
-            self.client.delete(key)
-            return True
-        return False
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, partial(self._sync_delete, key))
 
 
 redis_client = RedisClient()

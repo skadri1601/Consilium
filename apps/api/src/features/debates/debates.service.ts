@@ -2,16 +2,38 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { CreateDebateDto } from "./dto/create-debate.dto";
 import { DebateStatus } from "./debate-status";
+import { DEBATE_MODES } from "@consilium/shared";
 import { ApiKeysService } from "../api-keys/api-keys.service";
 import { AiWorkersClient } from "./ai-workers.client";
 import { PersonasService } from "../personas/personas.service";
 import { MODEL_PRICING, FREE_FALLBACK_MODELS } from "./model-pricing";
+import { DebateQueueService } from "../../shared/queue/debate-queue.service";
+import type { DebateSession } from "@consilium/database";
+
+interface ResolvedApiKeys {
+  openaiKey?: string;
+  anthropicKey?: string;
+  googleKey?: string;
+  groqKey?: string;
+  xaiKey?: string;
+}
+
+interface PreparedDebate {
+  user: { id: string; clerkId: string };
+  apiKeys: ResolvedApiKeys;
+  effectiveModels: string[];
+  mode: string;
+  debateSource: string;
+  debate: DebateSession;
+}
 
 @Injectable()
 export class DebatesService {
@@ -20,10 +42,15 @@ export class DebatesService {
     private apiKeysService: ApiKeysService,
     private aiWorkersClient: AiWorkersClient,
     private personasService: PersonasService,
+    @Inject(forwardRef(() => DebateQueueService))
+    private debateQueueService: DebateQueueService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async createDebate(userId: string, dto: CreateDebateDto): Promise<any> {
+  private async _prepareDebate(
+    userId: string,
+    dto: CreateDebateDto,
+  ): Promise<PreparedDebate> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -43,15 +70,10 @@ export class DebatesService {
       apiKeys.groqKey ||
       apiKeys.xaiKey;
 
-    let useFallback = false;
-    if (!hasKeys) {
-      useFallback = true;
-    }
-
     const mode = dto.mode || "council";
     const debateSource = dto.debateSource || "web";
 
-    const effectiveModels = useFallback
+    const effectiveModels = !hasKeys
       ? Array.from(
           { length: Math.max(dto.models.length, 2) },
           () => FREE_FALLBACK_MODELS.debater,
@@ -86,6 +108,29 @@ export class DebatesService {
       },
     });
 
+    return {
+      user,
+      apiKeys: {
+        openaiKey: apiKeys.openaiKey,
+        anthropicKey: apiKeys.anthropicKey,
+        googleKey: apiKeys.googleKey,
+        groqKey: apiKeys.groqKey,
+        xaiKey: apiKeys.xaiKey,
+      },
+      effectiveModels,
+      mode,
+      debateSource,
+      debate,
+    };
+  }
+
+  async createDebate(
+    userId: string,
+    dto: CreateDebateDto,
+  ): Promise<DebateSession> {
+    const { apiKeys, effectiveModels, mode, debateSource, debate } =
+      await this._prepareDebate(userId, dto);
+
     let systemPrompt: string | undefined;
     if (dto.personaId) {
       const persona = await this.personasService.findOne(dto.personaId, userId);
@@ -97,13 +142,7 @@ export class DebatesService {
         debateId: debate.id,
         topic: dto.topic,
         models: effectiveModels,
-        apiKeys: {
-          openaiKey: apiKeys.openaiKey,
-          anthropicKey: apiKeys.anthropicKey,
-          googleKey: apiKeys.googleKey,
-          groqKey: apiKeys.groqKey,
-          xaiKey: apiKeys.xaiKey,
-        },
+        apiKeys,
         systemPrompt,
         mode,
         debateSource,
@@ -119,12 +158,39 @@ export class DebatesService {
     return debate;
   }
 
+  async createDebateViaQueue(
+    userId: string,
+    dto: CreateDebateDto,
+  ): Promise<DebateSession & { queueJobId: string | undefined }> {
+    const { apiKeys, effectiveModels, debate } = await this._prepareDebate(
+      userId,
+      dto,
+    );
+
+    const job = await this.debateQueueService.addDebateJob({
+      debateId: debate.id,
+      topic: dto.topic,
+      models: effectiveModels,
+      userId,
+      apiKeys,
+    });
+
+    const queueJobId = job.id ?? debate.id;
+
+    await this.prisma.debateSession.update({
+      where: { id: debate.id },
+      data: { queueJobId },
+    });
+
+    return { ...debate, queueJobId };
+  }
+
   async findAll(
     clerkId: string,
     limit: number = 20,
     offset: number = 0,
     search?: string,
-  ): Promise<any[]> {
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -133,7 +199,10 @@ export class DebatesService {
       return [];
     }
 
-    const where: Record<string, unknown> = { userId: user.id };
+    const where: Record<string, unknown> = {
+      userId: user.id,
+      status: { notIn: ["deleted", "cancelled"] },
+    };
     if (search && search.trim()) {
       where.topic = { contains: search.trim(), mode: "insensitive" };
     }
@@ -153,7 +222,7 @@ export class DebatesService {
     });
   }
 
-  async findOne(id: string, clerkId: string): Promise<any> {
+  async findOne(id: string, clerkId: string) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -183,10 +252,7 @@ export class DebatesService {
     return debate;
   }
 
-  async findConversationDebates(
-    conversationId: string,
-    clerkId: string,
-  ): Promise<any[]> {
+  async findConversationDebates(conversationId: string, clerkId: string) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -215,7 +281,7 @@ export class DebatesService {
     id: string,
     clerkId: string,
     newTopic: string,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -242,7 +308,7 @@ export class DebatesService {
     id: string,
     clerkId: string,
     archived: boolean,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -269,7 +335,7 @@ export class DebatesService {
     id: string,
     status: DebateStatus,
     goldenPrompt?: string,
-  ): Promise<any> {
+  ): Promise<DebateSession> {
     return this.prisma.debateSession.update({
       where: { id },
       data: {
@@ -338,7 +404,10 @@ export class DebatesService {
     return { id, deleted: true };
   }
 
-  async retryDebate(id: string, clerkId: string): Promise<any> {
+  async retryDebate(
+    id: string,
+    clerkId: string,
+  ): Promise<DebateSession | null> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });
@@ -388,7 +457,10 @@ export class DebatesService {
     });
   }
 
-  async updateTotalCost(sessionId: string, cost: number): Promise<any> {
+  async updateTotalCost(
+    sessionId: string,
+    cost: number,
+  ): Promise<DebateSession> {
     return this.prisma.debateSession.update({
       where: { id: sessionId },
       data: { totalCost: { increment: cost } },
@@ -433,14 +505,8 @@ export class DebatesService {
   }
 
   estimateCost(topic: string, models: string[], mode: string) {
-    const modeRoundMap: Record<string, number> = {
-      quick: 1,
-      council: 3,
-      deep: 5,
-      blind: 3,
-    };
-
-    const rounds = modeRoundMap[mode] || 3;
+    const rounds =
+      (DEBATE_MODES as Record<string, { rounds: number }>)[mode]?.rounds || 3;
     const avgInputTokens = Math.min(topic.length * 2, 2000);
     const avgOutputTokens = 800;
 

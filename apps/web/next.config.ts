@@ -7,14 +7,15 @@ import { config } from "dotenv";
 config({ path: path.resolve(__dirname, "../../.env.local") });
 config({ path: path.resolve(__dirname, "../../.env") });
 
+const isVercel = Boolean(process.env.VERCEL);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone", // Enable standalone output for Docker
+  output: isVercel ? undefined : "standalone",
   eslint: {
-    ignoreDuringBuilds: true, // Temporarily ignore ESLint errors during build
+    ignoreDuringBuilds: true,
   },
 
-  // Webpack config for path alias resolution
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -23,14 +24,12 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Enable experimental features
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
     },
   },
 
-  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -44,13 +43,11 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Environment variables exposed to the browser
   env: {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
-  // Headers for security
   async headers() {
     return [
       {
@@ -77,7 +74,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirects
   async redirects() {
     return [
       {
@@ -89,40 +85,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-
+const sentryOptions = {
   org: "consilium-pi",
-
   project: "javascript-nextjs",
-
-  // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
   tunnelRoute: "/monitoring",
-
   webpack: {
-    // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-    // See the following for more information:
-    // https://docs.sentry.io/product/crons/
-    // https://vercel.com/docs/cron-jobs
     automaticVercelMonitors: true,
-
-    // Tree-shaking options for reducing bundle size
     treeshake: {
-      // Automatically tree-shake Sentry logger statements to reduce bundle size
       removeDebugLogging: true,
     },
   },
-});
+};
+
+export default withSentryConfig(nextConfig, sentryOptions);
