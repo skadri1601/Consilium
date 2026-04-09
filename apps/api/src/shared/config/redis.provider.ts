@@ -15,11 +15,13 @@ export const RedisProvider: Provider = {
     let redis: Redis;
 
     if (redisToken) {
-      // Upstash Redis
+      // Upstash Redis - TLS verification should be enabled in production
+      // Note: Upstash uses valid certificates, so rejectUnauthorized should be true
+      const isProduction = process.env.NODE_ENV === "production";
       redis = new Redis(redisUrl, {
         password: redisToken,
         tls: {
-          rejectUnauthorized: false,
+          rejectUnauthorized: isProduction,
         },
         retryStrategy: (times) => {
           if (times > 3) {

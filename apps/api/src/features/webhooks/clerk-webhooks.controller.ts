@@ -80,8 +80,12 @@ export class ClerkWebhooksController {
     const expectedSecret = process.env.INTERNAL_WEBHOOK_SECRET;
 
     if (!expectedSecret) {
-      this.logger.warn("INTERNAL_WEBHOOK_SECRET not configured");
-      return; // Allow in development
+      // Only bypass webhook secret validation in explicit development mode
+      if (process.env.NODE_ENV === "development") {
+        this.logger.warn("INTERNAL_WEBHOOK_SECRET not configured - allowing in development");
+        return;
+      }
+      throw new UnauthorizedException("INTERNAL_WEBHOOK_SECRET not configured");
     }
 
     if (secret !== expectedSecret) {

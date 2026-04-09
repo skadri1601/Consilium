@@ -57,10 +57,9 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!token) {
-      if (
-        process.env.NODE_ENV === "development" ||
-        process.env.NODE_ENV === undefined
-      ) {
+      // Only allow development bypass when explicitly set to "development"
+      // Never bypass auth when NODE_ENV is undefined (could indicate misconfiguration)
+      if (process.env.NODE_ENV === "development") {
         const devUser = await this.prismaFallbackUser();
         if (devUser) {
           request.user = {

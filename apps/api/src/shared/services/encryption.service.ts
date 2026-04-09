@@ -23,7 +23,12 @@ export class EncryptionService {
     }
 
     // Otherwise, derive key from string using PBKDF2
-    const salt = process.env.ENCRYPTION_SALT || "consilium-salt";
+    const salt = process.env.ENCRYPTION_SALT;
+    if (!salt) {
+      throw new Error(
+        "ENCRYPTION_SALT environment variable is required when using non-hex ENCRYPTION_KEY",
+      );
+    }
     return crypto.pbkdf2Sync(
       encryptionKey,
       salt,
