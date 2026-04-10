@@ -216,7 +216,29 @@ export default function LandingPage() {
 
   return (
     <>
-      <section className="space-y-6 py-32 md:py-48 lg:py-52">
+      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          disablePictureInPicture
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        >
+          <source src="/api/video/consilium-prod.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
+        <button
+          onClick={() => document.getElementById("hero-content")?.scrollIntoView({ behavior: "smooth" })}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer z-10"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 hover:opacity-100 transition-opacity">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
+      </section>
+
+      <section id="hero-content" className="space-y-6 py-24 md:py-32 lg:py-40">
         <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
           <Link
             href="https://github.com/skadri1601/Consilium"

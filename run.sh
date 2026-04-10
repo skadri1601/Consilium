@@ -77,6 +77,9 @@ if [ -f "$ROOT_DIR/.env.local" ] && [ ! -f "$ROOT_DIR/.env" ]; then
   echo -e "${GREEN}Copied .env.local -> .env${NC}"
 fi
 
+echo -e "${YELLOW}Building shared package...${NC}"
+cd "$ROOT_DIR" && pnpm --filter @consilium/shared build 2>/dev/null || true
+
 echo -e "${YELLOW}Generating Prisma client...${NC}"
 cd "$ROOT_DIR" && pnpm db:generate 2>/dev/null || true
 echo ""

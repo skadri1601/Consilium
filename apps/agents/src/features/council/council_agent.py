@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 
 from .schema import AgentResponse
-from ..core.judge import run_judge_pipeline
+from src.core.judge import run_judge_pipeline
 
 logger = logging.getLogger(__name__)
 

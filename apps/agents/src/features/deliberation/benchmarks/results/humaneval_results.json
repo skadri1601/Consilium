@@ -1,0 +1,983 @@
+{
+  "benchmark_name": "humaneval",
+  "single_model_score": 0.0,
+  "deliberation_score": 0.0,
+  "improvement_pct": 0.0,
+  "num_questions": 50,
+  "cost_single": 0.009297000000000001,
+  "cost_deliberation": 2.9995429999999996,
+  "details": [
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that returns the sum of two integers a and b.",
+        "model_answer": "Certainly! Here is a simple function in Python that takes two integers as input and returns their sum:\n\n```python\ndef sum_of_two_integers(a, b):\n    return a + b\n\n# Example usage:\n# result = sum_of_two_integers(3, 5)\n# print(result)  # Output will be 8\n```\n\nThis function simply uses the `+` operator to add the two integers `a` and `b` and returns the result.",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the sum of two integers a and b.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that checks if a number is prime.",
+        "model_answer": "To write a function that checks if a number is prime, you can follow these steps. A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself. A common algorithm to check for primality is to test divisibility from 2 up to the square root of the number.\n\nHere's a Python function that implements this logic:\n\n```python\ndef is_prime(n):\n    \"\"\"Check if a number is prime.\"\"\"\n    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n\n    i = 5\n    while i * i <= n:\n        if n % i == 0 or n % (i + 2) == 0:\n            return False\n        i += 6\n\n    return True\n```\n\n### Explanation:\n\n1. **Initial Checks**:\n   - If `n <= 1`, it is not prime.\n   - If `n <= 3`, it is prime since 2 and 3 are prime numbers.\n\n2. **Divisibility Checks**:\n   - If `n` is divisible by 2 or 3, it is not prime.\n\n3. **Loop through potential factors**:\n   - Start with `i = 5` and iterate while `i * i <= n`. This is because if `n` has a factor larger than its square root, the corresponding factor would be smaller and would have already been checked.\n   - Check divisibility for `i` and `i + 2` to skip even numbers (as they can't be prime except for 2).\n   - Increment `i` by 6 to check the next possible factors (5, 11, 17, ...).\n\nThis function efficiently determines if a number is prime with a time complexity of approximately \\(O(\\sqrt{n})\\).",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if a number is prime.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that returns the GCD of two numbers.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the GCD of two numbers.",
+        "golden_prompt_answer": "To write a function that returns the Greatest Common Divisor (GCD) of two numbers, you can use the Euclidean algorithm, which is efficient and straightforward. Here's a Python implementation of the function:\n\n```python\ndef gcd(a, b):\n    while b != 0:\n        a, b = b, a % b\n    return a\n\n# Example usage:\nprint(gcd(48, 18))  # Output: 6\n```\n\n### Explanation:\n- **Euclidean Algorithm**: This algorithm works on the principle that the GCD of two numbers also divides their difference. The process is repeated by replacing the larger number with the remainder of the division of the larger number by the smaller one, until the remainder is zero. At this point, the non-zero remainder from the previous step is the GCD.\n- **Function Logic**:\n  - The function `gcd` takes two integer arguments, `a` and `b`.\n  - It uses a `while` loop to repeatedly apply the division step (`a % b`), updating `a` and `b` each time, until `b` becomes zero.\n  - When `b` is zero, `a` contains the GCD of the original pair of numbers.\n\n### Note:\nIf you encounter a RateLimitError while using an API, such as the OpenAI API, it is unrelated to this function. However, if you wish to handle such errors, you should review your API usage limits and adjust your application or plan accordingly.",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that computes the power of a number.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the power of a number.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that computes the sum of digits of a number.",
+        "model_answer": "Certainly! Here's a Python function that computes the sum of digits of a given number:\n\n```python\ndef sum_of_digits(number):\n    # Ensure the number is positive\n    number = abs(number)\n    \n    # Convert the number to a string and iterate over each character\n    # Convert each character back to an integer and sum them up\n    return sum(int(digit) for digit in str(number))\n\n# Example usage:\nresult = sum_of_digits(12345)\nprint(result)  # Output: 15\n```\n\n### Explanation:\n\n1. **Absolute Value**: The `abs()` function is used to handle negative numbers, since the sum of the digits should be independent of the sign.\n\n2. **String Conversion**: Convert the number to a string to iterate over each digit easily.\n\n3. **Sum of Digits**: Use a generator expression within the `sum()` function to convert each character back to an integer and calculate the total sum.\n\nThis function works for any integer (positive or negative). If you have any further questions or need additional modifications, feel free to ask!",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the sum of digits of a number.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "basic_math",
+      "single": {
+        "question": "Write a function that returns the LCM of two numbers.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the LCM of two numbers.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "recursion",
+      "single": {
+        "question": "Write a function that returns the factorial of n.",
+        "model_answer": "To write a function that returns the factorial of a number \\( n \\), you can use either an iterative or a recursive approach. Below, I'll provide both methods in Python.\n\n### Iterative Approach\n\nThis method uses a loop to compute the factorial.\n\n```python\ndef factorial_iterative(n):\n    if n < 0:\n        raise ValueError(\"Factorial is not defined for negative numbers.\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n```\n\n### Recursive Approach\n\nThis method uses recursion to compute the factorial.\n\n```python\ndef factorial_recursive(n):\n    if n < 0:\n        raise ValueError(\"Factorial is not defined for negative numbers.\")\n    if n == 0 or n == 1:\n        return 1\n    else:\n        return n * factorial_recursive(n - 1)\n```\n\n### Explanation\n\n- **Factorial Definition**: The factorial of a non-negative integer \\( n \\) is the product of all positive integers less than or equal to \\( n \\). It is denoted by \\( n! \\). By definition, \\( 0! = 1 \\).\n- **Iterative Method**: We initialize `result` to 1 (since the factorial of 0 is 1) and multiply `result` by each integer from 2 up to \\( n \\).\n- **Recursive Method**: We define the factorial of \\( n \\) in terms of the factorial of \\( n-1 \\). The base case is when \\( n \\) is 0 or 1, where the factorial is 1.\n\nBoth methods will raise a `ValueError` if the input \\( n \\) is negative, as factorials for negative numbers are not defined in standard mathematics.\n\nYou can use either method based on your preference or constraints (such as recursion depth limits in some environments).",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the factorial of n.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "recursion",
+      "single": {
+        "question": "Write a function that returns the nth Fibonacci number.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the nth Fibonacci number.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "recursion",
+      "single": {
+        "question": "Write a function that computes the power of a number recursively.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the power of a number recursively.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "recursion",
+      "single": {
+        "question": "Write a function that computes the sum of a nested list of integers.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the sum of a nested list of integers.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "recursion",
+      "single": {
+        "question": "Write a function that generates all permutations of a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that generates all permutations of a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that checks if a string is a palindrome.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if a string is a palindrome.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that counts vowels in a string.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that counts vowels in a string.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that converts a string to title case.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that converts a string to title case.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that checks if two strings are anagrams.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if two strings are anagrams.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that returns the longest common prefix of a list of strings.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the longest common prefix of a list of strings.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "strings",
+      "single": {
+        "question": "Write a function that compresses a string using run-length encoding.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that compresses a string using run-length encoding.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that returns the maximum element in a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the maximum element in a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that reverses a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that reverses a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that flattens a nested list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that flattens a nested list.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that removes duplicates from a list while preserving order.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that removes duplicates from a list while preserving order.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that returns the intersection of two lists.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the intersection of two lists.",
+        "golden_prompt_answer": "",
+        "correct": false,
+        "votes": {},
+        "rounds_used": 0
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that rotates a list by k positions.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that rotates a list by k positions.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that returns the second largest element in a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the second largest element in a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "lists",
+      "single": {
+        "question": "Write a function that checks if a list is sorted in ascending order.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if a list is sorted in ascending order.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "sorting",
+      "single": {
+        "question": "Write a function that merges two sorted lists.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that merges two sorted lists.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "sorting",
+      "single": {
+        "question": "Write a function that implements bubble sort.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that implements bubble sort.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "sorting",
+      "single": {
+        "question": "Write a function that implements insertion sort.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that implements insertion sort.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "sorting",
+      "single": {
+        "question": "Write a function that implements merge sort.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that implements merge sort.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "searching",
+      "single": {
+        "question": "Write a function that implements binary search and returns the index or -1.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that implements binary search and returns the index or -1.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "searching",
+      "single": {
+        "question": "Write a function that finds the first duplicate in a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that finds the first duplicate in a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "searching",
+      "single": {
+        "question": "Write a function that finds the missing number in a list of 0 to n.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that finds the missing number in a list of 0 to n.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "searching",
+      "single": {
+        "question": "Write a function that finds two numbers in a list that sum to a target.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that finds two numbers in a list that sum to a target.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "dynamic_programming",
+      "single": {
+        "question": "Write a function that computes the nth number using dynamic programming for the climbing stairs problem (1 or 2 steps).",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the nth number using dynamic programming for the climbing stairs problem (1 or 2 steps).",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "dynamic_programming",
+      "single": {
+        "question": "Write a function that returns the length of the longest increasing subsequence.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the length of the longest increasing subsequence.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "dynamic_programming",
+      "single": {
+        "question": "Write a function that solves the 0/1 knapsack problem given weights, values, and capacity.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that solves the 0/1 knapsack problem given weights, values, and capacity.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "dynamic_programming",
+      "single": {
+        "question": "Write a function that computes the edit distance between two strings.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that computes the edit distance between two strings.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "trees",
+      "single": {
+        "question": "Write a function that returns the maximum depth of a binary tree (given as nested tuples (val, left, right) or None).",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns the maximum depth of a binary tree (given as nested tuples (val, left, right) or None).",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "trees",
+      "single": {
+        "question": "Write a function that performs inorder traversal of a binary tree (nested tuples) and returns a list.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that performs inorder traversal of a binary tree (nested tuples) and returns a list.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "trees",
+      "single": {
+        "question": "Write a function that checks if a binary tree (nested tuples) is a valid BST.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if a binary tree (nested tuples) is a valid BST.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "graphs",
+      "single": {
+        "question": "Write a function that performs BFS on an adjacency list graph and returns visited nodes.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that performs BFS on an adjacency list graph and returns visited nodes.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "graphs",
+      "single": {
+        "question": "Write a function that performs DFS on an adjacency list graph and returns visited nodes.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that performs DFS on an adjacency list graph and returns visited nodes.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "graphs",
+      "single": {
+        "question": "Write a function that detects if a directed graph (adjacency list) has a cycle.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that detects if a directed graph (adjacency list) has a cycle.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "math",
+      "single": {
+        "question": "Write a function that checks if a number is a power of two.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that checks if a number is a power of two.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "math",
+      "single": {
+        "question": "Write a function that returns all prime factors of a number.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that returns all prime factors of a number.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "math",
+      "single": {
+        "question": "Write a function that generates the first n rows of Pascal's triangle.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that generates the first n rows of Pascal's triangle.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "bit_manipulation",
+      "single": {
+        "question": "Write a function that counts the number of set bits in an integer.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that counts the number of set bits in an integer.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "bit_manipulation",
+      "single": {
+        "question": "Write a function that reverses the bits of a 32-bit unsigned integer.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that reverses the bits of a 32-bit unsigned integer.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "bit_manipulation",
+      "single": {
+        "question": "Write a function that finds the single number in a list where every other number appears twice.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that finds the single number in a list where every other number appears twice.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "bit_manipulation",
+      "single": {
+        "question": "Write a function that swaps two numbers without using a temporary variable.",
+        "model_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Write a function that swaps two numbers without using a temporary variable.",
+        "golden_prompt_answer": "[OpenAI API Error: RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    }
+  ]
+}

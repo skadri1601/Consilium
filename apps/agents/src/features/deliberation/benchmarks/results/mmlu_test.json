@@ -1,0 +1,111 @@
+{
+  "benchmark_name": "mmlu",
+  "single_model_score": 0.4,
+  "deliberation_score": 0.2,
+  "improvement_pct": -50.0,
+  "num_questions": 5,
+  "cost_single": 0.00039000000000000005,
+  "cost_deliberation": 0.254639,
+  "details": [
+    {
+      "category": "biology",
+      "single": {
+        "question": "What is the powerhouse of the cell?",
+        "model_answer": "The powerhouse of the cell is the mitochondrion. Mitochondria are organelles found in most eukaryotic cells, and they are responsible for producing adenosine triphosphate (ATP), which is the main energy currency of the cell. This process is known as cellular respiration.",
+        "correct": true,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "What is the powerhouse of the cell?",
+        "golden_prompt_answer": "The mitochondrion is commonly known as the powerhouse of the cell because it is primarily responsible for generating the majority of the cell's adenosine triphosphate (ATP) through a process called oxidative phosphorylation. ATP serves as the main energy currency within the cell, fueling various cellular functions. Mitochondria are organelles found in most eukaryotic cells, and their critical role in energy production justifies their nickname. While mitochondria also play roles in other processes, such as apoptosis and calcium storage, their primary association is with energy production.",
+        "correct": true,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "biology",
+      "single": {
+        "question": "What organelle is responsible for photosynthesis?",
+        "model_answer": "The organelle responsible for photosynthesis is the chloroplast. Chloroplasts are found in the cells of plants and algae and contain chlorophyll, which is the pigment that captures light energy to convert carbon dioxide and water into glucose and oxygen through the process of photosynthesis.",
+        "correct": true,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "What organelle is responsible for photosynthesis?",
+        "golden_prompt_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "biology",
+      "single": {
+        "question": "Who discovered penicillin?",
+        "model_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "Who discovered penicillin?",
+        "golden_prompt_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "biology",
+      "single": {
+        "question": "What is the main function of the ribosome?",
+        "model_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "What is the main function of the ribosome?",
+        "golden_prompt_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    },
+    {
+      "category": "biology",
+      "single": {
+        "question": "What is the largest organ in the human body?",
+        "model_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "model_id": "gpt-4o"
+      },
+      "deliberation": {
+        "question": "What is the largest organ in the human body?",
+        "golden_prompt_answer": "[stub response from gpt-4o]",
+        "correct": false,
+        "votes": {
+          "gpt-4o": "gpt-4o",
+          "claude-sonnet-4-5": "gpt-4o",
+          "gemini-2.0-flash": "gpt-4o"
+        },
+        "rounds_used": 3
+      }
+    }
+  ]
+}

@@ -51,8 +51,8 @@ def run_blind_evaluation():
     try:
         result = client.blind_eval(
             topic=evaluation_topic,
-            responses=candidate_responses,
             models=evaluator_models,
+            responses=candidate_responses,
         )
     except ConsiliumError as exc:
         print(f"Blind evaluation failed: {exc}")

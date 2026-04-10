@@ -444,6 +444,8 @@ export class DebatesService {
           groqKey: apiKeys.groqKey,
           xaiKey: apiKeys.xaiKey,
         },
+        mode: (debate.mode as string) || "council",
+        debateSource: (debate.debateSource as string) || "web",
       });
 
       await this.updateStatus(id, "processing");

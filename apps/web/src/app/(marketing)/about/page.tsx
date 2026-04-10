@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Shield, Code, Users, Github } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
@@ -24,8 +26,19 @@ const values = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-48">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          disablePictureInPicture
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        >
+          <source src="/api/video/consilium-prod.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Building the Future of AI-Powered Development
           </h1>
@@ -34,9 +47,17 @@ export default function AboutPage() {
             to create better prompts, ship faster, and build with confidence.
           </p>
         </div>
+        <button
+          onClick={() => document.getElementById("about-content")?.scrollIntoView({ behavior: "smooth" })}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer z-10"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 hover:opacity-100 transition-opacity">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
       </section>
 
-      <section className="container mx-auto px-4 py-20">
+      <section id="about-content" className="container mx-auto px-4 py-20">
         <h2 className="text-3xl font-bold text-center mb-12">Our Values</h2>
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {values.map((value) => {

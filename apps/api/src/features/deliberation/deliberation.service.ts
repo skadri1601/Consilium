@@ -20,7 +20,10 @@ export class DeliberationService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async createDeliberation(userId: string, dto: CreateDeliberationDto) {
+  async createDeliberation(
+    userId: string,
+    dto: CreateDeliberationDto,
+  ): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -107,15 +110,81 @@ export class DeliberationService {
     return deliberation;
   }
 
-  async createRedTeam(userId: string, dto: CreateDeliberationDto) {
-    return this.createDeliberation(userId, { ...dto, mode: "red-team" });
+  async createRedTeam(
+    userId: string,
+    dto: CreateDeliberationDto,
+  ): Promise<any> {
+    return this.createDeliberation(userId, { ...dto, mode: "redteam" });
   }
 
-  async createBlindEval(userId: string, dto: CreateDeliberationDto) {
-    return this.createDeliberation(userId, { ...dto, mode: "blind-eval" });
+  async createBlindEval(
+    userId: string,
+    dto: CreateDeliberationDto,
+  ): Promise<any> {
+    return this.createDeliberation(userId, { ...dto, mode: "blind" });
   }
 
-  async getDeliberation(id: string, clerkId: string) {
+  async retryDeliberation(id: string, clerkId: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const deliberation = await this.prisma.debateSession.findFirst({
+      where: { id, userId: user.id, debateSource: "deliberation" },
+    });
+
+    if (!deliberation) {
+      throw new NotFoundException("Deliberation not found");
+    }
+
+    if (deliberation.status !== "failed") {
+      throw new BadRequestException(
+        "Only failed deliberations can be retried",
+      );
+    }
+
+    await this.prisma.debateSession.update({
+      where: { id },
+      data: { status: "pending" },
+    });
+
+    const storedKeys = await this.apiKeysService.getUserApiKeys(clerkId);
+
+    try {
+      await this.eventsClient.startDeliberation({
+        deliberationId: id,
+        topic: deliberation.topic,
+        mode: (deliberation.mode as string) || "council",
+        models: deliberation.modelsUsed as string[],
+        apiKeys: {
+          openaiKey: storedKeys.openaiKey,
+          anthropicKey: storedKeys.anthropicKey,
+          googleKey: storedKeys.googleKey,
+          groqKey: storedKeys.groqKey,
+          xaiKey: storedKeys.xaiKey,
+        },
+      });
+
+      await this.prisma.debateSession.update({
+        where: { id },
+        data: { status: "processing" },
+      });
+    } catch (error) {
+      await this.prisma.debateSession.update({
+        where: { id },
+        data: { status: "failed" },
+      });
+      throw error;
+    }
+
+    return this.prisma.debateSession.findUnique({ where: { id } });
+  }
+
+  async getDeliberation(id: string, clerkId: string): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
     });

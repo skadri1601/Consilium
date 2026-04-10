@@ -29,23 +29,27 @@ export class CreateDeliberationDto {
     description: "Deliberation mode",
     example: "council",
     enum: [
+      "quick",
       "council",
-      "red-team",
-      "blind-eval",
-      "prediction-market",
-      "adversarial",
-      "delphi",
+      "deep",
+      "blind",
+      "redteam",
+      "jury",
+      "market",
+      "auto",
     ],
     default: "council",
   })
   @IsOptional()
   @IsIn([
+    "quick",
     "council",
-    "red-team",
-    "blind-eval",
-    "prediction-market",
-    "adversarial",
-    "delphi",
+    "deep",
+    "blind",
+    "redteam",
+    "jury",
+    "market",
+    "auto",
   ])
   mode?: string;
 

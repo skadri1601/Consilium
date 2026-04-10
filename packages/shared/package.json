@@ -2,16 +2,33 @@
   "name": "@consilium/shared",
   "version": "0.1.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./debates": "./src/debates/index.ts",
-    "./providers": "./src/providers/index.ts",
-    "./ids": "./src/ids/index.ts",
-    "./sse": "./src/sse/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./debates": {
+      "types": "./dist/debates/index.d.ts",
+      "default": "./dist/debates/index.js"
+    },
+    "./providers": {
+      "types": "./dist/providers/index.d.ts",
+      "default": "./dist/providers/index.js"
+    },
+    "./ids": {
+      "types": "./dist/ids/index.d.ts",
+      "default": "./dist/ids/index.js"
+    },
+    "./sse": {
+      "types": "./dist/sse/index.d.ts",
+      "default": "./dist/sse/index.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

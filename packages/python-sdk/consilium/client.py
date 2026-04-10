@@ -117,17 +117,16 @@ class ConsiliumClient:
     def deliberate(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "max_rounds": max_rounds,
+            "maxRounds": max_rounds,
         }
-        if models:
-            payload["models"] = models
 
         response = self._request_with_retry("POST", "/deliberation", json=payload)
         data = self._handle_response(response)
@@ -155,13 +154,11 @@ class ConsiliumClient:
 
     def red_team(
         self,
-        content: str,
-        models: list[str] | None = None,
+        topic: str,
+        models: list[str],
         categories: list[str] | None = None,
     ) -> RedTeamResult:
-        payload: dict[str, Any] = {"content": content}
-        if models:
-            payload["models"] = models
+        payload: dict[str, Any] = {"topic": topic, "models": models}
         if categories:
             payload["categories"] = categories
 
@@ -172,12 +169,12 @@ class ConsiliumClient:
     def blind_eval(
         self,
         topic: str,
-        responses: list[str],
-        models: list[str] | None = None,
+        models: list[str],
+        responses: list[str] | None = None,
     ) -> EvalResult:
-        payload: dict[str, Any] = {"topic": topic, "responses": responses}
-        if models:
-            payload["models"] = models
+        payload: dict[str, Any] = {"topic": topic, "models": models}
+        if responses:
+            payload["responses"] = responses
 
         response = self._request_with_retry("POST", "/deliberation/blind-eval", json=payload)
         data = self._handle_response(response)
@@ -186,33 +183,30 @@ class ConsiliumClient:
     def estimate_cost(
         self,
         topic: str,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
-        models: list[str] | None = None,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> CostEstimate:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
         }
-        if models:
-            payload["models"] = models
 
-        response = self._request_with_retry("POST", "/deliberation/estimate", json=payload)
+        response = self._request_with_retry("POST", "/debates/estimate", json=payload)
         data = self._handle_response(response)
         return CostEstimate(**data)
 
     def stream_deliberation(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> _SyncSSEIterator:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "stream": True,
         }
-        if models:
-            payload["models"] = models
 
         return _SyncSSEIterator(self._api_url, self._build_headers(), payload, self._timeout)
 
@@ -243,11 +237,29 @@ class _SyncSSEIterator:
         return self
 
     def events(self) -> list[dict[str, Any]]:
-        collected: list[dict[str, Any]] = []
-        with httpx.stream(
-            "POST",
+        create_response = httpx.post(
             f"{self._base_url}/deliberation",
             json=self._payload,
+            headers=self._headers,
+            timeout=self._timeout,
+        )
+        if create_response.status_code >= 400:
+            if create_response.status_code == 401:
+                raise AuthenticationError()
+            if create_response.status_code == 429:
+                raise RateLimitError()
+            if create_response.status_code >= 500:
+                raise ServerError(message=create_response.text, status_code=create_response.status_code)
+            raise ConsiliumError(message=create_response.text, status_code=create_response.status_code)
+
+        deliberation_id = create_response.json().get("id")
+        if not deliberation_id:
+            raise ConsiliumError(message="No deliberation ID returned")
+
+        collected: list[dict[str, Any]] = []
+        with httpx.stream(
+            "GET",
+            f"{self._base_url}/deliberation/{deliberation_id}/stream",
             headers=self._headers,
             timeout=self._timeout,
         ) as response:
@@ -355,17 +367,16 @@ class AsyncConsiliumClient:
     async def deliberate(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "max_rounds": max_rounds,
+            "maxRounds": max_rounds,
         }
-        if models:
-            payload["models"] = models
 
         response = await self._request_with_retry("POST", "/deliberation", json=payload)
         data = self._handle_response(response)
@@ -393,13 +404,11 @@ class AsyncConsiliumClient:
 
     async def red_team(
         self,
-        content: str,
-        models: list[str] | None = None,
+        topic: str,
+        models: list[str],
         categories: list[str] | None = None,
     ) -> RedTeamResult:
-        payload: dict[str, Any] = {"content": content}
-        if models:
-            payload["models"] = models
+        payload: dict[str, Any] = {"topic": topic, "models": models}
         if categories:
             payload["categories"] = categories
 
@@ -410,12 +419,12 @@ class AsyncConsiliumClient:
     async def blind_eval(
         self,
         topic: str,
-        responses: list[str],
-        models: list[str] | None = None,
+        models: list[str],
+        responses: list[str] | None = None,
     ) -> EvalResult:
-        payload: dict[str, Any] = {"topic": topic, "responses": responses}
-        if models:
-            payload["models"] = models
+        payload: dict[str, Any] = {"topic": topic, "models": models}
+        if responses:
+            payload["responses"] = responses
 
         response = await self._request_with_retry("POST", "/deliberation/blind-eval", json=payload)
         data = self._handle_response(response)
@@ -424,39 +433,41 @@ class AsyncConsiliumClient:
     async def estimate_cost(
         self,
         topic: str,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
-        models: list[str] | None = None,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> CostEstimate:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
         }
-        if models:
-            payload["models"] = models
 
-        response = await self._request_with_retry("POST", "/deliberation/estimate", json=payload)
+        response = await self._request_with_retry("POST", "/debates/estimate", json=payload)
         data = self._handle_response(response)
         return CostEstimate(**data)
 
     async def stream_deliberation(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> AsyncIterator[dict[str, Any]]:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "stream": True,
         }
-        if models:
-            payload["models"] = models
+
+        create_response = await self._request_with_retry("POST", "/deliberation", json=payload)
+        create_data = self._handle_response(create_response)
+        deliberation_id = create_data.get("id")
+        if not deliberation_id:
+            raise ConsiliumError("No deliberation ID returned")
 
         async with httpx.AsyncClient(timeout=self._timeout) as stream_client:
             async with stream_client.stream(
-                "POST",
-                f"{self._api_url}/deliberation",
-                json=payload,
+                "GET",
+                f"{self._api_url}/deliberation/{deliberation_id}/stream",
                 headers=self._build_headers(),
             ) as response:
                 if response.status_code >= 400:

@@ -1,0 +1,20 @@
+title: "[Show & Tell] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: Share what you have built or accomplished with Consilium.
+  - type: textarea
+    id: showcase
+    attributes:
+      label: What did you build?
+      description: Describe your project, use case, or integration.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Links, screenshots, or technical details.
+    validations:
+      required: false

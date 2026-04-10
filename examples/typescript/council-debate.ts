@@ -4,7 +4,7 @@ import type { DeliberationResult } from "@consilium/sdk";
 async function runCouncilDebate(): Promise<void> {
   const client = new ConsiliumClient({
     apiKey: process.env.CONSILIUM_API_KEY ?? "your-api-key-here",
-    apiUrl: process.env.CONSILIUM_API_URL ?? "http://localhost:3000/api",
+    apiUrl: process.env.CONSILIUM_API_URL ?? "http://localhost:4000/api/v1",
   });
 
   const architectureTopic = [
@@ -29,6 +29,7 @@ async function runCouncilDebate(): Promise<void> {
 
   const costEstimate = await client.estimateCost({
     topic: architectureTopic,
+    models: panelistModels,
     mode: "council",
   });
   console.log(`Estimated cost: $${costEstimate.estimatedCost.toFixed(4)}\n`);

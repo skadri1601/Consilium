@@ -30,7 +30,7 @@ export class ConsiliumClient {
   private readonly retryDelay: number;
 
   constructor(config: ClientConfig = {}) {
-    const url = config.apiUrl ?? 'http://localhost:3000/api';
+    const url = config.apiUrl ?? 'http://localhost:4000/api/v1';
     this.apiUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     this.apiKey = config.apiKey;
     this.timeout = config.timeout ?? DEFAULT_TIMEOUT;
@@ -109,19 +109,19 @@ export class ConsiliumClient {
   }
 
   async deliberate(options: DeliberateOptions): Promise<DeliberationResult> {
-    return this.request<DeliberationResult>('POST', '/deliberate', options);
+    return this.request<DeliberationResult>('POST', '/deliberation', options);
   }
 
   async redTeam(options: RedTeamOptions): Promise<RedTeamReport> {
-    return this.request<RedTeamReport>('POST', '/red-team', options);
+    return this.request<RedTeamReport>('POST', '/deliberation/red-team', options);
   }
 
   async blindEval(options: BlindEvalOptions): Promise<EvaluationResult> {
-    return this.request<EvaluationResult>('POST', '/blind-eval', options);
+    return this.request<EvaluationResult>('POST', '/deliberation/blind-eval', options);
   }
 
-  async estimateCost(options: Pick<DeliberateOptions, 'topic' | 'mode'>): Promise<CostEstimate> {
-    return this.request<CostEstimate>('POST', '/estimate-cost', options);
+  async estimateCost(options: { topic: string; models: string[]; mode?: string }): Promise<CostEstimate> {
+    return this.request<CostEstimate>('POST', '/debates/estimate', options);
   }
 
   async healthCheck(): Promise<HealthStatus> {
@@ -129,15 +129,17 @@ export class ConsiliumClient {
   }
 
   async *streamDeliberation(options: DeliberateOptions): AsyncIterable<DeliberationEvent> {
+    const created = await this.request<{ id: string }>('POST', '/deliberation', options);
+    const deliberationId = created.id;
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
 
     let res: Response;
     try {
-      res = await fetch(`${this.apiUrl}/deliberate/stream`, {
-        method: 'POST',
+      res = await fetch(`${this.apiUrl}/deliberation/${deliberationId}/stream`, {
+        method: 'GET',
         headers: { ...this.headers(), Accept: 'text/event-stream' },
-        body: JSON.stringify(options),
         signal: controller.signal,
       });
     } catch (err) {

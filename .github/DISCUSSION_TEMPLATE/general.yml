@@ -1,0 +1,13 @@
+title: "[General] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: Start a general discussion about Consilium.
+  - type: textarea
+    id: topic
+    attributes:
+      label: Topic
+      description: What would you like to discuss?
+    validations:
+      required: true

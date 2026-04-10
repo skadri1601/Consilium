@@ -7,6 +7,7 @@ from .exceptions import (
     TimeoutError,
 )
 from .types import (
+    CostBreakdownEntry,
     CostEstimate,
     DeliberationMode,
     DeliberationResult,
@@ -20,6 +21,7 @@ __all__ = [
     "AuthenticationError",
     "ConsiliumClient",
     "ConsiliumError",
+    "CostBreakdownEntry",
     "CostEstimate",
     "DeliberationMode",
     "DeliberationResult",

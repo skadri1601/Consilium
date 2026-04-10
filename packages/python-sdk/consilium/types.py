@@ -7,28 +7,27 @@ from pydantic import BaseModel, Field
 
 
 class DeliberationMode(str, Enum):
-    QUICK = "quick"
     COUNCIL = "council"
-    DEEP = "deep"
-    BLIND = "blind"
-    REDTEAM = "redteam"
-    JURY = "jury"
-    MARKET = "market"
-    AUTO = "auto"
+    RED_TEAM = "red-team"
+    BLIND_EVAL = "blind-eval"
+    PREDICTION_MARKET = "prediction-market"
+    ADVERSARIAL = "adversarial"
+    DELPHI = "delphi"
 
 
-class CostBreakdown(BaseModel):
-    per_round: float = Field(0.0, alias="perRound")
-    judge: float = 0.0
-    sub_agents: float | None = Field(None, alias="subAgents")
+class CostBreakdownEntry(BaseModel):
+    model: str = ""
+    role: str = ""
+    estimated_cost: float = Field(0.0, alias="estimatedCost")
 
     model_config = {"populate_by_name": True}
 
 
 class CostEstimate(BaseModel):
-    total: float = 0.0
-    breakdown: CostBreakdown = Field(default_factory=CostBreakdown)
-    estimated_time: str = Field("", alias="estimatedTime")
+    estimated_cost: float = Field(0.0, alias="estimatedCost")
+    breakdown: list[CostBreakdownEntry] = Field(default_factory=list)
+    rounds: int = 0
+    mode: str = ""
 
     model_config = {"populate_by_name": True}
 
@@ -123,5 +122,4 @@ class EvalResult(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str = ""
-    version: str = ""
-    uptime: float = 0.0
+    info: dict[str, Any] | None = None

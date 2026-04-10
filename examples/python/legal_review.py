@@ -36,7 +36,7 @@ def run_contract_review():
         result = client.deliberate(
             topic=contract_clause,
             models=legal_panel_models,
-            mode=DeliberationMode.JURY,
+            mode=DeliberationMode.DELPHI,
             max_rounds=3,
         )
     except ConsiliumError as exc:

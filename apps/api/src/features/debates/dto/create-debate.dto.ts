@@ -53,11 +53,29 @@ export class CreateDebateDto {
   @ApiPropertyOptional({
     description: "Debate mode",
     example: "council",
-    enum: ["quick", "council", "deep", "blind"],
+    enum: [
+      "quick",
+      "council",
+      "deep",
+      "blind",
+      "redteam",
+      "jury",
+      "market",
+      "auto",
+    ],
     default: "council",
   })
   @IsOptional()
-  @IsIn(["quick", "council", "deep", "blind"])
+  @IsIn([
+    "quick",
+    "council",
+    "deep",
+    "blind",
+    "redteam",
+    "jury",
+    "market",
+    "auto",
+  ])
   mode?: string;
 
   @ApiPropertyOptional({

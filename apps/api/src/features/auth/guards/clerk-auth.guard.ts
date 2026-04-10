@@ -165,7 +165,40 @@ export class ClerkAuthGuard implements CanActivate {
       sessionId: session.sid,
     };
 
+    try {
+      await this.ensureUserExists(session.sub);
+    } catch (err) {
+      this.logger.debug(
+        `User sync skipped: ${err instanceof Error ? err.message : "Unknown"}`,
+      );
+    }
+
     return true;
+  }
+
+  private async ensureUserExists(clerkId: string): Promise<void> {
+    const existing = await this.prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+    if (existing) return;
+
+    const clerkUser = await this.authService.getUser(clerkId);
+    if (!clerkUser) return;
+
+    const email =
+      clerkUser.emailAddresses?.[0]?.emailAddress || `${clerkId}@clerk.local`;
+    await this.prisma.user.create({
+      data: {
+        clerkId,
+        email,
+        firstName: clerkUser.firstName ?? undefined,
+        lastName: clerkUser.lastName ?? undefined,
+        imageUrl: clerkUser.imageUrl ?? undefined,
+        tenantId: clerkId,
+      },
+    });
+    this.logger.log(`Auto-synced Clerk user ${clerkId}`);
   }
 
   private async checkRateLimit(userId: string): Promise<void> {

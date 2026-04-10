@@ -108,7 +108,18 @@ export class AiWorkersClient {
    * Get the SSE stream URL for a debate
    */
   getStreamUrl(debateId: string): string {
+    if (!this.isValidId(debateId)) {
+      throw new HttpException(
+        'Invalid debate ID format',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return `${this.baseUrl}/api/v1/debates/${debateId}/stream`;
+  }
+
+  private isValidId(id: string): boolean {
+    const idRegex = /^[0-9a-z-]{1,128}$/i;
+    return idRegex.test(id);
   }
 
   /**

@@ -1,19 +1,23 @@
 export type DeliberationMode =
-  | 'quick'
   | 'council'
-  | 'deep'
-  | 'blind'
-  | 'redteam'
-  | 'jury'
-  | 'market'
-  | 'auto';
+  | 'red-team'
+  | 'blind-eval'
+  | 'prediction-market'
+  | 'adversarial'
+  | 'delphi';
 
 export interface DeliberateOptions {
   topic: string;
-  mode: DeliberationMode;
-  models?: string[];
+  mode?: DeliberationMode;
+  models: string[];
   maxRounds?: number;
-  apiKeys?: Record<string, string>;
+  apiKeys?: {
+    openaiKey?: string;
+    anthropicKey?: string;
+    googleKey?: string;
+    groqKey?: string;
+    xaiKey?: string;
+  };
 }
 
 export interface DeliberationResult {
@@ -26,8 +30,17 @@ export interface DeliberationResult {
 }
 
 export interface RedTeamOptions {
-  content: string;
+  topic: string;
+  models: string[];
   categories?: string[];
+  maxRounds?: number;
+  apiKeys?: {
+    openaiKey?: string;
+    anthropicKey?: string;
+    googleKey?: string;
+    groqKey?: string;
+    xaiKey?: string;
+  };
 }
 
 export interface RedTeamReport {
@@ -40,7 +53,16 @@ export interface RedTeamReport {
 
 export interface BlindEvalOptions {
   topic: string;
-  responses: string[];
+  models: string[];
+  responses?: string[];
+  maxRounds?: number;
+  apiKeys?: {
+    openaiKey?: string;
+    anthropicKey?: string;
+    googleKey?: string;
+    groqKey?: string;
+    xaiKey?: string;
+  };
 }
 
 export interface EvaluationResult {
@@ -50,24 +72,32 @@ export interface EvaluationResult {
 }
 
 export interface DeliberationEvent {
-  type: 'round_start' | 'argument' | 'rebuttal' | 'vote' | 'synthesis' | 'result' | 'error';
+  event: string;
+  agentId?: string;
+  chunk?: string;
   round?: number;
   model?: string;
   content?: string;
+  message?: string;
   data?: DeliberationResult;
+}
+
+export interface CostEstimateBreakdown {
+  model: string;
+  role: string;
+  estimatedCost: number;
 }
 
 export interface CostEstimate {
   estimatedCost: number;
-  breakdown: Record<string, number>;
-  currency: string;
+  breakdown: CostEstimateBreakdown[];
+  rounds: number;
+  mode: string;
 }
 
 export interface HealthStatus {
-  status: 'ok' | 'degraded' | 'down';
-  version: string;
-  uptime: number;
-  services: Record<string, 'ok' | 'degraded' | 'down'>;
+  status: string;
+  info?: Record<string, { status: string }>;
 }
 
 export interface ClientConfig {
