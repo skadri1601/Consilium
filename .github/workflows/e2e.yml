@@ -15,6 +15,36 @@ jobs:
   e2e:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: consilium_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql://postgres:test_password@localhost:5432/consilium_test
+      REDIS_URL: redis://localhost:6379
+      CLERK_SECRET_KEY: test_key
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
 
     steps:
       - uses: actions/checkout@v4
@@ -36,14 +66,33 @@ jobs:
       - name: Generate Prisma client
         run: cd packages/database && pnpm db:generate
 
+      - name: Run database migrations
+        run: cd packages/database && npx prisma migrate deploy
+
       - name: Install Playwright browsers
         run: cd apps/web && pnpm exec playwright install --with-deps chromium
 
+      - name: Build API
+        run: cd apps/api && pnpm build
+
       - name: Build web
         run: pnpm --filter web build
+
+      - name: Start API server
+        run: cd apps/api && node dist/main.js &
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk
+          PORT: 4000
+
+      - name: Wait for API to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:4000/health > /dev/null 2>&1; then
+              echo "API is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to start, proceeding anyway"
 
       - name: Run E2E tests
         run: cd apps/web && pnpm test:e2e
