@@ -1,4 +1,5 @@
-from typing import AsyncGenerator, Optional, Tuple
+from collections.abc import AsyncIterator
+from typing import Optional, Tuple
 from .base_agent import BaseAgent
 
 
@@ -19,7 +20,7 @@ class AnthropicAgent(BaseAgent):
 
     async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         if not self._validate_api_key():
-            return f"[{self.name} Error: No API key provided]", 0
+            self._raise_no_api_key()
 
         try:
             import anthropic
@@ -37,12 +38,11 @@ class AnthropicAgent(BaseAgent):
             return content, tokens
 
         except Exception as e:
-            return self._handle_common_errors(e, "API"), 0
+            self._handle_common_errors(e, "API")
 
-    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncIterator[str]:
         if not self._validate_api_key():
-            yield f"[{self.name} Error: No API key provided]"
-            return
+            self._raise_no_api_key()
 
         try:
             import anthropic
@@ -58,7 +58,7 @@ class AnthropicAgent(BaseAgent):
                     yield text
 
         except Exception as e:
-            yield self._handle_common_errors(e, "Streaming")
+            self._handle_common_errors(e, "Streaming")
 
     async def health_check(self) -> bool:
         """Check if Anthropic API is accessible."""

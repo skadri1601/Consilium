@@ -44,7 +44,7 @@ const PROVIDER_DOT_COLORS: Record<string, string> = {
 };
 
 function normalizeText(text: string): string {
-  return text.toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+  return text.toLowerCase().replaceAll(/[^\w\s]/g, "").replaceAll(/\s+/g, " ").trim();
 }
 
 function splitIntoSentences(text: string): string[] {
@@ -98,12 +98,12 @@ function annotateSentences(
   });
 }
 
-function AnnotatedText({ annotations }: { annotations: SentenceAnnotation[] }) {
+function AnnotatedText({ annotations }: Readonly<{ annotations: SentenceAnnotation[] }>) {
   return (
     <div className="text-sm leading-relaxed whitespace-pre-wrap">
       {annotations.map((a, i) => (
         <span
-          key={i}
+          key={`${a.agreement}-${a.text.slice(0, 48)}-${i}`}
           className={cn(
             "rounded-sm px-0.5",
             a.agreement === "agree" && "bg-emerald-500/15 dark:bg-emerald-500/20",
@@ -121,11 +121,11 @@ function ModelPane({
   output,
   annotations,
   modelCount,
-}: {
+}: Readonly<{
   output: ModelOutput;
   annotations: SentenceAnnotation[];
   modelCount: number;
-}) {
+}>) {
   const providerKey = output.provider.toLowerCase();
   const colors = PROVIDER_COLORS[providerKey] ?? PROVIDER_COLORS.openai;
   const dotColor = PROVIDER_DOT_COLORS[providerKey] ?? "bg-gray-500";
@@ -175,7 +175,10 @@ function AgreementLegend() {
   );
 }
 
-export function SplitPaneComparison({ phases, defaultPhase }: SplitPaneComparisonProps) {
+export function SplitPaneComparison({
+  phases,
+  defaultPhase,
+}: Readonly<SplitPaneComparisonProps>) {
   const initialPhase = defaultPhase ?? phases[0]?.phase ?? "proposal";
   const [activePhase, setActivePhase] = useState<string>(initialPhase);
 
@@ -201,10 +204,6 @@ export function SplitPaneComparison({ phases, defaultPhase }: SplitPaneCompariso
       </div>
     );
   }
-
-  const currentPhase = phases.find((p) => p.phase === activePhase) ?? phases[0];
-  const currentAnnotations = annotationsMap[currentPhase.phase] ?? [];
-  const modelCount = currentPhase.outputs.length;
 
   return (
     <div className="space-y-4">

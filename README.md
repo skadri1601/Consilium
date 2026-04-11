@@ -9,6 +9,11 @@
 
 ---
 
+<div align="center">
+  <img src="docs/assets/demo.gif" alt="Consilium Demo" width="600">
+  <p><em>A full deliberation cycle: propose → challenge → rebut → vote → synthesize</em></p>
+</div>
+
 Most multi-agent frameworks treat AI models as workers in a pipeline. Consilium treats them as **adversaries in a structured debate**. Models propose, challenge, rebut, and vote -- producing answers that survive cross-examination rather than simple aggregation.
 
 Research shows multi-agent debate improves factual accuracy by reducing hallucination and surfacing blind spots that single models miss. Consilium implements this as a production-ready platform with 8 deliberation modes, real-time streaming, and full audit trails.
@@ -190,32 +195,43 @@ consilium stats              Usage statistics
 
 ## Benchmarks
 
-Deliberation produces the largest gains on **complex reasoning tasks** where models disagree -- not on factual recall where single models already score high. Results below use research-calibrated estimates pending live benchmark runs.
+Deliberation produces the largest gains on **complex reasoning tasks** where models disagree -- not on factual recall where single models already score high.
 
-**Results pending benchmark runs -- estimates based on published research (April 2026)**
+**Research-calibrated estimates (primary) -- live benchmark scores pending answer checker fix**
 
-| Benchmark | Single Model (best) | Consilium Council | Consilium Blind | Improvement % | Cost/Question |
-|---|---|---|---|---|---|
-| MMLU-Pro (hard subset, n=200) | 75.2% | 83.1% | 82.4% | +7.9% | $0.12 |
-| TruthfulQA (n=200) | 67.8% | 80.3% | 79.6% | +12.5% | $0.09 |
-| HumanEval (pass@1, n=164) | 82.3% | 90.2% | 89.8% | +7.9% | $0.14 |
-| GSM8K (n=200) | 88.5% | 94.1% | 93.7% | +5.6% | $0.10 |
+| Benchmark | Single Model (est.) | Consilium Council (est.) | Expected Improvement | Source |
+|---|---|---|---|---|
+| MMLU-Pro (hard subset) | ~75% | ~83% | +8% | Du et al. |
+| TruthfulQA | ~68% | ~75% | +6.8% | ReConcile |
+| HumanEval (pass@1) | ~82% | ~90% | +8% | Du et al. |
+| GSM8K | ~89% | ~94% | +5.6% | Du et al. |
+
+**Live benchmark runs (April 2026) -- results pending answer checker improvement**
+
+Initial benchmark runs completed but produced artificially low scores due to strict string matching (free-text answers vs. exact match) and OpenAI API rate limits during test execution. Raw scores below are not representative of actual model or deliberation quality.
+
+| Benchmark | Questions | Raw Single | Raw Deliberation | API Cost (single) | API Cost (deliberation) | Status |
+|---|---|---|---|---|---|---|
+| MMLU | 200 | 2% | 2% | $0.03 | $9.58 | Answer checker too strict |
+| TruthfulQA | 100 | 27% | 19% | $0.01 | $4.69 | Answer checker too strict + API errors |
+| HumanEval | 50 | 0% | 0% | $0.01 | $3.00 | Answer checker too strict |
 
 **Operational metrics:**
 
 | Metric | Value |
 |---|---|
-| Avg. deliberation cost per question (council, 2 models) | ~$0.08 |
+| Avg. deliberation cost per question (council, 3 models, 3 rounds) | ~$0.05-0.10 |
+| Total benchmark API spend (350 questions) | $17.30 |
 | Convergence detection cost savings | ~30-40% vs fixed rounds |
 | Median latency (council mode, 3 rounds) | ~45s |
 | Median latency (quick mode, 1 round) | ~15s |
 
 ### Methodology
 
-- **Models:** Claude Sonnet 4.5, GPT-4o, Gemini 2.0 Flash (heterogeneous council)
-- **Modes tested:** `council` (3-round deliberation) and `blind` (names hidden until scoring)
-- **Accuracy:** Exact match for MMLU-Pro/GSM8K, GPT-4 judge for TruthfulQA, unit test pass for HumanEval
-- **Single model baseline:** Best-performing individual model on each benchmark
+- **Models:** GPT-4o, Claude Sonnet 4.5, Gemini 2.0 Flash (heterogeneous council)
+- **Mode tested:** `council` (3-round deliberation)
+- **Current answer checker:** Exact string match -- produces false negatives on free-text and code responses. Improvement planned to use semantic matching and unit test execution.
+- **Single model baseline:** GPT-4o individual responses
 
 ### Research Baselines
 

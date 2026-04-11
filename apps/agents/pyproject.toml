@@ -13,6 +13,7 @@ python = "^3.11"
 openai = "^1.50.0"
 anthropic = "^0.40.0"
 google-generativeai = "^0.8.0"
+google-api-core = "^2.24.0"
 
 # API Framework
 fastapi = "^0.115.0"
@@ -38,6 +39,7 @@ langfuse = "^2.56.0"
 opentelemetry-api = "^1.28.0"
 opentelemetry-sdk = "^1.28.0"
 sentry-sdk = {extras = ["fastapi"], version = "^2.50.0"}
+posthog = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -73,6 +75,15 @@ ignore = [
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.pyrefly]
+search-path = ["."]
+disable-search-path-heuristics = true
+ignore-missing-imports = [
+  "google.generativeai",
+]
+[tool.pyrefly.errors]
+deprecated = false
 
 [tool.mypy]
 python_version = "3.11"

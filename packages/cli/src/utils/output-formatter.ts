@@ -1,6 +1,6 @@
 export type OutputFormat = 'markdown' | 'cursorrules' | 'claude-md' | 'json' | 'text';
 
-const VALID_FORMATS: OutputFormat[] = ['markdown', 'cursorrules', 'claude-md', 'json', 'text'];
+const VALID_FORMATS = new Set<OutputFormat>(['markdown', 'cursorrules', 'claude-md', 'json', 'text']);
 
 export interface OutputMetadata {
   format: OutputFormat;
@@ -12,15 +12,31 @@ export interface OutputMetadata {
 }
 
 export function isValidOutputFormat(format: string): format is OutputFormat {
-  return VALID_FORMATS.includes(format as OutputFormat);
+  return VALID_FORMATS.has(format as OutputFormat);
 }
 
 function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60);
+  let out = "";
+  let lastHyphen = false;
+  for (const ch of text.toLowerCase()) {
+    const code = ch.codePointAt(0)!;
+    const isAlnum =
+      (code >= 48 && code <= 57) || (code >= 97 && code <= 122);
+    if (isAlnum) {
+      out += ch;
+      lastHyphen = false;
+    } else if (!lastHyphen && out.length > 0) {
+      out += "-";
+      lastHyphen = true;
+    }
+  }
+  while (out.startsWith("-")) {
+    out = out.slice(1);
+  }
+  while (out.endsWith("-")) {
+    out = out.slice(0, -1);
+  }
+  return out.slice(0, 60);
 }
 
 function formatMarkdown(synthesis: string, metadata: OutputMetadata): string {
@@ -43,18 +59,14 @@ function formatMarkdown(synthesis: string, metadata: OutputMetadata): string {
     lines.push(`- **Debate ID:** ${metadata.debateId}`);
   }
 
-  lines.push(`- **Date:** ${date}`);
-  lines.push('');
-  lines.push('---');
-  lines.push('');
-  lines.push(synthesis);
+  lines.push(`- **Date:** ${date}`, '', '---', '', synthesis);
 
   return lines.join('\n');
 }
 
 function formatCursorRules(synthesis: string, metadata: OutputMetadata): string {
   const rules = synthesis
-    .split(/\n/)
+    .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
@@ -67,10 +79,7 @@ function formatCursorRules(synthesis: string, metadata: OutputMetadata): string 
 
   let ruleNumber = 1;
   for (const rule of rules) {
-    lines.push(`## Rule ${ruleNumber}`);
-    lines.push('');
-    lines.push(rule);
-    lines.push('');
+    lines.push(`## Rule ${ruleNumber}`, '', rule, '');
     ruleNumber++;
   }
 
@@ -79,7 +88,7 @@ function formatCursorRules(synthesis: string, metadata: OutputMetadata): string 
 
 function formatClaudeMd(synthesis: string, metadata: OutputMetadata): string {
   const paragraphs = synthesis
-    .split(/\n\n+/)
+    .split("\n\n")
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 

@@ -50,7 +50,7 @@ export const DEBATE_MODES: Record<DebateMode, DebateModeConfig> = {
   redteam: {
     rounds: 4,
     subAgents: true,
-    estimatedCost: 0.10,
+    estimatedCost: 0.1,
     description: 'Adversarial red team assessment',
     estimatedTime: '~120s',
   },
@@ -87,6 +87,12 @@ export function getDefaultMode(): DebateMode {
   return 'auto';
 }
 
+function baseMinutesForModeEstimate(config: DebateModeConfig): number {
+  if (config.subAgents) return 1.5;
+  if (config.rounds === 1) return 0.25;
+  return 0.75;
+}
+
 export function estimateCost(mode: DebateMode, modelCount: number): CostEstimate {
   const config = DEBATE_MODES[mode];
   const baseCostPerModel = config.estimatedCost / 3;
@@ -97,7 +103,7 @@ export function estimateCost(mode: DebateMode, modelCount: number): CostEstimate
   const total = (perRound * config.rounds) + judge + (subAgents ?? 0);
 
   const timeMultiplier = modelCount / 3;
-  const baseMinutes = config.subAgents ? 1.5 : config.rounds === 1 ? 0.25 : 0.75;
+  const baseMinutes = baseMinutesForModeEstimate(config);
   const minutes = Math.ceil(baseMinutes * timeMultiplier * 60);
 
   return {

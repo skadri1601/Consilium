@@ -4,7 +4,6 @@ import { cn } from "@/shared/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { buttonVariants } from "@/shared/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import {
   motion,
@@ -66,7 +65,7 @@ function AuthButtons() {
   );
 }
 
-function MobileMenu({ items, onClose }: NavProps & { onClose: () => void }) {
+function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => void }>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -76,9 +75,9 @@ function MobileMenu({ items, onClose }: NavProps & { onClose: () => void }) {
       className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden"
     >
       <nav className="flex flex-col gap-1">
-        {items?.map((item, index) => (
+        {items?.map((item) => (
           <Link
-            key={index}
+            key={item.href}
             href={item.disabled ? "#" : item.href}
             onClick={onClose}
             className={cn(
@@ -99,7 +98,7 @@ function MobileMenu({ items, onClose }: NavProps & { onClose: () => void }) {
   );
 }
 
-export function MarketingHeader(props: NavProps) {
+export function MarketingHeader(props: Readonly<NavProps>) {
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const { scrollY } = useScroll();
@@ -140,9 +139,9 @@ export function MarketingHeader(props: NavProps) {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {props.items?.map((item, index) => (
+            {props.items?.map((item) => (
               <Link
-                key={index}
+                key={item.href}
                 href={item.disabled ? "#" : item.href}
                 className={cn(
                   "relative px-3 py-1.5 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/[0.06]",

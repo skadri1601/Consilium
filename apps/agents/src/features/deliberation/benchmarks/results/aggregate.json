@@ -1,0 +1,271 @@
+{
+  "preliminary": true,
+  "run_notes": "Incomplete or quota-limited run; headline_improvement_pct and costs are not reliable for product claims. Duplicate MMLU aggregate entry removed; HumanEval scores were zero — re-run benchmarks after fixing harness and API quota.",
+  "generated_at": "2026-04-11T01:46:02.423290+00:00",
+  "headline_improvement_pct": -27.27272727272728,
+  "benchmarks": [
+    {
+      "name": "humaneval",
+      "run_status": "failed_zero_scores",
+      "run_notes": "All category accuracies 0.0; pipeline did not produce valid pass/fail scores. Re-run HumanEval after fixing execution harness.",
+      "num_questions": 50,
+      "single_model_score": 0.0,
+      "deliberation_score": 0.0,
+      "improvement_pct": 0.0,
+      "cost_single": 0.009297000000000001,
+      "cost_deliberation": 2.9995429999999996,
+      "categories": [
+        {
+          "category": "basic_math",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 6,
+          "deliberation_correct": 0,
+          "deliberation_total": 6
+        },
+        {
+          "category": "bit_manipulation",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 4,
+          "deliberation_correct": 0,
+          "deliberation_total": 4
+        },
+        {
+          "category": "dynamic_programming",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 4,
+          "deliberation_correct": 0,
+          "deliberation_total": 4
+        },
+        {
+          "category": "graphs",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 3,
+          "deliberation_correct": 0,
+          "deliberation_total": 3
+        },
+        {
+          "category": "lists",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 8,
+          "deliberation_correct": 0,
+          "deliberation_total": 8
+        },
+        {
+          "category": "math",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 3,
+          "deliberation_correct": 0,
+          "deliberation_total": 3
+        },
+        {
+          "category": "recursion",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 5,
+          "deliberation_correct": 0,
+          "deliberation_total": 5
+        },
+        {
+          "category": "searching",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 4,
+          "deliberation_correct": 0,
+          "deliberation_total": 4
+        },
+        {
+          "category": "sorting",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 4,
+          "deliberation_correct": 0,
+          "deliberation_total": 4
+        },
+        {
+          "category": "strings",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 6,
+          "deliberation_correct": 0,
+          "deliberation_total": 6
+        },
+        {
+          "category": "trees",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 3,
+          "deliberation_correct": 0,
+          "deliberation_total": 3
+        }
+      ]
+    },
+    {
+      "name": "mmlu",
+      "num_questions": 200,
+      "single_model_score": 0.02,
+      "deliberation_score": 0.02,
+      "improvement_pct": 0.0,
+      "cost_single": 0.026870999999999992,
+      "cost_deliberation": 9.5825653,
+      "categories": [
+        {
+          "category": "biology",
+          "single_accuracy": 0.4,
+          "deliberation_accuracy": 0.2,
+          "improvement_pct": -50.0,
+          "single_correct": 2,
+          "single_total": 5,
+          "deliberation_correct": 1,
+          "deliberation_total": 5
+        }
+      ]
+    },
+    {
+      "name": "truthfulqa",
+      "num_questions": 100,
+      "single_model_score": 0.27,
+      "deliberation_score": 0.19,
+      "improvement_pct": -29.629629629629633,
+      "cost_single": 0.013749,
+      "cost_deliberation": 4.6897822,
+      "categories": [
+        {
+          "category": "biology",
+          "single_accuracy": 0.1111111111111111,
+          "deliberation_accuracy": 0.1111111111111111,
+          "improvement_pct": 0.0,
+          "single_correct": 1,
+          "single_total": 9,
+          "deliberation_correct": 1,
+          "deliberation_total": 9
+        },
+        {
+          "category": "economics",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 5,
+          "deliberation_correct": 0,
+          "deliberation_total": 5
+        },
+        {
+          "category": "geography",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 8,
+          "deliberation_correct": 0,
+          "deliberation_total": 8
+        },
+        {
+          "category": "health",
+          "single_accuracy": 0.5,
+          "deliberation_accuracy": 0.4375,
+          "improvement_pct": -12.5,
+          "single_correct": 8,
+          "single_total": 16,
+          "deliberation_correct": 7,
+          "deliberation_total": 16
+        },
+        {
+          "category": "history",
+          "single_accuracy": 0.2,
+          "deliberation_accuracy": 0.2,
+          "improvement_pct": 0.0,
+          "single_correct": 2,
+          "single_total": 10,
+          "deliberation_correct": 2,
+          "deliberation_total": 10
+        },
+        {
+          "category": "literature",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 8,
+          "deliberation_correct": 0,
+          "deliberation_total": 8
+        },
+        {
+          "category": "misconceptions",
+          "single_accuracy": 0.75,
+          "deliberation_accuracy": 0.4,
+          "improvement_pct": -46.666666666666664,
+          "single_correct": 15,
+          "single_total": 20,
+          "deliberation_correct": 8,
+          "deliberation_total": 20
+        },
+        {
+          "category": "physics",
+          "single_accuracy": 0.14285714285714285,
+          "deliberation_accuracy": 0.14285714285714285,
+          "improvement_pct": 0.0,
+          "single_correct": 1,
+          "single_total": 7,
+          "deliberation_correct": 1,
+          "deliberation_total": 7
+        },
+        {
+          "category": "psychology",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 9,
+          "deliberation_correct": 0,
+          "deliberation_total": 9
+        },
+        {
+          "category": "science",
+          "single_accuracy": 0.0,
+          "deliberation_accuracy": 0.0,
+          "improvement_pct": 0.0,
+          "single_correct": 0,
+          "single_total": 8,
+          "deliberation_correct": 0,
+          "deliberation_total": 8
+        }
+      ]
+    }
+  ],
+  "cost_analysis": {
+    "total_cost_single": 0.05030699999999999,
+    "total_cost_deliberation": 17.5265295,
+    "total_questions": 355,
+    "cost_per_question_single": 0.00014170985915492955,
+    "cost_per_question_deliberation": 0.04937050563380281,
+    "cost_multiplier": 348.3914663963266
+  }
+}

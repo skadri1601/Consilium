@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import path from "path";
-import os from "os";
+import path from "node:path";
+import os from "node:os";
+import readline from "node:readline";
 import { debateCommand } from "./commands/debate.js";
 import { redteamCommand } from "./commands/redteam.js";
 import { evalCommand } from "./commands/eval.js";
@@ -46,17 +47,16 @@ const isOneShot =
   !isFlag(firstArg) &&
   !KNOWN_SUBCOMMANDS.includes(firstArg);
 
-if (isDefaultRepl) {
-  chatCommand().catch((err) => {
-    console.error(st.error((err as Error).message));
-    process.exit(1);
-  });
-} else if (isOneShot && firstArg !== undefined) {
-  debateCommand(firstArg, {}).catch((err) => {
-    console.error(st.error((err as Error).message));
-    process.exit(1);
-  });
-} else {
+async function main(): Promise<void> {
+  if (isDefaultRepl) {
+    await chatCommand();
+    return;
+  }
+  if (isOneShot && firstArg !== undefined) {
+    await debateCommand(firstArg, {});
+    return;
+  }
+
   const program = new Command();
 
   program
@@ -64,7 +64,6 @@ if (isDefaultRepl) {
     .description("Consilium CLI - Multi-agent debate platform")
     .version("0.1.0");
 
-  // Debate command
   program
     .command("debate")
     .description("Start a multi-agent debate on a topic")
@@ -83,7 +82,6 @@ if (isDefaultRepl) {
     )
     .action(debateCommand);
 
-  // Ask command (alias for debate)
   program
     .command("ask")
     .description("Ask a question (alias for debate)")
@@ -96,7 +94,6 @@ if (isDefaultRepl) {
     )
     .action(debateCommand);
 
-  // Red team command
   program
     .command("redteam")
     .description("Run adversarial red team assessment")
@@ -105,7 +102,6 @@ if (isDefaultRepl) {
     .option("--categories <categories...>", "Assessment categories")
     .action(redteamCommand);
 
-  // Eval command
   program
     .command("eval")
     .description("Run blind evaluation of responses")
@@ -114,7 +110,6 @@ if (isDefaultRepl) {
     .option("-m, --models <models...>", "Models to use as evaluators")
     .action(evalCommand);
 
-  // Benchmark command
   program
     .command("benchmark")
     .description("Run deliberation benchmarks (MMLU, TruthfulQA, HumanEval)")
@@ -126,26 +121,22 @@ if (isDefaultRepl) {
     .option("--local", "Run benchmark locally via Python")
     .action(benchmarkCommand);
 
-  // Chat command
   program
     .command("chat")
     .description("Start interactive chat with multi-agent debates")
     .action(chatCommand);
 
-  // Login command
   program
     .command("login")
     .description("Sign in and get a CLI token (opens web app)")
     .action(loginCommand);
 
-  // Debug command
   program
     .command("debug")
     .description("Show full debug trace for a debate")
     .argument("<debateId>", "Debate ID (e.g., dbt_01HY3K...)")
     .action(debugCommand);
 
-  // Logs command
   program
     .command("logs")
     .description("Query logs for a debate")
@@ -153,13 +144,11 @@ if (isDefaultRepl) {
     .option("-l, --level <level>", "Filter by level: DEBUG, INFO, WARN, ERROR")
     .action(logsCommand);
 
-  // Stats command
   program
     .command("stats")
     .description("Show model performance dashboard")
     .action(statsCommand);
 
-  // Sessions command
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);
 
@@ -187,11 +176,12 @@ if (isDefaultRepl) {
         const label = s.name || s.topic || "Untitled";
         const displayLabel =
           label.length > 50 ? label.substring(0, 50) + "..." : label;
+        const debateSuffix = s.debateCount === 1 ? "" : "s";
         console.log(
           st.brand(`  ${i + 1}.`),
           displayLabel,
           st.dim(
-            `(${s.debateCount} debate${s.debateCount !== 1 ? "s" : ""}, ${timeAgo})`,
+            `(${s.debateCount} debate${debateSuffix}, ${timeAgo})`,
           ),
         );
         console.log(st.dim(`     ID: ${s.id}`));
@@ -226,7 +216,6 @@ if (isDefaultRepl) {
     .description("Delete a saved session")
     .argument("<sessionId>", "Session ID")
     .action(async (sessionId: string) => {
-      const readline = await import("readline");
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -249,7 +238,6 @@ if (isDefaultRepl) {
       );
     });
 
-  // Config command
   const config = program.command("config").description("Manage configuration");
 
   config
@@ -271,4 +259,11 @@ if (isDefaultRepl) {
     .action(configListCommand);
 
   program.parse();
+}
+
+try {
+  await main();
+} catch (err) {
+  console.error(st.error((err as Error).message));
+  process.exit(1);
 }

@@ -1,10 +1,23 @@
+/**
+ * Deliberation mode string sent to the API.
+ * Prefer canonical literals: `redteam`, `blind`. Deprecated: `red-team`, `blind-eval`.
+ */
 export type DeliberationMode =
+  | 'quick'
   | 'council'
+  | 'deep'
+  | 'blind'
+  | 'redteam'
+  /** @deprecated use `redteam` */
   | 'red-team'
-  | 'blind-eval'
+  | 'jury'
+  | 'market'
+  | 'auto'
   | 'prediction-market'
   | 'adversarial'
-  | 'delphi';
+  | 'delphi'
+  /** @deprecated use `blind` */
+  | 'blind-eval';
 
 export interface DeliberateOptions {
   topic: string;

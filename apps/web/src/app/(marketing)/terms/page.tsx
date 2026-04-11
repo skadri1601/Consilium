@@ -589,10 +589,10 @@ export default function TermsPage() {
                 Attn: Saad Kadri<br />
                 Email:{" "}
                 <a
-                  href="mailto:er.saadk16@gmail.com"
+                  href="mailto:saad@myconsilium.xyz"
                   className="text-primary hover:underline"
                 >
-                  er.saadk16@gmail.com
+                 saad@myconsilium.xyz
                 </a>
               </p>
               <p className="mb-4 text-muted-foreground">

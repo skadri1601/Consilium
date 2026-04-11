@@ -42,64 +42,142 @@ export class ClerkAuthGuard implements CanActivate {
     }
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+  private extractToken(request: { headers: any; query?: any }): string | undefined {
     const authHeader = request.headers.authorization;
-    const ip = request.ip || request.headers["x-forwarded-for"] || "unknown";
-    const userAgent = request.headers["user-agent"] || "";
-
-    let token: string | undefined;
-
     if (authHeader?.startsWith("Bearer ")) {
-      token = authHeader.substring(7);
-    } else if (request.query?.token) {
-      token = request.query.token;
+      return authHeader.substring(7);
     }
-
-    if (!token) {
-      if (
-        process.env.NODE_ENV === "development" ||
-        process.env.NODE_ENV === undefined
-      ) {
-        const devUser = await this.prismaFallbackUser();
-        if (devUser) {
-          request.user = {
-            userId: devUser.clerkId,
-            tenantId: devUser.tenantId || devUser.clerkId,
-          };
-          return true;
-        }
-      }
-      await this.auditLogger.log("login_failed", {
-        ip,
-        userAgent,
-        metadata: { reason: "Missing token" },
-      });
-      throw new UnauthorizedException("Missing authorization header or token");
+    if (request.query?.token) {
+      return request.query.token;
     }
+    return undefined;
+  }
 
-    if (token.trim() === "") {
-      await this.auditLogger.log("login_failed", {
-        ip,
-        userAgent,
-        metadata: { reason: "Empty token" },
-      });
-      throw new UnauthorizedException("Token cannot be empty");
+  private normalizeClientIp(request: { ip?: string; headers?: any }): string {
+    const raw = request.ip || request.headers?.["x-forwarded-for"] || "unknown";
+    if (typeof raw === "string") {
+      const first = raw
+        .split(",")
+        .map((s) => s.trim())
+        .find((s) => s.length > 0);
+      return first ?? "unknown";
     }
+    if (Array.isArray(raw)) return raw[0] ?? "unknown";
+    return "unknown";
+  }
 
-    if (token.startsWith(CLI_TOKEN_PREFIX)) {
-      const cliUser = await this.cliTokenService.validate(token);
-      if (cliUser) {
-        request.user = { userId: cliUser.clerkId };
-        return true;
-      }
-      throw new UnauthorizedException(
-        "Invalid or expired CLI token. Run: consilium login",
+  private async tryDevBypassWithoutToken(request: any): Promise<boolean> {
+    if (process.env.NODE_ENV === undefined) {
+      this.logger.warn("tryDevBypassWithoutToken: NODE_ENV unset; dev bypass disabled");
+      return false;
+    }
+    const isDev = process.env.NODE_ENV === "development";
+    if (!isDev) return false;
+    const devUser = await this.prismaFallbackUser();
+    if (!devUser) return false;
+    request.user = {
+      userId: devUser.clerkId,
+      tenantId: devUser.tenantId || devUser.clerkId,
+    };
+    return true;
+  }
+
+  private async auditMissingTokenAndThrow(
+    ip: string,
+    userAgent: string,
+    reason: string,
+    message: string,
+  ): Promise<never> {
+    await this.auditLogger.log("login_failed", {
+      ip,
+      userAgent,
+      metadata: { reason },
+    });
+    throw new UnauthorizedException(message);
+  }
+
+  private async validateCliTokenOrThrow(
+    request: any,
+    token: string,
+  ): Promise<boolean> {
+    const cliUser = await this.cliTokenService.validate(token);
+    if (cliUser) {
+      request.user = { userId: cliUser.clerkId };
+      return true;
+    }
+    throw new UnauthorizedException(
+      "Invalid or expired CLI token. Run: consilium login",
+    );
+  }
+
+  private async assertSessionNotBlacklisted(
+    clerkSub: string,
+    token: string,
+    ip: string,
+    userAgent: string,
+  ): Promise<void> {
+    const isBlacklisted = await this.sessionService.isTokenBlacklisted(
+      clerkSub,
+      token,
+    );
+    if (!isBlacklisted) return;
+    await this.auditLogger.log("login_failed", {
+      userId: clerkSub,
+      ip,
+      userAgent,
+      metadata: { reason: "Token blacklisted" },
+      severity: "high",
+    });
+    throw new UnauthorizedException("Session has been revoked");
+  }
+
+  private async assertSessionNotIdle(
+    clerkSub: string,
+    ip: string,
+    userAgent: string,
+  ): Promise<void> {
+    const isIdle = await this.sessionService.isIdle(clerkSub);
+    if (!isIdle) return;
+    await this.auditLogger.log("session_revoked", {
+      userId: clerkSub,
+      ip,
+      userAgent,
+      metadata: { reason: "Session idle timeout" },
+    });
+    throw new UnauthorizedException("Session expired due to inactivity");
+  }
+
+  private async assertFingerprintValid(
+    clerkSub: string,
+    token: string,
+    userAgent: string,
+    ip: string,
+  ): Promise<void> {
+    const fingerprint = this.sessionService.generateFingerprint(userAgent, ip);
+    const fingerprintValid =
+      await this.sessionService.validateSessionFingerprint(
+        clerkSub,
+        token,
+        fingerprint,
       );
-    }
+    if (fingerprintValid) return;
+    await this.auditLogger.log("suspicious_activity", {
+      userId: clerkSub,
+      ip,
+      userAgent,
+      metadata: { reason: "Session fingerprint mismatch" },
+      severity: "critical",
+    });
+    throw new UnauthorizedException("Session validation failed");
+  }
 
+  private async activateClerkSession(
+    request: any,
+    token: string,
+    ip: string,
+    userAgent: string,
+  ): Promise<boolean> {
     const session = await this.authService.verifyToken(token);
-
     if (!session) {
       await this.auditLogger.log("login_failed", {
         ip,
@@ -109,55 +187,12 @@ export class ClerkAuthGuard implements CanActivate {
       throw new UnauthorizedException("Invalid or expired token");
     }
 
-    const isBlacklisted = await this.sessionService.isTokenBlacklisted(
-      session.sub,
-      token,
-    );
-
-    if (isBlacklisted) {
-      await this.auditLogger.log("login_failed", {
-        userId: session.sub,
-        ip,
-        userAgent,
-        metadata: { reason: "Token blacklisted" },
-        severity: "high",
-      });
-      throw new UnauthorizedException("Session has been revoked");
-    }
-
-    const isIdle = await this.sessionService.isIdle(session.sub);
-    if (isIdle) {
-      await this.auditLogger.log("session_revoked", {
-        userId: session.sub,
-        ip,
-        userAgent,
-        metadata: { reason: "Session idle timeout" },
-      });
-      throw new UnauthorizedException("Session expired due to inactivity");
-    }
-
-    const fingerprint = this.sessionService.generateFingerprint(userAgent, ip);
-    const fingerprintValid =
-      await this.sessionService.validateSessionFingerprint(
-        session.sub,
-        token,
-        fingerprint,
-      );
-
-    if (!fingerprintValid) {
-      await this.auditLogger.log("suspicious_activity", {
-        userId: session.sub,
-        ip,
-        userAgent,
-        metadata: { reason: "Session fingerprint mismatch" },
-        severity: "critical",
-      });
-      throw new UnauthorizedException("Session validation failed");
-    }
+    await this.assertSessionNotBlacklisted(session.sub, token, ip, userAgent);
+    await this.assertSessionNotIdle(session.sub, ip, userAgent);
+    await this.assertFingerprintValid(session.sub, token, userAgent, ip);
 
     await this.checkRateLimit(session.sub);
     await this.trackIpActivity(session.sub, ip);
-
     await this.sessionService.updateActivity(session.sub, token);
 
     request.user = {
@@ -174,6 +209,40 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     return true;
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const clientIp = this.normalizeClientIp(request);
+    const userAgent = request.headers["user-agent"] || "";
+    const rawToken = this.extractToken(request);
+
+    if (rawToken === undefined || rawToken === null || rawToken === "") {
+      const devOk = await this.tryDevBypassWithoutToken(request);
+      if (devOk) return true;
+      await this.auditMissingTokenAndThrow(
+        clientIp,
+        userAgent,
+        "Missing token",
+        "Missing authorization header or token",
+      );
+    }
+
+    const token = rawToken!.trim();
+    if (token === "") {
+      await this.auditMissingTokenAndThrow(
+        clientIp,
+        userAgent,
+        "Empty token",
+        "Token cannot be empty",
+      );
+    }
+
+    if (token.startsWith(CLI_TOKEN_PREFIX)) {
+      return this.validateCliTokenOrThrow(request, token);
+    }
+
+    return this.activateClerkSession(request, token, clientIp, userAgent);
   }
 
   private async ensureUserExists(clerkId: string): Promise<void> {

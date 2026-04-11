@@ -83,9 +83,23 @@ def _compute_category_breakdowns(result: BenchmarkResult) -> list[CategoryBreakd
         cb = cats[cat]
         cb.single_total += 1
         cb.deliberation_total += 1
-        if d["single"].correct:
+        single = d.get("single")
+        delib = d.get("deliberation")
+
+        def _correct_flag(value: object) -> bool:
+            if value is None:
+                return False
+            if hasattr(value, "correct"):
+                return bool(getattr(value, "correct", False))
+            if isinstance(value, dict):
+                return bool(value.get("correct", False))
+            return False
+
+        single_correct = _correct_flag(single)
+        delib_correct = _correct_flag(delib)
+        if single_correct:
             cb.single_correct += 1
-        if d["deliberation"].correct:
+        if delib_correct:
             cb.deliberation_correct += 1
     return sorted(cats.values(), key=lambda c: c.category)
 
@@ -226,14 +240,16 @@ def load_results_from_dir(results_dir: str) -> list[BenchmarkResult]:
     for file in sorted(path.glob("*.json")):
         with open(file) as f:
             data = json.load(f)
+        if not isinstance(data, dict) or "benchmark_name" not in data:
+            continue
         results.append(BenchmarkResult(
             benchmark_name=data["benchmark_name"],
-            single_model_score=data["single_model_score"],
-            deliberation_score=data["deliberation_score"],
-            improvement_pct=data["improvement_pct"],
-            num_questions=data["num_questions"],
-            cost_single=data["cost_single"],
-            cost_deliberation=data["cost_deliberation"],
+            single_model_score=float(data["single_model_score"] or 0),
+            deliberation_score=float(data["deliberation_score"] or 0),
+            improvement_pct=float(data["improvement_pct"] or 0),
+            num_questions=int(data["num_questions"] or 0),
+            cost_single=float(data["cost_single"] or 0),
+            cost_deliberation=float(data["cost_deliberation"] or 0),
             details=data.get("details", []),
         ))
     return results

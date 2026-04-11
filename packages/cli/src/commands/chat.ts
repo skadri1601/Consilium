@@ -1,30 +1,18 @@
-import readline from 'readline';
-import fs from 'fs';
-import path from 'path';
+import readline from 'node:readline';
+import path from 'node:path';
 import ora from 'ora';
 import { ConsiliumClient } from '../api/client';
 import { ContextManager } from '../utils/context-manager';
 import { ChatSession } from './chat-session';
 import { SessionManager } from '../utils/session-manager';
 import { requireAuth } from '../utils/require-auth';
-import { loadConfig, updateConfig } from '../utils/config';
-import { openBrowser } from '../utils/open-browser';
+import { loadConfig } from '../utils/config';
 import { border, borderBottom, contentLine, style } from '../utils/visual-system';
 import { formatPrompt } from '../utils/prompt-renderer';
 import { terminal } from '../utils/terminal-capabilities';
-import {
-  handleConversationsCommand,
-  handleContextCommand,
-  handleModeCommand,
-  handleEstimateCommand,
-  handleCancelCommand,
-  handleSkipCommand,
-  handleOutputCommand,
-  handleWorkspaceCommand,
-} from '../utils/chat-commands';
-import { detectWorkspace, getAutoLoadFiles, formatWorkspaceInfo } from '../utils/workspace-detector';
-import { scanProject, type ProjectScanResult } from '../utils/project-scanner';
+import { detectWorkspace, getAutoLoadFiles } from '../utils/workspace-detector';
 import { log } from '../utils/logger';
+import { dispatchSlashCommand } from './chat-slash-dispatch';
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '',
@@ -88,15 +76,16 @@ function printConversationHistory(session: ChatSession): void {
   }
 
   console.log(st.bold('\nConversation History:\n'));
-  for (let i = 0; i < session.debates.length; i++) {
-    const d = session.debates[i];
+  let historyIndex = 0;
+  for (const d of session.debates) {
+    historyIndex += 1;
     const topicPreview = d.topic.length > 70
       ? d.topic.substring(0, 70) + '...'
       : d.topic;
     const time = d.timestamp
       ? st.dim(` (${new Date(d.timestamp).toLocaleString()})`)
       : '';
-    console.log(st.brand(`  ${i + 1}.`), topicPreview + time);
+    console.log(st.brand(`  ${historyIndex}.`), topicPreview + time);
 
     if (d.goldenPrompt) {
       const synthPreview = d.goldenPrompt.length > 100
@@ -138,14 +127,16 @@ function handleSessionsListCommand(sessionManager: SessionManager): void {
 
   console.log(st.bold('\nSaved sessions:\n'));
   for (let i = 0; i < list.length; i++) {
-    const s = list[i];
+    const s = list.at(i);
+    if (!s) continue;
     const timeAgo = sessionManager.formatRelativeTime(s.updatedAt);
     const label = s.name || s.topic || 'Untitled';
     const displayLabel = label.length > 50 ? label.substring(0, 50) + '...' : label;
+    const debateSuffix = s.debateCount === 1 ? '' : 's';
     console.log(
       st.brand(`  ${i + 1}.`),
       displayLabel,
-      st.dim(`(${s.debateCount} debate${s.debateCount !== 1 ? 's' : ''}, ${timeAgo})`)
+      st.dim(`(${s.debateCount} debate${debateSuffix}, ${timeAgo})`)
     );
     if (s.preview && s.preview !== '(no synthesis)') {
       console.log(st.dim(`     ${s.preview}`));
@@ -214,235 +205,15 @@ async function handleSlashCommand(
 ): Promise<'exit' | 'continue' | 'delete-pending'> {
   const trimmed = input.trim();
   const parts = trimmed.split(/\s+/);
-  const cmd = parts[0].toLowerCase();
+  const cmd = (parts[0] ?? '').toLowerCase();
   const args = parts.slice(1);
-
-  switch (cmd) {
-    case '/exit': {
-      const sessionId = sessionManager.saveSession(session);
-      log('INFO', 'session_saved', { sessionId });
-      console.log(
-        st.success('\nSession saved. Resume with:'),
-        st.brand(`consilium sessions resume ${sessionId}\n`)
-      );
-      return 'exit';
-    }
-
-    case '/help': {
-      printHelp();
-      return 'continue';
-    }
-
-    case '/file': {
-      const filePath = args[0];
-      if (!filePath) {
-        console.log(st.warning('Usage: /file <path>'));
-        return 'continue';
-      }
-      try {
-        session.contextManager.addFile(filePath);
-        session.contextFilePaths.push(filePath);
-        const files = session.contextManager.getFiles();
-        const entry = files.find((f) => f.name === path.basename(filePath));
-        const sizeKb = entry ? (entry.size / 1024).toFixed(1) : '?';
-        console.log(
-          st.success(`Added ${path.basename(filePath)} to context (${sizeKb} KB)`)
-        );
-      } catch (error: any) {
-        console.error(st.error('Error:'), error.message);
-      }
-      return 'continue';
-    }
-
-    case '/image': {
-      const imagePath = args[0];
-      if (!imagePath) {
-        console.log(st.warning('Usage: /image <path>'));
-        return 'continue';
-      }
-      try {
-        session.contextManager.addImage(imagePath);
-        session.contextImagePaths.push(imagePath);
-        console.log(st.success(`Added ${path.basename(imagePath)} to context`));
-      } catch (error: any) {
-        console.error(st.error('Error:'), error.message);
-      }
-      return 'continue';
-    }
-
-    case '/clear': {
-      session.contextManager.clear();
-      session.contextFilePaths = [];
-      console.log(st.success('Context cleared.'));
-      return 'continue';
-    }
-
-    case '/status': {
-      const files = session.contextManager.getFiles();
-      const totalSize = session.contextManager.getTotalSize();
-      console.log(st.bold('\nSession Status\n'));
-      if (session.name) {
-        console.log(st.brand('Name:'), session.name);
-      }
-      if (session.id) {
-        console.log(st.brand('ID:'), session.id);
-      }
-      console.log(st.brand('Models:'), session.models.join(', '));
-      console.log(st.brand('Context files:'), files.length);
-      if (files.length > 0) {
-        files.forEach((f) =>
-          console.log(st.dim(`  - ${f.name} (${f.size} bytes)`))
-        );
-        console.log(st.brand('Total context size:'), `${totalSize} bytes`);
-      }
-      console.log(st.brand('Debates in session:'), session.debates.length);
-      if (session.lastGoldenPrompt) {
-        const preview =
-          session.lastGoldenPrompt.length > 50
-            ? session.lastGoldenPrompt.substring(0, 50) + '...'
-            : session.lastGoldenPrompt;
-        console.log(st.brand('Last synthesis:'), preview);
-      }
-      console.log('');
-      return 'continue';
-    }
-
-    case '/models': {
-      if (args.length > 0) {
-        session.models = args;
-        console.log(st.success('Models set:'), session.models.join(', '));
-      } else {
-        console.log(st.brand('Current models:'), session.models.join(', '));
-      }
-      return 'continue';
-    }
-
-    case '/save': {
-      const filepath = args[0];
-      if (filepath) {
-        if (session.lastGoldenPrompt) {
-          fs.writeFileSync(filepath, session.lastGoldenPrompt, 'utf-8');
-          console.log(st.success(`Saved synthesis to ${filepath}`));
-        } else {
-          console.log(st.warning('No synthesis to save. Run a debate first.'));
-        }
-      } else {
-        const sessionId = sessionManager.saveSession(session);
-        log('INFO', 'session_saved', { sessionId });
-        console.log(
-          st.success('Session saved. Resume with:'),
-          st.brand(`consilium sessions resume ${sessionId}`)
-        );
-      }
-      return 'continue';
-    }
-
-    case '/api': {
-      const sub = args[0]?.toLowerCase();
-      const config = loadConfig();
-      const webUrl = config.webUrl || process.env.CONSILIUM_WEB_URL || 'http://localhost:3000';
-      const settingsCliUrl = `${webUrl}/settings#cli`;
-
-      if (sub === 'set') {
-        const key = args.slice(1).join(' ').trim() || (args[1] ?? '');
-        if (!key) {
-          console.log(st.warning('Usage: /api set <your-api-key>'));
-          console.log(st.dim('Get a key from the web app: Settings > CLI > Generate CLI token'));
-          console.log(st.dim('Or run: /api open'));
-          return 'continue';
-        }
-        updateConfig('apiKey', key);
-        console.log(st.success('API key saved. You can run debates now.'));
-        return 'continue';
-      }
-
-      if (sub === 'open') {
-        console.log(st.brand('Opening web app to sign in and get CLI token...'));
-        openBrowser(settingsCliUrl);
-        console.log(st.success('Opened:'), settingsCliUrl);
-        return 'continue';
-      }
-
-      const apiKey = config.apiKey?.trim();
-      console.log(st.bold('\nAPI Configuration\n'));
-      console.log(st.brand('API URL:'), config.apiUrl || 'http://localhost:4000');
-      if (apiKey) {
-        const masked = apiKey.length > 12 ? `${apiKey.slice(0, 8)}...${apiKey.slice(-4)}` : '***';
-        console.log(st.brand('API key:'), st.success('set'), st.dim(`(${masked})`));
-      } else {
-        console.log(st.brand('API key:'), st.warning('not set'));
-        console.log(st.dim('  Set key: /api set <key>'));
-        console.log(st.dim('  Get key: /api open (opens web app)'));
-      }
-      console.log('');
-      return 'continue';
-    }
-
-    case '/search': {
-      const query = args.join(' ').trim();
-      handleSearchCommand(query, sessionManager);
-      return 'continue';
-    }
-
-    case '/rename': {
-      handleRenameCommand(args, session, sessionManager);
-      return 'continue';
-    }
-
-    case '/delete': {
-      return 'delete-pending';
-    }
-
-    case '/history': {
-      printConversationHistory(session);
-      return 'continue';
-    }
-
-    case '/sessions': {
-      handleSessionsListCommand(sessionManager);
-      return 'continue';
-    }
-
-    case '/conversations': {
-      handleConversationsCommand(sessionManager);
-      return 'continue';
-    }
-
-    case '/context': {
-      handleContextCommand(session);
-      return 'continue';
-    }
-
-    case '/mode': {
-      const result = handleModeCommand(args, session.mode);
-      if (result.changed) {
-        session.mode = result.mode as any;
-      }
-      return 'continue';
-    }
-
-    case '/estimate': {
-      handleEstimateCommand(session.mode, session.models.length);
-      return 'continue';
-    }
-
-    case '/output': {
-      const result = handleOutputCommand(args, session.outputFormat);
-      if (result.changed) {
-        session.outputFormat = result.format as any;
-      }
-      return 'continue';
-    }
-
-    case '/workspace': {
-      await handleWorkspaceCommand(process.cwd());
-      return 'continue';
-    }
-
-    default:
-      console.log(st.warning(`Unknown command: ${cmd}. Use /help for commands.`));
-      return 'continue';
-  }
+  return dispatchSlashCommand(cmd, args, session, sessionManager, rl, {
+    printHelp,
+    printConversationHistory,
+    handleSearchCommand,
+    handleSessionsListCommand,
+    handleRenameCommand,
+  });
 }
 
 function autoSave(session: ChatSession, sessionManager: SessionManager): void {
@@ -453,7 +224,7 @@ function autoSave(session: ChatSession, sessionManager: SessionManager): void {
 }
 
 function pushHistory(history: string[], line: string): void {
-  if (!line || history[history.length - 1] === line) return;
+  if (!line || history.at(-1) === line) return;
   history.push(line);
   if (history.length > INPUT_HISTORY_SIZE) history.shift();
 }
@@ -620,14 +391,14 @@ export async function chatResumeCommand(sessionId: string): Promise<void> {
 
     if (session.debates.length > 0) {
       console.log(st.bold('Conversation history:'));
-      for (let i = 0; i < session.debates.length; i++) {
-        const d = session.debates[i];
+      session.debates.forEach((d, i) => {
         const topicPreview = d.topic.length > 60
           ? d.topic.substring(0, 60) + '...'
           : d.topic;
         console.log(st.brand(`  ${i + 1}.`), topicPreview);
-      }
-      console.log(st.dim(`\n  ${session.debates.length} debate${session.debates.length !== 1 ? 's' : ''} loaded. Previous syntheses will be used as context.\n`));
+      });
+      const loadedSuffix = session.debates.length === 1 ? '' : 's';
+      console.log(st.dim(`\n  ${session.debates.length} debate${loadedSuffix} loaded. Previous syntheses will be used as context.\n`));
     }
 
     printWelcome();

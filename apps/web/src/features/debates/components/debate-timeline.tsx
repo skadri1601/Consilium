@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -116,6 +117,168 @@ const ROUND_TO_PHASE: Record<number, PhaseKey> = {
   4: "EVALUATION",
 };
 
+function findActivePhaseKeyFromList(phases: TimelinePhase[]): PhaseKey | undefined {
+  return PHASE_ORDER.find((k) => phases.some((p) => p.key === k && p.status === "active"));
+}
+
+function mergeAgentChunkInPhase(p: TimelinePhase, agentId: string, chunk: string): TimelinePhase {
+  if (p.status !== "active") return p;
+  const modelIdx = p.modelOutputs.findIndex((m) => m.modelId === agentId);
+  if (modelIdx === -1) return p;
+  const updated = [...p.modelOutputs];
+  const row = updated[modelIdx];
+  updated[modelIdx] = {
+    ...row,
+    content: (row.content || "") + chunk,
+  };
+  return { ...p, modelOutputs: updated };
+}
+
+function mergeAgentChunkPhases(prev: TimelinePhase[], agentId: string, chunk: string): TimelinePhase[] {
+  return prev.map((p) => mergeAgentChunkInPhase(p, agentId, chunk));
+}
+
+function mergeAgentCompleteInPhase(p: TimelinePhase, agentId: string, data: SsePayload): TimelinePhase {
+  const modelIdx = p.modelOutputs.findIndex((m) => m.modelId === agentId);
+  if (modelIdx === -1) return p;
+  const updated = [...p.modelOutputs];
+  const row = updated[modelIdx];
+  updated[modelIdx] = {
+    ...row,
+    status: "complete",
+    content: data.content || data.response || row.content,
+    tokens: data.tokens,
+    cost: data.cost,
+    durationMs: data.durationMs,
+  };
+  return { ...p, modelOutputs: updated };
+}
+
+function mergeAgentCompletePhases(prev: TimelinePhase[], agentId: string, data: SsePayload): TimelinePhase[] {
+  return prev.map((p) => mergeAgentCompleteInPhase(p, agentId, data));
+}
+
+interface TimelineSseApi {
+  phases: TimelinePhase[];
+  setPhases: Dispatch<SetStateAction<TimelinePhase[]>>;
+  activatePhase: (key: PhaseKey, description?: string) => void;
+  completePhase: (key: PhaseKey) => void;
+  updatePhase: (key: PhaseKey, updater: (p: TimelinePhase) => TimelinePhase) => void;
+  setTotalCost: Dispatch<SetStateAction<number>>;
+  setFinished: Dispatch<SetStateAction<boolean>>;
+  setConnected: Dispatch<SetStateAction<boolean>>;
+}
+
+function handleTimelineDoneOrComplete(data: SsePayload, api: TimelineSseApi) {
+  api.setPhases((prev) => prev.map((p) => (p.status === "active" ? { ...p, status: "complete" } : p)));
+  const finalGolden = data.goldenPrompt || data.golden_prompt;
+  if (finalGolden) {
+    api.updatePhase("OUTPUT", (p) => ({
+      ...p,
+      status: "complete",
+      modelOutputs:
+        p.modelOutputs.length > 0
+          ? p.modelOutputs
+          : [{ modelId: "judge", content: finalGolden, status: "complete" }],
+    }));
+  }
+  const cost = data.totalCost ?? data.total_cost;
+  if (cost) api.setTotalCost(cost);
+  api.setFinished(true);
+  api.setConnected(false);
+}
+
+function handleTimelineError(data: SsePayload, api: TimelineSseApi) {
+  api.setPhases((prev) =>
+    prev.map((p) =>
+      p.status === "active"
+        ? { ...p, status: "error", description: data.message || data.error || "An error occurred" }
+        : p
+    )
+  );
+  api.setFinished(true);
+  api.setConnected(false);
+}
+
+const TIMELINE_SSE_HANDLERS: Record<string, (data: SsePayload, api: TimelineSseApi) => void> = {
+  "debate:start": (_data, api) => {
+    api.setPhases(buildDefaultPhases());
+    api.activatePhase("PROPOSAL");
+  },
+  "round:start": (data, api) => {
+    const round = data.roundNumber ?? data.round ?? 1;
+    const phaseKey = ROUND_TO_PHASE[round];
+    if (phaseKey) api.activatePhase(phaseKey, data.description);
+  },
+  "agent:start": (data, api) => {
+    const agentId = data.agentId || data.agent_id || data.agent;
+    if (!agentId) return;
+    const currentActive = findActivePhaseKeyFromList(api.phases);
+    const targetPhase: PhaseKey = currentActive ?? "PROPOSAL";
+    api.updatePhase(targetPhase, (p) => ({
+      ...p,
+      modelOutputs: [
+        ...p.modelOutputs.filter((m) => m.modelId !== agentId),
+        { modelId: agentId, content: "", status: "thinking" },
+      ],
+    }));
+  },
+  "agent:chunk": (data, api) => {
+    const agentId = data.agentId || data.agent_id || data.agent;
+    const chunk = data.chunk || data.text;
+    if (!agentId || !chunk) return;
+    api.setPhases((prev) => mergeAgentChunkPhases(prev, agentId, chunk));
+  },
+  "agent:complete": (data, api) => {
+    const agentId = data.agentId || data.agent_id || data.agent;
+    if (!agentId) return;
+    api.setPhases((prev) => mergeAgentCompletePhases(prev, agentId, data));
+  },
+  "round:complete": (data, api) => {
+    const round = data.roundNumber ?? data.round;
+    if (!round) return;
+    const phaseKey = ROUND_TO_PHASE[round];
+    if (phaseKey) api.completePhase(phaseKey);
+  },
+  "convergence:detected": (data, api) => {
+    api.activatePhase("CONVERGENCE", `Similarity: ${((data.similarity ?? 0) * 100).toFixed(0)}%`);
+    if (data.skippingRounds) api.completePhase("VOTE");
+  },
+  "judge:start": (data, api) => {
+    api.activatePhase(
+      "EVALUATION",
+      data.judgeModel ? `Judge: ${getAgentDisplayName(data.judgeModel)}` : undefined
+    );
+  },
+  "consensus": (data, api) => {
+    api.completePhase("CONVERGENCE");
+    api.activatePhase("OUTPUT", "Synthesis complete");
+    const golden = data.goldenPrompt ?? data.golden_prompt ?? data.consensus;
+    if (golden) {
+      api.updatePhase("OUTPUT", (p) => ({
+        ...p,
+        status: "complete",
+        modelOutputs: [{ modelId: "judge", content: golden, status: "complete" }],
+      }));
+    }
+    const cost = data.totalCost ?? data.total_cost;
+    if (cost) api.setTotalCost(cost);
+  },
+  "cost:update": (data, api) => {
+    const cost = data.totalCost ?? data.total_cost;
+    if (cost) api.setTotalCost(cost);
+  },
+  "done": handleTimelineDoneOrComplete,
+  "debate:complete": handleTimelineDoneOrComplete,
+  "error": handleTimelineError,
+  "debate:error": handleTimelineError,
+};
+
+function dispatchTimelineSseEvent(eventName: string, data: SsePayload, api: TimelineSseApi) {
+  const handler = TIMELINE_SSE_HANDLERS[eventName];
+  if (handler) handler(data, api);
+}
+
 function buildDefaultPhases(): TimelinePhase[] {
   return PHASE_ORDER.map((key) => ({
     key,
@@ -133,7 +296,7 @@ function formatTimestamp(ts: string): string {
   }
 }
 
-function PhaseStatusIcon({ status }: { status: PhaseStatus }) {
+function PhaseStatusIcon({ status }: Readonly<{ status: PhaseStatus }>) {
   switch (status) {
     case "complete":
       return (
@@ -167,7 +330,7 @@ function PhaseStatusIcon({ status }: { status: PhaseStatus }) {
   }
 }
 
-function ModelStatusIndicator({ status }: { status: ModelOutput["status"] }) {
+function ModelStatusIndicator({ status }: Readonly<{ status: ModelOutput["status"] }>) {
   return (
     <span
       className={cn(
@@ -180,7 +343,7 @@ function ModelStatusIndicator({ status }: { status: ModelOutput["status"] }) {
   );
 }
 
-function PhaseCard({ phase, isLast }: { phase: TimelinePhase; isLast: boolean }) {
+function PhaseCard({ phase, isLast }: Readonly<{ phase: TimelinePhase; isLast: boolean }>) {
   const [expanded, setExpanded] = useState(false);
   const hasOutputs = phase.modelOutputs.length > 0;
   const PhaseIcon = PHASE_CONFIG[phase.key].icon;
@@ -340,8 +503,16 @@ function PhaseCard({ phase, isLast }: { phase: TimelinePhase; isLast: boolean })
   );
 }
 
-export function DebateTimeline({ debateId, initialPhases, autoConnect = true }: DebateTimelineProps) {
+export function DebateTimeline({
+  debateId,
+  initialPhases,
+  autoConnect = true,
+}: Readonly<DebateTimelineProps>) {
   const [phases, setPhases] = useState<TimelinePhase[]>(initialPhases ?? buildDefaultPhases);
+  const phasesRef = useRef<TimelinePhase[]>(phases);
+  useEffect(() => {
+    phasesRef.current = phases;
+  }, [phases]);
   const [totalCost, setTotalCost] = useState(0);
   const [connected, setConnected] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -379,170 +550,21 @@ export function DebateTimeline({ debateId, initialPhases, autoConnect = true }: 
 
   const handleSseEvent = useCallback(
     (data: SsePayload) => {
-      const eventName = (data.event || "").replace(/_/g, ":");
-      const agentId = data.agentId || data.agent_id || data.agent;
-      const chunk = data.chunk || data.text;
-
-      switch (eventName) {
-        case "debate:start": {
-          setPhases(buildDefaultPhases());
-          activatePhase("PROPOSAL");
-          break;
-        }
-
-        case "round:start": {
-          const round = data.roundNumber ?? data.round ?? 1;
-          const phaseKey = ROUND_TO_PHASE[round];
-          if (phaseKey) {
-            activatePhase(phaseKey, data.description);
-          }
-          break;
-        }
-
-        case "agent:start": {
-          if (!agentId) break;
-          const currentActive = PHASE_ORDER.find((k) =>
-            phases.find((p) => p.key === k && p.status === "active")
-          );
-          const targetPhase = currentActive || "PROPOSAL";
-          updatePhase(targetPhase as PhaseKey, (p) => ({
-            ...p,
-            modelOutputs: [
-              ...p.modelOutputs.filter((m) => m.modelId !== agentId),
-              { modelId: agentId, content: "", status: "thinking" },
-            ],
-          }));
-          break;
-        }
-
-        case "agent:chunk": {
-          if (!agentId || !chunk) break;
-          setPhases((prev) =>
-            prev.map((p) => {
-              if (p.status !== "active") return p;
-              const modelIdx = p.modelOutputs.findIndex((m) => m.modelId === agentId);
-              if (modelIdx === -1) return p;
-              const updated = [...p.modelOutputs];
-              updated[modelIdx] = {
-                ...updated[modelIdx],
-                content: (updated[modelIdx].content || "") + chunk,
-              };
-              return { ...p, modelOutputs: updated };
-            })
-          );
-          break;
-        }
-
-        case "agent:complete": {
-          if (!agentId) break;
-          setPhases((prev) =>
-            prev.map((p) => {
-              const modelIdx = p.modelOutputs.findIndex((m) => m.modelId === agentId);
-              if (modelIdx === -1) return p;
-              const updated = [...p.modelOutputs];
-              updated[modelIdx] = {
-                ...updated[modelIdx],
-                status: "complete",
-                content: data.content || data.response || updated[modelIdx].content,
-                tokens: data.tokens,
-                cost: data.cost,
-                durationMs: data.durationMs,
-              };
-              return { ...p, modelOutputs: updated };
-            })
-          );
-          break;
-        }
-
-        case "round:complete": {
-          const round = data.roundNumber ?? data.round;
-          if (round) {
-            const phaseKey = ROUND_TO_PHASE[round];
-            if (phaseKey) {
-              completePhase(phaseKey);
-            }
-          }
-          break;
-        }
-
-        case "convergence:detected": {
-          activatePhase("CONVERGENCE", `Similarity: ${((data.similarity ?? 0) * 100).toFixed(0)}%`);
-          if (data.skippingRounds) {
-            completePhase("VOTE");
-          }
-          break;
-        }
-
-        case "judge:start": {
-          activatePhase("EVALUATION", data.judgeModel ? `Judge: ${getAgentDisplayName(data.judgeModel)}` : undefined);
-          break;
-        }
-
-        case "consensus": {
-          completePhase("CONVERGENCE");
-          activatePhase("OUTPUT", "Synthesis complete");
-          if (data.goldenPrompt || data.golden_prompt || data.consensus) {
-            updatePhase("OUTPUT", (p) => ({
-              ...p,
-              status: "complete",
-              modelOutputs: [
-                {
-                  modelId: "judge",
-                  content: (data.goldenPrompt || data.golden_prompt || data.consensus) as string,
-                  status: "complete",
-                },
-              ],
-            }));
-          }
-          const cost = data.totalCost ?? data.total_cost;
-          if (cost) setTotalCost(cost);
-          break;
-        }
-
-        case "cost:update": {
-          const cost = data.totalCost ?? data.total_cost;
-          if (cost) setTotalCost(cost);
-          break;
-        }
-
-        case "done":
-        case "debate:complete": {
-          setPhases((prev) =>
-            prev.map((p) => (p.status === "active" ? { ...p, status: "complete" } : p))
-          );
-          const finalGolden = data.goldenPrompt || data.golden_prompt;
-          if (finalGolden) {
-            updatePhase("OUTPUT", (p) => ({
-              ...p,
-              status: "complete",
-              modelOutputs: p.modelOutputs.length > 0
-                ? p.modelOutputs
-                : [{ modelId: "judge", content: finalGolden, status: "complete" }],
-            }));
-          }
-          const cost = data.totalCost ?? data.total_cost;
-          if (cost) setTotalCost(cost);
-          setFinished(true);
-          setConnected(false);
-          break;
-        }
-
-        case "error":
-        case "debate:error": {
-          setPhases((prev) =>
-            prev.map((p) =>
-              p.status === "active"
-                ? { ...p, status: "error", description: data.message || data.error || "An error occurred" }
-                : p
-            )
-          );
-          setFinished(true);
-          setConnected(false);
-          break;
-        }
-      }
+      const eventName = (data.event || "").replaceAll("_", ":");
+      dispatchTimelineSseEvent(eventName, data, {
+        get phases() {
+          return phasesRef.current;
+        },
+        setPhases,
+        activatePhase,
+        completePhase,
+        updatePhase,
+        setTotalCost,
+        setFinished,
+        setConnected,
+      });
     },
-    [activatePhase, completePhase, updatePhase, phases]
+    [activatePhase, completePhase, updatePhase, setPhases, setTotalCost, setFinished, setConnected]
   );
 
   useEffect(() => {

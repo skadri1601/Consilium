@@ -30,31 +30,37 @@ import {
 
 const steps = [
   {
+    id: "propose",
     icon: <MessageSquare className="h-6 w-6" />,
     title: "Propose",
     description: "Each model independently analyzes the problem and presents its initial position.",
   },
   {
+    id: "challenge",
     icon: <AlertTriangle className="h-6 w-6" />,
     title: "Challenge",
     description: "Models cross-examine each other, probing assumptions and identifying weaknesses.",
   },
   {
+    id: "rebut",
     icon: <History className="h-6 w-6" />,
     title: "Rebut",
     description: "Models refine their positions based on challenges, strengthening or revising arguments.",
   },
   {
+    id: "evaluate",
     icon: <Search className="h-6 w-6" />,
     title: "Evaluate",
     description: "A judge model assesses argument quality, evidence strength, and logical consistency.",
   },
   {
+    id: "vote",
     icon: <Send className="h-6 w-6" />,
     title: "Vote",
     description: "Models cast confidence-weighted votes on the strongest positions.",
   },
   {
+    id: "synthesize",
     icon: <Sparkles className="h-6 w-6" />,
     title: "Synthesize",
     description: "A final synthesis integrates the best arguments into a single, rigorous answer.",
@@ -161,16 +167,16 @@ console.log(result.synthesis);
 console.log(result.confidence);
 console.log(result.dissentingViews);`;
 
-const cliCode = `# Quick deliberation
-consilium deliberate \\
-  --question "Should we migrate to microservices?" \\
-  --mode council \\
+const cliCode = String.raw`# Quick deliberation
+consilium deliberate \
+  --question "Should we migrate to microservices?" \
+  --mode council \
   --models claude-sonnet-4,gpt-4o,gemini-2.0
 
 # Red team assessment
-consilium deliberate \\
-  --question "Is our auth system secure?" \\
-  --mode redteam \\
+consilium deliberate \
+  --question "Is our auth system secure?" \
+  --mode redteam \
   --output markdown`;
 
 const papers = [
@@ -203,7 +209,7 @@ const papers = [
 const tabs = ["Python", "TypeScript", "CLI"] as const;
 type Tab = (typeof tabs)[number];
 
-function CodeBlock({ code }: { code: string }) {
+function CodeBlock({ code }: Readonly<{ code: string }>) {
   return (
     <pre className="overflow-x-auto rounded-lg bg-muted/50 border p-4 text-sm leading-relaxed">
       <code className="text-muted-foreground">{code}</code>
@@ -283,7 +289,7 @@ export default function LandingPage() {
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
           {steps.map((step, i) => (
-            <div key={i} className="relative overflow-hidden rounded-lg border bg-background p-2">
+            <div key={step.id} className="relative overflow-hidden rounded-lg border bg-background p-2">
               <div className="flex h-[180px] flex-col rounded-md p-6 gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
@@ -328,7 +334,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="comparison" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section id="features" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
             Why Deliberation {'>'} Orchestration
@@ -347,8 +353,8 @@ export default function LandingPage() {
               </tr>
             </thead>
             <tbody>
-              {comparisonRows.map((row, i) => (
-                <tr key={i} className="border-b border-border/50">
+              {comparisonRows.map((row) => (
+                <tr key={row.feature} className="border-b border-border/50">
                   <td className="py-3 px-4">{row.feature}</td>
                   <td className="py-3 px-4 text-center">
                     {row.deliberation ? (
@@ -401,6 +407,38 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="integrations" className="container space-y-6 py-8 md:py-12 lg:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">Supported Providers</h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Bring your own API keys. Consilium works with all major LLM providers.
+          </p>
+        </div>
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-8">
+          {[
+            { name: "Anthropic", icon: "anthropic" },
+            { name: "OpenAI", icon: "openai" },
+            { name: "Google", icon: "google" },
+            { name: "Groq", icon: "groq" },
+            { name: "xAI", icon: "xai" },
+          ].map((provider) => (
+            <div
+              key={provider.name}
+              className="flex flex-col items-center gap-2 rounded-lg border bg-background p-6 min-w-[120px]"
+            >
+              <img
+                src={`/brand/providers/${provider.icon}.svg`}
+                alt={provider.name}
+                width={32}
+                height={32}
+                className="h-8 w-8"
+              />
+              <span className="text-sm font-medium">{provider.name}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section id="research" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">Research Backed</h2>
@@ -409,8 +447,8 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl">
-          {papers.map((paper, i) => (
-            <Card key={i} variant="default" className="h-full">
+          {papers.map((paper) => (
+            <Card key={paper.title} variant="default" className="h-full">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base leading-snug">{paper.title}</CardTitle>
                 <p className="text-xs text-muted-foreground">

@@ -1,10 +1,64 @@
 import os
+import re
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Optional, Tuple, Dict, Any
+from collections.abc import AsyncIterator
+from typing import Any, Dict, NoReturn, Optional, Tuple
+
+
+_ERROR_PATTERNS = [
+    re.compile(r"\[.*Error:"),
+    re.compile(r"RateLimitError", re.IGNORECASE),
+    re.compile(r"insufficient_quota", re.IGNORECASE),
+    re.compile(r"invalid_api_key", re.IGNORECASE),
+    re.compile(r"\b401\b"),
+    re.compile(r"\b429\b"),
+    re.compile(r"\b403\b"),
+    re.compile(r"AuthenticationError", re.IGNORECASE),
+    re.compile(r"PermissionDeniedError", re.IGNORECASE),
+]
+
+
+def is_error_response(text: str) -> bool:
+    if not text:
+        return False
+    return any(p.search(text) for p in _ERROR_PATTERNS)
+
+
+class LLMProviderError(Exception):
+    def __init__(
+        self,
+        provider: str,
+        error_type: str,
+        original_error: object = None,
+        operation: str | None = None,
+    ):
+        self.provider = provider
+        self.error_type = error_type
+        self.original_error = original_error
+        self.operation = operation
+        op = f"{operation}: " if operation else ""
+        super().__init__(f"[{provider}] {op}{error_type}: {original_error}")
+
+
+def _classify_error(e: Exception) -> str:
+    name = type(e).__name__.lower()
+    msg = str(e).lower()
+    if "ratelimit" in name or "429" in msg or "rate_limit" in msg or "rate limit" in msg:
+        return "rate_limit"
+    if "auth" in name or "401" in msg or "invalid_api_key" in msg or "invalid api key" in msg:
+        return "auth"
+    if "timeout" in name or "timed out" in msg:
+        return "timeout"
+    if "permission" in name or "403" in msg:
+        return "auth"
+    if "server" in name or "500" in msg or "502" in msg or "503" in msg:
+        return "server_error"
+    if "notfound" in name or "404" in msg:
+        return "server_error"
+    return "unknown"
 
 
 class BaseAgent(ABC):
-    """Base class for all AI agents with common functionality."""
 
     def __init__(self, name: str, provider: str, model: str, api_key_env_var: str):
         self.name = name
@@ -16,32 +70,38 @@ class BaseAgent(ABC):
     async def generate_response(
         self, query: str, system_prompt: Optional[str] = None
     ) -> Tuple[str, int]:
-        """Generate a response to the given query."""
         pass
 
     @abstractmethod
-    async def stream_response(
+    def stream_response(
         self, query: str, system_prompt: Optional[str] = None
-    ) -> AsyncGenerator[str, None]:
-        """Stream a response to the given query."""
-        pass
+    ) -> AsyncIterator[str]:
+        ...
 
     @abstractmethod
     async def health_check(self) -> bool:
-        """Check if the agent's API is accessible."""
         pass
 
     def get_system_prompt(self) -> str:
-        """Get the default system prompt for this agent."""
         return f"""You are {self.name}, an AI assistant powered by {self.provider}'s {self.model}.
 You are participating in a multi-agent council to provide thoughtful, accurate responses.
 Be concise but thorough. If you're uncertain, express your confidence level."""
 
-    def _handle_common_errors(self, e: Exception, operation: str = "operation") -> str:
-        """Handle common API errors with consistent error messages."""
-        error_name = type(e).__name__
-        return f"[{self.name} {operation} Error: {error_name}: {str(e)}]"
+    def _handle_common_errors(self, e: Exception, operation: str = "operation") -> NoReturn:
+        error_type = _classify_error(e)
+        raise LLMProviderError(
+            provider=self.provider,
+            error_type=error_type,
+            original_error=e,
+            operation=operation,
+        )
 
     def _validate_api_key(self) -> bool:
-        """Validate that API key is available."""
         return bool(self.api_key)
+
+    def _raise_no_api_key(self) -> NoReturn:
+        raise LLMProviderError(
+            provider=self.provider,
+            error_type="auth",
+            original_error="No API key provided",
+        )

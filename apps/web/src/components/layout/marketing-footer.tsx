@@ -18,7 +18,7 @@ const footerLinks = {
     { label: "API Reference", href: "/docs/api" },
     { label: "CLI", href: "/docs/cli" },
     { label: "SDKs", href: "/#sdk" },
-    { label: "Status", href: "/status" },
+    { label: "Releases", href: "https://github.com/skadri1601/Consilium/releases" },
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
@@ -40,13 +40,15 @@ const footerLinks = {
   ],
 };
 
-export function MarketingFooter(props: {
+type MarketingFooterProps = Readonly<{
   builtBy: string;
   builtByLink: string;
   githubLink: string;
   twitterLink: string;
   linkedinLink: string;
-}) {
+}>;
+
+export function MarketingFooter(props: MarketingFooterProps) {
   return (
     <footer className="relative">
       <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
@@ -58,7 +60,7 @@ export function MarketingFooter(props: {
             </h2>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href="/signup"
+                href="/sign-up"
                 className="inline-flex h-11 items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
               >
                 Get Started
@@ -100,19 +102,29 @@ export function MarketingFooter(props: {
           </div>
 
           <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <img
-                src="/brand/consilium-icon.svg"
-                alt="Consilium"
-                width={20}
-                height={20}
-              />
-              <span className="text-sm font-medium text-neutral-200">
-                Consilium
-              </span>
-              <span className="text-sm text-neutral-500">
-                &copy; {new Date().getFullYear()} All rights reserved.
-              </span>
+            <div className="flex flex-col items-center gap-1 sm:items-start">
+              <div className="flex items-center gap-2">
+                <img
+                  src="/brand/consilium-icon.svg"
+                  alt="Consilium"
+                  width={20}
+                  height={20}
+                />
+                <span className="text-sm font-medium text-neutral-200">
+                  Consilium
+                </span>
+                <span className="text-sm text-neutral-500">
+                  &copy; {new Date().getFullYear()} All rights reserved.
+                </span>
+              </div>
+              <Link
+                href={props.builtByLink}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-neutral-500 transition-colors hover:text-neutral-300"
+              >
+                Built by {props.builtBy}
+              </Link>
             </div>
             <div className="flex items-center space-x-1">
               {(
@@ -121,11 +133,11 @@ export function MarketingFooter(props: {
                   { href: props.twitterLink, icon: TwitterLogoIcon },
                   { href: props.linkedinLink, icon: LinkedInLogoIcon },
                 ] as const
-              ).map((link, index) => (
+              ).map((link) => (
                 <Link
                   href={link.href}
                   className={buttonVariants({ variant: "ghost", size: "icon" })}
-                  key={index}
+                  key={link.href}
                   target="_blank"
                   rel="noreferrer"
                 >

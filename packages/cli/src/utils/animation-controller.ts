@@ -17,9 +17,8 @@ function flush() {
   if (pendingContent === null) return;
   if (terminal.isTTY && !terminal.usePlain) {
     logUpdate(pendingContent);
-  } else {
-    // Non-TTY: write once, no update (avoid log-update overwriting)
-    if (rafId === null) process.stdout.write(pendingContent + '\n');
+  } else if (rafId === null) {
+    process.stdout.write(pendingContent + '\n');
   }
   pendingContent = null;
   rafId = null;

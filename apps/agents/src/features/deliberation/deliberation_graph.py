@@ -99,6 +99,25 @@ try:
 except ImportError:
     _HAS_AGENT_FACTORY = False
 
+try:
+    from src.features.agents.base_agent import LLMProviderError, is_error_response
+    _HAS_LLM_ERROR = True
+except ImportError:
+    class LLMProviderError(Exception):
+        def __init__(self, provider="", error_type="", original_error=None):
+            self.provider = provider
+            self.error_type = error_type
+            self.original_error = original_error
+            super().__init__(str(original_error))
+
+    def is_error_response(text):
+        return False
+
+    _HAS_LLM_ERROR = False
+
+import logging
+_logger = logging.getLogger(__name__)
+
 
 class Phase(str, Enum):
     PROPOSAL = "proposal"
@@ -213,7 +232,15 @@ async def _call_model_via_factory(model_id: str, prompt: str, api_keys: dict) ->
     try:
         agent = AgentFactory.create(model_id, api_keys)
         response, _tokens = await agent.generate_response(prompt, system_prompt=None)
+        if is_error_response(response):
+            raise LLMProviderError(
+                provider=model_id,
+                error_type="unknown",
+                original_error=f"Error response detected: {response[:200]}",
+            )
         return response
+    except LLMProviderError:
+        raise
     except Exception:
         return await llm_call_stub(model_id, prompt, api_keys)
 
@@ -422,8 +449,18 @@ class DeliberationEngine:
 
     async def _timed_llm(self, model_id: str, prompt: str) -> tuple[str, int]:
         t0 = time.monotonic()
-        response = await self.llm_fn(model_id, prompt, self.api_keys)
+        try:
+            response = await self.llm_fn(model_id, prompt, self.api_keys)
+        except LLMProviderError as exc:
+            _logger.warning("LLM provider error for %s: %s (%s)", model_id, exc.error_type, exc.original_error)
+            latency_ms = int((time.monotonic() - t0) * 1000)
+            self._audit("llm_error", model_id, prompt[:200], str(exc)[:200], latency_ms)
+            return "", latency_ms
         latency_ms = int((time.monotonic() - t0) * 1000)
+        if is_error_response(response):
+            _logger.warning("Error response detected from %s: %s", model_id, response[:200])
+            self._audit("llm_error", model_id, prompt[:200], response[:200], latency_ms)
+            return "", latency_ms
         est_in = len(prompt.split())
         est_out = len(response.split())
         est_cost = _estimate_cost(model_id, est_in, est_out)

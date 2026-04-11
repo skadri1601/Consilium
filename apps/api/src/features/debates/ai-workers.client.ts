@@ -110,7 +110,7 @@ export class AiWorkersClient {
   getStreamUrl(debateId: string): string {
     if (!this.isValidId(debateId)) {
       throw new HttpException(
-        'Invalid debate ID format',
+        "Invalid debate ID format",
         HttpStatus.BAD_REQUEST,
       );
     }

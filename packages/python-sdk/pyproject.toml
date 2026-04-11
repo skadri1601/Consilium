@@ -30,6 +30,9 @@ dependencies = [
 ]
 keywords = ["ai", "deliberation", "multi-agent", "llm", "debate"]
 
+[tool.pyrefly]
+ignore-missing-imports = ["httpx", "pydantic"]
+
 [project.urls]
 Homepage = "https://github.com/anthropics/consilium"
 Documentation = "https://github.com/anthropics/consilium#readme"

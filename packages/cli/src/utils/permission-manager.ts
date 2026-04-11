@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import readline from 'readline';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import readline from 'node:readline';
 
 export type PermissionLevel = 'deny' | 'session' | 'always';
 
@@ -18,7 +18,7 @@ const PERMISSIONS_FILE = path.join(os.homedir(), '.consilium', 'permissions.json
 
 export class PermissionManager {
   private permissions: Record<string, PermissionEntry> = {};
-  private sessionPermissions: Set<string> = new Set();
+  private readonly sessionPermissions: Set<string> = new Set();
 
   constructor() {
     this.load();
@@ -32,7 +32,7 @@ export class PermissionManager {
     }
 
     const entry = this.permissions[normalized];
-    if (entry && entry.level === 'always') {
+    if (entry?.level === 'always') {
       return 'always';
     }
 

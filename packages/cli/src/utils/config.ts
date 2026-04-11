@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
-const CONFIG_DIR = path.join(os.homedir(), '.consilium');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const CONFIG_DIR = path.join(os.homedir(), ".consilium");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 export interface Config {
   apiUrl?: string;
@@ -15,17 +15,19 @@ export interface Config {
 export function loadConfig(): Config {
   if (!fs.existsSync(CONFIG_FILE)) {
     return {
-      apiUrl: process.env.CONSILIUM_API_URL || 'http://localhost:4000',
-      webUrl: process.env.CONSILIUM_WEB_URL || 'http://localhost:3000',
-      debug: process.env.CONSILIUM_DEBUG === '1' || process.env.CONSILIUM_DEBUG === 'true',
+      apiUrl: process.env.CONSILIUM_API_URL || "http://localhost:4000",
+      webUrl: process.env.CONSILIUM_WEB_URL || "http://localhost:3000",
+      debug:
+        process.env.CONSILIUM_DEBUG === "1" ||
+        process.env.CONSILIUM_DEBUG === "true",
     };
   }
 
   try {
-    const config = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const config = fs.readFileSync(CONFIG_FILE, "utf-8");
     return JSON.parse(config);
   } catch (error) {
-    console.error('Failed to load config:', error);
+    console.error("Failed to load config:", error);
     return {};
   }
 }

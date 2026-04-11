@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { generateId } from './id-generator';
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { generateId } from "./id-generator";
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 export interface LogEntry {
   id: string;
@@ -26,13 +26,13 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   ERROR: 3,
 };
 
-const LOGS_DIR = path.join(os.homedir(), '.consilium', 'logs');
+const LOGS_DIR = path.join(os.homedir(), ".consilium", "logs");
 const MAX_LOG_DAYS = 7;
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -53,40 +53,47 @@ function rotateOldLogs(): void {
   cutoff.setDate(cutoff.getDate() - MAX_LOG_DAYS);
   const cutoffStr = formatDate(cutoff);
 
-  const files = fs.readdirSync(LOGS_DIR).filter(f => f.endsWith('.jsonl'));
+  const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".jsonl"));
   for (const file of files) {
-    const dateStr = file.replace('.jsonl', '');
+    const dateStr = file.replace(".jsonl", "");
     if (dateStr < cutoffStr) {
       fs.unlinkSync(path.join(LOGS_DIR, file));
     }
   }
 }
 
-export function log(level: LogLevel, event: string, fields?: Partial<Omit<LogEntry, 'id' | 'ts' | 'level' | 'event'>>): void {
+export function log(
+  level: LogLevel,
+  event: string,
+  fields?: Partial<Omit<LogEntry, "id" | "ts" | "level" | "event">>,
+): void {
   ensureLogDir();
   rotateOldLogs();
 
   const entry: LogEntry = {
-    id: generateId('log'),
+    id: generateId("log"),
     ts: new Date().toISOString(),
     level,
     event,
     ...fields,
   };
 
-  fs.appendFileSync(getLogFilePath(), JSON.stringify(entry) + '\n', 'utf-8');
+  fs.appendFileSync(getLogFilePath(), JSON.stringify(entry) + "\n", "utf-8");
 }
 
 export function readLogs(debateId?: string, level?: LogLevel): LogEntry[] {
   if (!fs.existsSync(LOGS_DIR)) return [];
 
-  const files = fs.readdirSync(LOGS_DIR).filter(f => f.endsWith('.jsonl')).sort();
+  const files = fs
+    .readdirSync(LOGS_DIR)
+    .filter((f) => f.endsWith(".jsonl"))
+    .sort();
   const minLevel = level ? LOG_LEVELS[level] : 0;
   const entries: LogEntry[] = [];
 
   for (const file of files) {
-    const content = fs.readFileSync(path.join(LOGS_DIR, file), 'utf-8');
-    const lines = content.split('\n').filter(l => l.trim());
+    const content = fs.readFileSync(path.join(LOGS_DIR, file), "utf-8");
+    const lines = content.split("\n").filter((l) => l.trim());
 
     for (const line of lines) {
       try {

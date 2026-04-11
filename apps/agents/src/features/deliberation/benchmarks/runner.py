@@ -11,6 +11,7 @@ from typing import Any
 from src.features.deliberation.benchmarks.framework import (
     BenchmarkQuestion,
     BenchmarkResult,
+    ModeScore,
     SingleResult,
     DeliberationResult,
     run_benchmark,
@@ -35,6 +36,29 @@ DATASET_LOADERS: dict[str, Any] = {
 
 DEFAULT_TIMEOUT = 120
 
+_ERROR_MARKERS = (
+    "ratelimit",
+    "rate_limit",
+    "insufficient_quota",
+    "error code: 429",
+    "error code: 401",
+    "api error",
+    "openai api error",
+)
+
+
+def _looks_like_api_error_text(text: str) -> bool:
+    if not text:
+        return False
+    low = text.lower()
+    return any(m in low for m in _ERROR_MARKERS)
+
+
+def _sanitize_stored_answer(text: str) -> str | None:
+    if _looks_like_api_error_text(text):
+        return None
+    return text
+
 
 def _resolve_api_keys() -> dict[str, str]:
     keys: dict[str, str] = {}
@@ -55,15 +79,13 @@ async def _single_call(
     model: str,
     prompt: str,
     api_keys: dict[str, str],
-    timeout: int = DEFAULT_TIMEOUT,
+    seconds_limit: int = DEFAULT_TIMEOUT,
 ) -> dict[str, Any]:
     t0 = time.monotonic()
     try:
-        response = await asyncio.wait_for(
-            _call_model_via_factory(model, prompt, api_keys),
-            timeout=timeout,
-        )
-    except asyncio.TimeoutError:
+        async with asyncio.timeout(seconds_limit):
+            response = await _call_model_via_factory(model, prompt, api_keys)
+    except TimeoutError:
         return {"answer": "", "cost": 0.0, "error": "timeout"}
     except Exception as exc:
         return {"answer": "", "cost": 0.0, "error": str(exc)}
@@ -74,12 +96,12 @@ async def _single_call(
 
 
 async def _deliberation_call(
-    model: str,
+    _model: str,
     prompt: str,
     api_keys: dict[str, str],
     mode: str,
     models: list[str],
-    timeout: int = DEFAULT_TIMEOUT,
+    seconds_limit: int = DEFAULT_TIMEOUT,
 ) -> dict[str, Any]:
     try:
         delib_mode = DeliberationMode(mode)
@@ -95,11 +117,9 @@ async def _deliberation_call(
     )
 
     try:
-        state = await asyncio.wait_for(
-            engine.run(prompt),
-            timeout=timeout,
-        )
-    except asyncio.TimeoutError:
+        async with asyncio.timeout(seconds_limit):
+            state = await engine.run(prompt)
+    except TimeoutError:
         print(f"[WARN] Deliberation timeout for: {prompt[:60]}", file=sys.stderr)
         return {"answer": "", "cost": 0.0, "votes": {}, "rounds_used": 0, "error": "timeout"}
     except Exception as exc:
@@ -133,12 +153,12 @@ async def benchmark_call_fn(
     api_keys: dict[str, str],
     mode: str = "single",
     models: list[str] | None = None,
-    timeout: int = DEFAULT_TIMEOUT,
+    seconds_limit: int = DEFAULT_TIMEOUT,
 ) -> dict[str, Any]:
     if mode == "single":
-        return await _single_call(model, prompt, api_keys, timeout=timeout)
+        return await _single_call(model, prompt, api_keys, seconds_limit=seconds_limit)
     return await _deliberation_call(
-        model, prompt, api_keys, mode, models or [model], timeout=timeout,
+        model, prompt, api_keys, mode, models or [model], seconds_limit=seconds_limit,
     )
 
 
@@ -147,34 +167,48 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--benchmark", choices=list(DATASET_LOADERS.keys()), required=True)
     parser.add_argument("--models", type=str, required=True, help="Comma-separated model IDs")
     parser.add_argument("--mode", type=str, default="council")
+    parser.add_argument("--modes", type=str, default=None, help="Comma-separated deliberation modes (e.g. council,blind)")
     parser.add_argument("--n", type=int, default=None, help="Number of questions")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT, help="Per-question timeout in seconds")
     parser.add_argument("--output", type=str, default=None, help="Path to save JSON results")
     return parser.parse_args()
 
 
+def _serialize_delib(dl: DeliberationResult) -> dict[str, Any]:
+    safe_answer = _sanitize_stored_answer(dl.golden_prompt_answer)
+    return {
+        "question": dl.question,
+        "golden_prompt_answer": safe_answer,
+        "answer_error": safe_answer is None,
+        "correct": dl.correct,
+        "votes": dl.votes,
+        "rounds_used": dl.rounds_used,
+    }
+
+
 def _serialize_result(result: BenchmarkResult) -> dict[str, Any]:
+    mode_names = [ms.mode for ms in result.mode_scores] if result.mode_scores else []
     details = []
     for d in result.details:
         entry: dict[str, Any] = {"category": d["category"]}
         s = d["single"]
+        safe_single = _sanitize_stored_answer(s.model_answer)
         entry["single"] = {
             "question": s.question,
-            "model_answer": s.model_answer,
+            "model_answer": safe_single,
+            "answer_error": safe_single is None,
             "correct": s.correct,
             "model_id": s.model_id,
         }
-        dl = d["deliberation"]
-        entry["deliberation"] = {
-            "question": dl.question,
-            "golden_prompt_answer": dl.golden_prompt_answer,
-            "correct": dl.correct,
-            "votes": dl.votes,
-            "rounds_used": dl.rounds_used,
-        }
+        if "deliberation" in d and d["deliberation"]:
+            entry["deliberation"] = _serialize_delib(d["deliberation"])
+        for m in mode_names:
+            key = f"deliberation_{m}"
+            if key in d and d[key]:
+                entry[key] = _serialize_delib(d[key])
         details.append(entry)
 
-    return {
+    out: dict[str, Any] = {
         "benchmark_name": result.benchmark_name,
         "single_model_score": result.single_model_score,
         "deliberation_score": result.deliberation_score,
@@ -184,6 +218,20 @@ def _serialize_result(result: BenchmarkResult) -> dict[str, Any]:
         "cost_deliberation": result.cost_deliberation,
         "details": details,
     }
+
+    if result.mode_scores:
+        out["mode_scores"] = [
+            {
+                "mode": ms.mode,
+                "score": ms.score,
+                "cost": ms.cost,
+                "correct_count": ms.correct_count,
+                "improvement_pct": ms.improvement_pct,
+            }
+            for ms in result.mode_scores
+        ]
+
+    return out
 
 
 def main() -> None:
@@ -206,8 +254,10 @@ def main() -> None:
         models: list[str] | None = None,
     ) -> dict[str, Any]:
         return await benchmark_call_fn(
-            model, prompt, api_keys, mode, models, timeout=args.timeout,
+            model, prompt, api_keys, mode, models, seconds_limit=args.timeout,
         )
+
+    modes_list = [m.strip() for m in args.modes.split(",")] if args.modes else None
 
     result = asyncio.run(
         run_benchmark(
@@ -217,6 +267,7 @@ def main() -> None:
             api_keys=api_keys,
             call_fn=_call_fn,
             mode=args.mode,
+            modes=modes_list,
         )
     )
 

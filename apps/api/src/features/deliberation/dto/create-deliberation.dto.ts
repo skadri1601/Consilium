@@ -10,6 +10,7 @@ import {
   MaxLength,
   Min,
   Max,
+  IsObject,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
@@ -89,4 +90,12 @@ export class CreateDeliberationDto {
     groqKey?: string;
     xaiKey?: string;
   };
+
+  @ApiPropertyOptional({
+    description:
+      "Optional JSON from blind-eval responses file; stored on the session for auditing (workers may ignore until wired).",
+  })
+  @IsOptional()
+  @IsObject()
+  responses?: Record<string, unknown>;
 }

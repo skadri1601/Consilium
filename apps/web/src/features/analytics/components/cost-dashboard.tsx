@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
 import {
   BarChart,
   Bar,
@@ -30,8 +29,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   TrendingUp,
-  Layers,
-  Activity,
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -128,7 +125,6 @@ type TabKey = "overview" | "rounds" | "models";
 
 export function CostDashboard({
   data,
-  debateId,
   streaming = false,
   className,
 }: CostDashboardProps) {

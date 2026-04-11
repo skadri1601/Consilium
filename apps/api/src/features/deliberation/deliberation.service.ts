@@ -14,9 +14,9 @@ import { FREE_FALLBACK_MODELS } from "../debates/model-pricing";
 @Injectable()
 export class DeliberationService {
   constructor(
-    private prisma: PrismaService,
-    private apiKeysService: ApiKeysService,
-    private eventsClient: DeliberationEventsClient,
+    private readonly prisma: PrismaService,
+    private readonly apiKeysService: ApiKeysService,
+    private readonly eventsClient: DeliberationEventsClient,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -50,12 +50,12 @@ export class DeliberationService {
       apiKeys.groqKey ||
       apiKeys.xaiKey;
 
-    const effectiveModels = !hasKeys
-      ? Array.from(
+    const effectiveModels = hasKeys
+      ? dto.models
+      : Array.from(
           { length: Math.max(dto.models.length, 2) },
           () => FREE_FALLBACK_MODELS.debater,
-        )
-      : dto.models;
+        );
 
     const mode = dto.mode || "council";
 
@@ -76,6 +76,10 @@ export class DeliberationService {
         mode,
         debateSource: "deliberation",
         conversationId: conversation.id,
+        projectContext:
+          dto.responses !== undefined && dto.responses !== null
+            ? { evalResponses: dto.responses }
+            : undefined,
       },
     });
 
@@ -142,9 +146,7 @@ export class DeliberationService {
     }
 
     if (deliberation.status !== "failed") {
-      throw new BadRequestException(
-        "Only failed deliberations can be retried",
-      );
+      throw new BadRequestException("Only failed deliberations can be retried");
     }
 
     await this.prisma.debateSession.update({

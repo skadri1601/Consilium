@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { PermissionManager, PermissionLevel } from './permission-manager';
 
 export interface ScannedFile {
@@ -59,9 +59,7 @@ const MAX_TOTAL_SIZE = 2 * 1024 * 1024;
 let permissionManagerInstance: PermissionManager | null = null;
 
 function getPermissionManager(): PermissionManager {
-  if (!permissionManagerInstance) {
-    permissionManagerInstance = new PermissionManager();
-  }
+  permissionManagerInstance ??= new PermissionManager();
   return permissionManagerInstance;
 }
 
@@ -100,51 +98,60 @@ interface DiscoveredFile {
   depth: number;
 }
 
+function tryReadProjectDir(dir: string): fs.Dirent[] | undefined {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+}
+
+function tryPushDiscoveredFile(
+  projectPath: string,
+  dir: string,
+  entry: fs.Dirent,
+  depth: number,
+  results: DiscoveredFile[],
+): void {
+  if (!entry.isFile()) return;
+  const ext = path.extname(entry.name).toLowerCase();
+  if (!isAllowedFile(entry.name, ext)) return;
+  const fullPath = path.join(dir, entry.name);
+  try {
+    const stat = fs.statSync(fullPath);
+    if (stat.size > MAX_FILE_SIZE) return;
+    if (stat.size === 0) return;
+    const relativePath = path.relative(projectPath, fullPath).replaceAll('\\', '/');
+    results.push({
+      relativePath,
+      size: stat.size,
+      category: categorizeFile(entry.name, ext),
+      depth,
+    });
+  } catch {
+    return;
+  }
+}
+
+function walkProjectTree(projectPath: string, dir: string, depth: number, results: DiscoveredFile[]): void {
+  if (depth > 10) return;
+  const entries = tryReadProjectDir(dir);
+  if (!entries) return;
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name)) continue;
+      if (entry.name.startsWith('.') && entry.name !== '.github') continue;
+      walkProjectTree(projectPath, path.join(dir, entry.name), depth + 1, results);
+      continue;
+    }
+    tryPushDiscoveredFile(projectPath, dir, entry, depth, results);
+  }
+}
+
 function discoverFiles(projectPath: string): DiscoveredFile[] {
   const results: DiscoveredFile[] = [];
-
-  function walk(dir: string, depth: number): void {
-    if (depth > 10) return;
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        if (SKIP_DIRS.has(entry.name)) continue;
-        if (entry.name.startsWith('.') && entry.name !== '.github') continue;
-        walk(path.join(dir, entry.name), depth + 1);
-        continue;
-      }
-
-      if (!entry.isFile()) continue;
-
-      const ext = path.extname(entry.name).toLowerCase();
-      if (!isAllowedFile(entry.name, ext)) continue;
-
-      const fullPath = path.join(dir, entry.name);
-      try {
-        const stat = fs.statSync(fullPath);
-        if (stat.size > MAX_FILE_SIZE) continue;
-        if (stat.size === 0) continue;
-
-        const relativePath = path.relative(projectPath, fullPath).replace(/\\/g, '/');
-        results.push({
-          relativePath,
-          size: stat.size,
-          category: categorizeFile(entry.name, ext),
-          depth,
-        });
-      } catch {
-        continue;
-      }
-    }
-  }
-
-  walk(projectPath, 0);
+  walkProjectTree(projectPath, projectPath, 0, results);
   return results;
 }
 

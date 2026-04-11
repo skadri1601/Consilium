@@ -108,4 +108,15 @@ declare module 'lucide-react' {
   export const Lightbulb: LucideIcon;
   export const Trophy: LucideIcon;
   export const Award: LucideIcon;
+  export const Calendar: LucideIcon;
+  export const MessageCircle: LucideIcon;
+  export const BookOpen: LucideIcon;
+  export const Heart: LucideIcon;
+  export const Linkedin: LucideIcon;
+  export const Bug: LucideIcon;
+  export const Package: LucideIcon;
+  export const Server: LucideIcon;
+  export const ShieldAlert: LucideIcon;
+  export const HeartPulse: LucideIcon;
+  export const ClipboardList: LucideIcon;
 }

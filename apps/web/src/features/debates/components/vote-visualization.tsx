@@ -28,13 +28,6 @@ interface RankedBallot {
   confidenceWeight: number;
 }
 
-interface PairwiseEntry {
-  modelA: string;
-  modelB: string;
-  aWins: number;
-  bWins: number;
-}
-
 interface AggregationStep {
   description: string;
   pair?: [string, string];
@@ -53,7 +46,6 @@ interface AggregationResult {
 export interface VoteVisualizationProps {
   ballots: RankedBallot[];
   result: AggregationResult;
-  pairwise?: PairwiseEntry[];
   aggregationSteps?: AggregationStep[];
 }
 
@@ -82,10 +74,10 @@ function getRankBarOpacity(
 function MethodBadge({
   method,
   confident,
-}: {
+}: Readonly<{
   method: AggregationResult["method"];
   confident: boolean;
-}) {
+}>) {
   return (
     <span
       className={cn(
@@ -108,10 +100,10 @@ function MethodBadge({
 function RankingChart({
   result,
   ballots,
-}: {
+}: Readonly<{
   result: AggregationResult;
   ballots: RankedBallot[];
-}) {
+}>) {
   const chartData = useMemo(() => {
     const maxScore = Math.max(...Object.values(result.scores), 1);
     return result.fullRanking.map((model, index) => ({
@@ -143,7 +135,7 @@ function RankingChart({
         </div>
         <CardDescription>
           Borda scores from {ballots.length} ballot
-          {ballots.length !== 1 ? "s" : ""} (avg confidence:{" "}
+          {ballots.length === 1 ? "" : "s"} (avg confidence:{" "}
           {(avgConfidence * 100).toFixed(0)}%)
         </CardDescription>
       </CardHeader>
@@ -187,7 +179,7 @@ function RankingChart({
   );
 }
 
-function WinnerBanner({ result }: { result: AggregationResult }) {
+function WinnerBanner({ result }: Readonly<{ result: AggregationResult }>) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -212,7 +204,7 @@ function WinnerBanner({ result }: { result: AggregationResult }) {
   );
 }
 
-function BallotList({ ballots }: { ballots: RankedBallot[] }) {
+function BallotList({ ballots }: Readonly<{ ballots: RankedBallot[] }>) {
   if (ballots.length === 0) return null;
 
   return (
@@ -286,10 +278,10 @@ function BallotList({ ballots }: { ballots: RankedBallot[] }) {
 function PairwiseMatrix({
   ballots,
   result,
-}: {
+}: Readonly<{
   ballots: RankedBallot[];
   result: AggregationResult;
-}) {
+}>) {
   const { candidates, matrix } = useMemo(() => {
     const cands = result.fullRanking;
     const m: Record<string, Record<string, number>> = {};
@@ -304,8 +296,9 @@ function PairwiseMatrix({
         for (let j = i + 1; j < ballot.rankedChoices.length; j++) {
           const a = ballot.rankedChoices[i];
           const b = ballot.rankedChoices[j];
-          if (m[a] && m[a][b] !== undefined) {
-            m[a][b] += ballot.confidenceWeight;
+          const row = m[a];
+          if (row?.[b] !== undefined) {
+            row[b] += ballot.confidenceWeight;
           }
         }
       }
@@ -399,9 +392,9 @@ function PairwiseMatrix({
 
 function AggregationSteps({
   steps,
-}: {
+}: Readonly<{
   steps: AggregationStep[];
-}) {
+}>) {
   if (steps.length === 0) return null;
 
   return (
@@ -416,7 +409,7 @@ function AggregationSteps({
         <ol className="space-y-2">
           {steps.map((step, index) => (
             <motion.li
-              key={index}
+              key={`${index}-${step.description}`}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
@@ -464,7 +457,7 @@ export function VoteVisualization({
   ballots,
   result,
   aggregationSteps,
-}: VoteVisualizationProps) {
+}: Readonly<VoteVisualizationProps>) {
   if (result.fullRanking.length === 0) {
     return (
       <Card>

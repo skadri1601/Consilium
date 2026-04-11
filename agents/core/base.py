@@ -12,7 +12,7 @@ AGENTS_DIR = Path(__file__).resolve().parent.parent
 
 MODEL_MAP = {
     "haiku": "claude-haiku-4-5-20251001",
-    "sonnet": "claude-sonnet-4-5-20250514",
+    "sonnet": "claude-sonnet-4-5-20250929",
     "opus": "claude-opus-4-6-20250904",
 }
 
@@ -207,62 +207,194 @@ def _run_cli(module, *args):
         return f"Error: {e}"
 
 
+_CLI_EMAIL_IMAP = "agents.tools.email_imap"
+_CLI_LINEAR_API = "agents.tools.linear_api"
+_CLI_SENTRY_API = "agents.tools.sentry_api"
+_CLI_VERCEL_API = "agents.tools.vercel_api"
+_CLI_SONARQUBE_API = "agents.tools.sonarqube_api"
+_CLI_GITHUB_API = "agents.tools.github_api"
+_CLI_DB_LOOKUP = "agents.tools.db_lookup"
+
+
+def _tool_search_email(d):
+    return _run_cli(_CLI_EMAIL_IMAP, "search", "--query", d["query"], "--limit", str(d.get("limit", 10)))
+
+
+def _tool_read_email(d):
+    return _run_cli(_CLI_EMAIL_IMAP, "read", "--uid", d["uid"])
+
+
+def _tool_email_thread(d):
+    return _run_cli(_CLI_EMAIL_IMAP, "thread", "--uid", d["uid"])
+
+
+def _tool_unread_emails(d):
+    return _run_cli(_CLI_EMAIL_IMAP, "unread", "--limit", str(d.get("limit", 10)))
+
+
+def _tool_linear_create_ticket(d):
+    args = ["create", "--title", d["title"], "--description", d.get("description", "")]
+    return _run_cli(_CLI_LINEAR_API, *args)
+
+
+def _tool_linear_search(d):
+    return _run_cli(_CLI_LINEAR_API, "search", d["query"], "--limit", str(d.get("limit", 10)))
+
+
+def _tool_linear_get_issue(d):
+    return _run_cli(_CLI_LINEAR_API, "get", "--identifier", d["identifier"])
+
+
+def _tool_linear_transition(d):
+    return _run_cli(_CLI_LINEAR_API, "transition", "--identifier", d["identifier"], "--state", d["state"])
+
+
+def _tool_sentry_issues(d):
+    return _run_cli(
+        _CLI_SENTRY_API,
+        "list-issues",
+        "--query",
+        d.get("query", "is:unresolved"),
+        "--limit",
+        str(d.get("limit", 10)),
+    )
+
+
+def _tool_sentry_stats(_):
+    return _run_cli(_CLI_SENTRY_API, "stats")
+
+
+def _tool_vercel_status(_):
+    return _run_cli(_CLI_VERCEL_API, "latest")
+
+
+def _tool_sonarqube_quality(_):
+    return _run_cli(_CLI_SONARQUBE_API, "quality-gate")
+
+
+def _tool_github_prs(d):
+    return _run_cli(
+        _CLI_GITHUB_API,
+        "list-prs",
+        "--state",
+        d.get("state", "open"),
+        "--limit",
+        str(d.get("limit", 10)),
+    )
+
+
+def _tool_db_lookup(d):
+    cmd_parts = d["command"].split()
+    return _run_cli(_CLI_DB_LOOKUP, *cmd_parts)
+
+
+_TOOL_HANDLERS = {
+    "search_email": _tool_search_email,
+    "read_email": _tool_read_email,
+    "email_thread": _tool_email_thread,
+    "unread_emails": _tool_unread_emails,
+    "linear_create_ticket": _tool_linear_create_ticket,
+    "linear_search": _tool_linear_search,
+    "linear_get_issue": _tool_linear_get_issue,
+    "linear_transition": _tool_linear_transition,
+    "sentry_issues": _tool_sentry_issues,
+    "sentry_stats": _tool_sentry_stats,
+    "vercel_status": _tool_vercel_status,
+    "sonarqube_quality": _tool_sonarqube_quality,
+    "github_prs": _tool_github_prs,
+    "db_lookup": _tool_db_lookup,
+}
+
+
+def _execute_tool_bash(input_data):
+    command = input_data.get("command", "")
+    command = command.replace("python -m ", f"{sys.executable} -m ")
+    command = command.replace("python3 -m ", f"{sys.executable} -m ")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(PROJECT_DIR)
+    env["PYTHONIOENCODING"] = "utf-8"
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(PROJECT_DIR),
+            encoding="utf-8",
+            errors="replace",
+            env=env,
+        )
+        output = result.stdout
+        if result.stderr:
+            output += "\n" + result.stderr
+        return output[:5000] if output else "(no output)"
+    except subprocess.TimeoutExpired:
+        return "Error: timed out"
+    except Exception as e:
+        return f"Error: {e}"
+
+
 def _execute_tool(name, input_data):
-    logger = logging.getLogger("tool")
-    if name == "search_email":
-        return _run_cli("agents.tools.email_imap", "search", "--query", input_data["query"], "--limit", str(input_data.get("limit", 10)))
-    elif name == "read_email":
-        return _run_cli("agents.tools.email_imap", "read", "--uid", input_data["uid"])
-    elif name == "email_thread":
-        return _run_cli("agents.tools.email_imap", "thread", "--uid", input_data["uid"])
-    elif name == "unread_emails":
-        return _run_cli("agents.tools.email_imap", "unread", "--limit", str(input_data.get("limit", 10)))
-    elif name == "linear_create_ticket":
-        args = ["create", "--title", input_data["title"], "--description", input_data.get("description", "")]
-        return _run_cli("agents.tools.linear_api", *args)
-    elif name == "linear_search":
-        return _run_cli("agents.tools.linear_api", "search", input_data["query"], "--limit", str(input_data.get("limit", 10)))
-    elif name == "linear_get_issue":
-        return _run_cli("agents.tools.linear_api", "get", "--identifier", input_data["identifier"])
-    elif name == "linear_transition":
-        return _run_cli("agents.tools.linear_api", "transition", "--identifier", input_data["identifier"], "--state", input_data["state"])
-    elif name == "sentry_issues":
-        return _run_cli("agents.tools.sentry_api", "list-issues", "--query", input_data.get("query", "is:unresolved"), "--limit", str(input_data.get("limit", 10)))
-    elif name == "sentry_stats":
-        return _run_cli("agents.tools.sentry_api", "stats")
-    elif name == "vercel_status":
-        return _run_cli("agents.tools.vercel_api", "latest")
-    elif name == "sonarqube_quality":
-        return _run_cli("agents.tools.sonarqube_api", "quality-gate")
-    elif name == "github_prs":
-        return _run_cli("agents.tools.github_api", "list-prs", "--state", input_data.get("state", "open"), "--limit", str(input_data.get("limit", 10)))
-    elif name == "db_lookup":
-        cmd_parts = input_data["command"].split()
-        return _run_cli("agents.tools.db_lookup", *cmd_parts)
-    elif name == "bash":
-        command = input_data.get("command", "")
-        command = command.replace("python -m ", f"{sys.executable} -m ")
-        command = command.replace("python3 -m ", f"{sys.executable} -m ")
-        env = os.environ.copy()
-        env["PYTHONPATH"] = str(PROJECT_DIR)
-        env["PYTHONIOENCODING"] = "utf-8"
-        try:
-            result = subprocess.run(
-                command, shell=True, capture_output=True, text=True,
-                timeout=60, cwd=str(PROJECT_DIR), encoding="utf-8", errors="replace", env=env,
-            )
-            output = result.stdout
-            if result.stderr:
-                output += "\n" + result.stderr
-            return output[:5000] if output else "(no output)"
-        except subprocess.TimeoutExpired:
-            return "Error: timed out"
-        except Exception as e:
-            return f"Error: {e}"
+    if name == "bash":
+        return _execute_tool_bash(input_data)
+    handler = _TOOL_HANDLERS.get(name)
+    if handler:
+        return handler(input_data)
     return f"Unknown tool: {name}"
 
 
-def run_claude(prompt, system_prompt=None, model="haiku", subagents=None, allowed_tools=None, max_duration=None, max_retries=1):
+def _anthropic_response_text_and_tools(response, logger):
+    has_tool_use = False
+    text_parts = []
+    tool_results = []
+    for block in response.content:
+        if block.type == "text":
+            text_parts.append(block.text)
+        elif block.type == "tool_use":
+            has_tool_use = True
+            logger.info("Tool call: %s(%s)", block.name, json.dumps(block.input)[:100])
+            result = _execute_tool(block.name, block.input)
+            logger.info("Tool result: %s", result[:200])
+            tool_results.append({
+                "type": "tool_result",
+                "tool_use_id": block.id,
+                "content": result,
+            })
+    return text_parts, has_tool_use, tool_results
+
+
+def _stream_apply_text_delta(delta_text, accumulated_text, on_chunk, last_chunk_time, throttle_interval):
+    accumulated_text += delta_text
+    now = time.time()
+    if now - last_chunk_time >= throttle_interval:
+        last_chunk_time = now
+        try:
+            on_chunk(accumulated_text)
+        except Exception:
+            pass
+    return accumulated_text, last_chunk_time
+
+
+def _consume_anthropic_stream_events(stream, on_chunk, last_chunk_time, throttle_interval):
+    accumulated_text = ""
+    for event in stream:
+        if hasattr(event, "type") and event.type == "content_block_delta" and hasattr(event.delta, "text"):
+            accumulated_text, last_chunk_time = _stream_apply_text_delta(
+                event.delta.text, accumulated_text, on_chunk, last_chunk_time, throttle_interval
+            )
+    response = stream.get_final_message()
+    return accumulated_text, last_chunk_time, response
+
+
+def _emit_final_stream_chunk(final_text, on_chunk):
+    try:
+        on_chunk(final_text)
+    except Exception:
+        pass
+
+
+def run_claude(prompt, system_prompt=None, model="haiku", _subagents=None, _allowed_tools=None, max_duration=None, max_retries=1):
     model = sanitize_model(model)
     logger = logging.getLogger("run_claude")
 
@@ -302,7 +434,7 @@ def _run_anthropic(prompt, system_prompt=None, model="haiku", max_duration=300):
     max_turns = 15
     deadline = time.time() + max_duration
 
-    for turn in range(max_turns):
+    for _ in range(max_turns):
         if time.time() > deadline:
             return "Error: request timed out"
 
@@ -314,23 +446,7 @@ def _run_anthropic(prompt, system_prompt=None, model="haiku", max_duration=300):
             messages=messages,
         )
 
-        has_tool_use = False
-        text_parts = []
-        tool_results = []
-
-        for block in response.content:
-            if block.type == "text":
-                text_parts.append(block.text)
-            elif block.type == "tool_use":
-                has_tool_use = True
-                logger.info("Tool call: %s(%s)", block.name, json.dumps(block.input)[:100])
-                result = _execute_tool(block.name, block.input)
-                logger.info("Tool result: %s", result[:200])
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result,
-                })
+        text_parts, has_tool_use, tool_results = _anthropic_response_text_and_tools(response, logger)
 
         if not has_tool_use:
             return "\n".join(text_parts)
@@ -383,14 +499,9 @@ def _run_anthropic_streaming(prompt, on_chunk, system_prompt=None, model="haiku"
     last_chunk_time = 0
     throttle_interval = 3
 
-    for turn in range(max_turns):
+    for _ in range(max_turns):
         if time.time() > deadline:
             return "Error: request timed out"
-
-        accumulated_text = ""
-        has_tool_use = False
-        tool_results = []
-        content_blocks = []
 
         with client.messages.stream(
             model=model_id,
@@ -399,43 +510,15 @@ def _run_anthropic_streaming(prompt, on_chunk, system_prompt=None, model="haiku"
             tools=TOOLS,
             messages=messages,
         ) as stream:
-            for event in stream:
-                if hasattr(event, 'type'):
-                    if event.type == 'content_block_delta':
-                        if hasattr(event.delta, 'text'):
-                            accumulated_text += event.delta.text
-                            now = time.time()
-                            if now - last_chunk_time >= throttle_interval:
-                                last_chunk_time = now
-                                try:
-                                    on_chunk(accumulated_text)
-                                except Exception:
-                                    pass
+            _, last_chunk_time, response = _consume_anthropic_stream_events(
+                stream, on_chunk, last_chunk_time, throttle_interval
+            )
 
-            response = stream.get_final_message()
-
-        text_parts = []
-        for block in response.content:
-            content_blocks.append(block)
-            if block.type == "text":
-                text_parts.append(block.text)
-            elif block.type == "tool_use":
-                has_tool_use = True
-                logger.info("Tool call: %s(%s)", block.name, json.dumps(block.input)[:100])
-                result = _execute_tool(block.name, block.input)
-                logger.info("Tool result: %s", result[:200])
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result,
-                })
+        text_parts, has_tool_use, tool_results = _anthropic_response_text_and_tools(response, logger)
 
         if not has_tool_use:
             final_text = "\n".join(text_parts)
-            try:
-                on_chunk(final_text)
-            except Exception:
-                pass
+            _emit_final_stream_chunk(final_text, on_chunk)
             return final_text
 
         messages.append({"role": "assistant", "content": response.content})

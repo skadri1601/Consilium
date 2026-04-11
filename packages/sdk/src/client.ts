@@ -113,11 +113,11 @@ export class ConsiliumClient {
   }
 
   async redTeam(options: RedTeamOptions): Promise<RedTeamReport> {
-    return this.request<RedTeamReport>('POST', '/deliberation/red-team', options);
+    return this.request<RedTeamReport>('POST', '/deliberation/redteam', options);
   }
 
   async blindEval(options: BlindEvalOptions): Promise<EvaluationResult> {
-    return this.request<EvaluationResult>('POST', '/deliberation/blind-eval', options);
+    return this.request<EvaluationResult>('POST', '/deliberation/blind', options);
   }
 
   async estimateCost(options: { topic: string; models: string[]; mode?: string }): Promise<CostEstimate> {
