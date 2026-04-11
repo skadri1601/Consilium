@@ -1,8 +1,12 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 import chalk from "chalk";
-import { ChatSession, ChatSessionData } from "../commands/chat-session";
+import {
+  ChatSession,
+  ChatSessionData,
+  DebateRecord,
+} from "../commands/chat-session";
 import { ConsiliumClient } from "../api/client";
 import { ContextManager } from "./context-manager";
 import { generateId } from "./id";
@@ -28,12 +32,60 @@ export interface SearchResult {
   matchType: "topic" | "synthesis";
 }
 
-export class SessionManager {
-  private sessionDir: string;
+function buildMatchSnippet(
+  text: string,
+  lowerQuery: string,
+  query: string,
+  contextBefore: number,
+  contextAfter: number,
+): string {
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(lowerQuery);
+  const start = Math.max(0, idx - contextBefore);
+  const end = Math.min(text.length, idx + query.length + contextAfter);
+  const prefix = start > 0 ? "..." : "";
+  const suffix = end < text.length ? "..." : "";
+  return prefix + text.substring(start, end) + suffix;
+}
 
-  constructor(sessionDir: string = SESSION_DIR) {
-    this.sessionDir = sessionDir;
+function searchHitsForDebate(
+  debate: DebateRecord,
+  sessionId: string,
+  sessionName: string,
+  lowerQuery: string,
+  query: string,
+): SearchResult[] {
+  const hits: SearchResult[] = [];
+  if (debate.topic.toLowerCase().includes(lowerQuery)) {
+    hits.push({
+      sessionId,
+      sessionName,
+      debateTopic: debate.topic,
+      matchSnippet: buildMatchSnippet(
+        debate.topic,
+        lowerQuery,
+        query,
+        20,
+        20,
+      ),
+      matchType: "topic",
+    });
   }
+  const golden = debate.goldenPrompt;
+  if (golden?.toLowerCase().includes(lowerQuery)) {
+    hits.push({
+      sessionId,
+      sessionName,
+      debateTopic: debate.topic,
+      matchSnippet: buildMatchSnippet(golden, lowerQuery, query, 30, 30),
+      matchType: "synthesis",
+    });
+  }
+  return hits;
+}
+
+export class SessionManager {
+  constructor(private readonly sessionDir: string = SESSION_DIR) {}
 
   private ensureSessionDir(): void {
     if (!fs.existsSync(this.sessionDir)) {
@@ -91,7 +143,7 @@ export class SessionManager {
             : firstTopic;
         const name = data.name || topic;
         const lastDebate =
-          debateCount > 0 ? data.debates[debateCount - 1] : null;
+          debateCount > 0 ? data.debates?.[debateCount - 1] : null;
         const lastSynthesis = lastDebate?.goldenPrompt || "";
         const preview =
           lastSynthesis.length > 80
@@ -182,45 +234,15 @@ export class SessionManager {
         const sessionName = data.name || data.debates?.[0]?.topic || "Untitled";
 
         for (const debate of data.debates || []) {
-          if (debate.topic.toLowerCase().includes(lowerQuery)) {
-            const idx = debate.topic.toLowerCase().indexOf(lowerQuery);
-            const start = Math.max(0, idx - 20);
-            const end = Math.min(debate.topic.length, idx + query.length + 20);
-            const snippet =
-              (start > 0 ? "..." : "") +
-              debate.topic.substring(start, end) +
-              (end < debate.topic.length ? "..." : "");
-
-            results.push({
+          results.push(
+            ...searchHitsForDebate(
+              debate,
               sessionId,
               sessionName,
-              debateTopic: debate.topic,
-              matchSnippet: snippet,
-              matchType: "topic",
-            });
-          }
-
-          if (
-            debate.goldenPrompt &&
-            debate.goldenPrompt.toLowerCase().includes(lowerQuery)
-          ) {
-            const text = debate.goldenPrompt;
-            const idx = text.toLowerCase().indexOf(lowerQuery);
-            const start = Math.max(0, idx - 30);
-            const end = Math.min(text.length, idx + query.length + 30);
-            const snippet =
-              (start > 0 ? "..." : "") +
-              text.substring(start, end) +
-              (end < text.length ? "..." : "");
-
-            results.push({
-              sessionId,
-              sessionName,
-              debateTopic: debate.topic,
-              matchSnippet: snippet,
-              matchType: "synthesis",
-            });
-          }
+              lowerQuery,
+              query,
+            ),
+          );
         }
       } catch {
         // skip invalid

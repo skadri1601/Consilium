@@ -25,7 +25,9 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true }),
   );
 
-  app.setGlobalPrefix("api/v1");
+  app.setGlobalPrefix("api/v1", {
+    exclude: ["health", "health/ready", "health/live", "health/info"],
+  });
 
   app.enableCors({
     origin: process.env.CORS_ORIGINS?.split(",") || [

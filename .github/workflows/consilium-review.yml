@@ -4,18 +4,26 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+concurrency:
+  group: consilium-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   review:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: ./.github/actions/consilium-review
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          mode: red-team
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-          api_url: ${{ secrets.CONSILIUM_API_URL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          mode: redteam
+          models: 'claude-sonnet-4-5,gpt-4o'
+          api-url: ${{ secrets.CONSILIUM_API_URL }}
+          fail-on-critical: 'true'

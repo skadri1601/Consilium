@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from typing import Any
 
 import httpx
@@ -29,6 +29,75 @@ DEFAULT_TIMEOUT = 120.0
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_BACKOFF_BASE = 1.0
 DEFAULT_BACKOFF_MAX = 30.0
+
+DELIBERATION_PATH = "/deliberation"
+
+
+def _backoff_delay(attempt: int) -> float:
+    return min(DEFAULT_BACKOFF_BASE * (2 ** attempt), DEFAULT_BACKOFF_MAX)
+
+
+def _handle_httpx_json_response(response: httpx.Response) -> dict[str, Any]:
+    if response.status_code == 401:
+        raise AuthenticationError()
+    if response.status_code == 408:
+        raise TimeoutError()
+    if response.status_code == 429:
+        retry_after = response.headers.get("Retry-After")
+        raise RateLimitError(
+            retry_after=float(retry_after) if retry_after else None
+        )
+    if response.status_code >= 500:
+        raise ServerError(message=response.text, status_code=response.status_code)
+    if response.status_code >= 400:
+        raise ConsiliumError(message=response.text, status_code=response.status_code)
+    return response.json()
+
+
+def _raise_for_stream_http_error(response: httpx.Response) -> None:
+    if response.status_code < 400:
+        return
+    if response.status_code == 401:
+        raise AuthenticationError()
+    if response.status_code == 408:
+        raise TimeoutError()
+    if response.status_code == 429:
+        raise RateLimitError()
+    if response.status_code >= 500:
+        raise ServerError(message=response.text, status_code=response.status_code)
+    raise ConsiliumError(message=response.text, status_code=response.status_code)
+
+
+def _sync_should_retry_after_response(
+    response: httpx.Response, attempt: int, max_retries: int,
+) -> tuple[bool, Exception | None]:
+    if response.status_code == 429:
+        retry_after = response.headers.get("Retry-After")
+        wait = float(retry_after) if retry_after else _backoff_delay(attempt)
+        time.sleep(wait)
+        return True, RateLimitError(retry_after=wait)
+    if response.status_code >= 500 and attempt < max_retries - 1:
+        time.sleep(_backoff_delay(attempt))
+        return True, ServerError(
+            message=response.text, status_code=response.status_code,
+        )
+    return False, None
+
+
+async def _async_should_retry_after_response(
+    response: httpx.Response, attempt: int, max_retries: int,
+) -> tuple[bool, Exception | None]:
+    if response.status_code == 429:
+        retry_after = response.headers.get("Retry-After")
+        wait = float(retry_after) if retry_after else _backoff_delay(attempt)
+        await asyncio.sleep(wait)
+        return True, RateLimitError(retry_after=wait)
+    if response.status_code >= 500 and attempt < max_retries - 1:
+        await asyncio.sleep(_backoff_delay(attempt))
+        return True, ServerError(
+            message=response.text, status_code=response.status_code,
+        )
+    return False, None
 
 
 class ConsiliumClient:
@@ -56,20 +125,7 @@ class ConsiliumClient:
         return headers
 
     def _handle_response(self, response: httpx.Response) -> dict[str, Any]:
-        if response.status_code == 401:
-            raise AuthenticationError()
-        if response.status_code == 408:
-            raise TimeoutError()
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After")
-            raise RateLimitError(
-                retry_after=float(retry_after) if retry_after else None
-            )
-        if response.status_code >= 500:
-            raise ServerError(message=response.text, status_code=response.status_code)
-        if response.status_code >= 400:
-            raise ConsiliumError(message=response.text, status_code=response.status_code)
-        return response.json()
+        return _handle_httpx_json_response(response)
 
     def _request_with_retry(
         self, method: str, path: str, **kwargs: Any
@@ -78,36 +134,28 @@ class ConsiliumClient:
         for attempt in range(self._max_retries):
             try:
                 response = self._client.request(method, path, **kwargs)
-                if response.status_code == 429:
-                    retry_after = response.headers.get("Retry-After")
-                    wait = float(retry_after) if retry_after else self._backoff(attempt)
-                    time.sleep(wait)
-                    last_exc = RateLimitError(retry_after=wait)
-                    continue
-                if response.status_code >= 500 and attempt < self._max_retries - 1:
-                    time.sleep(self._backoff(attempt))
-                    last_exc = ServerError(message=response.text, status_code=response.status_code)
+                retrying, err = _sync_should_retry_after_response(
+                    response, attempt, self._max_retries,
+                )
+                if retrying:
+                    last_exc = err
                     continue
                 return response
             except httpx.TimeoutException:
                 last_exc = TimeoutError()
                 if attempt < self._max_retries - 1:
-                    time.sleep(self._backoff(attempt))
+                    time.sleep(_backoff_delay(attempt))
                     continue
                 raise TimeoutError() from last_exc
             except httpx.ConnectError as exc:
                 last_exc = exc
                 if attempt < self._max_retries - 1:
-                    time.sleep(self._backoff(attempt))
+                    time.sleep(_backoff_delay(attempt))
                     continue
                 raise ConsiliumError(f"Connection failed: {exc}") from exc
         if isinstance(last_exc, ConsiliumError):
             raise last_exc
         raise ConsiliumError(f"Request failed after {self._max_retries} retries")
-
-    @staticmethod
-    def _backoff(attempt: int) -> float:
-        return min(DEFAULT_BACKOFF_BASE * (2 ** attempt), DEFAULT_BACKOFF_MAX)
 
     def health_check(self) -> HealthStatus:
         response = self._request_with_retry("GET", "/health")
@@ -118,18 +166,18 @@ class ConsiliumClient:
         self,
         topic: str,
         models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
         payload: dict[str, Any] = {
             "topic": topic,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "max_rounds": max_rounds,
+            "maxRounds": max_rounds,
         }
         if models:
             payload["models"] = models
 
-        response = self._request_with_retry("POST", "/deliberation", json=payload)
+        response = self._request_with_retry("POST", DELIBERATION_PATH, json=payload)
         data = self._handle_response(response)
 
         if "id" in data:
@@ -142,7 +190,9 @@ class ConsiliumClient:
     ) -> DeliberationResult:
         elapsed = 0.0
         while elapsed < max_wait:
-            response = self._request_with_retry("GET", f"/deliberation/{deliberation_id}")
+            response = self._request_with_retry(
+                "GET", f"{DELIBERATION_PATH}/{deliberation_id}",
+            )
             data = self._handle_response(response)
             status = data.get("status")
             if status == "completed":
@@ -155,39 +205,41 @@ class ConsiliumClient:
 
     def red_team(
         self,
-        content: str,
+        topic: str,
         models: list[str] | None = None,
         categories: list[str] | None = None,
     ) -> RedTeamResult:
-        payload: dict[str, Any] = {"content": content}
+        payload: dict[str, Any] = {"topic": topic}
         if models:
             payload["models"] = models
         if categories:
             payload["categories"] = categories
 
-        response = self._request_with_retry("POST", "/deliberation/red-team", json=payload)
+        response = self._request_with_retry("POST", "/deliberation/redteam", json=payload)
         data = self._handle_response(response)
         return RedTeamResult.from_dict(data)
 
     def blind_eval(
         self,
         topic: str,
-        responses: list[str],
         models: list[str] | None = None,
+        responses: list[str] | None = None,
     ) -> EvalResult:
-        payload: dict[str, Any] = {"topic": topic, "responses": responses}
+        payload: dict[str, Any] = {"topic": topic}
         if models:
             payload["models"] = models
+        if responses:
+            payload["responses"] = responses
 
-        response = self._request_with_retry("POST", "/deliberation/blind-eval", json=payload)
+        response = self._request_with_retry("POST", "/deliberation/blind", json=payload)
         data = self._handle_response(response)
         return EvalResult.from_dict(data)
 
     def estimate_cost(
         self,
         topic: str,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
         models: list[str] | None = None,
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> CostEstimate:
         payload: dict[str, Any] = {
             "topic": topic,
@@ -196,23 +248,21 @@ class ConsiliumClient:
         if models:
             payload["models"] = models
 
-        response = self._request_with_retry("POST", "/deliberation/estimate", json=payload)
+        response = self._request_with_retry("POST", "/debates/estimate", json=payload)
         data = self._handle_response(response)
         return CostEstimate(**data)
 
     def stream_deliberation(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> _SyncSSEIterator:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "stream": True,
         }
-        if models:
-            payload["models"] = models
 
         return _SyncSSEIterator(self._api_url, self._build_headers(), payload, self._timeout)
 
@@ -239,27 +289,32 @@ class _SyncSSEIterator:
         self._payload = payload
         self._timeout = timeout
 
-    def __iter__(self) -> _SyncSSEIterator:
-        return self
+    def __iter__(self) -> Iterator[dict[str, Any]]:
+        return iter(self.events())
 
     def events(self) -> list[dict[str, Any]]:
+        create_response = httpx.post(
+            f"{self._base_url}{DELIBERATION_PATH}",
+            json=self._payload,
+            headers=self._headers,
+            timeout=self._timeout,
+        )
+        _raise_for_stream_http_error(create_response)
+
+        deliberation_id = create_response.json().get("id")
+        if not deliberation_id:
+            raise ConsiliumError(message="No deliberation ID returned")
+
         collected: list[dict[str, Any]] = []
         with httpx.stream(
-            "POST",
-            f"{self._base_url}/deliberation",
-            json=self._payload,
+            "GET",
+            f"{self._base_url}{DELIBERATION_PATH}/{deliberation_id}/stream",
             headers=self._headers,
             timeout=self._timeout,
         ) as response:
             if response.status_code >= 400:
                 response.read()
-                if response.status_code == 401:
-                    raise AuthenticationError()
-                if response.status_code == 429:
-                    raise RateLimitError()
-                if response.status_code >= 500:
-                    raise ServerError(message=response.text, status_code=response.status_code)
-                raise ConsiliumError(message=response.text, status_code=response.status_code)
+            _raise_for_stream_http_error(response)
 
             buffer = ""
             for chunk in response.iter_text():
@@ -298,20 +353,7 @@ class AsyncConsiliumClient:
         return headers
 
     def _handle_response(self, response: httpx.Response) -> dict[str, Any]:
-        if response.status_code == 401:
-            raise AuthenticationError()
-        if response.status_code == 408:
-            raise TimeoutError()
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After")
-            raise RateLimitError(
-                retry_after=float(retry_after) if retry_after else None
-            )
-        if response.status_code >= 500:
-            raise ServerError(message=response.text, status_code=response.status_code)
-        if response.status_code >= 400:
-            raise ConsiliumError(message=response.text, status_code=response.status_code)
-        return response.json()
+        return _handle_httpx_json_response(response)
 
     async def _request_with_retry(
         self, method: str, path: str, **kwargs: Any
@@ -320,27 +362,23 @@ class AsyncConsiliumClient:
         for attempt in range(self._max_retries):
             try:
                 response = await self._client.request(method, path, **kwargs)
-                if response.status_code == 429:
-                    retry_after = response.headers.get("Retry-After")
-                    wait = float(retry_after) if retry_after else ConsiliumClient._backoff(attempt)
-                    await asyncio.sleep(wait)
-                    last_exc = RateLimitError(retry_after=wait)
-                    continue
-                if response.status_code >= 500 and attempt < self._max_retries - 1:
-                    await asyncio.sleep(ConsiliumClient._backoff(attempt))
-                    last_exc = ServerError(message=response.text, status_code=response.status_code)
+                retrying, err = await _async_should_retry_after_response(
+                    response, attempt, self._max_retries,
+                )
+                if retrying:
+                    last_exc = err
                     continue
                 return response
             except httpx.TimeoutException:
                 last_exc = TimeoutError()
                 if attempt < self._max_retries - 1:
-                    await asyncio.sleep(ConsiliumClient._backoff(attempt))
+                    await asyncio.sleep(_backoff_delay(attempt))
                     continue
                 raise TimeoutError() from last_exc
             except httpx.ConnectError as exc:
                 last_exc = exc
                 if attempt < self._max_retries - 1:
-                    await asyncio.sleep(ConsiliumClient._backoff(attempt))
+                    await asyncio.sleep(_backoff_delay(attempt))
                     continue
                 raise ConsiliumError(f"Connection failed: {exc}") from exc
         if isinstance(last_exc, ConsiliumError):
@@ -356,18 +394,18 @@ class AsyncConsiliumClient:
         self,
         topic: str,
         models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
         payload: dict[str, Any] = {
             "topic": topic,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "max_rounds": max_rounds,
+            "maxRounds": max_rounds,
         }
         if models:
             payload["models"] = models
 
-        response = await self._request_with_retry("POST", "/deliberation", json=payload)
+        response = await self._request_with_retry("POST", DELIBERATION_PATH, json=payload)
         data = self._handle_response(response)
 
         if "id" in data:
@@ -380,7 +418,9 @@ class AsyncConsiliumClient:
     ) -> DeliberationResult:
         elapsed = 0.0
         while elapsed < max_wait:
-            response = await self._request_with_retry("GET", f"/deliberation/{deliberation_id}")
+            response = await self._request_with_retry(
+                "GET", f"{DELIBERATION_PATH}/{deliberation_id}",
+            )
             data = self._handle_response(response)
             status = data.get("status")
             if status == "completed":
@@ -393,39 +433,41 @@ class AsyncConsiliumClient:
 
     async def red_team(
         self,
-        content: str,
+        topic: str,
         models: list[str] | None = None,
         categories: list[str] | None = None,
     ) -> RedTeamResult:
-        payload: dict[str, Any] = {"content": content}
+        payload: dict[str, Any] = {"topic": topic}
         if models:
             payload["models"] = models
         if categories:
             payload["categories"] = categories
 
-        response = await self._request_with_retry("POST", "/deliberation/red-team", json=payload)
+        response = await self._request_with_retry("POST", "/deliberation/redteam", json=payload)
         data = self._handle_response(response)
         return RedTeamResult.from_dict(data)
 
     async def blind_eval(
         self,
         topic: str,
-        responses: list[str],
         models: list[str] | None = None,
+        responses: list[str] | None = None,
     ) -> EvalResult:
-        payload: dict[str, Any] = {"topic": topic, "responses": responses}
+        payload: dict[str, Any] = {"topic": topic}
         if models:
             payload["models"] = models
+        if responses:
+            payload["responses"] = responses
 
-        response = await self._request_with_retry("POST", "/deliberation/blind-eval", json=payload)
+        response = await self._request_with_retry("POST", "/deliberation/blind", json=payload)
         data = self._handle_response(response)
         return EvalResult.from_dict(data)
 
     async def estimate_cost(
         self,
         topic: str,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
         models: list[str] | None = None,
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> CostEstimate:
         payload: dict[str, Any] = {
             "topic": topic,
@@ -434,29 +476,32 @@ class AsyncConsiliumClient:
         if models:
             payload["models"] = models
 
-        response = await self._request_with_retry("POST", "/deliberation/estimate", json=payload)
+        response = await self._request_with_retry("POST", "/debates/estimate", json=payload)
         data = self._handle_response(response)
         return CostEstimate(**data)
 
     async def stream_deliberation(
         self,
         topic: str,
-        models: list[str] | None = None,
-        mode: str | DeliberationMode = DeliberationMode.AUTO,
+        models: list[str],
+        mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> AsyncIterator[dict[str, Any]]:
         payload: dict[str, Any] = {
             "topic": topic,
+            "models": models,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
-            "stream": True,
         }
-        if models:
-            payload["models"] = models
+
+        create_response = await self._request_with_retry("POST", DELIBERATION_PATH, json=payload)
+        create_data = self._handle_response(create_response)
+        deliberation_id = create_data.get("id")
+        if not deliberation_id:
+            raise ConsiliumError("No deliberation ID returned")
 
         async with httpx.AsyncClient(timeout=self._timeout) as stream_client:
             async with stream_client.stream(
-                "POST",
-                f"{self._api_url}/deliberation",
-                json=payload,
+                "GET",
+                f"{self._api_url}{DELIBERATION_PATH}/{deliberation_id}/stream",
                 headers=self._build_headers(),
             ) as response:
                 if response.status_code >= 400:

@@ -1,4 +1,5 @@
-from typing import AsyncGenerator, Optional, Tuple
+from collections.abc import AsyncIterator
+from typing import Optional, Tuple
 from .base_agent import BaseAgent
 
 
@@ -17,8 +18,7 @@ class OpenAIAgent(BaseAgent):
         if api_key:
             self.api_key = api_key
 
-    async def _create_openai_client(self):
-        """Create OpenAI client with proper resource management."""
+    def _create_openai_client(self):
         import openai
         import httpx
 
@@ -28,11 +28,11 @@ class OpenAIAgent(BaseAgent):
 
     async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         if not self._validate_api_key():
-            return f"[{self.name} Error: No API key provided]", 0
+            self._raise_no_api_key()
 
         http_client = None
         try:
-            client, http_client = await self._create_openai_client()
+            client, http_client = self._create_openai_client()
             response = await client.chat.completions.create(
                 model=self.model_id,
                 messages=[
@@ -48,19 +48,18 @@ class OpenAIAgent(BaseAgent):
             return content, tokens
 
         except Exception as e:
-            return self._handle_common_errors(e, "API"), 0
+            self._handle_common_errors(e, "API")
         finally:
             if http_client:
                 await http_client.aclose()
 
-    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncIterator[str]:
         if not self._validate_api_key():
-            yield f"[{self.name} Error: No API key provided]"
-            return
+            self._raise_no_api_key()
 
         http_client = None
         try:
-            client, http_client = await self._create_openai_client()
+            client, http_client = self._create_openai_client()
             stream = await client.chat.completions.create(
                 model=self.model_id,
                 messages=[
@@ -77,7 +76,7 @@ class OpenAIAgent(BaseAgent):
                     yield chunk.choices[0].delta.content
 
         except Exception as e:
-            yield self._handle_common_errors(e, "Streaming")
+            self._handle_common_errors(e, "Streaming")
         finally:
             if http_client:
                 await http_client.aclose()
@@ -89,7 +88,7 @@ class OpenAIAgent(BaseAgent):
 
         http_client = None
         try:
-            client, http_client = await self._create_openai_client()
+            client, http_client = self._create_openai_client()
             await client.models.list()
             return True
         except Exception:

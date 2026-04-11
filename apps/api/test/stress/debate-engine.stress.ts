@@ -11,8 +11,10 @@ import { PrismaService } from "../../src/shared/database/prisma.service";
 const API_PREFIX = "/api/v1";
 const AUTH_HEADER = "Authorization";
 const BEARER_TOKEN = "Bearer stress_test_token_valid";
-const EXPIRED_TOKEN =
-  "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDAwMDAwMDB9.expired";
+const expiredJwtPayload = Buffer.from(
+  JSON.stringify({ exp: 1600000000 }),
+).toString("base64url");
+const EXPIRED_TOKEN = `Bearer hdr.${expiredJwtPayload}.sig`;
 const MALFORMED_TOKEN = "Bearer not-a-real-jwt-token!!!";
 const VALID_MODELS_TWO = ["gpt-4o-mini", "claude-3-5-haiku-latest"];
 const VALID_MODELS_FIVE = [

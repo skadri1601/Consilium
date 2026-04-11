@@ -76,16 +76,18 @@ export class ChatSession {
     if (previous.length === 0) return '';
 
     const recent = previous.slice(-MAX_CONTEXT_SYNTHESES);
-    const sections: string[] = ['=== PREVIOUS DEBATE SYNTHESES ===\n'];
+    const blocks = recent.flatMap((d) => [`--- Topic: ${d.topic} ---`, d.goldenPrompt ?? '', '']);
+    return ['=== PREVIOUS DEBATE SYNTHESES ===\n', ...blocks, '=== END PREVIOUS SYNTHESES ===\n'].join('\n');
+  }
 
-    for (const d of recent) {
-      sections.push(`--- Topic: ${d.topic} ---`);
-      sections.push(d.goldenPrompt!);
-      sections.push('');
-    }
-
-    sections.push('=== END PREVIOUS SYNTHESES ===\n');
-    return sections.join('\n');
+  private buildEffectiveTopic(userInput: string, followUp: string, context: string, decisionContext: string): string {
+    if (!followUp && !context && !decisionContext) return userInput;
+    const parts: string[] = [];
+    if (decisionContext) parts.push(decisionContext);
+    if (followUp) parts.push(followUp);
+    if (context) parts.push(context);
+    parts.push(`QUESTION: ${userInput}`);
+    return parts.join('\n\n');
   }
 
   async debate(userInput: string): Promise<void> {
@@ -93,18 +95,12 @@ export class ChatSession {
     const followUp = this.buildFollowUpContext();
     const decisionContext = this.decisionLog.getContext();
 
-    let effectiveTopic = userInput;
-    if (followUp || context || decisionContext) {
-      const parts: string[] = [];
-      if (decisionContext) parts.push(decisionContext);
-      if (followUp) parts.push(followUp);
-      if (context) parts.push(context);
-      parts.push(`QUESTION: ${userInput}`);
-      effectiveTopic = parts.join('\n\n');
-    }
+    const effectiveTopic = this.buildEffectiveTopic(userInput, followUp, context, decisionContext);
 
     const files = this.contextManager.getFiles().length > 0
-      ? Array.from((this.contextManager as any).files?.entries?.() || []).map(([name, content]: [string, string]) => ({ name, content }))
+      ? Array.from(
+        (this.contextManager as unknown as { files?: Map<string, string> }).files?.entries() ?? [],
+      ).map(([name, content]) => ({ name, content }))
       : undefined;
     const images = this.contextManager.getImages().length > 0
       ? this.contextManager.getImages()
@@ -194,11 +190,9 @@ export class ChatSession {
     }
     session.createdAt = data.createdAt || new Date().toISOString();
     session.updatedAt = data.updatedAt || data.createdAt || new Date().toISOString();
-    if (session.debates.length > 0) {
-      const last = session.debates[session.debates.length - 1];
-      if (last.goldenPrompt) {
-        session.lastGoldenPrompt = last.goldenPrompt;
-      }
+    const last = session.debates.at(-1);
+    if (last?.goldenPrompt) {
+      session.lastGoldenPrompt = last.goldenPrompt;
     }
     return session;
   }

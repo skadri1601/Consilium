@@ -27,25 +27,28 @@ class DeliberationStatus(str, Enum):
 
 
 class StartDeliberationRequest(BaseModel):
+    deliberation_id: Optional[str] = Field(None, description="Pre-assigned deliberation ID")
     topic: str = Field(..., description="The topic or question to deliberate on")
     models: list[str] = Field(..., description="List of model IDs to participate")
     mode: DeliberationMode = Field(DeliberationMode.COUNCIL, description="Deliberation mode")
-    judge_model: str = Field(..., description="Model ID for the judge")
+    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
     max_rounds: Optional[int] = Field(None, description="Maximum deliberation rounds")
 
 
 class RedTeamRequest(BaseModel):
+    deliberation_id: Optional[str] = Field(None, description="Pre-assigned deliberation ID")
     topic: str = Field(..., description="The topic to red-team")
     models: list[str] = Field(..., description="List of model IDs to participate")
-    judge_model: str = Field(..., description="Model ID for the judge")
+    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
 
 
 class BlindEvalRequest(BaseModel):
+    deliberation_id: Optional[str] = Field(None, description="Pre-assigned deliberation ID")
     topic: str = Field(..., description="The topic to evaluate blindly")
     models: list[str] = Field(..., description="List of model IDs to participate")
-    judge_model: str = Field(..., description="Model ID for the judge")
+    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
 
 
@@ -105,7 +108,7 @@ def _make_sse_handler(deliberation_id: str):
 
 @router.post("/start", response_model=DeliberationStartResponse)
 async def start_deliberation(request: StartDeliberationRequest):
-    deliberation_id = str(uuid.uuid4())
+    deliberation_id = request.deliberation_id or str(uuid.uuid4())
     sse_handler = _make_sse_handler(deliberation_id)
 
     engine = DeliberationEngine(
@@ -125,7 +128,7 @@ async def start_deliberation(request: StartDeliberationRequest):
 
 @router.post("/red-team", response_model=DeliberationStartResponse)
 async def start_red_team(request: RedTeamRequest):
-    deliberation_id = str(uuid.uuid4())
+    deliberation_id = request.deliberation_id or str(uuid.uuid4())
     sse_handler = _make_sse_handler(deliberation_id)
 
     engine = DeliberationEngine(
@@ -144,7 +147,7 @@ async def start_red_team(request: RedTeamRequest):
 
 @router.post("/blind-eval", response_model=DeliberationStartResponse)
 async def start_blind_eval(request: BlindEvalRequest):
-    deliberation_id = str(uuid.uuid4())
+    deliberation_id = request.deliberation_id or str(uuid.uuid4())
     sse_handler = _make_sse_handler(deliberation_id)
 
     engine = DeliberationEngine(

@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export type FileClassification = "source" | "manifest" | "config" | "doc" | "secret" | "skip" | "dependency";
 
@@ -80,14 +80,13 @@ Output must contain ZERO secret values.`;
 
 function globMatch(pattern: string, filename: string): boolean {
   let regex = "^";
-  for (let i = 0; i < pattern.length; i++) {
-    const c = pattern[i];
+  for (const c of pattern) {
     if (c === "*") {
       regex += ".*";
     } else if (c === "?") {
       regex += ".";
     } else if (c === ".") {
-      regex += "\\.";
+      regex += String.raw`\.`;
     } else {
       regex += c;
     }
@@ -112,7 +111,7 @@ export function classifyFile(filePath: string): FileClassification {
 
   if (isSecretFile(filePath)) return "secret";
 
-  const segments = filePath.replace(/\\/g, "/").split("/");
+  const segments = filePath.replaceAll("\\", "/").split("/");
   for (const seg of segments) {
     if (SKIP_DIRS.includes(seg)) return "dependency";
   }
@@ -180,7 +179,7 @@ function loadGitignorePatterns(projectPath: string): Set<string> {
     for (const line of gitignore.split("\n")) {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith("#")) {
-        patterns.add(trimmed.replace(/\/$/, ""));
+        patterns.add(trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed);
       }
     }
   } catch {}
@@ -204,63 +203,95 @@ export function scanDirectory(
     totalSize: 0,
   };
 
-  function walk(currentDir: string, depth: number) {
-    if (depth > 10) return;
-    if (result.readableFiles.length >= maxFiles) return;
+  walkScanTree(dir, 0, {
+    rootDir: dir,
+    maxFiles,
+    maxFileSize,
+    maxTotalSize,
+    gitignorePatterns,
+    result,
+  });
+  return result;
+}
 
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(currentDir, { withFileTypes: true });
-    } catch {
+interface ScanWalkState {
+  rootDir: string;
+  maxFiles: number;
+  maxFileSize: number;
+  maxTotalSize: number;
+  gitignorePatterns: Set<string>;
+  result: ScanResult;
+}
+
+function tryReadScanDir(currentDir: string): fs.Dirent[] | undefined {
+  try {
+    return fs.readdirSync(currentDir, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+}
+
+function handleScanFileEntry(
+  fullPath: string,
+  relativePath: string,
+  state: ScanWalkState,
+): void {
+  const classification = classifyFile(relativePath);
+  if (classification === "secret") {
+    state.result.secretFiles.push(relativePath);
+    return;
+  }
+  if (classification === "skip" || classification === "dependency") {
+    state.result.skippedFiles.push(relativePath);
+    return;
+  }
+  try {
+    const stat = fs.statSync(fullPath);
+    if (stat.size > state.maxFileSize) {
+      state.result.skippedFiles.push(relativePath);
       return;
     }
-
-    for (const entry of entries) {
-      if (result.readableFiles.length >= maxFiles) return;
-
-      const fullPath = path.join(currentDir, entry.name);
-      const relativePath = path.relative(dir, fullPath).replace(/\\/g, "/");
-
-      if (entry.isDirectory()) {
-        if (isDependencyDir(fullPath)) continue;
-        if (entry.name.startsWith(".") && entry.name !== ".github") continue;
-        if (gitignorePatterns.has(entry.name)) continue;
-        walk(fullPath, depth + 1);
-        continue;
-      }
-
-      if (!entry.isFile()) continue;
-
-      const classification = classifyFile(relativePath);
-
-      if (classification === "secret") {
-        result.secretFiles.push(relativePath);
-        continue;
-      }
-
-      if (classification === "skip" || classification === "dependency") {
-        result.skippedFiles.push(relativePath);
-        continue;
-      }
-
-      try {
-        const stat = fs.statSync(fullPath);
-        if (stat.size > maxFileSize) {
-          result.skippedFiles.push(relativePath);
-          continue;
-        }
-        if (result.totalSize + stat.size > maxTotalSize) {
-          result.skippedFiles.push(relativePath);
-          continue;
-        }
-        result.totalSize += stat.size;
-        result.readableFiles.push({ path: relativePath, classification });
-      } catch {
-        result.skippedFiles.push(relativePath);
-      }
+    if (state.result.totalSize + stat.size > state.maxTotalSize) {
+      state.result.skippedFiles.push(relativePath);
+      return;
     }
+    state.result.totalSize += stat.size;
+    state.result.readableFiles.push({ path: relativePath, classification });
+  } catch {
+    state.result.skippedFiles.push(relativePath);
+  }
+}
+
+function processScanDirectoryEntry(
+  entry: fs.Dirent,
+  currentDir: string,
+  depth: number,
+  state: ScanWalkState,
+): void {
+  const fullPath = path.join(currentDir, entry.name);
+  const relativePath = path.relative(state.rootDir, fullPath).replaceAll("\\", "/");
+
+  if (entry.isDirectory()) {
+    if (isDependencyDir(fullPath)) return;
+    if (entry.name.startsWith(".") && entry.name !== ".github") return;
+    if (state.gitignorePatterns.has(entry.name)) return;
+    walkScanTree(fullPath, depth + 1, state);
+    return;
   }
 
-  walk(dir, 0);
-  return result;
+  if (!entry.isFile()) return;
+  handleScanFileEntry(fullPath, relativePath, state);
+}
+
+function walkScanTree(currentDir: string, depth: number, state: ScanWalkState): void {
+  if (depth > 10) return;
+  if (state.result.readableFiles.length >= state.maxFiles) return;
+
+  const entries = tryReadScanDir(currentDir);
+  if (!entries) return;
+
+  for (const entry of entries) {
+    if (state.result.readableFiles.length >= state.maxFiles) return;
+    processScanDirectoryEntry(entry, currentDir, depth, state);
+  }
 }

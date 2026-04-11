@@ -6,14 +6,14 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
-      - "Dockerfile"
+      - "apps/*/Dockerfile"
       - "docker-compose.yml"
   push:
     branches: [main]
     paths:
       - "apps/**"
       - "packages/**"
-      - "Dockerfile"
+      - "apps/*/Dockerfile"
       - "docker-compose.yml"
 
 concurrency:

@@ -40,7 +40,7 @@ export class DeliberationController {
     return this.deliberationService.createDeliberation(user.userId, dto);
   }
 
-  @Post("red-team")
+  @Post("redteam")
   @UseGuards(ClerkAuthGuard, RateLimitGuard)
   @RateLimit(10, 60)
   @ApiOperation({ summary: "Start a red team assessment" })
@@ -52,7 +52,7 @@ export class DeliberationController {
     return this.deliberationService.createRedTeam(user.userId, dto);
   }
 
-  @Post("blind-eval")
+  @Post("blind")
   @UseGuards(ClerkAuthGuard, RateLimitGuard)
   @RateLimit(10, 60)
   @ApiOperation({ summary: "Start a blind evaluation" })
@@ -62,6 +62,18 @@ export class DeliberationController {
     @Body() dto: CreateDeliberationDto,
   ) {
     return this.deliberationService.createBlindEval(user.userId, dto);
+  }
+
+  @Post(":id/retry")
+  @UseGuards(ClerkAuthGuard, RateLimitGuard)
+  @RateLimit(5, 60)
+  @ApiOperation({ summary: "Retry a failed deliberation" })
+  @ApiResponse({ status: 200, description: "Deliberation retried" })
+  async retryDeliberation(
+    @CurrentUser() user: CurrentUserData,
+    @Param("id") id: string,
+  ) {
+    return this.deliberationService.retryDeliberation(id, user.userId);
   }
 
   @Get(":id")

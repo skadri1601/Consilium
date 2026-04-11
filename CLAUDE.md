@@ -1,7 +1,7 @@
 # Consilium - AI Council Platform
 
 ## What This Is
-Consilium is a multi-AI agent debate platform where models argue, critique, and synthesize consensus. It is NOT a Claude Code wrapper — it is an independent platform.
+Consilium is a multi-AI agent debate platform where models argue, critique, and synthesize consensus. It implements 8 deliberation modes backed by peer-reviewed research.
 
 ## Architecture
 

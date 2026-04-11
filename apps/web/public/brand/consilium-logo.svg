@@ -1,0 +1,90 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="stroke-main" x1="100" y1="80" x2="400" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#e0e0e0" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#c0c0c0" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="stroke-inner" x1="150" y1="120" x2="380" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#d4d4d4" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.7"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="soft-glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Outer C stroke - main flowing ribbon -->
+  <path
+    d="M 340 120
+       C 300 90, 220 75, 170 110
+       C 120 145, 90 200, 85 256
+       C 80 312, 105 375, 155 410
+       C 205 445, 280 440, 340 405"
+    stroke="url(#stroke-main)"
+    stroke-width="28"
+    stroke-linecap="round"
+    fill="none"
+    filter="url(#glow)"
+  />
+
+  <!-- Top flourish - the ribbon curl extending from top of C -->
+  <path
+    d="M 340 120
+       C 360 108, 385 115, 390 140
+       C 395 165, 370 178, 345 170
+       C 320 162, 310 140, 325 125"
+    stroke="url(#stroke-main)"
+    stroke-width="22"
+    stroke-linecap="round"
+    fill="none"
+    filter="url(#glow)"
+  />
+
+  <!-- Bottom flourish - the ribbon curl extending from bottom of C -->
+  <path
+    d="M 340 405
+       C 360 418, 380 412, 385 390
+       C 390 368, 368 355, 348 362
+       C 328 369, 322 390, 335 400"
+    stroke="url(#stroke-main)"
+    stroke-width="22"
+    stroke-linecap="round"
+    fill="none"
+    filter="url(#glow)"
+  />
+
+  <!-- Inner C trace - thinner parallel stroke for depth -->
+  <path
+    d="M 320 155
+       C 285 130, 225 118, 195 145
+       C 155 178, 135 220, 132 256
+       C 129 292, 145 345, 185 375
+       C 215 398, 270 400, 320 375"
+    stroke="url(#stroke-inner)"
+    stroke-width="12"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.5"
+  />
+
+  <!-- Subtle center cross-stroke for the ribbon weave effect -->
+  <path
+    d="M 280 195
+       C 240 220, 200 250, 210 280
+       C 220 310, 260 300, 280 330"
+    stroke="url(#stroke-inner)"
+    stroke-width="14"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.35"
+    filter="url(#soft-glow)"
+  />
+</svg>

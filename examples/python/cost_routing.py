@@ -26,33 +26,32 @@ def run_cost_aware_deliberation():
     try:
         estimate = client.estimate_cost(
             topic=routing_topic,
-            mode=DeliberationMode.AUTO,
             models=cost_efficient_models,
+            mode=DeliberationMode.COUNCIL,
         )
     except ConsiliumError as exc:
         print(f"Cost estimation failed: {exc}")
         sys.exit(1)
 
-    print("=== Cost Estimate (Auto Mode) ===\n")
-    print(f"Estimated Total: ${estimate.total:.4f}")
-    print(f"Per Round: ${estimate.breakdown.per_round:.4f}")
-    print(f"Judge Cost: ${estimate.breakdown.judge:.4f}")
-    if estimate.breakdown.sub_agents:
-        print(f"Sub-Agents: ${estimate.breakdown.sub_agents:.4f}")
-    print(f"Estimated Time: {estimate.estimated_time}\n")
+    print(f"=== Cost Estimate ({estimate.mode} Mode) ===\n")
+    print(f"Estimated Total: ${estimate.estimated_cost:.4f}")
+    print(f"Rounds: {estimate.rounds}")
+    for entry in estimate.breakdown:
+        print(f"  {entry.model} ({entry.role}): ${entry.estimated_cost:.4f}")
+    print()
 
     try:
         result = client.deliberate(
             topic=routing_topic,
             models=cost_efficient_models,
-            mode=DeliberationMode.AUTO,
+            mode=DeliberationMode.COUNCIL,
             max_rounds=3,
         )
     except ConsiliumError as exc:
         print(f"Deliberation failed: {exc}")
         sys.exit(1)
 
-    print("=== Auto-Routed Deliberation Result ===\n")
+    print("=== Deliberation Result ===\n")
     print(f"Consensus:\n{result.golden_prompt}\n")
 
     print("Model Confidence:")
@@ -61,8 +60,8 @@ def run_cost_aware_deliberation():
 
     print(f"\nActual Cost: ${result.cost:.4f}")
 
-    if estimate.total > 0:
-        variance = abs(result.cost - estimate.total) / estimate.total * 100
+    if estimate.estimated_cost > 0:
+        variance = abs(result.cost - estimate.estimated_cost) / estimate.estimated_cost * 100
         print(f"Estimate Variance: {variance:.1f}%")
 
 

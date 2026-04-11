@@ -6,16 +6,17 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-consilium}
       POSTGRES_USER: ${POSTGRES_USER:-consilium}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-consilium_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U consilium"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-consilium} -d ${POSTGRES_DB:-consilium}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
@@ -23,12 +24,22 @@ services:
           cpus: "0.5"
     networks:
       - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
     container_name: consilium-redis
     restart: unless-stopped
-    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --save 60 1000
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -38,6 +49,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -45,6 +57,11 @@ services:
           cpus: "0.25"
     networks:
       - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   agents:
     build:
@@ -64,8 +81,17 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY:-}
       - XAI_API_KEY=${XAI_API_KEY:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
     ports:
       - "${AGENTS_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
@@ -73,6 +99,11 @@ services:
           cpus: "1.0"
     networks:
       - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   api:
     build:
@@ -86,9 +117,10 @@ services:
       redis:
         condition: service_healthy
       agents:
-        condition: service_started
+        condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-consilium}:${POSTGRES_PASSWORD:-consilium_dev}@postgres:5432/${POSTGRES_DB:-consilium}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL_required_for_api}
+      - DIRECT_URL=${DIRECT_URL:-${DATABASE_URL}}
       - REDIS_URL=redis://redis:6379
       - AI_WORKERS_URL=http://agents:8000
       - NODE_ENV=production
@@ -99,6 +131,7 @@ services:
       - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
@@ -109,6 +142,12 @@ services:
       - RESEND_API_KEY=${RESEND_API_KEY:-}
     ports:
       - "${API_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
@@ -116,6 +155,11 @@ services:
           cpus: "0.5"
     networks:
       - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build:
@@ -128,7 +172,8 @@ services:
     container_name: consilium-web
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
@@ -137,6 +182,12 @@ services:
       - NODE_ENV=production
     ports:
       - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
@@ -144,11 +195,19 @@ services:
           cpus: "0.5"
     networks:
       - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
   consilium:
     name: consilium-network
+    driver: bridge

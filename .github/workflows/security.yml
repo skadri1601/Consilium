@@ -8,15 +8,12 @@ on:
   schedule:
     - cron: '0 9 * * 1'
 
-permissions:
-  contents: read
-  security-events: write
-  actions: read
-
 jobs:
   dependency-audit:
     name: Dependency Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -41,13 +38,17 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript-typescript
+          languages: javascript-typescript, python
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
@@ -58,6 +59,8 @@ jobs:
   python-security:
     name: Python Security
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -93,6 +96,8 @@ jobs:
   secrets-scan:
     name: Secrets Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

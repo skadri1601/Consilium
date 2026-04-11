@@ -20,13 +20,25 @@ const SPINNER = '⠸';
 const CHECK = '✓';
 const PENDING = ' ';
 
+function iconForStepStatus(status: StepStatus): string {
+  if (status === 'complete') return CHECK;
+  if (status === 'running') return SPINNER;
+  return PENDING;
+}
+
+function suffixForStepRow(s: Step): string {
+  if (s.durationMs != null) return `${s.durationMs}ms`;
+  if (s.status === 'running') return '...';
+  return '';
+}
+
 export function renderSteps(title: string, steps: Step[], width?: number): string {
   const w = width ?? terminal.width;
   const lines: string[] = [border(title, w), borderLine(w)];
   for (const s of steps) {
-    const icon = s.status === 'complete' ? CHECK : s.status === 'running' ? SPINNER : PENDING;
+    const icon = iconForStepStatus(s.status);
     const bracket = `[${icon}]`;
-    const suffix = s.durationMs != null ? `${s.durationMs}ms` : s.status === 'running' ? '...' : '';
+    const suffix = suffixForStepRow(s);
     const text = `${bracket} ${s.label.padEnd(40)} ${suffix}`.trim();
     lines.push(contentLine(text, w));
   }
@@ -49,7 +61,7 @@ export function createStepTracker(stepIds: string[], labels: Record<string, stri
       const s = steps.find((x) => x.id === id);
       if (s) {
         s.status = 'complete';
-        s.durationMs = startTimes[id] != null ? Date.now() - startTimes[id] : undefined;
+        s.durationMs = id in startTimes ? Date.now() - startTimes[id]! : undefined;
       }
     },
     fail(id: string, error: string) {
@@ -57,7 +69,7 @@ export function createStepTracker(stepIds: string[], labels: Record<string, stri
       if (s) {
         s.status = 'error';
         s.error = error;
-        s.durationMs = startTimes[id] != null ? Date.now() - startTimes[id] : undefined;
+        s.durationMs = id in startTimes ? Date.now() - startTimes[id]! : undefined;
       }
     },
     render(title: string = 'Initializing') {

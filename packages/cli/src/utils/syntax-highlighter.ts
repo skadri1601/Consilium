@@ -44,12 +44,13 @@ type TokenRule = [RegExp, (m: string) => string];
 function tokenize(code: string, rules: TokenRule[]): string {
   const combined = new RegExp(rules.map((r, i) => `(?<_t${i}>${r[0].source})`).join('|'), 'gm');
   return code.replace(combined, (...args) => {
-    const groups = args[args.length - 1] as Record<string, string>;
+    const groups = args.at(-1) as Record<string, string>;
     for (let i = 0; i < rules.length; i++) {
       const val = groups[`_t${i}`];
-      if (val !== undefined) return rules[i][1](val);
+      const rule = rules[i];
+      if (val !== undefined && rule) return rule[1](val);
     }
-    return args[0] as string;
+    return String(args[0]);
   });
 }
 
@@ -61,7 +62,7 @@ function jsRules(): TokenRule[] {
     [/'(?:[^'\\]|\\.)*'/, green],
     [/`(?:[^`\\]|\\.)*`/, green],
     [/\b\d+(?:\.\d+)?\b/, orange],
-    [/\b[A-Z][a-zA-Z0-9]*\b/, (m) => BUILTINS_JS.has(m) ? yellow(m) : yellow(m)],
+    [/\b[A-Z]\w*\b/, (m) => yellow(m)],
     [/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/, (m) => {
       if (KEYWORDS_JS.has(m)) return purple(m);
       if (BUILTINS_JS.has(m)) return yellow(m);
@@ -80,7 +81,7 @@ function pyRules(): TokenRule[] {
     [/'(?:[^'\\]|\\.)*'/, green],
     [/\b\d+(?:\.\d+)?\b/, orange],
     [/@\w+/, yellow],
-    [/\b[a-zA-Z_][a-zA-Z0-9_]*\b/, (m) => {
+    [/\b[a-zA-Z_]\w*\b/, (m) => {
       if (KEYWORDS_PY.has(m)) return purple(m);
       if (BUILTINS_PY.has(m)) return yellow(m);
       return m;
@@ -103,10 +104,10 @@ function bashRules(): TokenRule[] {
     [/"(?:[^"\\]|\\.)*"/, green],
     [/'[^']*'/, green],
     [/\$\{[^}]+\}/, (m) => chalk.cyan(m)],
-    [/\$[A-Za-z_][A-Za-z0-9_]*/, (m) => chalk.cyan(m)],
+    [/\$[A-Za-z_]\w*/, (m) => chalk.cyan(m)],
     [/\b\d+(?:\.\d+)?\b/, orange],
     [/--?[a-zA-Z][\w-]*/, yellow],
-    [/\b[a-zA-Z_][a-zA-Z0-9_]*\b/, (m) => {
+    [/\b[a-zA-Z_]\w*\b/, (m) => {
       if (KEYWORDS_BASH.has(m)) return purple(m);
       return m;
     }],
@@ -159,7 +160,7 @@ export function detectLanguage(code: string): string {
 export function formatCodeBlock(code: string, language?: string): string {
   const lang = language || detectLanguage(code);
   const highlighted = highlightCode(code, lang);
-  const label = lang !== 'unknown' ? gray(` ${lang} `) : '';
+  const label = lang === 'unknown' ? '' : gray(` ${lang} `);
   const border = terminal.hasColor ? chalk.hex('#5c6370')('│') : '|';
   const lines = highlighted.split('\n').map((line) => `  ${border} ${line}`);
   if (label) lines.unshift(`  ${label}`);

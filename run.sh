@@ -19,25 +19,27 @@ cleanup() {
   done
   wait 2>/dev/null
   echo -e "${GREEN}All services stopped.${NC}"
-  exit 0
+  return 0
 }
 
-trap cleanup SIGINT SIGTERM EXIT
+trap 'cleanup; exit 0' SIGINT SIGTERM EXIT
 
 detect_os() {
   case "$(uname -s)" in
-    Linux*)   echo "linux" ;;
-    Darwin*)  echo "mac" ;;
-    CYGWIN*|MINGW*|MSYS*) echo "windows" ;;
-    *)        echo "unknown" ;;
+    Linux*)   echo "linux"; return 0 ;;
+    Darwin*)  echo "mac"; return 0 ;;
+    CYGWIN*|MINGW*|MSYS*) echo "windows"; return 0 ;;
+    *)        echo "unknown"; return 0 ;;
   esac
 }
 
 check_command() {
-  if ! command -v "$1" &>/dev/null; then
-    echo -e "${RED}Error: $1 is not installed.${NC}"
+  local cmd_name="$1"
+  if ! command -v "$cmd_name" &>/dev/null; then
+    echo -e "${RED}Error: ${cmd_name} is not installed.${NC}" >&2
     return 1
   fi
+  return 0
 }
 
 OS=$(detect_os)
@@ -53,29 +55,32 @@ for cmd in node pnpm; do
   fi
 done
 
-if [ "$MISSING" -eq 1 ]; then
+if [[ "$MISSING" -eq 1 ]]; then
   echo -e "\n${RED}Install missing dependencies and try again.${NC}"
   exit 1
 fi
 
 NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
-if [ "$NODE_VERSION" -lt 20 ]; then
+if [[ "$NODE_VERSION" -lt 20 ]]; then
   echo -e "${RED}Node.js 20+ required (found v${NODE_VERSION}).${NC}"
   exit 1
 fi
 
 echo -e "${GREEN}All prerequisites met.${NC}\n"
 
-if [ ! -d "$ROOT_DIR/node_modules" ]; then
+if [[ ! -d "$ROOT_DIR/node_modules" ]]; then
   echo -e "${YELLOW}Installing dependencies...${NC}"
   cd "$ROOT_DIR" && pnpm install
   echo ""
 fi
 
-if [ -f "$ROOT_DIR/.env.local" ] && [ ! -f "$ROOT_DIR/.env" ]; then
+if [[ -f "$ROOT_DIR/.env.local" && ! -f "$ROOT_DIR/.env" ]]; then
   cp "$ROOT_DIR/.env.local" "$ROOT_DIR/.env"
   echo -e "${GREEN}Copied .env.local -> .env${NC}"
 fi
+
+echo -e "${YELLOW}Building shared package...${NC}"
+cd "$ROOT_DIR" && pnpm --filter @consilium/shared build 2>/dev/null || true
 
 echo -e "${YELLOW}Generating Prisma client...${NC}"
 cd "$ROOT_DIR" && pnpm db:generate 2>/dev/null || true
@@ -96,13 +101,13 @@ if command -v python3 &>/dev/null || command -v python &>/dev/null; then
   HAS_PYTHON=true
 fi
 
-if [ "$HAS_PYTHON" = true ] && [ -d "$ROOT_DIR/apps/agents" ]; then
+if [[ "$HAS_PYTHON" == true && -d "$ROOT_DIR/apps/agents" ]]; then
   PYTHON_CMD="python3"
   if ! command -v python3 &>/dev/null; then
     PYTHON_CMD="python"
   fi
 
-  if [ -f "$ROOT_DIR/apps/agents/pyproject.toml" ]; then
+  if [[ -f "$ROOT_DIR/apps/agents/pyproject.toml" ]]; then
     if command -v poetry &>/dev/null; then
       echo -e "  ${GREEN}[agents]${NC}  FastAPI on http://localhost:8000"
       cd "$ROOT_DIR/apps/agents" && poetry run uvicorn src.main:app --reload --port 8000 &

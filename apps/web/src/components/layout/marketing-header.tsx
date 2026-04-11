@@ -4,9 +4,13 @@ import { cn } from "@/shared/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { Logo } from "@/components/shared/logo";
-import { Button, buttonVariants } from "@/shared/components/ui/button";
 import { useUser } from "@clerk/nextjs";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
 
 interface NavProps {
   items?: {
@@ -22,12 +26,14 @@ function SignInSignUpButtons() {
     <React.Fragment>
       <Link
         href="/sign-in"
-        className={buttonVariants({ variant: "secondary" })}
+        className="text-sm text-white/60 hover:text-white transition-colors"
       >
         Sign In
       </Link>
-
-      <Link href="/sign-up" className={buttonVariants({ variant: "default" })}>
+      <Link
+        href="/sign-up"
+        className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-cyan-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+      >
         Get Started
       </Link>
     </React.Fragment>
@@ -41,7 +47,7 @@ function AuthButtonsInner() {
     return (
       <Link
         href="/council"
-        className={buttonVariants({ variant: "default" })}
+        className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-cyan-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
       >
         Dashboard
       </Link>
@@ -59,92 +65,124 @@ function AuthButtons() {
   );
 }
 
-function MobileItems(props: NavProps) {
+function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => void }>) {
   return (
-    <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 animate-in slide-in-from-bottom-80 md:hidden">
-      <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-        <nav className="grid grid-flow-row auto-rows-max text-sm">
-          {props.items?.map((item, index) => (
-            <Link
-              key={index}
-              href={item.disabled ? "#" : item.href}
-              className={cn(
-                "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
-                item.disabled && "cursor-not-allowed opacity-60"
-              )}
-              target={item.external ? "_blank" : undefined}
-              rel={item.external ? "noreferrer" : undefined}
-            >
-              {item.title}
-            </Link>
-          ))}
-
-          <div className="flex flex-col gap-2 mt-4">
-            <AuthButtons />
-          </div>
-        </nav>
-      </div>
-    </div>
-  );
-}
-
-function DesktopItems(props: NavProps) {
-  return (
-    <nav className="hidden gap-6 md:flex">
-      {props.items?.map((item, index) => (
-        <Link
-          key={index}
-          href={item.disabled ? "#" : item.href}
-          className={cn(
-            "flex items-center text-lg font-medium transition-colors hover:text-foreground/80 sm:text-sm",
-            "text-foreground/60",
-            item.disabled && "cursor-not-allowed opacity-80"
-          )}
-          target={item.external ? "_blank" : undefined}
-          rel={item.external ? "noreferrer" : undefined}
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
-export function MarketingHeader(props: NavProps) {
-  const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
-
-  return (
-    <header className="fixed w-full z-50 bg-background/80 px-4 md:px-8 backdrop-blur">
-      <div className="flex h-18 items-center justify-between py-4">
-        <div className="flex items-center gap-4 md:gap-10">
-          <Logo className="hidden md:flex" />
-
-          {props.items?.length ? <DesktopItems items={props.items} /> : null}
-
-          <Button
-            className="space-x-2 md:hidden"
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-          >
-            {showMobileMenu ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+      className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden"
+    >
+      <nav className="flex flex-col gap-1">
+        {items?.map((item) => (
+          <Link
+            key={item.href}
+            href={item.disabled ? "#" : item.href}
+            onClick={onClose}
+            className={cn(
+              "rounded-lg px-3 py-2.5 text-sm text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors",
+              item.disabled && "cursor-not-allowed opacity-60"
             )}
-          </Button>
-
-          <Logo className="md:hidden" />
-
-          {showMobileMenu && props.items && <MobileItems items={props.items} />}
+            target={item.external ? "_blank" : undefined}
+            rel={item.external ? "noreferrer" : undefined}
+          >
+            {item.title}
+          </Link>
+        ))}
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/[0.08]">
+          <AuthButtons />
         </div>
+      </nav>
+    </motion.div>
+  );
+}
 
-        <div className="flex gap-4 items-center">
-          <nav className="gap-4 items-center hidden md:flex">
-            <AuthButtons />
-          </nav>
-        </div>
+export function MarketingHeader(props: Readonly<NavProps>) {
+  const [showMobileMenu, setShowMobileMenu] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest < 50) {
+      setVisible(true);
+    } else if (latest > previous) {
+      setVisible(false);
+      setShowMobileMenu(false);
+    } else {
+      setVisible(true);
+    }
+  });
+
+  return (
+    <>
+      <div className="fixed top-4 inset-x-0 mx-auto z-40 pointer-events-none w-fit">
+        <div className="h-16 w-[700px] max-w-[calc(100vw-2rem)] bg-gradient-to-r from-indigo-500/10 via-cyan-500/10 to-indigo-500/10 blur-2xl rounded-full" />
       </div>
-    </header>
+
+      <motion.header
+        animate={{ y: visible ? 0 : -100, opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed top-4 inset-x-0 mx-auto z-50 w-fit max-w-[calc(100vw-2rem)]"
+      >
+        <div className="flex h-14 items-center gap-6 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] px-5 md:px-6">
+          <Link href="/" className="flex items-center gap-2">
+            <img
+              src="/brand/consilium-icon.svg"
+              alt=""
+              width={24}
+              height={24}
+              className="h-6 w-6"
+            />
+            <span className="font-bold text-white text-sm">Consilium</span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-1">
+            {props.items?.map((item) => (
+              <Link
+                key={item.href}
+                href={item.disabled ? "#" : item.href}
+                className={cn(
+                  "relative px-3 py-1.5 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/[0.06]",
+                  item.disabled && "cursor-not-allowed opacity-60"
+                )}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noreferrer" : undefined}
+              >
+                {item.title}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3">
+              <AuthButtons />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden flex items-center justify-center h-8 w-8 rounded-full hover:bg-white/[0.06] transition-colors"
+            >
+              {showMobileMenu ? (
+                <X className="h-4 w-4 text-white/60" />
+              ) : (
+                <Menu className="h-4 w-4 text-white/60" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {showMobileMenu && props.items && (
+            <MobileMenu
+              items={props.items}
+              onClose={() => setShowMobileMenu(false)}
+            />
+          )}
+        </AnimatePresence>
+      </motion.header>
+    </>
   );
 }

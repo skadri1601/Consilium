@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { loadConfig } from './config';
 
+export type DecisionConfidence = 'high' | 'medium' | 'low';
+
 export interface Decision {
   category: string;
   statement: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: DecisionConfidence;
   source: string;
   debateIndex: number;
   status: 'decided' | 'tentative' | 'open' | 'superseded';
@@ -55,12 +57,20 @@ Respond with ONLY valid JSON matching this schema. No markdown, no explanation.`
 const extractionCache = new Map<string, { result: SemanticExtractionResult; timestamp: number }>();
 const CACHE_TTL_MS = 30 * 60 * 1000;
 
+function extractJsonObject(text: string): string | null {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end <= start) return null;
+  return text.slice(start, end + 1);
+}
+
 function hashText(text: string): string {
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
+    const cp = text.codePointAt(i);
+    if (cp === undefined) continue;
+    hash = Math.trunc((hash << 5) - hash + cp);
+    if (cp > 0xffff) i += 1;
   }
   return String(hash);
 }
@@ -144,12 +154,12 @@ async function callLLMForExtraction(text: string): Promise<SemanticExtractionRes
     setTimeout(() => { es.close(); reject(new Error('Extraction stream timeout')); }, 30000);
   });
 
-  const jsonMatch = fullText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  const jsonSlice = extractJsonObject(fullText);
+  if (!jsonSlice) {
     throw new Error('No JSON found in extraction response');
   }
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  const parsed = JSON.parse(jsonSlice);
   return SemanticExtractionSchema.parse(parsed);
 }
 
@@ -172,7 +182,7 @@ export async function extractDecisionsSemantic(
     const fallbackExtraction: SemanticExtractionResult = {
       decisions: decisions.map((d) => ({
         decision: d.statement,
-        confidence: d.confidence === 'high' ? 0.9 : d.confidence === 'medium' ? 0.6 : 0.3,
+        confidence: heuristicConfidenceNumber(d.confidence),
         supporting_models: [],
         category: d.category,
       })),
@@ -184,7 +194,13 @@ export async function extractDecisionsSemantic(
   }
 }
 
-function confidenceToLevel(confidence: number): 'high' | 'medium' | 'low' {
+function heuristicConfidenceNumber(level: DecisionConfidence): number {
+  if (level === 'high') return 0.9;
+  if (level === 'medium') return 0.6;
+  return 0.3;
+}
+
+function confidenceToLevel(confidence: number): DecisionConfidence {
   if (confidence >= 0.7) return 'high';
   if (confidence >= 0.4) return 'medium';
   return 'low';
@@ -213,25 +229,64 @@ function mapSemanticToDecisions(
 }
 
 const DECIDED_PATTERNS = [
-  /(?:should|must|will)\s+use\s+(.+)/i,
-  /(?:decided|chosen|selected|agreed)\s+(?:to\s+|on\s+)?(.+)/i,
-  /(?:recommend(?:s|ed)?|recommending)\s+(.+)/i,
-  /(?:the\s+(?:best|recommended|chosen)\s+(?:approach|solution|option)\s+is)\s+(.+)/i,
-  /(?:go\s+with|choose|pick)\s+(.+)/i,
+  /(?:should|must|will)\s+use\s+(.{1,600})/i,
+  /(?:decided|chosen|selected|agreed)\s+(?:to\s+|on\s+)?(.{1,600})/i,
+  /(?:recommend(?:s|ed)?|recommending)\s+(.{1,600})/i,
+  /(?:the\s+(?:best|recommended|chosen)\s+(?:approach|solution|option)\s+is)\s+(.{1,600})/i,
+  /(?:go\s+with|choose|pick)\s+(.{1,600})/i,
 ];
 
 const TENTATIVE_PATTERNS = [
-  /(?:could|might|may)\s+(?:use|consider|try)\s+(.+)/i,
-  /(?:leaning\s+toward(?:s)?|prefer(?:s)?)\s+(.+)/i,
-  /(?:likely|probably)\s+(.+)/i,
+  /(?:could|might|may)\s+(?:use|consider|try)\s+(.{1,600})/i,
+  /(?:leaning\s+toward(?:s)?|prefer(?:s)?)\s+(.{1,600})/i,
+  /(?:likely|probably)\s+(.{1,600})/i,
 ];
 
 const OPEN_PATTERNS = [
-  /(?:need(?:s)?\s+to\s+(?:decide|determine|evaluate|investigate))\s+(.+)/i,
-  /(?:what|which|how|whether)\s+(.+)\?/i,
-  /(?:open\s+question|unresolved|unclear|tbd)[:\s]+(.+)/i,
-  /(?:requires?\s+(?:further|more)\s+(?:discussion|analysis|investigation))\s+(.+)/i,
+  /(?:need(?:s)?\s+to\s+(?:decide|determine|evaluate|investigate))\s+(.{1,600})/i,
+  /(?:what|which|how|whether)\s+(.{1,600})\?/i,
+  /(?:open\s+question|unresolved|unclear|tbd)[:\s]+(.{1,600})/i,
+  /(?:requires?\s+(?:further|more)\s+(?:discussion|analysis|investigation))\s+(.{1,600})/i,
 ];
+
+const TRAILING_DOT_BANG = new Set(['.', '!']);
+const TRAILING_QUESTION = new Set(['?']);
+
+function stripTrailingInSet(value: string, allowed: Set<string>, maxStrip = 32): string {
+  let end = value.length;
+  let removed = 0;
+  while (end > 0 && removed < maxStrip && allowed.has(value.charAt(end - 1))) {
+    end -= 1;
+    removed += 1;
+  }
+  return value.slice(0, end);
+}
+
+function tryExtractFromPatterns(
+  sentence: string,
+  patterns: RegExp[],
+  topic: string,
+  debateIndex: number,
+  status: Decision['status'],
+  trailingToStrip: Set<string>,
+): Decision | null {
+  for (const pattern of patterns) {
+    pattern.lastIndex = 0;
+    const match = pattern.exec(sentence);
+    if (!match) continue;
+    const raw = match[1] ?? match[0];
+    const statement = stripTrailingInSet(raw.trim(), trailingToStrip).trim();
+    return {
+      category: inferCategory(statement),
+      statement,
+      confidence: status === 'open' ? 'low' : inferConfidence(sentence, status),
+      source: topic,
+      debateIndex,
+      status,
+    };
+  }
+  return null;
+}
 
 function inferCategory(statement: string): string {
   const lower = statement.toLowerCase();
@@ -258,7 +313,7 @@ function inferCategory(statement: string): string {
   return 'GENERAL';
 }
 
-function inferConfidence(text: string, status: Decision['status']): Decision['confidence'] {
+function inferConfidence(text: string, status: Decision['status']): DecisionConfidence {
   if (status === 'open') return 'low';
   if (status === 'tentative') return 'medium';
 
@@ -269,73 +324,93 @@ function inferConfidence(text: string, status: Decision['status']): Decision['co
   return 'high';
 }
 
+function splitIntoSentences(text: string): string[] {
+  const normalized = text.replaceAll(/\s+/g, ' ').trim();
+  const maxSentences = 2000;
+  const chunks: string[] = [];
+  let start = 0;
+  let i = 0;
+  while (i < normalized.length && chunks.length < maxSentences) {
+    const ch = normalized.charAt(i);
+    if ((ch === '.' || ch === '!') && (i === normalized.length - 1 || normalized.charAt(i + 1) === ' ')) {
+      const piece = normalized.slice(start, i + 1).trim();
+      if (piece) chunks.push(piece);
+      start = i + 1;
+      while (start < normalized.length && normalized.charAt(start) === ' ') {
+        start += 1;
+      }
+      i = start;
+    } else {
+      i += 1;
+    }
+  }
+  const tail = normalized.slice(start).trim();
+  if (tail) chunks.push(tail);
+  return chunks;
+}
+
 export function extractDecisionsFromText(
   text: string,
   topic: string,
   debateIndex: number
 ): Decision[] {
   const decisions: Decision[] = [];
-  const sentences = text.split(/[.!]\s+/).map((s) => s.trim()).filter(Boolean);
+  const sentences = splitIntoSentences(text);
 
   for (const sentence of sentences) {
-    let matched = false;
-
-    for (const pattern of DECIDED_PATTERNS) {
-      const match = sentence.match(pattern);
-      if (match) {
-        const statement = match[1] || match[0];
-        decisions.push({
-          category: inferCategory(statement),
-          statement: statement.replace(/[.!]+$/, '').trim(),
-          confidence: inferConfidence(sentence, 'decided'),
-          source: topic,
-          debateIndex,
-          status: 'decided',
-        });
-        matched = true;
-        break;
-      }
+    const decided = tryExtractFromPatterns(sentence, DECIDED_PATTERNS, topic, debateIndex, 'decided', TRAILING_DOT_BANG);
+    if (decided) {
+      decisions.push(decided);
+      continue;
     }
-
-    if (matched) continue;
-
-    for (const pattern of TENTATIVE_PATTERNS) {
-      const match = sentence.match(pattern);
-      if (match) {
-        const statement = match[1] || match[0];
-        decisions.push({
-          category: inferCategory(statement),
-          statement: statement.replace(/[.!]+$/, '').trim(),
-          confidence: inferConfidence(sentence, 'tentative'),
-          source: topic,
-          debateIndex,
-          status: 'tentative',
-        });
-        matched = true;
-        break;
-      }
+    const tentative = tryExtractFromPatterns(sentence, TENTATIVE_PATTERNS, topic, debateIndex, 'tentative', TRAILING_DOT_BANG);
+    if (tentative) {
+      decisions.push(tentative);
+      continue;
     }
-
-    if (matched) continue;
-
-    for (const pattern of OPEN_PATTERNS) {
-      const match = sentence.match(pattern);
-      if (match) {
-        const statement = match[1] || match[0];
-        decisions.push({
-          category: inferCategory(statement),
-          statement: statement.replace(/[?]+$/, '').trim(),
-          confidence: 'low',
-          source: topic,
-          debateIndex,
-          status: 'open',
-        });
-        break;
-      }
-    }
+    const open = tryExtractFromPatterns(sentence, OPEN_PATTERNS, topic, debateIndex, 'open', TRAILING_QUESTION);
+    if (open) decisions.push(open);
   }
 
   return decisions;
+}
+
+function formatDecisionLine(d: Decision): string {
+  let line = `- ${d.category}: ${d.statement} (Debate ${d.debateIndex}) [${d.status.toUpperCase()}]`;
+  if (d.supportingModels?.length) {
+    line += ` {${d.supportingModels.join(', ')}}`;
+  }
+  if (d.resolvedBy !== undefined) {
+    line += ` -> resolved in Debate ${d.resolvedBy}`;
+  }
+  return line;
+}
+
+function appendExtractionLines(
+  lines: string[],
+  extraction: SemanticExtractionResult,
+  charBudget: number,
+  totalChars: { value: number },
+): void {
+  if (extraction.action_items.length > 0) {
+    const actionLine = `ACTION ITEMS: ${extraction.action_items.join('; ')}`;
+    if (totalChars.value + actionLine.length + 1 <= charBudget) {
+      lines.push(actionLine);
+      totalChars.value += actionLine.length + 1;
+    }
+  }
+  if (extraction.key_disagreements.length > 0) {
+    const disagreementLine = `KEY DISAGREEMENTS: ${extraction.key_disagreements.join('; ')}`;
+    if (totalChars.value + disagreementLine.length + 1 <= charBudget) {
+      lines.push(disagreementLine);
+      totalChars.value += disagreementLine.length + 1;
+    }
+  }
+  const consensusLine = `CONSENSUS LEVEL: ${(extraction.consensus_level * 100).toFixed(0)}%`;
+  if (totalChars.value + consensusLine.length + 1 <= charBudget) {
+    lines.push(consensusLine);
+    totalChars.value += consensusLine.length + 1;
+  }
 }
 
 export class DecisionLog {
@@ -368,60 +443,29 @@ export class DecisionLog {
 
   getContext(tokenBudget: number = 3000): string {
     const charBudget = tokenBudget * 4;
-    const lines: string[] = ['PREVIOUS CONTEXT (extracted decisions):'];
-
-    const decided = this.decisions.filter((d) => d.status === 'decided');
-    const open = this.decisions.filter((d) => d.status === 'open');
-    const tentative = this.decisions.filter((d) => d.status === 'tentative');
-    const superseded = this.decisions.filter((d) => d.status === 'superseded');
+    const header = 'PREVIOUS CONTEXT (extracted decisions):';
+    const lines: string[] = [header];
+    const totalChars = { value: header.length };
 
     const groups: { items: Decision[]; label: string }[] = [
-      { items: decided, label: 'DECIDED' },
-      { items: open, label: 'OPEN' },
-      { items: tentative, label: 'TENTATIVE' },
-      { items: superseded, label: 'SUPERSEDED' },
+      { items: this.decisions.filter((d) => d.status === 'decided'), label: 'DECIDED' },
+      { items: this.decisions.filter((d) => d.status === 'open'), label: 'OPEN' },
+      { items: this.decisions.filter((d) => d.status === 'tentative'), label: 'TENTATIVE' },
+      { items: this.decisions.filter((d) => d.status === 'superseded'), label: 'SUPERSEDED' },
     ];
 
-    let totalChars = lines[0].length;
-
     if (this.lastExtraction) {
-      if (this.lastExtraction.action_items.length > 0) {
-        const actionLine = `ACTION ITEMS: ${this.lastExtraction.action_items.join('; ')}`;
-        if (totalChars + actionLine.length + 1 <= charBudget) {
-          lines.push(actionLine);
-          totalChars += actionLine.length + 1;
-        }
-      }
-      if (this.lastExtraction.key_disagreements.length > 0) {
-        const disagreementLine = `KEY DISAGREEMENTS: ${this.lastExtraction.key_disagreements.join('; ')}`;
-        if (totalChars + disagreementLine.length + 1 <= charBudget) {
-          lines.push(disagreementLine);
-          totalChars += disagreementLine.length + 1;
-        }
-      }
-      const consensusLine = `CONSENSUS LEVEL: ${(this.lastExtraction.consensus_level * 100).toFixed(0)}%`;
-      if (totalChars + consensusLine.length + 1 <= charBudget) {
-        lines.push(consensusLine);
-        totalChars += consensusLine.length + 1;
-      }
+      appendExtractionLines(lines, this.lastExtraction, charBudget, totalChars);
     }
 
     for (const group of groups) {
       for (const d of group.items) {
-        let line = `- ${d.category}: ${d.statement} (Debate ${d.debateIndex}) [${d.status.toUpperCase()}]`;
-        if (d.supportingModels?.length) {
-          line += ` {${d.supportingModels.join(', ')}}`;
-        }
-        if (d.resolvedBy !== undefined) {
-          line += ` -> resolved in Debate ${d.resolvedBy}`;
-        }
-
-        if (totalChars + line.length + 1 > charBudget) {
+        const line = formatDecisionLine(d);
+        if (totalChars.value + line.length + 1 > charBudget) {
           return lines.join('\n');
         }
-
         lines.push(line);
-        totalChars += line.length + 1;
+        totalChars.value += line.length + 1;
       }
     }
 

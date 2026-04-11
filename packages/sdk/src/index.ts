@@ -16,6 +16,7 @@ export type {
   BlindEvalOptions,
   EvaluationResult,
   CostEstimate,
+  CostEstimateBreakdown,
   HealthStatus,
   ClientConfig,
 } from './types.js';

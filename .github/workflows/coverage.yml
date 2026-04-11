@@ -4,10 +4,6 @@ on:
   pull_request:
     branches: [main, develop]
 
-permissions:
-  contents: read
-  pull-requests: write
-
 concurrency:
   group: coverage-${{ github.ref }}
   cancel-in-progress: true
@@ -17,6 +13,8 @@ jobs:
     name: Web Coverage
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -52,6 +50,8 @@ jobs:
     name: API Coverage
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
     services:
       postgres:
         image: postgres:16-alpine
@@ -120,6 +120,8 @@ jobs:
     name: Agents Coverage
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -166,6 +168,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [web-coverage, api-coverage, agents-coverage]
     if: always()
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/download-artifact@v4
         with:

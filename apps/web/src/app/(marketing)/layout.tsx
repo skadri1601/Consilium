@@ -5,6 +5,7 @@ const navItems = [
   { title: "How It Works", href: "/#how-it-works" },
   { title: "Modes", href: "/#modes" },
   { title: "SDK", href: "/#sdk" },
+  { title: "Blog", href: "/blog" },
   { title: "About", href: "/about" },
   { title: "GitHub", href: "https://github.com/skadri1601/Consilium", external: true },
 ];
@@ -17,7 +18,7 @@ export default function MarketingLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <MarketingHeader items={navItems} />
-      <main className="flex-1 pt-18">{children}</main>
+      <main className="flex-1">{children}</main>
       <MarketingFooter
         builtBy="Saad Kadri"
         builtByLink="https://saadkadri.dev"

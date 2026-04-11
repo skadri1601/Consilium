@@ -29,7 +29,7 @@ def _build_system_prompt():
 def run_master(prompt, model="haiku"):
     system_prompt = _build_system_prompt()
     subagents = get_master_subagents()
-    return run_claude(prompt, system_prompt=system_prompt, model=model, subagents=subagents)
+    return run_claude(prompt, system_prompt=system_prompt, model=model, _subagents=subagents)
 
 
 def main():

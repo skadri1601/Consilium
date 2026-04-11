@@ -56,7 +56,8 @@ export async function statsCommand(): Promise<void> {
   if (models.length > 0) {
     console.log('');
     console.log(border('Model Usage Breakdown'));
-    const maxCount = models[0][1];
+    const top = models[0];
+    const maxCount = top ? top[1] : 0;
     for (const [model, count] of models) {
       const barLen = maxCount > 0 ? Math.round((count / maxCount) * 20) : 0;
       const bar = '\u2588'.repeat(barLen) + '\u2591'.repeat(20 - barLen);

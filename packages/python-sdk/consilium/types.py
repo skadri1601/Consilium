@@ -11,23 +11,35 @@ class DeliberationMode(str, Enum):
     COUNCIL = "council"
     DEEP = "deep"
     BLIND = "blind"
+    BLIND_EVAL = "blind"  # deprecated: use BLIND
     REDTEAM = "redteam"
+    RED_TEAM = "redteam"  # deprecated: use REDTEAM
     JURY = "jury"
     MARKET = "market"
     AUTO = "auto"
+    PREDICTION_MARKET = "prediction-market"
+    ADVERSARIAL = "adversarial"
+    DELPHI = "delphi"
 
 
-class CostBreakdown(BaseModel):
+class CostBreakdownEntry(BaseModel):
+    model: str = ""
+    role: str = ""
+    estimated_cost: float = Field(0.0, alias="estimatedCost")
     per_round: float = Field(0.0, alias="perRound")
     judge: float = 0.0
-    sub_agents: float | None = Field(None, alias="subAgents")
 
     model_config = {"populate_by_name": True}
 
 
 class CostEstimate(BaseModel):
+    estimated_cost: float = Field(0.0, alias="estimatedCost")
     total: float = 0.0
-    breakdown: CostBreakdown = Field(default_factory=CostBreakdown)
+    breakdown: CostBreakdownEntry | list[CostBreakdownEntry] = Field(
+        default_factory=list
+    )
+    rounds: int = 0
+    mode: str = ""
     estimated_time: str = Field("", alias="estimatedTime")
 
     model_config = {"populate_by_name": True}
@@ -123,5 +135,6 @@ class EvalResult(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str = ""
+    info: dict[str, Any] | None = None
     version: str = ""
     uptime: float = 0.0

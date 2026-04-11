@@ -29,7 +29,7 @@ def run_red_team_assessment():
 
     try:
         report = client.red_team(
-            content=api_system_prompt,
+            topic=api_system_prompt,
             models=attacker_models,
             categories=attack_categories,
         )

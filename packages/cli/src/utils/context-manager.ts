@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export interface FileEntry {
   name: string;
@@ -9,8 +9,8 @@ export interface FileEntry {
 export class ContextManager {
   private static readonly MAX_FILE_SIZE = 100 * 1024; // 100KB
   private static readonly MAX_TOTAL_SIZE = 500 * 1024; // 500KB
-  private files: Map<string, string> = new Map();
-  private images: Map<string, string> = new Map();
+  private readonly files: Map<string, string> = new Map();
+  private readonly images: Map<string, string> = new Map();
 
   addFile(filePath: string): void {
     const resolved = path.resolve(process.cwd(), filePath);
@@ -97,17 +97,14 @@ export class ContextManager {
 
     const sections: string[] = [];
 
-    sections.push('=== CONTEXT FILES ===\n');
-    sections.push('Files provided:');
+    sections.push('=== CONTEXT FILES ===\n', 'Files provided:');
     for (const [name, content] of this.files) {
       sections.push(`- ${name} (${content.length} bytes)`);
     }
     sections.push('');
 
     for (const [name, content] of this.files) {
-      sections.push(`--- BEGIN FILE: ${name} ---`);
-      sections.push(content);
-      sections.push(`--- END FILE: ${name} ---\n`);
+      sections.push(`--- BEGIN FILE: ${name} ---`, content, `--- END FILE: ${name} ---\n`);
     }
 
     sections.push('=== END CONTEXT ===\n');

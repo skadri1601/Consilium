@@ -4,10 +4,11 @@ import socket
 import sys
 import time
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+import posthog
 import sentry_sdk
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -27,7 +28,10 @@ API_V1_PREFIX = "/api/v1"
 
 if sys.platform == "win32":
     import asyncio
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    _selector_policy = getattr(asyncio, "WindowsSelectorEventLoopPolicy", None)
+    if _selector_policy is not None:
+        asyncio.set_event_loop_policy(_selector_policy())
 
 
 def _get_local_ip() -> str:
@@ -40,6 +44,10 @@ def _get_local_ip() -> str:
     except Exception:
         return "unknown"
 
+
+if settings.posthog_api_key:
+    posthog.project_api_key = settings.posthog_api_key
+    posthog.host = settings.posthog_host
 
 if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
     sentry_sdk.init(
@@ -76,10 +84,17 @@ class RequestTimingMiddleware(BaseHTTPMiddleware):
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     logger.info("Starting %s on %s:%s", settings.app_name, settings.host, settings.port)
     redis_client.connect()
-    yield
-    logger.info("Shutting down %s", settings.app_name)
-    if redis_client._client is not None:
-        redis_client._client = None
+    try:
+        yield
+    finally:
+        logger.info("Shutting down %s", settings.app_name)
+        if settings.posthog_api_key:
+            try:
+                posthog.shutdown()
+            except Exception:
+                logger.debug("posthog.shutdown failed", exc_info=True)
+        if redis_client._client is not None:
+            redis_client._client = None
 
 
 app = FastAPI(
@@ -89,6 +104,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(RequestTimingMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -96,8 +113,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(RequestTimingMiddleware)
 
 app.include_router(health_router)
 app.include_router(council_router, prefix=API_V1_PREFIX)
@@ -133,7 +148,7 @@ if __name__ == "__main__":
     import uvicorn
 
     # Windows-specific uvicorn configuration to prevent socket buffer exhaustion
-    uvicorn_config = {
+    uvicorn_config: dict[str, Any] = {
         "app": "src.main:app",
         "host": settings.host,
         "port": settings.port,

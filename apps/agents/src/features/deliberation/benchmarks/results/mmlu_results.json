@@ -1,0 +1,12 @@
+{
+  "benchmark_name": "mmlu",
+  "run_status": "failed_rate_limited",
+  "run_notes": "Prior committed file contained API quota errors in answer fields. Re-run MMLU with valid billing and quota; do not use this placeholder for metrics.",
+  "single_model_score": null,
+  "deliberation_score": null,
+  "improvement_pct": null,
+  "num_questions": 0,
+  "cost_single": null,
+  "cost_deliberation": null,
+  "details": []
+}

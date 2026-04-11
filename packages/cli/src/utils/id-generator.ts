@@ -1,27 +1,25 @@
-import { ulid, decodeTime } from 'ulid';
+import { randomBytes } from 'node:crypto';
 
 export type IdPrefix = 'dbt' | 'cnv' | 'msg' | 'log';
 
 const VALID_PREFIXES = new Set<string>(['dbt', 'cnv', 'msg', 'log']);
 
 export function generateId(prefix: IdPrefix): string {
-  return `${prefix}_${ulid()}`;
+  return `${prefix}_${randomBytes(12).toString('hex')}`;
 }
 
-export function parseId(id: string): { prefix: string; ulid: string; timestamp: Date } {
+export function parseId(id: string): { prefix: string; randomPart: string } {
   const separatorIndex = id.indexOf('_');
   if (separatorIndex === -1) {
     throw new Error(`Invalid prefixed ID: ${id}`);
   }
 
   const prefix = id.substring(0, separatorIndex);
-  const ulidPart = id.substring(separatorIndex + 1);
+  const randomPart = id.substring(separatorIndex + 1);
 
   if (!VALID_PREFIXES.has(prefix)) {
     throw new Error(`Unknown ID prefix: ${prefix}`);
   }
 
-  const timestamp = new Date(decodeTime(ulidPart));
-
-  return { prefix, ulid: ulidPart, timestamp };
+  return { prefix, randomPart };
 }

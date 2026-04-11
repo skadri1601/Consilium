@@ -1,10 +1,15 @@
-import * as fs from "fs";
-import * as path from "path";
-import { analyzeStructure, type FileInfo, type ProjectStructure } from "./agents/structure-agent";
-import { analyzeArchitecture, type ArchitectureInfo } from "./agents/architecture-agent";
-import { analyzeConfig, type ConfigInfo } from "./agents/config-agent";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { analyzeStructure } from "./agents/structure-agent";
+import { analyzeArchitecture } from "./agents/architecture-agent";
+import { analyzeConfig } from "./agents/config-agent";
+import type { FileInfo, ProjectStructure } from "./agents/structure-agent";
+import type { ArchitectureInfo } from "./agents/architecture-agent";
+import type { ConfigInfo } from "./agents/config-agent";
 
-export type { ProjectStructure, ArchitectureInfo, ConfigInfo, FileInfo };
+export type { FileInfo, ProjectStructure } from "./agents/structure-agent";
+export type { ArchitectureInfo } from "./agents/architecture-agent";
+export type { ConfigInfo } from "./agents/config-agent";
 
 export interface ProjectContext {
   projectType: string;
@@ -69,7 +74,7 @@ function discoverFiles(projectPath: string): FileInfo[] {
       if (shouldSkip(entry.name, gitignorePatterns)) continue;
 
       const fullPath = path.join(dir, entry.name);
-      const relativePath = path.relative(projectPath, fullPath).replace(/\\/g, "/");
+      const relativePath = path.relative(projectPath, fullPath).replaceAll("\\", "/");
 
       if (entry.isDirectory()) {
         walk(fullPath, depth + 1);
@@ -182,9 +187,11 @@ export async function scanCodebase(projectPath: string): Promise<ProjectContext>
 export function formatProjectContext(ctx: ProjectContext): string {
   const lines: string[] = [];
 
-  lines.push(`Project: ${ctx.projectType} (${ctx.language})`);
-  lines.push(`Framework: ${ctx.framework}`);
-  lines.push(`Files: ${ctx.fileCount} | Size: ${(ctx.totalSize / 1024).toFixed(1)}KB`);
+  lines.push(
+    `Project: ${ctx.projectType} (${ctx.language})`,
+    `Framework: ${ctx.framework}`,
+    `Files: ${ctx.fileCount} | Size: ${(ctx.totalSize / 1024).toFixed(1)}KB`,
+  );
 
   if (ctx.structure.entryPoints.length > 0) {
     lines.push(`Entry points: ${ctx.structure.entryPoints.join(", ")}`);

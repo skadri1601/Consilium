@@ -1,8 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 import { ConsiliumClient } from '../api/client';
-import { loadConfig } from '../utils/config';
 import { requireAuth } from '../utils/require-auth';
 import { style, border, borderBottom, contentLine } from '../utils/visual-system';
 
@@ -132,9 +131,12 @@ export async function logsCommand(debateId: string, options: { level?: string })
     try {
       const debate = await client.getDebateDetails(debateId);
       const timeline = buildTimeline(debate);
-      entries = options.level
-        ? timeline.filter(e => LEVEL_PRIORITY[e.level] >= LEVEL_PRIORITY[options.level!.toUpperCase()])
-        : timeline;
+      if (options.level) {
+        const minPriority = LEVEL_PRIORITY[options.level.toUpperCase()] ?? 0;
+        entries = timeline.filter(e => (LEVEL_PRIORITY[e.level] ?? 0) >= minPriority);
+      } else {
+        entries = timeline;
+      }
     } catch {
       // ignore fetch errors
     }

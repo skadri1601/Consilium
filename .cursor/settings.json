@@ -1,0 +1,43 @@
+{
+  "plugins": {
+    "linear": {
+      "enabled": true
+    },
+    "slack": {
+      "enabled": true
+    },
+    "clerk": {
+      "enabled": true
+    },
+    "redis-development": {
+      "enabled": true
+    },
+    "neon-postgres": {
+      "enabled": true
+    },
+    "sentry": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    },
+    "posthog": {
+      "enabled": true
+    },
+    "prisma": {
+      "enabled": true
+    },
+    "huggingface-skills": {
+      "enabled": true
+    },
+    "notion-workspace": {
+      "enabled": true
+    },
+    "stripe": {
+      "enabled": true
+    },
+    "cloudflare": {
+      "enabled": true
+    }
+  }
+}

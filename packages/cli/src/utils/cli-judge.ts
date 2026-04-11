@@ -17,11 +17,11 @@ export interface JudgeConfig {
 }
 
 const DEFAULT_RUBRIC: RubricWeight[] = [
-  { dimension: 'correctness', weight: 0.30, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
+  { dimension: 'correctness', weight: 0.3, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
   { dimension: 'reasoning_quality', weight: 0.25, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
-  { dimension: 'completeness', weight: 0.20, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
+  { dimension: 'completeness', weight: 0.2, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
   { dimension: 'actionability', weight: 0.15, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-  { dimension: 'conciseness', weight: 0.10, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
+  { dimension: 'conciseness', weight: 0.1, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
 ];
 
 const DEFAULT_PRIORITIES = [
@@ -79,17 +79,17 @@ const MODE_PRIORITY_OVERRIDES: Partial<Record<DebateMode, string[]>> = {
 const MODE_RUBRIC_OVERRIDES: Partial<Record<DebateMode, RubricWeight[]>> = {
   redteam: [
     { dimension: 'correctness', weight: 0.25, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
-    { dimension: 'reasoning_quality', weight: 0.20, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
+    { dimension: 'reasoning_quality', weight: 0.2, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
     { dimension: 'completeness', weight: 0.15, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
-    { dimension: 'actionability', weight: 0.10, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-    { dimension: 'security_rigor', weight: 0.30, description: 'Thoroughness of security analysis', anchors: { 1: 'Surface level', 5: 'Common vectors', 10: 'Comprehensive threat model' } },
+    { dimension: 'actionability', weight: 0.1, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
+    { dimension: 'security_rigor', weight: 0.3, description: 'Thoroughness of security analysis', anchors: { 1: 'Surface level', 5: 'Common vectors', 10: 'Comprehensive threat model' } },
   ],
   blind: [
-    { dimension: 'correctness', weight: 0.30, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
-    { dimension: 'reasoning_quality', weight: 0.30, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
-    { dimension: 'completeness', weight: 0.20, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
-    { dimension: 'actionability', weight: 0.10, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-    { dimension: 'conciseness', weight: 0.10, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
+    { dimension: 'correctness', weight: 0.3, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
+    { dimension: 'reasoning_quality', weight: 0.3, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
+    { dimension: 'completeness', weight: 0.2, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
+    { dimension: 'actionability', weight: 0.1, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
+    { dimension: 'conciseness', weight: 0.1, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
   ],
 };
 

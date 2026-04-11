@@ -75,7 +75,7 @@ export class DeliberationEventsClient {
 
       const data = await response.json();
       return {
-        deliberationId: data.deliberation_id || data.deliberationId,
+        deliberationId: data.deliberation_id || data.deliberationId || data.id,
         status: data.status || "processing",
       };
     } catch (error) {
@@ -96,7 +96,7 @@ export class DeliberationEventsClient {
   getStreamUrl(deliberationId: string): string {
     if (!this.isValidUuid(deliberationId)) {
       throw new HttpException(
-        'Invalid deliberation ID format',
+        "Invalid deliberation ID format",
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -104,7 +104,8 @@ export class DeliberationEventsClient {
   }
 
   private isValidUuid(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }
 }

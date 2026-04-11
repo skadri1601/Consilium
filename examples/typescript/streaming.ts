@@ -4,7 +4,7 @@ import type { DeliberationEvent } from "@consilium/sdk";
 async function runStreamingDeliberation(): Promise<void> {
   const client = new ConsiliumClient({
     apiKey: process.env.CONSILIUM_API_KEY ?? "your-api-key-here",
-    apiUrl: process.env.CONSILIUM_API_URL ?? "http://localhost:3000/api",
+    apiUrl: process.env.CONSILIUM_API_URL ?? "http://localhost:4000/api/v1",
     timeout: 180_000,
   });
 
@@ -33,7 +33,7 @@ async function runStreamingDeliberation(): Promise<void> {
     eventCount++;
     handleEvent(event, roundStartTimes, currentRound);
 
-    if (event.type === "round_start" && event.round !== undefined) {
+    if (event.event === "round:start" && event.round !== undefined) {
       currentRound = event.round;
     }
   }
@@ -46,32 +46,29 @@ function handleEvent(
   roundStartTimes: Map<number, number>,
   _currentRound: number,
 ): void {
-  switch (event.type) {
-    case "round_start":
+  switch (event.event) {
+    case "round:start":
       roundStartTimes.set(event.round ?? 0, Date.now());
       console.log(`\n--- Round ${event.round} ---\n`);
       break;
 
-    case "argument":
-      console.log(`[${event.model}] Argument:`);
-      console.log(`  ${truncate(event.content ?? "", 120)}\n`);
+    case "agent:start":
+      console.log(`[${event.agentId}] Starting...`);
       break;
 
-    case "rebuttal":
-      console.log(`[${event.model}] Rebuttal:`);
-      console.log(`  ${truncate(event.content ?? "", 120)}\n`);
+    case "agent:chunk":
+      console.log(`[${event.agentId}] ${truncate(event.chunk ?? "", 120)}`);
       break;
 
-    case "vote":
-      console.log(`[${event.model}] Vote: ${event.content}\n`);
+    case "agent:complete":
+      console.log(`[${event.agentId}] Complete\n`);
       break;
 
-    case "synthesis":
-      console.log("--- Synthesis ---");
-      console.log(`  ${truncate(event.content ?? "", 200)}\n`);
+    case "synthesis:start":
+      console.log("--- Synthesis ---\n");
       break;
 
-    case "result":
+    case "debate:complete":
       if (event.data) {
         console.log("=== Final Result ===\n");
         console.log(`Golden Prompt:\n${event.data.goldenPrompt}\n`);
@@ -84,8 +81,8 @@ function handleEvent(
       }
       break;
 
-    case "error":
-      console.error(`ERROR: ${event.content}`);
+    case "debate:error":
+      console.error(`ERROR: ${event.message}`);
       break;
   }
 }

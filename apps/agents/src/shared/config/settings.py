@@ -45,6 +45,8 @@ class Settings(BaseSettings):
 
     # Observability
     sentry_dsn: Optional[str] = None
+    posthog_api_key: Optional[str] = None
+    posthog_host: str = "https://us.i.posthog.com"
 
     # Backend API URL
     backend_api_url: str = "http://localhost:3001"

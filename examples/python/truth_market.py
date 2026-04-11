@@ -27,7 +27,7 @@ def run_prediction_market():
         result = client.deliberate(
             topic=prediction_topic,
             models=market_participants,
-            mode=DeliberationMode.MARKET,
+            mode=DeliberationMode.PREDICTION_MARKET,
             max_rounds=5,
         )
     except ConsiliumError as exc:

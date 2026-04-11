@@ -1,30 +1,61 @@
 name: 'Consilium Multi-Model PR Review'
-description: 'Run multi-model deliberation on pull request changes'
+description: 'Run multi-model AI deliberation on pull request changes using the Consilium debate engine'
+author: 'consilium'
+
+branding:
+  icon: 'eye'
+  color: 'purple'
+
 inputs:
-  api_url:
-    description: 'Consilium API URL'
-    required: false
-    default: 'http://localhost:4000/api/v1'
-  mode:
-    description: 'Deliberation mode (red-team, council, blind-eval)'
-    required: false
-    default: 'red-team'
-  models:
-    description: 'Comma-separated model IDs'
-    required: false
-  github_token:
+  github-token:
     description: 'GitHub token for posting review comments'
     required: true
-  anthropic_api_key:
+  anthropic-api-key:
     description: 'Anthropic API key'
-    required: false
-  openai_api_key:
+    required: true
+  openai-api-key:
     description: 'OpenAI API key'
     required: false
-  max_rounds:
+    default: ''
+  models:
+    description: 'Comma-separated model IDs for deliberation'
+    required: false
+    default: 'claude-sonnet-4-5,gpt-4o'
+  mode:
+    description: 'Deliberation mode (redteam, council, blind, jury, deep)'
+    required: false
+    default: 'redteam'
+  api-url:
+    description: 'Consilium API base URL'
+    required: false
+    default: ''
+  max-rounds:
     description: 'Maximum deliberation rounds'
     required: false
     default: '3'
+  max-diff-size:
+    description: 'Maximum diff characters to send (0 = no limit)'
+    required: false
+    default: '12000'
+  post-as-review:
+    description: 'Post as PR review instead of issue comment'
+    required: false
+    default: 'true'
+  fail-on-critical:
+    description: 'Fail the action if critical severity findings exist'
+    required: false
+    default: 'false'
+
+outputs:
+  review-body:
+    description: 'The formatted review markdown'
+    value: ${{ steps.review.outputs.review_body }}
+  findings-count:
+    description: 'Number of findings'
+    value: ${{ steps.review.outputs.findings_count }}
+  critical-count:
+    description: 'Number of critical findings'
+    value: ${{ steps.review.outputs.critical_count }}
 
 runs:
   using: 'composite'
@@ -36,24 +67,33 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: pip install httpx
+      run: pip install httpx anthropic openai
 
     - name: Get PR diff
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github_token }}
-      run: gh pr diff ${{ github.event.pull_request.number }} > /tmp/pr_diff.txt
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        DIFF_FILE="${RUNNER_TEMP}/consilium_pr_diff.txt"
+        gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} > "$DIFF_FILE" || true
+        echo "DIFF_SIZE=$(wc -c < "$DIFF_FILE")" >> "$GITHUB_ENV"
+        echo "CONSILIUM_PR_DIFF_FILE=$DIFF_FILE" >> "$GITHUB_ENV"
 
-    - name: Run Consilium deliberation
+    - name: Run Consilium review
+      id: review
       shell: bash
       env:
-        CONSILIUM_API_URL: ${{ inputs.api_url }}
+        CONSILIUM_API_URL: ${{ inputs.api-url }}
         CONSILIUM_MODE: ${{ inputs.mode }}
         CONSILIUM_MODELS: ${{ inputs.models }}
-        CONSILIUM_MAX_ROUNDS: ${{ inputs.max_rounds }}
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
-        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        CONSILIUM_MAX_ROUNDS: ${{ inputs.max-rounds }}
+        CONSILIUM_MAX_DIFF_SIZE: ${{ inputs.max-diff-size }}
+        CONSILIUM_POST_AS_REVIEW: ${{ inputs.post-as-review }}
+        CONSILIUM_FAIL_ON_CRITICAL: ${{ inputs.fail-on-critical }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_SHA: ${{ github.event.pull_request.head.sha }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: python ${{ github.action_path }}/review.py

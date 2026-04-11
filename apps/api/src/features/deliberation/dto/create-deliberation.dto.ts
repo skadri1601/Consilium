@@ -10,6 +10,7 @@ import {
   MaxLength,
   Min,
   Max,
+  IsObject,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
@@ -29,23 +30,27 @@ export class CreateDeliberationDto {
     description: "Deliberation mode",
     example: "council",
     enum: [
+      "quick",
       "council",
-      "red-team",
-      "blind-eval",
-      "prediction-market",
-      "adversarial",
-      "delphi",
+      "deep",
+      "blind",
+      "redteam",
+      "jury",
+      "market",
+      "auto",
     ],
     default: "council",
   })
   @IsOptional()
   @IsIn([
+    "quick",
     "council",
-    "red-team",
-    "blind-eval",
-    "prediction-market",
-    "adversarial",
-    "delphi",
+    "deep",
+    "blind",
+    "redteam",
+    "jury",
+    "market",
+    "auto",
   ])
   mode?: string;
 
@@ -85,4 +90,12 @@ export class CreateDeliberationDto {
     groqKey?: string;
     xaiKey?: string;
   };
+
+  @ApiPropertyOptional({
+    description:
+      "Optional JSON from blind-eval responses file; stored on the session for auditing (workers may ignore until wired).",
+  })
+  @IsOptional()
+  @IsObject()
+  responses?: Record<string, unknown>;
 }

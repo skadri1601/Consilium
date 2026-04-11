@@ -17,6 +17,7 @@ export interface DeliberationOptions {
   mode?: string;
   rounds?: number;
   convergenceThreshold?: number;
+  responses?: Record<string, unknown>;
 }
 
 export interface RedTeamOptions {
@@ -48,9 +49,9 @@ export interface DebateEvent {
 }
 
 export class ConsiliumClient {
-  private apiUrl: string;
-  private apiKey?: string;
-  private debug: boolean;
+  private readonly apiUrl: string;
+  private readonly apiKey?: string;
+  private readonly debug: boolean;
 
   constructor() {
     const config = loadConfig();
@@ -338,7 +339,42 @@ export class ConsiliumClient {
     const response = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ topic, ...options }),
+      body: JSON.stringify({
+        topic,
+        mode: options.mode,
+        models: options.models,
+        maxRounds: options.rounds,
+        convergenceThreshold: options.convergenceThreshold,
+        responses: options.responses,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+    }
+
+    return (await response.json()) as { id: string };
+  }
+
+  async createBenchmark(payload: {
+    benchmark: string;
+    models: string[];
+    mode: string;
+    n?: number;
+  }): Promise<{ id: string }> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const url = `${this.apiUrl}/api/v1/deliberation/benchmarks`;
+    this.log(`Creating benchmark at: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(10000),
     });
 
@@ -418,6 +454,78 @@ export class ConsiliumClient {
       setTimeout(() => {
         eventSource.close();
         reject(new Error('Deliberation stream timeout after 10 minutes'));
+      }, 10 * 60 * 1000);
+    });
+  }
+
+  async streamBenchmark(
+    id: string,
+    onEvent: (event: DeliberationEvent) => void,
+  ): Promise<void> {
+    const streamUrl = `${this.apiUrl}/api/v1/deliberation/benchmarks/${id}/stream`;
+    this.log(`Opening benchmark stream: ${streamUrl}`);
+
+    const init: { headers?: Record<string, string> } = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
+
+    return new Promise((resolve, reject) => {
+      const eventSource = new EventSource(streamUrl, init);
+      let eventCount = 0;
+      let connectionEstablished = false;
+
+      eventSource.onmessage = (event: any) => {
+        try {
+          if (!connectionEstablished) {
+            this.log('Benchmark SSE connection established');
+            connectionEstablished = true;
+          }
+
+          const data = JSON.parse(event.data);
+          const eventType = data.event ?? 'message';
+          eventCount++;
+          this.log(`Benchmark event #${eventCount}: ${eventType}`);
+
+          const deliberationEvent: DeliberationEvent = {
+            type: eventType as DeliberationEvent['type'],
+            phase: data.phase,
+            agent: data.agent ?? data.agent_id,
+            text: data.chunk ?? data.text ?? data.content ?? data.response,
+            error: data.error,
+            deliberationId: data.deliberation_id ?? data.deliberationId ?? data.benchmark_id ?? data.benchmarkId,
+            progress: data.progress,
+            convergence: data.convergence,
+            dissent: data.dissent,
+            vote: data.vote,
+            cost: data.cost,
+          };
+
+          onEvent(deliberationEvent);
+
+          if (eventType === 'done' || eventType === 'deliberation_complete') {
+            this.log(`Benchmark stream completed after ${eventCount} events`);
+            eventSource.close();
+            resolve();
+          }
+
+          if (eventType === 'error') {
+            eventSource.close();
+            reject(new Error(data.error || 'Benchmark error'));
+          }
+        } catch (error: any) {
+          this.logError('Failed to parse benchmark event', error);
+        }
+      };
+
+      eventSource.onerror = (error: any) => {
+        this.logError('Benchmark SSE error', error);
+        eventSource.close();
+        reject(new Error('Benchmark stream failed'));
+      };
+
+      setTimeout(() => {
+        eventSource.close();
+        reject(new Error('Benchmark stream timeout after 10 minutes'));
       }, 10 * 60 * 1000);
     });
   }

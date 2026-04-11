@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { style, border, contentLine, borderBottom } from './visual-system';
 import { terminal } from './terminal-capabilities';
 import { SessionManager } from './session-manager';
@@ -55,6 +55,28 @@ export function handleConversationsCommand(sessionManager: SessionManager): void
   console.log(s.dim(`  ${sessions.length} conversation(s) total`));
 }
 
+function logContextFiles(files: { name: string; size: number }[], totalFileSize: number): void {
+  console.log(contentLine(`Files in context: ${files.length}  (${totalFileSize} bytes total)`, w));
+  for (const f of files) {
+    console.log(contentLine(`  ${s.dim(f.name)}  ${f.size} bytes`, w));
+  }
+}
+
+function logContextTokenBudget(totalFileSize: number, followUpChars: number): void {
+  const fileTokens = Math.ceil(totalFileSize / 4);
+  const followUpTokens = Math.ceil(followUpChars / 4);
+  const decisionLogTokens = 0;
+  const used = fileTokens + followUpTokens + decisionLogTokens;
+  const budget = 12000;
+  const remaining = Math.max(0, budget - used);
+  console.log(contentLine('', w));
+  console.log(contentLine(s.bold('Estimated token usage:'), w));
+  console.log(contentLine(`  File context:      ~${fileTokens} tokens`, w));
+  console.log(contentLine(`  Follow-up context: ~${followUpTokens} tokens`, w));
+  console.log(contentLine(`  Decision log:      ~${decisionLogTokens} tokens`, w));
+  console.log(contentLine(`  Remaining budget:  ~${remaining} of ${budget} tokens`, w));
+}
+
 export function handleContextCommand(session: ChatSession): void {
   const cm = session.contextManager;
   const files = cm.getFiles();
@@ -67,30 +89,10 @@ export function handleContextCommand(session: ChatSession): void {
     .reduce((sum, d) => sum + (d.goldenPrompt?.length ?? 0), 0);
 
   console.log(border('Context Window', w));
-
-  console.log(contentLine(`Files in context: ${files.length}  (${totalFileSize} bytes total)`, w));
-  for (const f of files) {
-    console.log(contentLine(`  ${s.dim(f.name)}  ${f.size} bytes`, w));
-  }
-
+  logContextFiles(files, totalFileSize);
   console.log(contentLine(`Images in context: ${images.length}`, w));
   console.log(contentLine(`Previous syntheses used: ${Math.min(synthesesCount, 5)} of ${synthesesCount}`, w));
-
-  console.log(contentLine('', w));
-  console.log(contentLine(s.bold('Estimated token usage:'), w));
-
-  const fileTokens = Math.ceil(totalFileSize / 4);
-  const followUpTokens = Math.ceil(followUpChars / 4);
-  const decisionLogTokens = 0;
-  const used = fileTokens + followUpTokens + decisionLogTokens;
-  const budget = 12000;
-  const remaining = Math.max(0, budget - used);
-
-  console.log(contentLine(`  File context:      ~${fileTokens} tokens`, w));
-  console.log(contentLine(`  Follow-up context: ~${followUpTokens} tokens`, w));
-  console.log(contentLine(`  Decision log:      ~${decisionLogTokens} tokens`, w));
-  console.log(contentLine(`  Remaining budget:  ~${remaining} of ${budget} tokens`, w));
-
+  logContextTokenBudget(totalFileSize, followUpChars);
   console.log(borderBottom(w));
 }
 
@@ -116,16 +118,16 @@ export function handleModeCommand(
     return { mode: currentMode, changed: false };
   }
 
-  const requested = args[0].toLowerCase();
+  const requested = (args[0] ?? '').toLowerCase();
   if (!isValidMode(requested)) {
     console.log(s.error(`  Invalid mode: ${requested}`));
     console.log(s.dim(`  Valid modes: ${Object.keys(DEBATE_MODES).join(', ')}`));
     return { mode: currentMode, changed: false };
   }
 
-  const config = DEBATE_MODES[requested as DebateMode];
+  const config = DEBATE_MODES[requested];
   console.log(s.success(`  Mode set to ${requested}`));
-  console.log(s.dim(`  ${config.description}`));
+  console.log(s.dim(`  ${config?.description ?? ''}`));
   return { mode: requested, changed: true };
 }
 
@@ -180,7 +182,7 @@ export function handleOutputCommand(
     return { format: currentFormat, changed: false };
   }
 
-  const requested = args[0].toLowerCase();
+  const requested = (args[0] ?? '').toLowerCase();
   if (!isValidOutputFormat(requested)) {
     console.log(s.error(`  Invalid format: ${requested}`));
     console.log(s.dim(`  Valid formats: ${validFormats.join(', ')}`));
@@ -191,14 +193,7 @@ export function handleOutputCommand(
   return { format: requested, changed: true };
 }
 
-export async function handleWorkspaceCommand(projectPath: string): Promise<void> {
-  console.log(border('Workspace', w));
-  console.log(contentLine(`Path: ${projectPath}`, w));
-
-  const detected: string[] = [];
-  const keyFiles: string[] = [];
-
-  const checks: Array<{ file: string; label: string; isKeyFile?: boolean }> = [
+const WORKSPACE_CHECKS: Array<{ file: string; label: string; isKeyFile?: boolean }> = [
     { file: 'package.json', label: 'Node.js', isKeyFile: true },
     { file: 'tsconfig.json', label: 'TypeScript', isKeyFile: true },
     { file: 'Cargo.toml', label: 'Rust', isKeyFile: true },
@@ -218,59 +213,58 @@ export async function handleWorkspaceCommand(projectPath: string): Promise<void>
     { file: 'prisma/schema.prisma', label: 'Prisma' },
     { file: '.env', label: '', isKeyFile: true },
     { file: '.env.example', label: '', isKeyFile: true },
-  ];
+];
 
-  for (const check of checks) {
+function scanWorkspaceFiles(projectPath: string): { detected: string[]; keyFiles: string[] } {
+  const detected: string[] = [];
+  const keyFiles: string[] = [];
+  for (const check of WORKSPACE_CHECKS) {
     const fullPath = path.join(projectPath, check.file);
-    if (fs.existsSync(fullPath)) {
-      if (check.label) {
-        detected.push(check.label);
-      }
-      if (check.isKeyFile) {
-        keyFiles.push(check.file);
-      }
-    }
+    if (!fs.existsSync(fullPath)) continue;
+    if (check.label) detected.push(check.label);
+    if (check.isKeyFile) keyFiles.push(check.file);
   }
+  return { detected, keyFiles };
+}
 
-  const uniqueDetected = [...new Set(detected)];
+function resolveWorkspaceLanguage(unique: Set<string>): string {
+  if (unique.has('TypeScript')) return 'TypeScript';
+  if (unique.has('Node.js')) return 'JavaScript';
+  if (unique.has('Rust')) return 'Rust';
+  if (unique.has('Go')) return 'Go';
+  if (unique.has('Python')) return 'Python';
+  if (unique.has('Java/Maven') || unique.has('Java/Gradle')) return 'Java';
+  return 'Unknown';
+}
 
-  let projectType = 'Unknown';
-  let language = 'Unknown';
-  let framework = '';
-
-  if (uniqueDetected.includes('TypeScript')) {
-    language = 'TypeScript';
-  } else if (uniqueDetected.includes('Node.js')) {
-    language = 'JavaScript';
-  } else if (uniqueDetected.includes('Rust')) {
-    language = 'Rust';
-  } else if (uniqueDetected.includes('Go')) {
-    language = 'Go';
-  } else if (uniqueDetected.includes('Python')) {
-    language = 'Python';
-  } else if (uniqueDetected.includes('Java/Maven') || uniqueDetected.includes('Java/Gradle')) {
-    language = 'Java';
+function resolveWorkspaceFramework(
+  unique: Set<string>,
+): { projectType: string; framework: string } {
+  if (unique.has('Next.js')) return { projectType: 'Web Application', framework: 'Next.js' };
+  if (unique.has('Vite')) return { projectType: 'Web Application', framework: 'Vite' };
+  if (unique.has('Angular')) return { projectType: 'Web Application', framework: 'Angular' };
+  if (unique.has('Node.js') || unique.has('TypeScript')) {
+    return { projectType: 'Node.js Project', framework: '' };
   }
+  return { projectType: 'Unknown', framework: '' };
+}
 
-  if (uniqueDetected.includes('Next.js')) {
-    framework = 'Next.js';
-    projectType = 'Web Application';
-  } else if (uniqueDetected.includes('Vite')) {
-    framework = 'Vite';
-    projectType = 'Web Application';
-  } else if (uniqueDetected.includes('Angular')) {
-    framework = 'Angular';
-    projectType = 'Web Application';
-  } else if (uniqueDetected.includes('Node.js') || uniqueDetected.includes('TypeScript')) {
-    projectType = 'Node.js Project';
-  }
+function appendStackTools(unique: Set<string>, framework: string): string {
+  let out = framework;
+  if (unique.has('Prisma')) out = out ? `${out} + Prisma` : 'Prisma';
+  if (unique.has('Docker')) out = out ? `${out} + Docker` : 'Docker';
+  return out;
+}
 
-  if (uniqueDetected.includes('Prisma')) {
-    framework = framework ? `${framework} + Prisma` : 'Prisma';
-  }
-  if (uniqueDetected.includes('Docker')) {
-    framework = framework ? `${framework} + Docker` : 'Docker';
-  }
+export async function handleWorkspaceCommand(projectPath: string): Promise<void> {
+  console.log(border('Workspace', w));
+  console.log(contentLine(`Path: ${projectPath}`, w));
+
+  const { detected, keyFiles } = scanWorkspaceFiles(projectPath);
+  const uniqueDetected = new Set(detected);
+  const language = resolveWorkspaceLanguage(uniqueDetected);
+  let { projectType, framework } = resolveWorkspaceFramework(uniqueDetected);
+  framework = appendStackTools(uniqueDetected, framework);
 
   console.log(contentLine(`Type:      ${projectType}`, w));
   console.log(contentLine(`Language:  ${language}`, w));

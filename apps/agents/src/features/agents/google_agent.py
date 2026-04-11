@@ -1,14 +1,15 @@
-from typing import AsyncGenerator, Optional, Tuple
-from .base_agent import BaseAgent
+from collections.abc import AsyncIterator
+from typing import Optional, Tuple
+from .base_agent import BaseAgent, LLMProviderError
 
 try:
     import google.generativeai as genai
-    from google.api_core import exceptions as google_exceptions
     HAS_GOOGLE = True
 except ImportError:
     HAS_GOOGLE = False
     genai = None  # type: ignore
-    google_exceptions = None  # type: ignore
+
+_GOOGLE_PKG_MISSING = "Google Generative AI package not installed"
 
 
 class GoogleAgent(BaseAgent):
@@ -29,17 +30,21 @@ class GoogleAgent(BaseAgent):
     def _create_model(self):
         """Create and configure Google Generative AI model."""
         if not HAS_GOOGLE:
-            raise ImportError("Google Generative AI package not installed")
-
+            raise ImportError(_GOOGLE_PKG_MISSING)
+        assert genai is not None
         genai.configure(api_key=self.api_key)
         return genai.GenerativeModel(self.model_id)
 
     async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
         if not self._validate_api_key():
-            return f"[{self.name} Error: No API key provided]", 0
+            self._raise_no_api_key()
 
         if not HAS_GOOGLE:
-            return f"[{self.name} Error: Google Generative AI package not installed]", 0
+            raise LLMProviderError(
+                provider=self.provider,
+                error_type="unknown",
+                original_error=_GOOGLE_PKG_MISSING,
+            )
 
         try:
             model = self._create_model()
@@ -47,21 +52,22 @@ class GoogleAgent(BaseAgent):
             response = await model.generate_content_async(full_prompt)
 
             content = response.text if response.text else ""
-            # Gemini doesn't provide token counts directly - rough estimate
             tokens = len(content.split()) * 2
             return content, tokens
 
         except Exception as e:
-            return self._handle_common_errors(e, "API"), 0
+            self._handle_common_errors(e, "API")
 
-    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncIterator[str]:
         if not self._validate_api_key():
-            yield f"[{self.name} Error: No API key provided]"
-            return
+            self._raise_no_api_key()
 
         if not HAS_GOOGLE:
-            yield f"[{self.name} Error: Google Generative AI package not installed]"
-            return
+            raise LLMProviderError(
+                provider=self.provider,
+                error_type="unknown",
+                original_error=_GOOGLE_PKG_MISSING,
+            )
 
         try:
             model = self._create_model()
@@ -73,7 +79,7 @@ class GoogleAgent(BaseAgent):
                     yield chunk.text
 
         except Exception as e:
-            yield self._handle_common_errors(e, "Streaming")
+            self._handle_common_errors(e, "Streaming")
 
     async def health_check(self) -> bool:
         """Check if Google Gemini API is accessible."""
