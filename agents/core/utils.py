@@ -57,23 +57,3 @@ def safe_json_loads(data, max_size=1024*1024):
     except json.JSONDecodeError as e:
         logger.warning("Failed to parse JSON: %s", e)
         raise
-
-
-def post_slack(text, channel=None):
-    from agents.config import SLACK_BOT_TOKEN, SLACK_NOTIFICATION_CHANNEL
-    if not SLACK_BOT_TOKEN:
-        return
-    from slack_sdk import WebClient
-    ch = channel or SLACK_NOTIFICATION_CHANNEL
-    if not ch:
-        return
-
-    # Sanitize text to prevent injection attacks
-    safe_text = sanitize_shell_arg(str(text))
-
-    try:
-        client = WebClient(token=SLACK_BOT_TOKEN)
-        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": safe_text}}]
-        client.chat_postMessage(channel=ch, blocks=blocks, text=safe_text[:200])
-    except Exception as e:
-        logger.warning("Slack post failed: %s", e)

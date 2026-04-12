@@ -34,6 +34,7 @@ class StartDeliberationRequest(BaseModel):
     judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
     max_rounds: Optional[int] = Field(None, description="Maximum deliberation rounds")
+    project_context: Optional[dict] = Field(None, description="Codebase context metadata and files")
 
 
 class RedTeamRequest(BaseModel):
@@ -118,6 +119,7 @@ async def start_deliberation(request: StartDeliberationRequest):
         api_keys=request.api_keys,
         max_rounds=request.max_rounds,
         sse_handler=sse_handler,
+        project_context=request.project_context,
     )
 
     _store_deliberation(deliberation_id, DeliberationStatus.PENDING, engine, request.topic)

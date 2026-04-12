@@ -8,7 +8,12 @@ export async function GET(
 ) {
   const { path: segments } = await params;
   const fileName = segments.join("/");
-  const filePath = path.join(process.cwd(), "public", "brand", fileName);
+  const basePath = path.resolve(process.cwd(), "public", "brand");
+  const filePath = path.resolve(basePath, fileName);
+
+  if (!filePath.startsWith(basePath + path.sep) && filePath !== basePath) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
     const buffer = await readFile(filePath);

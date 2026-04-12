@@ -7,6 +7,10 @@ export interface DebateJobData {
   topic: string;
   models: string[];
   userId: string;
+  mode?: string;
+  debateSource?: string;
+  systemPrompt?: string;
+  projectContext?: Record<string, unknown>;
   apiKeys?: {
     openaiKey?: string;
     anthropicKey?: string;
@@ -34,11 +38,13 @@ export class DebateQueueService {
       return null;
     }
 
+    const { apiKeys: _keys, ...safeData } = job.data;
+
     return {
       id: job.id,
       state: await job.getState(),
       progress: job.progress,
-      data: job.data,
+      data: safeData,
       failedReason: job.failedReason,
     };
   }

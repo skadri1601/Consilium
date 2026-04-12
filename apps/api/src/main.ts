@@ -10,6 +10,17 @@ import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import * as Sentry from "@sentry/node";
 
+const truthyEnv = (v: string | undefined) =>
+  (v || "").toLowerCase() === "true" || v === "1";
+
+function resolveFastifyLogLevel(): string {
+  const explicit = process.env.LOG_LEVEL?.toLowerCase();
+  if (explicit) {
+    return explicit;
+  }
+  return truthyEnv(process.env.API_DEBUG) ? "debug" : "info";
+}
+
 async function bootstrap() {
   if (process.env.SENTRY_DSN) {
     Sentry.init({
@@ -22,7 +33,9 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    new FastifyAdapter({
+      logger: { level: resolveFastifyLogLevel() },
+    }),
   );
 
   app.setGlobalPrefix("api/v1", {

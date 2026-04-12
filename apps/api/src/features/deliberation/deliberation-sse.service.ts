@@ -85,6 +85,7 @@ export class DeliberationSseService {
             throw new Error("No response body reader available");
           }
 
+          const MAX_BUFFER_SIZE = 1024 * 1024;
           let buffer = "";
           let currentEvent: string | null = null;
 
@@ -98,6 +99,11 @@ export class DeliberationSseService {
             }
 
             buffer += decoder.decode(value, { stream: true });
+            if (buffer.length > MAX_BUFFER_SIZE) {
+              this.logger.error("[SSE] Buffer exceeded 1MB limit, aborting");
+              subscriber.error(new Error("SSE buffer overflow"));
+              return;
+            }
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
 

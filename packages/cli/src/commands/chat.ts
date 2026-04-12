@@ -322,7 +322,7 @@ function runReplLoop(
 }
 
 export async function chatCommand(): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const client = new ConsiliumClient();
   const contextManager = new ContextManager();
@@ -379,7 +379,7 @@ export async function chatCommand(): Promise<void> {
 }
 
 export async function chatResumeCommand(sessionId: string): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const sessionManager = new SessionManager(DEFAULT_SESSION_DIR);
 

@@ -8,21 +8,17 @@ Operations automation running on DigitalOcean droplet.
 ```
 agents/
 ├── bots/
-│   ├── slack_bot.py      — 3 Redis workers, intent routing, streaming responses
-│   ├── monitor_agent.py  — Sentry/SonarQube/email monitoring with recovery
-│   └── briefing_agent.py — Daily status reports
+│   ├── monitor_agent.py  — Polls Sentry and SonarQube; logs findings (no ticketing integrations)
+│   └── briefing_agent.py — Text digest (Sentry, Vercel, SonarQube, db stats) to stdout
 ├── core/
-│   ├── base.py           — Claude CLI tool-use loop (15 turns max, 13 tools)
-│   ├── router.py         — Intent detection (17 patterns) + quick command handlers
-│   ├── redis_queue.py    — Task queue (Upstash Redis, SQLite fallback)
-│   ├── redis_session.py  — Session storage (24h TTL, auto-compaction at 15 entries)
-│   ├── lanes.py          — Pipeline state machine (error → ticket → PR → merge → verify)
-│   ├── recovery.py       — 10 failure scenarios with multi-step recipes + escalation
+│   ├── base.py           — Shared logging, optional Claude CLI helpers, monitor loop helper
+│   ├── lanes.py          — Pipeline state machine types (lanes registry unused by monitor)
+│   ├── recovery.py       — Failure-scenario recovery recipes (log-based escalation)
 │   ├── telemetry.py      — Structured event recording (Redis + JSONL)
 │   └── worker_registry.py — Worker lifecycle (7 states)
-├── tools/                — CLI tool modules (linear_api, sentry_api, email_imap, etc.)
-├── config.py             — All env vars, model validation
-└── run_all.py            — Orchestrator (slack_bot + monitor_agent)
+├── tools/                — CLI tool modules (sentry_api, sonarqube_api, vercel_api, db_lookup, etc.)
+├── config.py             — Env vars for remaining integrations
+└── run_all.py            — Orchestrator (monitor_agent; optional briefing)
 ```
 
 ### 2. Deliberation Engine (apps/agents/)

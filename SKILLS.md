@@ -17,7 +17,6 @@
 ## MCP Servers Available
 - **Linear** — Ticket management (MYC- prefix), use for project tracking
 - **Sentry** — Error monitoring, use when debugging production issues
-- **Slack** — Bot notifications, use for team communication
 - **Vercel** — Web deployment status and logs
 
 ## Project-Specific Commands

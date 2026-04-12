@@ -1,0 +1,171 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: consilium-caddy
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      agents:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DOMAIN=${DOMAIN:?DOMAIN is required}
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: "0.25"
+    networks:
+      - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: consilium-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --save 60 1000
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+    networks:
+      - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  agents:
+    build:
+      context: .
+      dockerfile: apps/agents/Dockerfile
+    container_name: consilium-agents
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - BACKEND_API_URL=http://api:4000
+      - CONSILIUM_API_KEY=${CONSILIUM_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://us.cloud.langfuse.com}
+      - APP_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    networks:
+      - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: consilium-api
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      agents:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
+      - DIRECT_URL=${DIRECT_URL:-${DATABASE_URL}}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - AI_WORKERS_URL=http://agents:8000
+      - NODE_ENV=production
+      - PORT=4000
+      - FRONTEND_URL=${FRONTEND_URL:-https://consilium.vercel.app}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://consilium.vercel.app}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: "0.5"
+    networks:
+      - consilium
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  redis_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  consilium:
+    name: consilium-network
+    driver: bridge

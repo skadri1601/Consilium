@@ -3,17 +3,14 @@
 import Link from "next/link";
 import {
   Shield,
-  Code,
-  Users,
   Github,
-  Swords,
-  Vote,
+  MessageSquare,
+  ListOrdered,
   Activity,
   AlertTriangle,
   Gauge,
   FileSearch,
   Key,
-  Settings,
   Server,
   Zap,
 } from "lucide-react";
@@ -23,13 +20,13 @@ import { Badge } from "@/shared/components/ui/badge";
 
 const differentiators = [
   {
-    icon: Swords,
+    icon: MessageSquare,
     title: "True Deliberation, Not Orchestration",
     description: "Orchestration tools (CrewAI, AutoGen, LangGraph) run models in parallel and pick the best output. Consilium makes models argue, challenge claims, defend positions, vote, and only converge when mathematically confirmed. Cross-examination uses typed challenges (factual error, missing evidence, flawed logic) and categorized rebuttals (concede, refute, qualify, redirect). Each challenge must reference specific claims, and each rebuttal must provide evidence — not hand-waving.",
     detail: "Challenge types: FACTUAL_ERROR, MISSING_EVIDENCE, FLAWED_LOGIC. Rebuttal types: CONCEDE, REFUTE, QUALIFY, REDIRECT.",
   },
   {
-    icon: Vote,
+    icon: ListOrdered,
     title: "Formal Voting Theory",
     description: "Condorcet method finds the candidate that beats ALL others pairwise. Borda count provides confidence-weighted scoring across all positions. Ranked Pairs delivers cycle-free tiebreaking using a directed acyclic graph of pairwise victories. Copeland scoring enables comparative analysis by counting net pairwise wins. This is real social choice theory applied to AI consensus — not majority voting, not picking the most popular answer.",
     detail: "Algorithms: Condorcet, Borda Count, Ranked Pairs, Copeland.",

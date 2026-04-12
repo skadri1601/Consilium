@@ -1,19 +1,14 @@
-FROM python:3.11-slim AS base
-
-RUN pip install poetry
-
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_VIRTUALENVS_CREATE=true \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
-FROM base AS deps
+FROM python:3.11-slim AS deps
 WORKDIR /app
+
+RUN python -m venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
 COPY apps/agents/pyproject.toml apps/agents/README.md ./
 RUN mkdir -p src && touch src/__init__.py
-RUN poetry install --without dev
+RUN pip install --no-cache-dir .
 
-FROM base AS runner
+FROM python:3.11-slim AS runner
 WORKDIR /app
 
 RUN groupadd --system --gid 1001 appuser && \

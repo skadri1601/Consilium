@@ -18,97 +18,6 @@ MODEL_MAP = {
 
 TOOLS = [
     {
-        "name": "search_email",
-        "description": "Search emails by sender name, subject, or keyword. Returns matching emails with sender, subject, date, and preview.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "Search query. Examples: 'from:ayush', 'from:john', 'subject:invoice', or plain text like 'meeting'"},
-                "limit": {"type": "integer", "description": "Max results (default 10)", "default": 10},
-            },
-            "required": ["query"],
-        },
-    },
-    {
-        "name": "read_email",
-        "description": "Read the full content of a specific email by its UID.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "uid": {"type": "string", "description": "The email UID from search results"},
-            },
-            "required": ["uid"],
-        },
-    },
-    {
-        "name": "email_thread",
-        "description": "Get the full email conversation thread for a given email UID.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "uid": {"type": "string", "description": "The email UID to get the thread for"},
-            },
-            "required": ["uid"],
-        },
-    },
-    {
-        "name": "unread_emails",
-        "description": "List unread emails in the inbox.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "limit": {"type": "integer", "description": "Max results (default 10)", "default": 10},
-            },
-        },
-    },
-    {
-        "name": "linear_create_ticket",
-        "description": "Create a new Linear ticket/issue.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "title": {"type": "string", "description": "Ticket title"},
-                "description": {"type": "string", "description": "Ticket description", "default": ""},
-            },
-            "required": ["title"],
-        },
-    },
-    {
-        "name": "linear_search",
-        "description": "Search Linear issues by keyword.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "Search query"},
-                "limit": {"type": "integer", "default": 10},
-            },
-            "required": ["query"],
-        },
-    },
-    {
-        "name": "linear_get_issue",
-        "description": "Get details of a Linear issue by identifier (e.g. MYC-42).",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "identifier": {"type": "string", "description": "Issue identifier like MYC-42"},
-            },
-            "required": ["identifier"],
-        },
-    },
-    {
-        "name": "linear_transition",
-        "description": "Change the status of a Linear issue.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "identifier": {"type": "string", "description": "Issue identifier like MYC-42"},
-                "state": {"type": "string", "description": "Target state name, e.g. 'In Progress', 'Done', 'In Review'"},
-            },
-            "required": ["identifier", "state"],
-        },
-    },
-    {
         "name": "sentry_issues",
         "description": "List unresolved Sentry errors/issues.",
         "input_schema": {
@@ -133,17 +42,6 @@ TOOLS = [
         "name": "sonarqube_quality",
         "description": "Get SonarQube quality gate status and metrics.",
         "input_schema": {"type": "object", "properties": {}},
-    },
-    {
-        "name": "github_prs",
-        "description": "List open GitHub pull requests.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "state": {"type": "string", "default": "open"},
-                "limit": {"type": "integer", "default": 10},
-            },
-        },
     },
     {
         "name": "db_lookup",
@@ -207,46 +105,10 @@ def _run_cli(module, *args):
         return f"Error: {e}"
 
 
-_CLI_EMAIL_IMAP = "agents.tools.email_imap"
-_CLI_LINEAR_API = "agents.tools.linear_api"
 _CLI_SENTRY_API = "agents.tools.sentry_api"
 _CLI_VERCEL_API = "agents.tools.vercel_api"
 _CLI_SONARQUBE_API = "agents.tools.sonarqube_api"
-_CLI_GITHUB_API = "agents.tools.github_api"
 _CLI_DB_LOOKUP = "agents.tools.db_lookup"
-
-
-def _tool_search_email(d):
-    return _run_cli(_CLI_EMAIL_IMAP, "search", "--query", d["query"], "--limit", str(d.get("limit", 10)))
-
-
-def _tool_read_email(d):
-    return _run_cli(_CLI_EMAIL_IMAP, "read", "--uid", d["uid"])
-
-
-def _tool_email_thread(d):
-    return _run_cli(_CLI_EMAIL_IMAP, "thread", "--uid", d["uid"])
-
-
-def _tool_unread_emails(d):
-    return _run_cli(_CLI_EMAIL_IMAP, "unread", "--limit", str(d.get("limit", 10)))
-
-
-def _tool_linear_create_ticket(d):
-    args = ["create", "--title", d["title"], "--description", d.get("description", "")]
-    return _run_cli(_CLI_LINEAR_API, *args)
-
-
-def _tool_linear_search(d):
-    return _run_cli(_CLI_LINEAR_API, "search", d["query"], "--limit", str(d.get("limit", 10)))
-
-
-def _tool_linear_get_issue(d):
-    return _run_cli(_CLI_LINEAR_API, "get", "--identifier", d["identifier"])
-
-
-def _tool_linear_transition(d):
-    return _run_cli(_CLI_LINEAR_API, "transition", "--identifier", d["identifier"], "--state", d["state"])
 
 
 def _tool_sentry_issues(d):
@@ -272,36 +134,16 @@ def _tool_sonarqube_quality(_):
     return _run_cli(_CLI_SONARQUBE_API, "quality-gate")
 
 
-def _tool_github_prs(d):
-    return _run_cli(
-        _CLI_GITHUB_API,
-        "list-prs",
-        "--state",
-        d.get("state", "open"),
-        "--limit",
-        str(d.get("limit", 10)),
-    )
-
-
 def _tool_db_lookup(d):
     cmd_parts = d["command"].split()
     return _run_cli(_CLI_DB_LOOKUP, *cmd_parts)
 
 
 _TOOL_HANDLERS = {
-    "search_email": _tool_search_email,
-    "read_email": _tool_read_email,
-    "email_thread": _tool_email_thread,
-    "unread_emails": _tool_unread_emails,
-    "linear_create_ticket": _tool_linear_create_ticket,
-    "linear_search": _tool_linear_search,
-    "linear_get_issue": _tool_linear_get_issue,
-    "linear_transition": _tool_linear_transition,
     "sentry_issues": _tool_sentry_issues,
     "sentry_stats": _tool_sentry_stats,
     "vercel_status": _tool_vercel_status,
     "sonarqube_quality": _tool_sonarqube_quality,
-    "github_prs": _tool_github_prs,
     "db_lookup": _tool_db_lookup,
 }
 

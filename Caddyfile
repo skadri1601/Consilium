@@ -1,0 +1,42 @@
+{$DOMAIN} {
+	handle /mcp* {
+		reverse_proxy agents:8000
+	}
+
+	handle /health {
+		reverse_proxy agents:8000
+	}
+
+	handle /ready {
+		reverse_proxy agents:8000
+	}
+
+	handle /live {
+		reverse_proxy agents:8000
+	}
+
+	handle /agents/* {
+		uri strip_prefix /agents
+		reverse_proxy agents:8000
+	}
+
+	handle {
+		reverse_proxy api:4000
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 3
+		}
+		format json
+	}
+}

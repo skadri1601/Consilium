@@ -1,10 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { DebatesService } from "./debates.service";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { ApiKeysService } from "../api-keys/api-keys.service";
 import { AiWorkersClient } from "./ai-workers.client";
 import { PersonasService } from "../personas/personas.service";
+import { DebateQueueService } from "../../shared/queue/debate-queue.service";
 
 describe("DebatesService", () => {
   let service: DebatesService;
@@ -50,6 +52,19 @@ describe("DebatesService", () => {
     del: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn((key: string) => {
+      if (key === "app.debateUseQueue") {
+        return false;
+      }
+      return false;
+    }),
+  };
+
+  const mockDebateQueueService = {
+    addDebateJob: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -58,6 +73,8 @@ describe("DebatesService", () => {
         { provide: ApiKeysService, useValue: mockApiKeysService },
         { provide: AiWorkersClient, useValue: mockAiWorkersClient },
         { provide: PersonasService, useValue: { findOne: jest.fn() } },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: DebateQueueService, useValue: mockDebateQueueService },
         {
           provide: "default_IORedisModuleConnectionToken",
           useValue: mockRedis,
@@ -169,7 +186,10 @@ describe("DebatesService", () => {
         where: { clerkId },
       });
       expect(mockPrismaService.debateSession.findMany).toHaveBeenCalledWith({
-        where: { userId: mockUser.id },
+        where: {
+          userId: mockUser.id,
+          status: { notIn: ["deleted", "cancelled"] },
+        },
         orderBy: { createdAt: "desc" },
         take: 20,
         skip: 0,

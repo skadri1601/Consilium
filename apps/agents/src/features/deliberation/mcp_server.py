@@ -122,12 +122,18 @@ async def handle_deliberate(arguments: dict) -> str:
     else:
         mode = DeliberationMode(mode_str)
 
+    project_context = None
+    context = arguments.get("context")
+    if context and arguments.get("codebase_access"):
+        project_context = context
+
     engine = DeliberationEngine(
         mode=mode,
         models=models,
         judge_model=DEFAULT_JUDGE,
         api_keys={},
         max_rounds=max_rounds,
+        project_context=project_context,
     )
     state = await engine.run(topic)
 

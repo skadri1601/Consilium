@@ -1,32 +1,25 @@
-FROM node:20-alpine AS base
-
+FROM node:20-alpine AS builder
 RUN npm install -g pnpm
-
-FROM base AS builder
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages ./packages
-COPY apps/api ./apps/api
+COPY apps ./apps
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm db:generate
+RUN pnpm --filter @consilium/shared build
+RUN cd packages/database && npx tsc --outDir dist --declaration && \
+    node -e "const p=require('./package.json');p.main='./dist/index.js';p.types='./dist/index.d.ts';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
 RUN pnpm --filter @consilium/api build
-
-FROM base AS runner
-WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-
 USER nestjs
 
 EXPOSE 4000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "apps/api/dist/main.js"]

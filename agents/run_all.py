@@ -6,7 +6,6 @@ import sys
 import time
 from pathlib import Path
 
-from agents.config import DEFAULT_MODEL
 from agents.core.base import setup_logging
 
 logger = setup_logging("orchestrator")
@@ -68,9 +67,7 @@ def main():
     parser = argparse.ArgumentParser(description="Consilium Agent Orchestrator")
     parser.add_argument("--interval", type=int, default=300)
     parser.add_argument("--restart-delay", type=int, default=15)
-    parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--no-slack", action="store_true")
     parser.add_argument("--no-monitor", action="store_true")
     parser.add_argument("--briefing", action="store_true")
     args = parser.parse_args()
@@ -79,9 +76,6 @@ def main():
     signal.signal(signal.SIGINT, handle_signal)
 
     agents = {}
-
-    if not args.no_slack:
-        agents["slack_bot"] = [sys.executable, "-m", "agents.bots.slack_bot", "--model", args.model]
 
     if not args.no_monitor:
         agents["monitor_agent"] = [sys.executable, "-m", "agents.bots.monitor_agent", "--interval", str(args.interval)]

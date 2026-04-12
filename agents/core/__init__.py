@@ -1,13 +1,6 @@
 from agents.core.base import run_claude, build_base_prompt, run_continuous, sanitize_model
 
 try:
-    from agents.core.redis_queue import RedisQueue
-    from agents.core.redis_session import RedisSession
-except ImportError:
-    RedisQueue = None
-    RedisSession = None
-
-try:
     from agents.core.lanes import LaneRegistry, PolicyEngine
 except ImportError:
     LaneRegistry = None

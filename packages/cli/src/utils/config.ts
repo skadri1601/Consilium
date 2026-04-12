@@ -10,13 +10,15 @@ export interface Config {
   apiKey?: string;
   webUrl?: string;
   debug?: boolean;
+  userName?: string;
+  userEmail?: string;
 }
 
 export function loadConfig(): Config {
   if (!fs.existsSync(CONFIG_FILE)) {
     return {
-      apiUrl: process.env.CONSILIUM_API_URL || "http://localhost:4000",
-      webUrl: process.env.CONSILIUM_WEB_URL || "http://localhost:3000",
+      apiUrl: process.env.CONSILIUM_API_URL || "https://myconsilium.xyz",
+      webUrl: process.env.CONSILIUM_WEB_URL || "https://myconsilium.xyz",
       debug:
         process.env.CONSILIUM_DEBUG === "1" ||
         process.env.CONSILIUM_DEBUG === "true",
@@ -53,4 +55,17 @@ export function getConfigValue(key: string): string | undefined {
 
 export function listConfig(): Config {
   return loadConfig();
+}
+
+export function isLoggedIn(): boolean {
+  const config = loadConfig();
+  return !!config.apiKey && config.apiKey.startsWith("consilium_");
+}
+
+export function clearAuth(): void {
+  const config = loadConfig();
+  delete config.apiKey;
+  delete config.userName;
+  delete config.userEmail;
+  saveConfig(config);
 }

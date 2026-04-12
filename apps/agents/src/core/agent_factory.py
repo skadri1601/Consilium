@@ -86,9 +86,6 @@ class AgentFactory:
         user_key = _extract_user_key(provider, api_keys)
         api_key = env_key or user_key
 
-        import sys
-        print(f"[AgentFactory] model={model_id} provider={provider} env_key={(env_key or 'NONE')[:15]} user_key={(user_key or 'NONE')[:15]} final={(api_key or 'NONE')[:15]}", file=sys.stderr)
-
         return agent_cls(model_id=model_id, api_key=api_key)
 
     @staticmethod

@@ -342,7 +342,7 @@ async function runRemoteBenchmark(
 export async function benchmarkCommand(
   options: BenchmarkCommandOptions,
 ): Promise<void> {
-  requireAuth();
+  await requireAuth();
   assertValidBenchmark(options);
 
   const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];

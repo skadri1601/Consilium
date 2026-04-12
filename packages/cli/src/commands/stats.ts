@@ -32,7 +32,7 @@ async function fetchStats(client: ConsiliumClient): Promise<StatsResponse | null
 }
 
 export async function statsCommand(): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const client = new ConsiliumClient();
   const stats = await fetchStats(client);

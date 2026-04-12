@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-VALID_SOURCES = {"slack", "monitor", "scheduled"}
-VALID_ESCALATION_POLICIES = {"alert_slack", "log", "abort"}
+VALID_SOURCES = {"monitor", "scheduled"}
+VALID_ESCALATION_POLICIES = {"log", "abort"}
 
 
 @dataclass

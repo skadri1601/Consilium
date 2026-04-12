@@ -125,7 +125,7 @@ export async function logsCommand(debateId: string, options: { level?: string })
   let entries = readLocalLogs(debateId, options.level);
 
   if (entries.length === 0) {
-    requireAuth();
+    await requireAuth();
     const client = new ConsiliumClient();
 
     try {

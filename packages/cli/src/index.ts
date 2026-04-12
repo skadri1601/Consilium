@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import { createRequire } from "node:module";
 import path from "node:path";
 import os from "node:os";
+
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json") as { version: string };
 import readline from "node:readline";
 import { debateCommand } from "./commands/debate.js";
 import { redteamCommand } from "./commands/redteam.js";
@@ -15,6 +19,7 @@ import {
 } from "./commands/config.js";
 import { chatCommand, chatResumeCommand } from "./commands/chat.js";
 import { loginCommand } from "./commands/login.js";
+import { logoutCommand } from "./commands/logout.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
@@ -29,6 +34,7 @@ const KNOWN_SUBCOMMANDS = [
   "config",
   "sessions",
   "login",
+  "logout",
   "debug",
   "logs",
   "stats",
@@ -49,7 +55,18 @@ const isOneShot =
 
 async function main(): Promise<void> {
   if (isDefaultRepl) {
-    await chatCommand();
+    const { isLoggedIn } = await import("./utils/config.js");
+    if (isLoggedIn()) {
+      const { showMenu } = await import("./commands/menu.js");
+      await showMenu();
+    } else {
+      const { loginFlow } = await import("./commands/login.js");
+      const ok = await loginFlow();
+      if (ok) {
+        const { showMenu } = await import("./commands/menu.js");
+        await showMenu();
+      }
+    }
     return;
   }
   if (isOneShot && firstArg !== undefined) {
@@ -62,7 +79,7 @@ async function main(): Promise<void> {
   program
     .name("consilium")
     .description("Consilium CLI - Multi-agent debate platform")
-    .version("0.1.0");
+    .version(pkg.version);
 
   program
     .command("debate")
@@ -80,6 +97,9 @@ async function main(): Promise<void> {
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json (default: pretty-print)",
     )
+    .option("--git-diff", "Include git diff in context")
+    .option("--no-context", "Disable automatic codebase context loading")
+    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
     .action(debateCommand);
 
   program
@@ -129,7 +149,13 @@ async function main(): Promise<void> {
   program
     .command("login")
     .description("Sign in and get a CLI token (opens web app)")
-    .action(loginCommand);
+    .option("--force", "Re-authenticate even if already logged in")
+    .action((options: { force?: boolean }) => loginCommand(options));
+
+  program
+    .command("logout")
+    .description("Sign out and clear stored credentials")
+    .action(logoutCommand);
 
   program
     .command("debug")

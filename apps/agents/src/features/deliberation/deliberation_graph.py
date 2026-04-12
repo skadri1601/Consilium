@@ -385,6 +385,7 @@ class DeliberationEngine:
         max_rounds: Optional[int] = None,
         llm_fn: Optional[Callable[..., Coroutine]] = None,
         sse_handler: Optional[Callable[[str, Any], None]] = None,
+        project_context: Optional[dict] = None,
     ):
         self.mode = mode
         self.models = models
@@ -394,6 +395,7 @@ class DeliberationEngine:
         self.llm_fn = llm_fn or _call_model_via_factory
         self.sse_handler = sse_handler
         self.rubric = DEFAULT_RUBRIC
+        self.project_context = project_context
         self.state: DeliberationState = self._init_state("")
         self._proposals_history: list[list[Proposal]] = []
         self._votes_history: list[list[Vote]] = []
@@ -426,6 +428,37 @@ class DeliberationEngine:
     def _sse(self, event: str, data: Any) -> None:
         if self.sse_handler:
             self.sse_handler(event, data)
+
+    def _build_context_prefix(self) -> str:
+        if not self.project_context:
+            return ""
+        parts = ["=== PROJECT CONTEXT ==="]
+        meta = self.project_context
+        if meta.get("projectType"):
+            parts.append(f"Project: {meta['projectType']} ({meta.get('language', 'unknown')})")
+        if meta.get("framework") and meta["framework"] != "none":
+            parts.append(f"Framework: {meta['framework']}")
+        if meta.get("packageManager") and meta["packageManager"] != "unknown":
+            parts.append(f"Package Manager: {meta['packageManager']}")
+        if meta.get("integrations"):
+            parts.append(f"Integrations: {', '.join(meta['integrations'])}")
+        if meta.get("hasTests"):
+            parts.append("Tests: yes")
+        if meta.get("hasDocker"):
+            parts.append("Docker: yes")
+        if meta.get("hasCI"):
+            parts.append("CI/CD: yes")
+        files = meta.get("files", [])
+        if files:
+            parts.append("")
+            for f in files:
+                name = f.get("name", "unknown")
+                content = f.get("content", "")
+                parts.append(f"--- FILE: {name} ---")
+                parts.append(content[:50000])
+                parts.append(f"--- END FILE: {name} ---")
+        parts.append("=== END PROJECT CONTEXT ===\n")
+        return "\n".join(parts)
 
     def _next_phase(self, current: Phase) -> Phase:
         transitions = MODE_TRANSITIONS.get(self.mode, MODE_TRANSITIONS[DeliberationMode.COUNCIL])
@@ -536,6 +569,8 @@ class DeliberationEngine:
         async def generate_proposal(model_id: str) -> dict:
             display_id = model_id if not is_blind else f"anonymous_{self.models.index(model_id)}"
 
+            context_prefix = self._build_context_prefix()
+
             if _HAS_ARGUMENTATION:
                 prompt = build_proposal_prompt(
                     topic=topic,
@@ -546,11 +581,18 @@ class DeliberationEngine:
             else:
                 prompt = f"Generate a proposal with structured claims for: {topic}"
 
+            if context_prefix:
+                prompt = context_prefix + prompt
+
             if is_blind:
                 prompt = _strip_identity(prompt, self.models)
 
             response, latency_ms = await self._timed_llm(model_id, prompt)
             self._audit("propose", model_id, prompt[:200], response[:200], latency_ms)
+
+            if not response or not response.strip():
+                _logger.warning("Empty response from %s in propose phase, skipping", model_id)
+                return None
 
             if _HAS_ARGUMENTATION:
                 proposal = parse_proposal(response, model_id=display_id)
@@ -573,14 +615,19 @@ class DeliberationEngine:
             return asdict(proposal)
 
         results = await asyncio.gather(*[generate_proposal(m) for m in self.models])
-        self.state["proposals"].extend(results)
+        valid_results = [r for r in results if r is not None]
+        self.state["proposals"].extend(valid_results)
 
-        round_proposals = [_reconstruct_proposal(r) for r in results]
+        round_proposals = [_reconstruct_proposal(r) for r in valid_results]
         self._proposals_history.append(round_proposals)
 
     async def _challenge(self) -> None:
         is_blind = self.mode == DeliberationMode.BLIND
         proposals = self.state["proposals"]
+
+        if not proposals:
+            _logger.warning("No proposals to challenge, skipping challenge phase")
+            return
 
         async def generate_challenge(challenger_id: str, target_proposal: dict) -> list[dict]:
             target_id = target_proposal["model_id"]
@@ -604,6 +651,10 @@ class DeliberationEngine:
 
             response, latency_ms = await self._timed_llm(challenger_id, prompt)
             self._audit("challenge", challenger_id, prompt[:200], response[:200], latency_ms)
+
+            if not response or not response.strip():
+                _logger.warning("Empty response from %s in challenge phase, skipping", challenger_id)
+                return []
 
             if _HAS_ARGUMENTATION:
                 parsed = parse_challenges(response, challenger_id=display_id, target_model_id=target_id)
@@ -639,6 +690,10 @@ class DeliberationEngine:
         challenges = self.state["challenges"]
         proposals = self.state["proposals"]
 
+        if not challenges or not proposals:
+            _logger.warning("No challenges or proposals for rebuttal, skipping")
+            return
+
         async def generate_rebuttal(defender_id: str, challenge: dict) -> list[dict]:
             display_id = defender_id if not is_blind else f"anonymous_{self.models.index(defender_id)}"
 
@@ -648,7 +703,8 @@ class DeliberationEngine:
                     _reconstruct_proposal(p) for p in proposals
                     if p["model_id"] == challenge["target_model_id"]
                 ]
-                original_proposal = defender_proposals[0] if defender_proposals else _reconstruct_proposal(proposals[0])
+                fallback_proposal = proposals[0] if proposals else {"model_id": "unknown", "content": "", "reasoning_chain": [], "claims": [], "raw_confidence": 0.5}
+                original_proposal = defender_proposals[0] if defender_proposals else _reconstruct_proposal(fallback_proposal)
                 prompt = build_rebuttal_prompt(challenge_obj, original_proposal)
             else:
                 prompt = f"Respond to challenge: {challenge['argument']}"
@@ -658,6 +714,10 @@ class DeliberationEngine:
 
             response, latency_ms = await self._timed_llm(defender_id, prompt)
             self._audit("rebuttal", defender_id, prompt[:200], response[:200], latency_ms)
+
+            if not response or not response.strip():
+                _logger.warning("Empty response from %s in rebuttal phase, skipping", defender_id)
+                return []
 
             if _HAS_ARGUMENTATION:
                 parsed = parse_rebuttals(
@@ -693,6 +753,11 @@ class DeliberationEngine:
     async def _evaluate(self) -> None:
         is_blind = self.mode == DeliberationMode.BLIND
         proposals = self.state["proposals"]
+
+        if not proposals:
+            _logger.warning("No proposals to evaluate, skipping evaluation phase")
+            return
+
         proposal_objs = [_reconstruct_proposal(p) for p in proposals]
 
         if is_blind and _HAS_BLIND_EVAL:
@@ -743,6 +808,11 @@ class DeliberationEngine:
     async def _vote(self) -> None:
         proposals = self.state["proposals"]
         evaluations = self.state["evaluations"]
+
+        if not proposals:
+            _logger.warning("No proposals to vote on, skipping vote phase")
+            return
+
         model_ids = [p["model_id"] for p in proposals]
 
         async def cast_vote(voter_id: str) -> dict:
@@ -881,6 +951,8 @@ class DeliberationEngine:
             prompt = f"Synthesize a final golden response for: {self.state['topic']}\nBased on: {winning['content']}"
             golden, latency_ms = await self._timed_llm(self.judge_model, prompt)
             self._audit("output_synthesis", self.judge_model, prompt[:200], golden[:200], latency_ms)
+            if not golden or not golden.strip():
+                golden = winning.get("content", "Synthesis failed — using best proposal.")
         else:
             golden = "No proposals generated."
 

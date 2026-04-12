@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class DebateResponseDto {
   @ApiProperty({ example: "debate-123" })
@@ -27,6 +27,13 @@ export class DebateResponseDto {
 
   @ApiProperty({ example: "2024-01-01T00:00:00Z" })
   createdAt: Date;
+
+  @ApiPropertyOptional({
+    description:
+      "BullMQ job id when DEBATE_USE_QUEUE is enabled; poll job status or open SSE after workers accept the debate",
+    example: "debate-123",
+  })
+  queueJobId?: string;
 }
 
 export class DebateDetailDto extends DebateResponseDto {

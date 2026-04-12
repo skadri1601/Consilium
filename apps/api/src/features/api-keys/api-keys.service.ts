@@ -59,9 +59,7 @@ export class ApiKeysService {
       };
     } catch (error) {
       this.logger.error("Error fetching API keys:", error);
-      throw new BadRequestException(
-        `Failed to fetch API keys: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      throw new BadRequestException("Failed to fetch API keys");
     }
   }
 

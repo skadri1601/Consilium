@@ -147,7 +147,7 @@ export async function evalCommand(
   topic: string,
   options: EvalCommandOptions,
 ): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   if (!options.responses) {
     console.log(st.error("--responses <file.json> is required"));

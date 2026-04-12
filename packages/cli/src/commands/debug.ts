@@ -21,7 +21,7 @@ function formatCost(cost: number | undefined): string {
 }
 
 export async function debugCommand(debateId: string): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const client = new ConsiliumClient();
   let debate: any;

@@ -9,6 +9,7 @@ export interface DebateOptions {
   files?: Array<{ name: string; content: string }>;
   images?: Array<{ name: string; base64: string }>;
   projectFiles?: Array<{ path: string; content: string; category: string }>;
+  projectContext?: Record<string, unknown>;
 }
 
 export interface DeliberationOptions {
@@ -18,6 +19,8 @@ export interface DeliberationOptions {
   rounds?: number;
   convergenceThreshold?: number;
   responses?: Record<string, unknown>;
+  files?: Array<{ name: string; content: string }>;
+  projectContext?: Record<string, unknown>;
 }
 
 export interface RedTeamOptions {
@@ -52,6 +55,7 @@ export class ConsiliumClient {
   private readonly apiUrl: string;
   private readonly apiKey?: string;
   private readonly debug: boolean;
+  private readonly streamTimeout: number;
 
   constructor() {
     const config = loadConfig();
@@ -61,6 +65,7 @@ export class ConsiliumClient {
       config.debug === true ||
       process.env.CONSILIUM_DEBUG === '1' ||
       process.env.CONSILIUM_DEBUG === 'true';
+    this.streamTimeout = parseInt(process.env.CONSILIUM_STREAM_TIMEOUT || '300000', 10);
   }
 
   private log(message: string, data?: any) {
@@ -97,9 +102,7 @@ export class ConsiliumClient {
       return true;
     } catch (error: any) {
       this.logError('Failed to connect to API', error);
-      console.error(`\n✗ Cannot reach API at ${this.apiUrl}`);
-      console.error('   Make sure the API is running:');
-      console.error('   → cd apps/api && pnpm dev\n');
+      console.error(`\nCannot connect to API at ${this.apiUrl}. Is the server running?`);
       return false;
     }
   }
@@ -131,6 +134,7 @@ export class ConsiliumClient {
       if (options.files?.length) body.context = { ...body.context, files: options.files };
       if (options.images?.length) body.context = { ...body.context, images: options.images };
       if (options.projectFiles?.length) body.context = { ...body.context, projectFiles: options.projectFiles };
+      if (options.projectContext) body.projectContext = options.projectContext;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -146,9 +150,7 @@ export class ConsiliumClient {
         this.logError(`Failed to create debate (${response.status})`, new Error(errorBody));
 
         if (response.status === 503) {
-          console.error('\n✗ Service Unavailable - AI workers not responding');
-          console.error('   Make sure the agents service is running:');
-          console.error('   → cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000\n');
+          console.error('\nService unavailable. The AI agents backend may be down.');
         }
 
         throw new Error(`HTTP ${response.status}: ${errorBody}`);
@@ -165,9 +167,7 @@ export class ConsiliumClient {
 
       if (error.cause?.code === 'ECONNREFUSED') {
         this.logError('Connection refused', error);
-        console.error(`\n✗ Cannot connect to API at ${this.apiUrl}`);
-        console.error('   Make sure the API is running:');
-        console.error('   → cd apps/api && pnpm dev\n');
+        console.error(`\nCannot connect to API at ${this.apiUrl}. Is the server running?`);
       }
 
       throw error;
@@ -240,12 +240,9 @@ export class ConsiliumClient {
         this.logError('SSE connection error', error);
 
         if (!connectionEstablished) {
-          console.error('\n✗ Failed to establish SSE stream');
-          console.error(`   Check if agents service is running and accessible`);
-          console.error(`   Stream URL: ${streamUrl}\n`);
+          console.error(`\nCannot connect to API at ${this.apiUrl}. Is the server running?`);
         } else if (eventCount === 0) {
-          console.error('\n✗ Stream connection closed without receiving any events');
-          console.error('   The debate may not exist or agents service is not responding\n');
+          console.error('\nStream closed without receiving events. The debate may not exist.');
         } else {
           this.log(`Stream closed after ${eventCount} events`);
         }
@@ -257,8 +254,8 @@ export class ConsiliumClient {
       setTimeout(() => {
         this.log('Stream timeout - closing connection');
         eventSource.close();
-        reject(new Error('Stream timeout after 5 minutes'));
-      }, 5 * 60 * 1000);
+        reject(new Error(`Stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
+      }, this.streamTimeout);
     });
   }
 
@@ -346,6 +343,8 @@ export class ConsiliumClient {
         maxRounds: options.rounds,
         convergenceThreshold: options.convergenceThreshold,
         responses: options.responses,
+        ...(options.files?.length && { context: { files: options.files } }),
+        ...(options.projectContext && { projectContext: options.projectContext }),
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -453,8 +452,8 @@ export class ConsiliumClient {
 
       setTimeout(() => {
         eventSource.close();
-        reject(new Error('Deliberation stream timeout after 10 minutes'));
-      }, 10 * 60 * 1000);
+        reject(new Error(`Deliberation stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
+      }, this.streamTimeout);
     });
   }
 
@@ -525,8 +524,8 @@ export class ConsiliumClient {
 
       setTimeout(() => {
         eventSource.close();
-        reject(new Error('Benchmark stream timeout after 10 minutes'));
-      }, 10 * 60 * 1000);
+        reject(new Error(`Benchmark stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
+      }, this.streamTimeout);
     });
   }
 

@@ -21,20 +21,24 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | Web App | apps/web/ | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel |
 | API | apps/api/ | NestJS 11, Fastify, BullMQ, Prisma | Render |
 | Debate Engine | apps/agents/ | FastAPI, 5 LLM providers | Render / Droplet |
-| Bot/DevOps | agents/ | Python, Slack bolt, Redis queue | DigitalOcean droplet |
+| Bot/DevOps | agents/ | Python, Sentry/Sonar poll | DigitalOcean droplet (optional) |
 | CLI | packages/cli/ | TypeScript, Commander.js, SSE | User's machine |
 | Database | packages/database/ | Prisma, Neon PostgreSQL | Neon |
 | Shared Types | packages/shared/ | TypeScript | N/A (library) |
 
 ### Bot Infrastructure (agents/)
-- **slack_bot.py** — 3 Redis-backed workers, intent router, session management
-- **monitor_agent.py** — Polls Sentry/SonarQube/email every 5 min with recovery recipes
-- **run_all.py** — Orchestrator with max 10 restarts per agent, logs to agents/logs/
+- **monitor_agent.py** — Polls Sentry and SonarQube on an interval; logs unresolved errors and gate changes
+- **briefing_agent.py** — Builds a text digest (stdout) from Sentry, Vercel, SonarQube, and DB stats when run
+- **run_all.py** — Orchestrator with max 10 restarts per child process, logs to agents/logs/
 
 ### Key Infrastructure
-- **Redis**: Upstash (shared between debate engine + bot queue + sessions)
+- **Redis**: Upstash (debate engine and other services; optional for agents telemetry)
 - **DB**: Neon PostgreSQL via Prisma
 - **Auth**: Clerk (web) + CLI tokens
+- **Debate start vs SSE (queue + debug)**  
+  - **No separate “SSE queue” flag**: SSE (`apps/api` → workers stream) only needs the same `debateId` and URL contract. “Run via queue” means **how the debate is started**: either direct HTTP `startDebate` or a BullMQ job that later calls the same `startDebate` with the **same payload fields** (`debateId`, `mode`, `debateSource`, persona/`systemPrompt`, `projectContext`, etc.).  
+  - **`DEBATE_USE_QUEUE=true`**: `POST /debates` enqueues; the worker sets status to **processing** after workers accept the start; **completed** still comes from the **SSE** lifecycle (not when the job returns). A session can stay **pending** until the worker runs—clients may open SSE early; `queueJobId` on the session matches the Bull job id for correlation; job inspection uses `DebateQueueService.getJobStatus` in code (extend the API if you need a public status route).  
+  - **API logging**: `API_DEBUG=true` or `LOG_LEVEL=debug` (see `.env.example`) raises Fastify/API verbosity (e.g. SSE proxy and debate start lines). **CLI tracing** stays on **`CONSILIUM_DEBUG`** in `packages/cli` (`utils/config.ts`, `api/client.ts`)—different surface from the API flags above.
 - **Monitoring**: Sentry (consilium-pi org)
 - **CI**: GitHub Actions (lint, typecheck, security, Claude Code review)
 - **Linear**: Project management (MYC- ticket prefix)
@@ -66,7 +70,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 ## External Integrations
 | Service | Purpose | Config |
 |---------|---------|--------|
-| Slack | Bot commands + notifications | SLACK_BOT_TOKEN, SLACK_APP_TOKEN |
+| Slack | CI notifications only (webhook workflow) | SLACK_WEBHOOK_URL in GitHub Actions |
 | Linear | Ticket management | LINEAR_API_KEY (MYC- prefix) |
 | Sentry | Error monitoring | SENTRY_DSN, SENTRY_AUTH_TOKEN |
 | SonarQube | Code quality | SONARQUBE_URL, SONARQUBE_TOKEN |

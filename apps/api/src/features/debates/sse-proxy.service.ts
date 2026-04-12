@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Observable } from "rxjs";
 import { AiWorkersClient } from "./ai-workers.client";
 import { DebatesService } from "./debates.service";
@@ -15,15 +16,24 @@ export class SseProxyService {
     private aiWorkersClient: AiWorkersClient,
     @Inject(forwardRef(() => DebatesService))
     private debatesService: DebatesService,
+    private configService: ConfigService,
   ) {}
+
+  private sseVerbose(msg: string): void {
+    if (this.configService.get<boolean>("app.apiDebug")) {
+      this.logger.log(msg);
+    } else {
+      this.logger.debug(msg);
+    }
+  }
 
   proxyStream(debateId: string): Observable<SseEvent> {
     return new Observable((subscriber) => {
       const streamUrl = this.aiWorkersClient.getStreamUrl(debateId);
-      this.logger.log(
+      this.sseVerbose(
         `[SSE PROXY] Starting stream proxy for debate ${debateId}`,
       );
-      this.logger.log(`[SSE PROXY] Fetching from: ${streamUrl}`);
+      this.sseVerbose(`[SSE PROXY] Fetching from: ${streamUrl}`);
 
       const controller = new AbortController();
       let goldenPrompt: string | undefined;
@@ -37,7 +47,7 @@ export class SseProxyService {
         signal: controller.signal,
       })
         .then(async (response) => {
-          this.logger.log(`[SSE PROXY] Response status: ${response.status}`);
+          this.sseVerbose(`[SSE PROXY] Response status: ${response.status}`);
 
           if (!response.ok) {
             this.logger.error(
@@ -54,7 +64,8 @@ export class SseProxyService {
             throw new Error("No response body reader available");
           }
 
-          this.logger.log("[SSE PROXY] Starting to read stream...");
+          this.sseVerbose("[SSE PROXY] Starting to read stream...");
+          const MAX_BUFFER_SIZE = 1024 * 1024;
           let buffer = "";
           let currentEvent: string | null = null;
           let eventCount = 0;
@@ -63,7 +74,7 @@ export class SseProxyService {
             const { done, value } = await reader.read();
 
             if (done) {
-              this.logger.log(
+              this.sseVerbose(
                 `[SSE PROXY] Stream ended after ${eventCount} events`,
               );
               if (!statusUpdated) {
@@ -80,6 +91,11 @@ export class SseProxyService {
             }
 
             buffer += decoder.decode(value, { stream: true });
+            if (buffer.length > MAX_BUFFER_SIZE) {
+              this.logger.error("[SSE PROXY] Buffer exceeded 1MB limit, aborting");
+              subscriber.error(new Error("SSE buffer overflow"));
+              return;
+            }
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
 
@@ -91,7 +107,7 @@ export class SseProxyService {
                 try {
                   const dataStr = line.slice(6);
                   eventCount++;
-                  this.logger.log(
+                  this.sseVerbose(
                     `[SSE PROXY] Event #${eventCount} (${currentEvent}): ${dataStr.substring(0, 100)}...`,
                   );
 
@@ -178,7 +194,7 @@ export class SseProxyService {
     _totalTokens?: number,
   ): Promise<void> {
     try {
-      this.logger.log(
+      this.sseVerbose(
         `[SSE PROXY] Updating debate ${debateId} status to completed`,
       );
       await this.debatesService.updateStatus(

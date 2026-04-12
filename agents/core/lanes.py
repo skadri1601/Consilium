@@ -39,7 +39,6 @@ class LaneFailureClass(str, Enum):
 
 
 class PolicyAction(str, Enum):
-    NOTIFY_SLACK = "notify_slack"
     CREATE_TICKET = "create_ticket"
     UPDATE_TICKET = "update_ticket"
     TRANSITION_TICKET = "transition_ticket"
@@ -185,7 +184,7 @@ class PolicyEngine:
             PolicyRule(
                 name="ci_red_alert",
                 condition=StatusIs(LaneStatus.CI_RED),
-                action=[PolicyAction.NOTIFY_SLACK, PolicyAction.ESCALATE],
+                action=[PolicyAction.ESCALATE],
                 priority=4,
             ),
             PolicyRule(

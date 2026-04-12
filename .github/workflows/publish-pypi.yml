@@ -5,6 +5,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -12,7 +14,10 @@ jobs:
           python-version: '3.11'
       - run: pip install build twine
       - run: cd packages/python-sdk && python -m build
-      - run: cd packages/python-sdk && twine upload dist/*
+      - name: Verify package
+        run: cd packages/python-sdk && twine check dist/*
+      - name: Publish to PyPI
+        run: cd packages/python-sdk && twine upload dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

@@ -43,9 +43,13 @@ export class AiWorkersClient {
     try {
       const url = `${this.baseUrl}/api/v1/debates/start`;
 
-      this.logger.log(
-        `Starting debate with models: ${request.models.join(", ")}`,
-      );
+      const apiDebug = this.configService.get<boolean>("app.apiDebug");
+      const startMsg = `Starting debate with models: ${request.models.join(", ")}`;
+      if (apiDebug) {
+        this.logger.log(startMsg);
+      } else {
+        this.logger.debug(startMsg);
+      }
 
       const response = await fetch(url, {
         method: "POST",

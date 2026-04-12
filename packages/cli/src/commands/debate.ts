@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import logUpdate from 'log-update';
-import { ConsiliumClient, DebateEvent, DeliberationEvent } from '../api/client';
+import { ConsiliumClient, DebateEvent, DebateOptions, DeliberationEvent } from '../api/client';
 import { createStreamHandlers } from '../utils/stream-renderer';
 import { requireAuth } from '../utils/require-auth';
 import { createStepTracker } from '../utils/progress-renderer';
@@ -9,6 +9,12 @@ import { terminal } from '../utils/terminal-capabilities';
 import { isValidMode, getDefaultMode, estimateCost, formatCostEstimate, DebateMode, ALL_MODES } from '../utils/debate-modes';
 import { isValidOutputFormat, formatOutput, getDefaultFilename, OutputFormat } from '../utils/output-formatter';
 import { log } from '../utils/logger';
+import { requestCodebasePermission } from '../utils/codebase-permissions';
+import { detectWorkspace, getAutoLoadFiles, formatWorkspaceInfo } from '../utils/workspace-detector';
+import { extractEnvMetadata } from '../utils/env-extractor';
+import { isSecretFile } from '../utils/file-privacy';
+import { collectGitContext, formatGitContextForPrompt } from '../utils/git-context';
+import { fetchTicket, formatTicketForPrompt } from '../utils/linear-client';
 
 const st = style();
 
@@ -16,6 +22,10 @@ export interface DebateCommandOptions {
   models?: string[];
   output?: string;
   mode?: string;
+  scan?: boolean;
+  gitDiff?: boolean;
+  ticket?: string;
+  noContext?: boolean;
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -223,6 +233,11 @@ function logStreamFailureHints(msg: string): void {
   if (msg.includes('401') || msg.includes('403')) {
     console.log(st.warning('Authentication failed. Configure your API key:'));
     console.log(st.dim('consilium config set apiKey "your-key"\n'));
+    return;
+  }
+  if (msg.includes('timeout') || msg.includes('Timeout')) {
+    console.log(st.warning('Request timed out. Increase timeout with CONSILIUM_STREAM_TIMEOUT env var.'));
+    console.log(st.dim('Example: CONSILIUM_STREAM_TIMEOUT=600000 consilium debate "topic"\n'));
   }
 }
 
@@ -261,6 +276,7 @@ async function runClassicDebateFlow(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
+  wsContext?: WorkspaceContext | null,
 ): Promise<void> {
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
@@ -288,11 +304,14 @@ async function runClassicDebateFlow(
   const debateStartTime = Date.now();
   let debate: { id: string };
   try {
-    debate = await client.createDebate({
-      topic,
-      models,
-      mode,
-    });
+    const contextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const effectiveTopic = contextParts ? contextParts + topic : topic;
+    const debateOpts: DebateOptions = { topic: effectiveTopic, models, mode };
+    if (wsContext) {
+      debateOpts.files = wsContext.files;
+      debateOpts.projectContext = wsContext.projectContext;
+    }
+    debate = await client.createDebate(debateOpts);
   } catch (err: unknown) {
     tracker.fail('createDebate', err instanceof Error ? err.message : 'Create failed');
     if (useLiveProgress) logUpdate.clear();
@@ -346,11 +365,88 @@ async function runClassicDebateFlow(
   console.log(st.success('Debate complete.\n'));
 }
 
+interface WorkspaceContext {
+  files: Array<{ name: string; content: string }>;
+  projectContext: Record<string, unknown>;
+  gitContextPrefix: string;
+  ticketPrefix: string;
+}
+
+async function loadWorkspaceContext(options: DebateCommandOptions): Promise<WorkspaceContext | null> {
+  if (options.noContext) return null;
+
+  const cwd = process.cwd();
+  const permitted = await requestCodebasePermission(cwd);
+  if (!permitted) return null;
+
+  const workspace = detectWorkspace(cwd);
+  const autoFiles = getAutoLoadFiles(workspace, cwd);
+
+  const files: Array<{ name: string; content: string }> = [];
+  for (const filePath of autoFiles) {
+    if (isSecretFile(filePath)) continue;
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      if (content.includes('\0')) continue;
+      if (content.length > 100 * 1024) continue;
+      files.push({ name: require('node:path').basename(filePath), content });
+    } catch {}
+  }
+
+  const envMeta = extractEnvMetadata(cwd);
+
+  const projectContext: Record<string, unknown> = {
+    projectType: workspace.projectType,
+    language: workspace.language,
+    framework: workspace.framework,
+    packageManager: workspace.packageManager,
+    hasTests: workspace.hasTests,
+    hasDocker: workspace.hasDocker,
+    hasCI: workspace.hasCI,
+  };
+  if (envMeta) {
+    projectContext.integrations = envMeta.integrations;
+  }
+
+  let gitContextPrefix = '';
+  if (options.gitDiff) {
+    const gitCtx = collectGitContext(cwd);
+    if (gitCtx?.diff) {
+      gitContextPrefix = formatGitContextForPrompt(gitCtx);
+      console.log(st.dim(`  Loaded git diff (branch: ${gitCtx.branch || 'unknown'})`));
+    }
+  }
+
+  let ticketPrefix = '';
+  if (options.ticket) {
+    try {
+      const ticket = await fetchTicket(options.ticket);
+      if (ticket) {
+        ticketPrefix = formatTicketForPrompt(ticket);
+        console.log(st.dim(`  Loaded ticket: ${ticket.identifier} — ${ticket.title}`));
+      } else {
+        console.log(st.dim(`  Could not fetch ticket ${options.ticket} (check LINEAR_API_KEY)`));
+      }
+    } catch {
+      console.log(st.dim(`  Could not fetch ticket ${options.ticket}`));
+    }
+  }
+
+  if (files.length > 0) {
+    console.log(st.dim(`  Loaded ${files.length} context files (${files.map(f => f.name).join(', ')})`));
+  }
+  if (envMeta?.integrations.length) {
+    console.log(st.dim(`  Detected integrations: ${envMeta.integrations.join(', ')}`));
+  }
+
+  return { files, projectContext, gitContextPrefix, ticketPrefix };
+}
+
 export async function debateCommand(
   topic: string,
   options: DebateCommandOptions
 ): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const mode: DebateMode = (options.mode && isValidMode(options.mode)) ? options.mode : getDefaultMode();
   const outputFormat: OutputFormat = (options.output && isValidOutputFormat(options.output)) ? options.output : 'text';
@@ -361,16 +457,18 @@ export async function debateCommand(
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
 
+  const wsContext = await loadWorkspaceContext(options);
+
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   const useDeliberation = ['redteam', 'jury', 'market'].includes(mode);
 
   if (useDeliberation) {
-    await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress);
+    await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
     return;
   }
 
-  await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress);
+  await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
 }
 
 async function runDeliberation(
@@ -380,6 +478,7 @@ async function runDeliberation(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
+  wsContext?: WorkspaceContext | null,
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -387,7 +486,13 @@ async function runDeliberation(
 
   let deliberation: { id: string };
   try {
-    deliberation = await client.createDeliberation(topic, { models, mode });
+    const delibContextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const effectiveDelibTopic = delibContextParts ? delibContextParts + topic : topic;
+    deliberation = await client.createDeliberation(effectiveDelibTopic, {
+      models,
+      mode,
+      ...(wsContext && { files: wsContext.files, projectContext: wsContext.projectContext }),
+    });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Create failed';
     log('ERROR', 'deliberation_failed', { error: msg });
@@ -418,6 +523,7 @@ async function runDeliberation(
     const msg = error instanceof Error ? error.message : 'Unknown error';
     log('ERROR', 'deliberation_failed', { debateId: deliberation.id, error: msg, durationMs: Date.now() - startTime });
     console.log(st.error('\n  Error: ' + msg + '\n'));
+    logStreamFailureHints(msg);
     process.exit(1);
   }
 

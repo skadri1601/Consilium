@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     google_api_key: Optional[str] = None
     groq_api_key: Optional[str] = None
     xai_api_key: Optional[str] = None
+    consilium_api_key: Optional[str] = None
 
     # Redis (Upstash)
     upstash_redis_url: Optional[str] = None

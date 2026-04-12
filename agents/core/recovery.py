@@ -29,7 +29,7 @@ class RecoveryStepKind(Enum):
     RESTART_CONNECTION = auto()
     USE_FALLBACK = auto()
     SKIP_AND_LOG = auto()
-    ESCALATE_TO_SLACK = auto()
+    ESCALATE_LOG = auto()
     CLEAR_CACHE = auto()
     SWITCH_MODEL = auto()
 
@@ -56,8 +56,8 @@ class RecoveryStep:
         return RecoveryStep(RecoveryStepKind.SKIP_AND_LOG)
 
     @staticmethod
-    def escalate_to_slack(message: str) -> RecoveryStep:
-        return RecoveryStep(RecoveryStepKind.ESCALATE_TO_SLACK, message)
+    def escalate_log(message: str) -> RecoveryStep:
+        return RecoveryStep(RecoveryStepKind.ESCALATE_LOG, message)
 
     @staticmethod
     def clear_cache() -> RecoveryStep:
@@ -69,7 +69,6 @@ class RecoveryStep:
 
 
 class EscalationPolicy(Enum):
-    ALERT_SLACK = auto()
     LOG_AND_CONTINUE = auto()
     ABORT = auto()
 
@@ -187,7 +186,7 @@ DEFAULT_RECIPES: dict[FailureScenario, RecoveryRecipe] = {
             RecoveryStep.retry_after(30),
         ],
         max_attempts=2,
-        escalation_policy=EscalationPolicy.ALERT_SLACK,
+        escalation_policy=EscalationPolicy.LOG_AND_CONTINUE,
     ),
     FailureScenario.SLACK_UNREACHABLE: RecoveryRecipe(
         scenario=FailureScenario.SLACK_UNREACHABLE,
@@ -223,7 +222,7 @@ DEFAULT_RECIPES: dict[FailureScenario, RecoveryRecipe] = {
             RecoveryStep.retry_after(30),
         ],
         max_attempts=2,
-        escalation_policy=EscalationPolicy.ALERT_SLACK,
+        escalation_policy=EscalationPolicy.LOG_AND_CONTINUE,
     ),
     FailureScenario.REDIS_FAILURE: RecoveryRecipe(
         scenario=FailureScenario.REDIS_FAILURE,
@@ -232,7 +231,7 @@ DEFAULT_RECIPES: dict[FailureScenario, RecoveryRecipe] = {
             RecoveryStep.use_fallback(),
         ],
         max_attempts=2,
-        escalation_policy=EscalationPolicy.ALERT_SLACK,
+        escalation_policy=EscalationPolicy.LOG_AND_CONTINUE,
     ),
     FailureScenario.CLAUDE_CLI_FAILURE: RecoveryRecipe(
         scenario=FailureScenario.CLAUDE_CLI_FAILURE,
@@ -241,7 +240,7 @@ DEFAULT_RECIPES: dict[FailureScenario, RecoveryRecipe] = {
             RecoveryStep.switch_model("haiku"),
         ],
         max_attempts=2,
-        escalation_policy=EscalationPolicy.ALERT_SLACK,
+        escalation_policy=EscalationPolicy.LOG_AND_CONTINUE,
     ),
     FailureScenario.TOOL_EXECUTION_FAILURE: RecoveryRecipe(
         scenario=FailureScenario.TOOL_EXECUTION_FAILURE,
@@ -348,16 +347,6 @@ class RecoveryEngine:
         recipe: RecoveryRecipe,
     ) -> RecoveryResult:
         policy = recipe.escalation_policy
-
-        if policy == EscalationPolicy.ALERT_SLACK:
-            logger.error(
-                "ESCALATION [%s]: All %d recovery attempts exhausted — alerting Slack",
-                scenario.name,
-                recipe.max_attempts,
-            )
-            return RecoveryResult.escalation_required(
-                f"{scenario.name}: all recovery attempts exhausted, Slack alert required"
-            )
 
         if policy == EscalationPolicy.ABORT:
             logger.error(

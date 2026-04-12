@@ -1,29 +1,133 @@
-import { loadConfig } from '../utils/config';
-import { openBrowser } from '../utils/open-browser';
-import { style } from '../utils/visual-system';
-import { typography } from '../utils/typography';
+import readline from "node:readline";
+import { loadConfig, saveConfig, isLoggedIn } from "../utils/config.js";
+import { openBrowser } from "../utils/open-browser.js";
+import { style } from "../utils/visual-system.js";
 
 const st = style();
 
-/**
- * Opens the web app so the user can sign in and generate a CLI token.
- * After signing in, they go to Settings → CLI, generate a token, then run:
- *   consilium config set apiKey "consilium_..."
- */
-export function loginCommand(): void {
+function prompt(question: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+    rl.on("close", () => resolve(""));
+  });
+}
+
+function stripQuotes(s: string): string {
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    return s.slice(1, -1);
+  }
+  return s;
+}
+
+export async function loginFlow(): Promise<boolean> {
+  console.log(
+    st.brand(
+      "\n╔══════════════════════════════════════╗\n║       Welcome to Consilium          ║\n╚══════════════════════════════════════╝"
+    )
+  );
+
   const config = loadConfig();
-  const webUrl = config.webUrl || process.env.CONSILIUM_WEB_URL || 'http://localhost:3000';
-  const settingsCliUrl = `${webUrl}/settings#cli`;
+  const webUrl = config.webUrl || "https://myconsilium.xyz";
+  const apiUrl = config.apiUrl || "https://myconsilium.xyz";
+  const authUrl = `${webUrl}/cli/auth`;
 
-  console.log(typography.h1('\n Consilium – Sign in\n'));
-  console.log(st.dim('Opening the Consilium web app so you can sign in and get a CLI token.\n'));
-  console.log(st.brand('1. Sign in (or sign up) on the web app'));
-  console.log(st.brand('2. Go to Settings → CLI'));
-  console.log(st.brand('3. Click "Generate CLI token" and copy it'));
-  console.log(st.brand('4. Run:'), st.bold('consilium config set apiKey "consilium_..."'));
-  console.log(st.dim('\nOr set your API key with /api in the CLI chat.\n'));
+  console.log(st.dim("\nOpening Consilium in your browser..."));
+  openBrowser(authUrl);
+  console.log(st.dim(`(If it doesn't open, go to: ${authUrl})`));
+  console.log("");
+  console.log("Waiting for authentication...");
 
-  openBrowser(settingsCliUrl);
-  console.log(st.success('Opened:'), settingsCliUrl);
-  console.log('');
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    const raw = await prompt("Paste your CLI token here: ");
+    const token = stripQuotes(raw.trim());
+
+    if (!token) {
+      console.log(st.warning("Login cancelled."));
+      return false;
+    }
+
+    if (!token.startsWith("consilium_") || token.length < 20) {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        console.log(
+          st.error(
+            "Invalid token format. Token should start with consilium_"
+          )
+        );
+        return false;
+      }
+      console.log(
+        st.warning(
+          "Invalid token format. Token should start with consilium_"
+        )
+      );
+      continue;
+    }
+
+    let res: Response;
+    try {
+      res = await fetch(`${apiUrl}/api/v1/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      console.log(
+        st.error(
+          `Cannot connect to API at ${apiUrl}. Is the server running?`
+        )
+      );
+      return false;
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        console.log(st.error("Invalid or expired token. Please try again."));
+        return false;
+      }
+      console.log(st.warning("Invalid or expired token. Please try again."));
+      continue;
+    }
+
+    const data = (await res.json()) as Record<string, string>;
+    const firstName = data.firstName || "";
+    const lastName = data.lastName || "";
+    const email = data.email || "";
+    const userName = `${firstName} ${lastName}`.trim();
+
+    saveConfig({
+      ...loadConfig(),
+      apiKey: token,
+      userName,
+      userEmail: email,
+    });
+
+    console.log(st.success(`\n✓ Logged in as ${userName} (${email})`));
+    return true;
+  }
+
+  return false;
+}
+
+export async function loginCommand(options?: { force?: boolean }): Promise<void> {
+  if (isLoggedIn() && !options?.force) {
+    const config = loadConfig();
+    console.log(
+      `Already logged in as ${config.userName || "unknown"} (${config.userEmail || "unknown"}). Use --force to re-authenticate or \`consilium logout\` first.`
+    );
+    return;
+  }
+  await loginFlow();
 }

@@ -8,24 +8,33 @@
     "consilium": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format esm --target node18 --shims --clean",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "keywords": [
     "ai",
-    "llm",
-    "cli",
+    "deliberation",
+    "multi-agent",
     "debate",
     "consilium",
-    "multi-agent",
-    "prompt-engineering"
+    "cli"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skadri1601/Consilium",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/skadri1601/Consilium#readme",
+  "bugs": {
+    "url": "https://github.com/skadri1601/Consilium/issues"
+  },
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -42,8 +51,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/eventsource": "^1.1.15",
+    "@types/node": "^20.10.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"

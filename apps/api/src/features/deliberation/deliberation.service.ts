@@ -10,6 +10,7 @@ import { ApiKeysService } from "../api-keys/api-keys.service";
 import { DeliberationEventsClient } from "./deliberation-events.client";
 import { CreateDeliberationDto } from "./dto/create-deliberation.dto";
 import { FREE_FALLBACK_MODELS } from "../debates/model-pricing";
+import { Prisma } from "@consilium/database";
 
 @Injectable()
 export class DeliberationService {
@@ -78,7 +79,7 @@ export class DeliberationService {
         conversationId: conversation.id,
         projectContext:
           dto.responses !== undefined && dto.responses !== null
-            ? { evalResponses: dto.responses }
+            ? ({ evalResponses: dto.responses } as Prisma.InputJsonValue)
             : undefined,
       },
     });

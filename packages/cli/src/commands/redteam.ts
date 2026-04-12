@@ -117,7 +117,7 @@ export async function redteamCommand(
   content: string,
   options: RedTeamCommandOptions
 ): Promise<void> {
-  requireAuth();
+  await requireAuth();
 
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;

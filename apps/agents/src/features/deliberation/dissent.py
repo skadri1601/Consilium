@@ -67,6 +67,9 @@ def build_dissent_report(
     rebuttals: list[Rebuttal],
     clusters: list[list[int]],
 ) -> DissentReport:
+    if not clusters or not proposals:
+        return DissentReport(type="consensus", majority=None, minority=[])
+
     if len(clusters) == 1:
         cluster_proposals_list = [proposals[i] for i in clusters[0]]
         models = [proposals[i].model_id for i in clusters[0]]

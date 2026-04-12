@@ -5,6 +5,7 @@ import {
   Inject,
   forwardRef,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
 import { PrismaService } from "../../shared/database/prisma.service";
@@ -42,6 +43,7 @@ export class DebatesService {
     private apiKeysService: ApiKeysService,
     private aiWorkersClient: AiWorkersClient,
     private personasService: PersonasService,
+    private configService: ConfigService,
     @Inject(forwardRef(() => DebateQueueService))
     private debateQueueService: DebateQueueService,
     @InjectRedis() private readonly redis: Redis,
@@ -128,6 +130,10 @@ export class DebatesService {
     userId: string,
     dto: CreateDebateDto,
   ): Promise<DebateSession> {
+    if (this.configService.get<boolean>("app.debateUseQueue")) {
+      return this.createDebateViaQueue(userId, dto);
+    }
+
     const { apiKeys, effectiveModels, mode, debateSource, debate } =
       await this._prepareDebate(userId, dto);
 
@@ -161,28 +167,40 @@ export class DebatesService {
   async createDebateViaQueue(
     userId: string,
     dto: CreateDebateDto,
-  ): Promise<DebateSession & { queueJobId: string | undefined }> {
-    const { apiKeys, effectiveModels, debate } = await this._prepareDebate(
-      userId,
-      dto,
-    );
+  ): Promise<DebateSession> {
+    const { apiKeys, effectiveModels, mode, debateSource, debate } =
+      await this._prepareDebate(userId, dto);
+
+    let systemPrompt: string | undefined;
+    if (dto.personaId) {
+      const persona = await this.personasService.findOne(dto.personaId, userId);
+      systemPrompt = persona.systemPrompt;
+    }
 
     const job = await this.debateQueueService.addDebateJob({
       debateId: debate.id,
       topic: dto.topic,
       models: effectiveModels,
       userId,
+      mode,
+      debateSource,
+      systemPrompt,
+      projectContext: dto.projectContext as
+        | Record<string, unknown>
+        | undefined,
       apiKeys,
     });
 
-    const queueJobId = job.id ?? debate.id;
+    const queueJobId = job.id != null ? String(job.id) : debate.id;
 
     await this.prisma.debateSession.update({
       where: { id: debate.id },
       data: { queueJobId },
     });
 
-    return { ...debate, queueJobId };
+    return this.prisma.debateSession.findUniqueOrThrow({
+      where: { id: debate.id },
+    });
   }
 
   async findAll(

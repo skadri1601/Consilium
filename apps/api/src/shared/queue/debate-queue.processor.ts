@@ -28,7 +28,18 @@ export class DebateQueueProcessor extends WorkerHost {
     );
 
     try {
-      const { debateId, topic, models, apiKeys } = job.data;
+      const {
+        debateId,
+        topic,
+        models,
+        apiKeys,
+        mode: modeRaw,
+        debateSource: debateSourceRaw,
+        systemPrompt,
+        projectContext,
+      } = job.data;
+      const mode = modeRaw ?? "council";
+      const debateSource = debateSourceRaw ?? "web";
 
       await job.updateProgress(10);
 
@@ -55,27 +66,28 @@ export class DebateQueueProcessor extends WorkerHost {
         };
       }
 
-      await this.debatesService.updateStatus(debateId, "processing");
-
       await job.updateProgress(30);
 
       const result = await this.aiWorkersClient.startDebate({
+        debateId,
         topic,
         models,
         apiKeys: apiKeys || {},
+        systemPrompt,
+        mode,
+        debateSource,
+        projectContext,
       });
 
-      await job.updateProgress(60);
+      await this.debatesService.updateStatus(debateId, "processing");
 
-      await this.debatesService.updateStatus(debateId, "completed");
-
-      await job.updateProgress(80);
+      await job.updateData({ ...job.data, apiKeys: undefined });
 
       await job.updateProgress(100);
 
       const duration = Date.now() - startTime;
       this.logger.log(
-        `[${this.workerId}] Completed debate ${debateId} in ${duration}ms`,
+        `[${this.workerId}] Started debate ${debateId} on workers in ${duration}ms`,
       );
       return {
         success: true,
