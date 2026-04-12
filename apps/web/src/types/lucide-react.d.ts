@@ -1,6 +1,5 @@
-// Type fix for lucide-react compatibility with React 19
-declare module 'lucide-react' {
-  import { FC, SVGProps } from 'react';
+declare module "lucide-react" {
+  import { FC, SVGProps } from "react";
 
   export type LucideProps = SVGProps<SVGSVGElement> & {
     size?: string | number;
@@ -9,7 +8,6 @@ declare module 'lucide-react' {
 
   export type LucideIcon = FC<LucideProps>;
 
-  // Export all commonly used icons
   export const Menu: LucideIcon;
   export const X: LucideIcon;
   export const Settings: LucideIcon;
@@ -119,4 +117,22 @@ declare module 'lucide-react' {
   export const ShieldAlert: LucideIcon;
   export const HeartPulse: LucideIcon;
   export const ClipboardList: LucideIcon;
+  export const Gauge: LucideIcon;
+  export const FileSearch: LucideIcon;
+  export const Calculator: LucideIcon;
+  export const Code2: LucideIcon;
+  export const GitPullRequest: LucideIcon;
+  export const Puzzle: LucideIcon;
+  export const TestTube: LucideIcon;
+  export const Rocket: LucideIcon;
+  export const Blocks: LucideIcon;
+  export const Database: LucideIcon;
+  export const Radio: LucideIcon;
+  export const Split: LucideIcon;
+  export const GitBranch: LucideIcon;
+  export const Layers: LucideIcon;
+  export const Cpu: LucideIcon;
+  export const Wrench: LucideIcon;
+  export const Globe: LucideIcon;
+  export const ListOrdered: LucideIcon;
 }

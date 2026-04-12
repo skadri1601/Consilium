@@ -5,7 +5,7 @@ import {
   Shield,
   Github,
   MessageSquare,
-  ListOrdered,
+  BarChart3,
   Activity,
   AlertTriangle,
   Gauge,
@@ -26,7 +26,7 @@ const differentiators = [
     detail: "Challenge types: FACTUAL_ERROR, MISSING_EVIDENCE, FLAWED_LOGIC. Rebuttal types: CONCEDE, REFUTE, QUALIFY, REDIRECT.",
   },
   {
-    icon: ListOrdered,
+    icon: BarChart3,
     title: "Formal Voting Theory",
     description: "Condorcet method finds the candidate that beats ALL others pairwise. Borda count provides confidence-weighted scoring across all positions. Ranked Pairs delivers cycle-free tiebreaking using a directed acyclic graph of pairwise victories. Copeland scoring enables comparative analysis by counting net pairwise wins. This is real social choice theory applied to AI consensus — not majority voting, not picking the most popular answer.",
     detail: "Algorithms: Condorcet, Borda Count, Ranked Pairs, Copeland.",

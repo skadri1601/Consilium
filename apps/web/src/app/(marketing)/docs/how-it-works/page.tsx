@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, GitBranch, Vote, TrendingUp, Split, Gauge, DollarSign } from "lucide-react";
+import { ArrowLeft, GitBranch, BarChart3, TrendingUp, Split, Gauge, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 const stateFields = [
@@ -142,7 +142,7 @@ export default function HowItWorksPage() {
 
           <div id="voting">
             <div className="flex items-center gap-3 mb-6">
-              <Vote className="h-6 w-6 text-indigo-400" />
+              <BarChart3 className="h-6 w-6 text-indigo-400" />
               <h2 className="text-2xl font-bold">B. Voting Mechanisms</h2>
             </div>
             <div className="space-y-6">
