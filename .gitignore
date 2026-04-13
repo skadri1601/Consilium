@@ -97,6 +97,14 @@ agents/memory/sessions/
 tmp/
 temp/
 
+# Graphify (generated knowledge graph outputs)
+graphify-out/
+.graphify_*
+
+# Obsidian
+Consilium/
+.obsidian/
+
 # Documentation (ignore all markdown except key project files)
 *.md
 !README.md
