@@ -216,7 +216,15 @@ export class SessionService {
     try {
       const idleKey = `idle:${userId}`;
       const exists = await this.redis.exists(idleKey);
-      return exists === 0;
+      if (exists === 0) {
+        await this.redis.setex(
+          idleKey,
+          Math.floor(this.IDLE_TIMEOUT_MS / 1000),
+          "1",
+        );
+        return false;
+      }
+      return false;
     } catch (error) {
       this.logger.debug(
         `Failed to check idle status: ${error instanceof Error ? error.message : "Unknown error"}`,
