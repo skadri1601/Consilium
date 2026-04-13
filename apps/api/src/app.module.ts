@@ -39,14 +39,11 @@ import { HealthController } from "./health.controller";
           url: redisUrl,
           options: {
             retryStrategy: (times: number) => {
-              if (times > 3) {
-                return null;
-              }
-              return Math.min(times * 200, 2000);
+              return Math.min(times * 500, 5000);
             },
-            maxRetriesPerRequest: 1,
-            lazyConnect: true,
-            enableOfflineQueue: false,
+            maxRetriesPerRequest: 3,
+            lazyConnect: false,
+            enableOfflineQueue: true,
           },
         };
       },
