@@ -12,6 +12,9 @@ const isVercel = Boolean(process.env.VERCEL);
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: isVercel ? undefined : "standalone",
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

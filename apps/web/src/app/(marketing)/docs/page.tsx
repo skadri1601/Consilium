@@ -14,6 +14,7 @@ import {
   Users,
   Wrench,
   Globe,
+  Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 
@@ -50,9 +51,16 @@ const sections = [
   },
 ];
 
+const notionDocs = [
+  { icon: BookOpen, title: "What is Consilium", description: "Product overview and core concepts", href: "/docs/notion/what-is-consilium" },
+  { icon: FileText, title: "FAQ", description: "Frequently asked questions", href: "/docs/notion/faq" },
+  { icon: Shield, title: "Security & Privacy", description: "Trust center, encryption, data handling", href: "/docs/notion/security" },
+  { icon: Globe, title: "Research", description: "Peer-reviewed papers behind each mode", href: "/docs/notion/research" },
+];
+
 const quickLinks = [
   { icon: Users, title: "Use Cases", description: "How teams use deliberation in practice", href: "/use-cases" },
-  { icon: Globe, title: "Research", description: "Peer-reviewed papers behind Consilium", href: "/research" },
+  { icon: Globe, title: "Research", description: "Peer-reviewed papers behind Consilium", href: "/docs/notion/research" },
   { icon: Wrench, title: "Community", description: "Contribute, discuss, and get help", href: "/community" },
 ];
 
@@ -101,6 +109,34 @@ export default function DocsPage() {
               </div>
             </div>
           ))}
+
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">From Notion</h2>
+              <p className="text-sm text-muted-foreground mt-1">Live content from our documentation workspace</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {notionDocs.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.title} href={item.href} className="group">
+                    <Card className="h-full transition-all hover:border-white/[0.12] hover:scale-[1.01]">
+                      <CardHeader>
+                        <Icon className="h-7 w-7 mb-2 text-emerald-400" />
+                        <CardTitle className="text-base flex items-center gap-2">
+                          {item.title}
+                          <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription className="text-sm leading-relaxed">{item.description}</CardDescription>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
 
           <div>
             <h2 className="text-2xl font-bold mb-6">Quick Links</h2>
