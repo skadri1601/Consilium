@@ -34,7 +34,7 @@ export default function DashboardLayout({
         <div className="flex items-center justify-between p-4">
           <Logo link="/" className="shrink-0" />
           <div className="flex items-center gap-2">
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
             <Button
               variant="ghost"
               size="icon"
@@ -95,8 +95,7 @@ export default function DashboardLayout({
           
           <div className="mt-auto pt-4 border-t space-y-4">
              <div className="flex items-center gap-3 px-2">
-                <UserButton 
-                  afterSignOutUrl="/"
+                <UserButton
                   userProfileMode="navigation"
                   userProfileUrl="/settings"
                 />

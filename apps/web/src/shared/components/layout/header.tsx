@@ -9,7 +9,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <Logo className="mr-6" link="/" />
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </div>
     </header>

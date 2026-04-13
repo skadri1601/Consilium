@@ -47,7 +47,7 @@ export function Sidebar() {
 
       <div className="border-t p-4">
         <div className="flex items-center gap-3">
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
           <div className="flex-1">
             <p className="text-sm font-medium">Account</p>
           </div>
