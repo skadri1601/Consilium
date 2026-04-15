@@ -71,6 +71,9 @@ jobs:
           file: apps/web/Dockerfile
           push: false
           tags: consilium-web:test
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:4000
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_placeholder
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

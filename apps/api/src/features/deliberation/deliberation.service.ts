@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
+import { Prisma } from "@consilium/database";
 import { PrismaService } from "../../shared/database/prisma.service";
 import { ApiKeysService } from "../api-keys/api-keys.service";
 import { DeliberationEventsClient } from "./deliberation-events.client";
@@ -78,7 +79,9 @@ export class DeliberationService {
         conversationId: conversation.id,
         projectContext:
           dto.responses !== undefined && dto.responses !== null
-            ? { evalResponses: dto.responses }
+            ? ({
+                evalResponses: dto.responses,
+              } as unknown as Prisma.InputJsonValue)
             : undefined,
       },
     });

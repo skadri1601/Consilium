@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Globe, Terminal, Code, Server, Key, Shield } from "lucide-react";
+import { ArrowLeft, Globe, Terminal, Server, Key, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 

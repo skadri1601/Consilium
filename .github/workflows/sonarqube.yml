@@ -15,12 +15,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check SonarQube configuration
+        id: check
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -z "$SONAR_HOST_URL" ]; then
+            echo "::notice::SonarQube host not configured — skipping analysis"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.check.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Analyze with SonarQube
+        if: steps.check.outputs.skip != 'true'
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

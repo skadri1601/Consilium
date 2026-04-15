@@ -119,4 +119,23 @@ declare module 'lucide-react' {
   export const ShieldAlert: LucideIcon;
   export const HeartPulse: LucideIcon;
   export const ClipboardList: LucideIcon;
+  export const Blocks: LucideIcon;
+  export const Calculator: LucideIcon;
+  export const Code2: LucideIcon;
+  export const Cpu: LucideIcon;
+  export const Database: LucideIcon;
+  export const FileSearch: LucideIcon;
+  export const Gauge: LucideIcon;
+  export const GitBranch: LucideIcon;
+  export const GitPullRequest: LucideIcon;
+  export const Globe: LucideIcon;
+  export const Layers: LucideIcon;
+  export const Puzzle: LucideIcon;
+  export const Radio: LucideIcon;
+  export const Rocket: LucideIcon;
+  export const Split: LucideIcon;
+  export const Swords: LucideIcon;
+  export const TestTube: LucideIcon;
+  export const Vote: LucideIcon;
+  export const Wrench: LucideIcon;
 }
