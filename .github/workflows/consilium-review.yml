@@ -3,6 +3,7 @@ name: Consilium Multi-Model Review
 on:
   pull_request:
     types: [opened, synchronize]
+    branches: [main]
 
 concurrency:
   group: consilium-review-${{ github.event.pull_request.number }}
