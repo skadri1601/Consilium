@@ -171,8 +171,9 @@ export async function evalCommand(
   try {
     deliberation = await client.createDeliberation(topic, {
       mode: "blind",
-      models: options.models,
+      models: options.models ?? ["gpt-4o-mini", "claude-haiku-4-5-20251001"],
       responses: responsesPayload,
+      debateSource: "cli",
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Create failed";

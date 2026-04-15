@@ -5,7 +5,7 @@ The Consilium API is a RESTful API built with NestJS. All endpoints require auth
 ## Base URL
 
 - **Development**: `http://localhost:4000/api/v1`
-- **Production**: `https://api.consiliumai.com/api/v1`
+- **Production**: `https://api.myconsilium.xyz/api/v1`
 
 ## Authentication
 
@@ -21,7 +21,7 @@ Get your token from Clerk after signing in. The token is automatically included 
 
 Swagger UI is available at:
 - **Development**: http://localhost:4000/api/docs
-- **Production**: https://api.consiliumai.com/api/docs
+- **Production**: https://api.myconsilium.xyz/api/docs
 
 ## Endpoints
 
@@ -352,7 +352,7 @@ Import the [Postman Collection](./consilium-api.postman.json) for easy testing.
 import { ConsiliumClient } from '@consilium/sdk';
 
 const client = new ConsiliumClient({
-  apiUrl: 'https://api.consiliumai.com',
+  apiUrl: 'https://api.myconsilium.xyz',
   token: 'your-clerk-token'
 });
 

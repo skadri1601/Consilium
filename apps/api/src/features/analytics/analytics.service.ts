@@ -23,6 +23,8 @@ export class AnalyticsService {
         costThisMonth: 0,
         debatesByDay: [],
         modelUsage: [],
+        debatesBySource: [],
+        cliDebateCount: 0,
       };
     }
 
@@ -75,6 +77,12 @@ export class AnalyticsService {
       {} as Record<string, number>,
     );
 
+    const bySourceRows = await this.prisma.debateSession.groupBy({
+      by: ["debateSource"],
+      where: { userId: internalUserId },
+      _count: { _all: true },
+    });
+
     const allDebates = await this.prisma.debateSession.findMany({
       where: { userId: internalUserId },
       select: { modelsUsed: true },
@@ -93,6 +101,15 @@ export class AnalyticsService {
       {} as Record<string, number>,
     );
 
+    const debatesBySource = bySourceRows.map((row) => ({
+      source: row.debateSource || "unknown",
+      count: row._count._all,
+    }));
+
+    const cliDebateCount = debatesBySource
+      .filter((s) => s.source === "cli")
+      .reduce((a, s) => a + s.count, 0);
+
     return {
       totalDebates,
       totalCost: totalCostResult._sum.totalCost || 0,
@@ -106,6 +123,8 @@ export class AnalyticsService {
         model,
         count,
       })),
+      debatesBySource,
+      cliDebateCount,
     };
   }
 

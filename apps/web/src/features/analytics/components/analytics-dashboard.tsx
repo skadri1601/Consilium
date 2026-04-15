@@ -12,6 +12,17 @@ interface AnalyticsData {
   costThisMonth: number;
   debatesByDay: Array<{ date: string; count: number }>;
   modelUsage: Array<{ model: string; count: number }>;
+  debatesBySource?: Array<{ source: string; count: number }>;
+  cliDebateCount?: number;
+}
+
+function formatSourceLabel(source: string): string {
+  const s = source || "unknown";
+  if (s === "web") return "Web app";
+  if (s === "cli") return "CLI";
+  if (s === "mcp") return "MCP";
+  if (s === "deliberation") return "Deliberation";
+  return s;
 }
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -29,8 +40,12 @@ export function AnalyticsDashboard() {
     try {
       const response = await fetch("/api/analytics");
       if (response.ok) {
-        const analyticsData = await response.json();
-        setData(analyticsData);
+        const raw = (await response.json()) as AnalyticsData;
+        setData({
+          debatesBySource: [],
+          cliDebateCount: 0,
+          ...raw,
+        });
       }
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
@@ -174,23 +189,63 @@ export function AnalyticsDashboard() {
         </Card>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Where debates start</CardTitle>
+            <CardDescription>Web, CLI, MCP, and deliberation sessions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {(data.debatesBySource ?? []).length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={(data.debatesBySource ?? []).map((row) => ({
+                      name: formatSourceLabel(row.source),
+                      count: row.count,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                    }
+                    outerRadius={90}
+                    fill="#8884d8"
+                    dataKey="count"
+                    nameKey="name"
+                  >
+                    {(data.debatesBySource ?? []).map((_, index) => (
+                      <Cell key={`src-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
+                No sessions yet.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center gap-2">
             <Terminal className="h-5 w-5 text-muted-foreground" />
             <div>
-              <CardTitle>CLI Analytics</CardTitle>
-              <CardDescription>Usage stats from the Consilium CLI</CardDescription>
+              <CardTitle>CLI</CardTitle>
+              <CardDescription>Classic debates started from the Consilium CLI</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <Terminal className="h-8 w-8 shrink-0" />
-              <div>
-                <p>Connect your CLI to start tracking usage.</p>
-                <p className="mt-1 font-mono text-xs">Run: consilium login</p>
-              </div>
-            </div>
+            <div className="text-3xl font-bold">{data.cliDebateCount ?? 0}</div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Run <span className="font-mono text-xs">consilium login</span> then{" "}
+              <span className="font-mono text-xs">consilium debate</span> or{" "}
+              <span className="font-mono text-xs">consilium chat</span>. Sessions are tagged
+              automatically so they appear here and in the chart.
+            </p>
           </CardContent>
         </Card>
       </div>

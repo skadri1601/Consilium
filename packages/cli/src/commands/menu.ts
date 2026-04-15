@@ -1,5 +1,5 @@
 import readline from 'node:readline';
-import { loadConfig } from '../utils/config.js';
+import { DEFAULT_WEB_ORIGIN, loadConfig } from '../utils/config.js';
 import { openBrowser } from '../utils/open-browser.js';
 import { style } from '../utils/visual-system.js';
 import { terminal } from '../utils/terminal-capabilities.js';
@@ -25,10 +25,11 @@ function renderMenu(selectedIndex: number, userName?: string): string {
   lines.push(`  ${st.dim('What would you like to do?')}`);
   lines.push('');
   for (let i = 0; i < MENU_ITEMS.length; i++) {
+    const label = MENU_ITEMS[i]!;
     if (i === selectedIndex) {
-      lines.push(`  ${st.brand('❯')} ${st.brand(MENU_ITEMS[i])}`);
+      lines.push(`  ${st.brand('❯')} ${st.brand(label)}`);
     } else {
-      lines.push(`    ${st.dim(MENU_ITEMS[i])}`);
+      lines.push(`    ${st.dim(label)}`);
     }
   }
   lines.push('');
@@ -50,7 +51,7 @@ function promptInput(question: string): Promise<string> {
 
 async function executeAction(index: number): Promise<boolean> {
   const config = loadConfig();
-  const webUrl = config.webUrl || 'https://myconsilium.xyz';
+  const webUrl = config.webUrl || DEFAULT_WEB_ORIGIN;
 
   switch (index) {
     case 0: {
@@ -161,7 +162,7 @@ export async function showMenu(): Promise<void> {
           process.stdout.write(`\x1b[${lineCount}A`);
           process.stdout.write('\x1b[0J');
 
-          console.log(st.brand(`\n  → ${MENU_ITEMS[selectedIndex]}\n`));
+          console.log(st.brand(`\n  → ${MENU_ITEMS[selectedIndex]!}\n`));
 
           try {
             const shouldContinue = await executeAction(selectedIndex);

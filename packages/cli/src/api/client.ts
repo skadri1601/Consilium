@@ -1,5 +1,5 @@
 import EventSource from 'eventsource';
-import { loadConfig } from '../utils/config';
+import { DEFAULT_API_ORIGIN, loadConfig } from '../utils/config';
 
 export interface DebateOptions {
   topic: string;
@@ -10,17 +10,19 @@ export interface DebateOptions {
   images?: Array<{ name: string; base64: string }>;
   projectFiles?: Array<{ path: string; content: string; category: string }>;
   projectContext?: Record<string, unknown>;
+  debateSource?: 'web' | 'cli' | 'mcp';
 }
 
 export interface DeliberationOptions {
-  topic: string;
   models?: string[];
   mode?: string;
   rounds?: number;
   convergenceThreshold?: number;
   responses?: Record<string, unknown>;
   files?: Array<{ name: string; content: string }>;
+  projectFiles?: Array<{ path: string; content: string; category: string }>;
   projectContext?: Record<string, unknown>;
+  debateSource?: 'web' | 'cli' | 'mcp' | 'deliberation';
 }
 
 export interface RedTeamOptions {
@@ -59,13 +61,13 @@ export class ConsiliumClient {
 
   constructor() {
     const config = loadConfig();
-    this.apiUrl = config.apiUrl || 'http://localhost:4000';
+    this.apiUrl = config.apiUrl || DEFAULT_API_ORIGIN;
     this.apiKey = config.apiKey;
     this.debug =
       config.debug === true ||
       process.env.CONSILIUM_DEBUG === '1' ||
       process.env.CONSILIUM_DEBUG === 'true';
-    this.streamTimeout = parseInt(process.env.CONSILIUM_STREAM_TIMEOUT || '300000', 10);
+    this.streamTimeout = Number.parseInt(process.env.CONSILIUM_STREAM_TIMEOUT || '300000', 10);
   }
 
   private log(message: string, data?: any) {
@@ -85,7 +87,7 @@ export class ConsiliumClient {
   async healthCheck(): Promise<boolean> {
     try {
       this.log('Checking API health...');
-      const response = await fetch(`${this.apiUrl}/api/v1/health`, {
+      const response = await fetch(`${this.apiUrl}/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000),
       });
@@ -130,6 +132,7 @@ export class ConsiliumClient {
         models: options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
       };
       if (options.mode) body.mode = options.mode;
+      body.debateSource = options.debateSource ?? 'cli';
       if (options.conversationId) body.conversationId = options.conversationId;
       if (options.files?.length) body.context = { ...body.context, files: options.files };
       if (options.images?.length) body.context = { ...body.context, images: options.images };
@@ -343,7 +346,15 @@ export class ConsiliumClient {
         maxRounds: options.rounds,
         convergenceThreshold: options.convergenceThreshold,
         responses: options.responses,
-        ...(options.files?.length && { context: { files: options.files } }),
+        debateSource: options.debateSource ?? 'cli',
+        ...(options.files?.length || options.projectFiles?.length
+          ? {
+              context: {
+                ...(options.files?.length ? { files: options.files } : {}),
+                ...(options.projectFiles?.length ? { projectFiles: options.projectFiles } : {}),
+              },
+            }
+          : {}),
         ...(options.projectContext && { projectContext: options.projectContext }),
       }),
       signal: AbortSignal.timeout(10000),

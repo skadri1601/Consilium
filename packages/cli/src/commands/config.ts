@@ -40,7 +40,7 @@ export function configListCommand(): void {
       console.log(st.warning('No configuration set.'));
       console.log(st.dim('\nSet config with:'));
       console.log(st.dim('  consilium config set apiKey "your-key"'));
-      console.log(st.dim('  consilium config set apiUrl "http://localhost:4000"\n'));
+      console.log(st.dim('  consilium config set apiUrl "https://api.myconsilium.xyz"\n'));
       return;
     }
 

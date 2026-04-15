@@ -5,6 +5,9 @@ import os from "node:os";
 const CONFIG_DIR = path.join(os.homedir(), ".consilium");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
+export const DEFAULT_API_ORIGIN = "https://api.myconsilium.xyz";
+export const DEFAULT_WEB_ORIGIN = "https://myconsilium.xyz";
+
 export interface Config {
   apiUrl?: string;
   apiKey?: string;
@@ -14,23 +17,29 @@ export interface Config {
   userEmail?: string;
 }
 
+function defaultConfigFromEnv(): Config {
+  return {
+    apiUrl: process.env.CONSILIUM_API_URL || DEFAULT_API_ORIGIN,
+    webUrl: process.env.CONSILIUM_WEB_URL || DEFAULT_WEB_ORIGIN,
+    debug:
+      process.env.CONSILIUM_DEBUG === "1" ||
+      process.env.CONSILIUM_DEBUG === "true",
+  };
+}
+
 export function loadConfig(): Config {
+  const defaults = defaultConfigFromEnv();
   if (!fs.existsSync(CONFIG_FILE)) {
-    return {
-      apiUrl: process.env.CONSILIUM_API_URL || "https://myconsilium.xyz",
-      webUrl: process.env.CONSILIUM_WEB_URL || "https://myconsilium.xyz",
-      debug:
-        process.env.CONSILIUM_DEBUG === "1" ||
-        process.env.CONSILIUM_DEBUG === "true",
-    };
+    return { ...defaults };
   }
 
   try {
-    const config = fs.readFileSync(CONFIG_FILE, "utf-8");
-    return JSON.parse(config);
+    const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+    const parsed = JSON.parse(raw) as Partial<Config>;
+    return { ...defaults, ...parsed };
   } catch (error) {
     console.error("Failed to load config:", error);
-    return {};
+    return { ...defaults };
   }
 }
 

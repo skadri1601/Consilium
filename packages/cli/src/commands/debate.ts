@@ -1,20 +1,30 @@
 import fs from 'node:fs';
 import logUpdate from 'log-update';
 import { ConsiliumClient, DebateEvent, DebateOptions, DeliberationEvent } from '../api/client';
-import { createStreamHandlers } from '../utils/stream-renderer';
-import { requireAuth } from '../utils/require-auth';
-import { createStepTracker } from '../utils/progress-renderer';
-import { style } from '../utils/visual-system';
-import { terminal } from '../utils/terminal-capabilities';
-import { isValidMode, getDefaultMode, estimateCost, formatCostEstimate, DebateMode, ALL_MODES } from '../utils/debate-modes';
-import { isValidOutputFormat, formatOutput, getDefaultFilename, OutputFormat } from '../utils/output-formatter';
-import { log } from '../utils/logger';
-import { requestCodebasePermission } from '../utils/codebase-permissions';
-import { detectWorkspace, getAutoLoadFiles, formatWorkspaceInfo } from '../utils/workspace-detector';
-import { extractEnvMetadata } from '../utils/env-extractor';
-import { isSecretFile } from '../utils/file-privacy';
-import { collectGitContext, formatGitContextForPrompt } from '../utils/git-context';
-import { fetchTicket, formatTicketForPrompt } from '../utils/linear-client';
+import {
+  ALL_MODES,
+  type DebateMode,
+  createStepTracker,
+  createStreamHandlers,
+  estimateCost,
+  formatCostEstimate,
+  formatOutput,
+  getDefaultFilename,
+  getDefaultMode,
+  isValidMode,
+  isValidOutputFormat,
+  loadWorkspaceDebateContext,
+  log,
+  type OutputFormat,
+  requireAuth,
+  style,
+  terminal,
+  type WorkspaceDebateContext,
+} from '../utils';
+import { applyEdits, parseEditsFromSynthesis } from '../utils/apply-edits';
+import { formatEditPreview } from '../utils/diff-preview';
+import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
+import { resolveProjectRoot } from '../utils/project-root';
 
 const st = style();
 
@@ -26,6 +36,7 @@ export interface DebateCommandOptions {
   gitDiff?: boolean;
   ticket?: string;
   noContext?: boolean;
+  apply?: boolean;
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -276,8 +287,8 @@ async function runClassicDebateFlow(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
-  wsContext?: WorkspaceContext | null,
-): Promise<void> {
+  wsContext?: WorkspaceDebateContext | null,
+): Promise<string> {
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
 
@@ -306,9 +317,15 @@ async function runClassicDebateFlow(
   try {
     const contextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
     const effectiveTopic = contextParts ? contextParts + topic : topic;
-    const debateOpts: DebateOptions = { topic: effectiveTopic, models, mode };
+    const debateOpts: DebateOptions = {
+      topic: effectiveTopic,
+      models,
+      mode,
+      debateSource: 'cli',
+    };
     if (wsContext) {
       debateOpts.files = wsContext.files;
+      debateOpts.projectFiles = wsContext.projectFiles;
       debateOpts.projectContext = wsContext.projectContext;
     }
     debate = await client.createDebate(debateOpts);
@@ -363,83 +380,17 @@ async function runClassicDebateFlow(
   writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id);
 
   console.log(st.success('Debate complete.\n'));
+  return goldenPrompt;
 }
 
-interface WorkspaceContext {
-  files: Array<{ name: string; content: string }>;
-  projectContext: Record<string, unknown>;
-  gitContextPrefix: string;
-  ticketPrefix: string;
-}
-
-async function loadWorkspaceContext(options: DebateCommandOptions): Promise<WorkspaceContext | null> {
-  if (options.noContext) return null;
-
-  const cwd = process.cwd();
-  const permitted = await requestCodebasePermission(cwd);
-  if (!permitted) return null;
-
-  const workspace = detectWorkspace(cwd);
-  const autoFiles = getAutoLoadFiles(workspace, cwd);
-
-  const files: Array<{ name: string; content: string }> = [];
-  for (const filePath of autoFiles) {
-    if (isSecretFile(filePath)) continue;
-    try {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      if (content.includes('\0')) continue;
-      if (content.length > 100 * 1024) continue;
-      files.push({ name: require('node:path').basename(filePath), content });
-    } catch {}
-  }
-
-  const envMeta = extractEnvMetadata(cwd);
-
-  const projectContext: Record<string, unknown> = {
-    projectType: workspace.projectType,
-    language: workspace.language,
-    framework: workspace.framework,
-    packageManager: workspace.packageManager,
-    hasTests: workspace.hasTests,
-    hasDocker: workspace.hasDocker,
-    hasCI: workspace.hasCI,
-  };
-  if (envMeta) {
-    projectContext.integrations = envMeta.integrations;
-  }
-
-  let gitContextPrefix = '';
-  if (options.gitDiff) {
-    const gitCtx = collectGitContext(cwd);
-    if (gitCtx?.diff) {
-      gitContextPrefix = formatGitContextForPrompt(gitCtx);
-      console.log(st.dim(`  Loaded git diff (branch: ${gitCtx.branch || 'unknown'})`));
-    }
-  }
-
-  let ticketPrefix = '';
-  if (options.ticket) {
-    try {
-      const ticket = await fetchTicket(options.ticket);
-      if (ticket) {
-        ticketPrefix = formatTicketForPrompt(ticket);
-        console.log(st.dim(`  Loaded ticket: ${ticket.identifier} — ${ticket.title}`));
-      } else {
-        console.log(st.dim(`  Could not fetch ticket ${options.ticket} (check LINEAR_API_KEY)`));
-      }
-    } catch {
-      console.log(st.dim(`  Could not fetch ticket ${options.ticket}`));
-    }
-  }
-
-  if (files.length > 0) {
-    console.log(st.dim(`  Loaded ${files.length} context files (${files.map(f => f.name).join(', ')})`));
-  }
-  if (envMeta?.integrations.length) {
-    console.log(st.dim(`  Detected integrations: ${envMeta.integrations.join(', ')}`));
-  }
-
-  return { files, projectContext, gitContextPrefix, ticketPrefix };
+async function loadWorkspaceContext(
+  options: DebateCommandOptions,
+): Promise<WorkspaceDebateContext | null> {
+  return loadWorkspaceDebateContext({
+    noContext: options.noContext,
+    gitDiff: options.gitDiff,
+    ticket: options.ticket,
+  });
 }
 
 export async function debateCommand(
@@ -463,12 +414,16 @@ export async function debateCommand(
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   const useDeliberation = ['redteam', 'jury', 'market'].includes(mode);
 
+  let synthesis = '';
   if (useDeliberation) {
-    await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
-    return;
+    synthesis = await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
+  } else {
+    synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
   }
 
-  await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
+  if (options.apply) {
+    await maybeApplySynthesisEdits(synthesis, wsContext?.rootPath || resolveProjectRoot(process.cwd()).root);
+  }
 }
 
 async function runDeliberation(
@@ -478,8 +433,8 @@ async function runDeliberation(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
-  wsContext?: WorkspaceContext | null,
-): Promise<void> {
+  wsContext?: WorkspaceDebateContext | null,
+): Promise<string> {
   const startTime = Date.now();
 
   console.log(st.brand(`\n  Deliberation mode: ${mode}\n`));
@@ -491,7 +446,12 @@ async function runDeliberation(
     deliberation = await client.createDeliberation(effectiveDelibTopic, {
       models,
       mode,
-      ...(wsContext && { files: wsContext.files, projectContext: wsContext.projectContext }),
+      debateSource: 'cli',
+      ...(wsContext && {
+        files: wsContext.files,
+        projectFiles: wsContext.projectFiles,
+        projectContext: wsContext.projectContext,
+      }),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Create failed';
@@ -552,4 +512,31 @@ async function runDeliberation(
   writeFormattedDebateOutput(ctx.resultText, outputFormat, topic, models, mode, deliberation.id);
 
   console.log(st.success('\nDeliberation complete.\n'));
+  return ctx.resultText;
+}
+
+async function maybeApplySynthesisEdits(synthesis: string, rootPath: string): Promise<void> {
+  if (!synthesis) {
+    console.log(st.dim('No synthesis text available for edit application.'));
+    return;
+  }
+
+  const parsed = parseEditsFromSynthesis(synthesis, rootPath);
+  if (parsed.edits.length === 0) {
+    console.log(st.dim('No structured edit actions found in synthesis.'));
+    return;
+  }
+
+  console.log(st.bold('\nPlanned edits\n'));
+  console.log(formatEditPreview(parsed.preview));
+  console.log('');
+
+  const permission = await requestWritePermission(rootPath);
+  if (permission === 'deny' || !consumeWritePermission(rootPath)) {
+    console.log(st.warning('Write permission denied. Skipping edit apply.\n'));
+    return;
+  }
+
+  const result = applyEdits(rootPath, parsed.edits);
+  console.log(st.success(`Applied ${result.applied} edit(s).`), st.dim(`Rollback snapshot: ${result.snapshot.id}\n`));
 }

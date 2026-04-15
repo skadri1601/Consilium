@@ -15,6 +15,8 @@ export async function GET() {
           costThisMonth: 0,
           debatesByDay: [],
           modelUsage: [],
+          debatesBySource: [],
+          cliDebateCount: 0,
         });
       }
 
@@ -37,6 +39,8 @@ export async function GET() {
           costThisMonth: 0,
           debatesByDay: [],
           modelUsage: [],
+          debatesBySource: [],
+          cliDebateCount: 0,
         });
       }
 
@@ -59,6 +63,8 @@ export async function GET() {
         costThisMonth: 0,
         debatesByDay: [],
         modelUsage: [],
+        debatesBySource: [],
+        cliDebateCount: 0,
       });
     }
 

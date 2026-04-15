@@ -67,6 +67,23 @@ export class DeliberationService {
       },
     });
 
+    const mergedProjectContext: Record<string, unknown> = {};
+    if (dto.responses !== undefined && dto.responses !== null) {
+      mergedProjectContext.evalResponses = dto.responses;
+    }
+    if (dto.projectContext && typeof dto.projectContext === "object") {
+      Object.assign(mergedProjectContext, dto.projectContext);
+    }
+    if (dto.context && typeof dto.context === "object") {
+      Object.assign(mergedProjectContext, dto.context);
+    }
+    const projectContextValue =
+      Object.keys(mergedProjectContext).length > 0
+        ? (mergedProjectContext as Prisma.InputJsonValue)
+        : undefined;
+
+    const debateSource = dto.debateSource ?? "deliberation";
+
     const deliberation = await this.prisma.debateSession.create({
       data: {
         userId: user.id,
@@ -75,12 +92,9 @@ export class DeliberationService {
         modelsUsed: effectiveModels,
         totalCost: 0,
         mode,
-        debateSource: "deliberation",
+        debateSource,
         conversationId: conversation.id,
-        projectContext:
-          dto.responses !== undefined && dto.responses !== null
-            ? ({ evalResponses: dto.responses } as Prisma.InputJsonValue)
-            : undefined,
+        projectContext: projectContextValue,
       },
     });
 
@@ -139,7 +153,7 @@ export class DeliberationService {
     }
 
     const deliberation = await this.prisma.debateSession.findFirst({
-      where: { id, userId: user.id, debateSource: "deliberation" },
+      where: { id, userId: user.id },
     });
 
     if (!deliberation) {
@@ -197,7 +211,7 @@ export class DeliberationService {
     }
 
     const deliberation = await this.prisma.debateSession.findFirst({
-      where: { id, userId: user.id, debateSource: "deliberation" },
+      where: { id, userId: user.id },
       include: {
         rounds: {
           include: {
@@ -227,7 +241,7 @@ export class DeliberationService {
     }
 
     const deliberation = await this.prisma.debateSession.findFirst({
-      where: { id, userId: user.id, debateSource: "deliberation" },
+      where: { id, userId: user.id },
     });
 
     if (!deliberation) {

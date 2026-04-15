@@ -23,6 +23,7 @@ import { logoutCommand } from "./commands/logout.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
+import { mcpCommand } from "./commands/mcp.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
 
@@ -41,6 +42,7 @@ const KNOWN_SUBCOMMANDS = [
   "redteam",
   "eval",
   "benchmark",
+  "mcp",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -100,6 +102,7 @@ async function main(): Promise<void> {
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
+    .option("--apply", "Apply structured edits from synthesis directly to files")
     .action(debateCommand);
 
   program
@@ -112,6 +115,10 @@ async function main(): Promise<void> {
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json",
     )
+    .option("--git-diff", "Include git diff in context")
+    .option("--no-context", "Disable automatic codebase context loading")
+    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
+    .option("--apply", "Apply structured edits from synthesis directly to files")
     .action(debateCommand);
 
   program
@@ -174,6 +181,12 @@ async function main(): Promise<void> {
     .command("stats")
     .description("Show model performance dashboard")
     .action(statsCommand);
+
+  program
+    .command("mcp")
+    .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
+    .option("--json", "Emit only JSON suitable for merging into MCP config")
+    .action((opts: { json?: boolean }) => mcpCommand(opts));
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);

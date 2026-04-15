@@ -1,6 +1,13 @@
 import readline from "node:readline";
-import { loadConfig, saveConfig, isLoggedIn } from "../utils/config.js";
+import {
+  DEFAULT_API_ORIGIN,
+  DEFAULT_WEB_ORIGIN,
+  loadConfig,
+  saveConfig,
+  isLoggedIn,
+} from "../utils/config.js";
 import { openBrowser } from "../utils/open-browser.js";
+import { printPostLoginProviderHints } from "../utils/post-login-onboarding.js";
 import { style } from "../utils/visual-system.js";
 
 const st = style();
@@ -11,11 +18,15 @@ function prompt(question: string): Promise<string> {
     output: process.stdout,
   });
   return new Promise((resolve) => {
+    let answered = false;
     rl.question(question, (answer) => {
+      answered = true;
       rl.close();
       resolve(answer);
     });
-    rl.on("close", () => resolve(""));
+    rl.on("close", () => {
+      if (!answered) resolve("");
+    });
   });
 }
 
@@ -37,8 +48,8 @@ export async function loginFlow(): Promise<boolean> {
   );
 
   const config = loadConfig();
-  const webUrl = config.webUrl || "https://myconsilium.xyz";
-  const apiUrl = config.apiUrl || "https://myconsilium.xyz";
+  const webUrl = (config.webUrl ?? DEFAULT_WEB_ORIGIN).replace(/\/$/, "");
+  const apiUrl = (config.apiUrl ?? DEFAULT_API_ORIGIN).replace(/\/$/, "");
   const authUrl = `${webUrl}/cli/auth`;
 
   console.log(st.dim("\nOpening Consilium in your browser..."));
@@ -81,6 +92,7 @@ export async function loginFlow(): Promise<boolean> {
     try {
       res = await fetch(`${apiUrl}/api/v1/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(15000),
       });
     } catch {
       console.log(
@@ -115,6 +127,7 @@ export async function loginFlow(): Promise<boolean> {
     });
 
     console.log(st.success(`\n✓ Logged in as ${userName} (${email})`));
+    await printPostLoginProviderHints(apiUrl, token, webUrl);
     return true;
   }
 

@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { TestModeClerkProvider } from "@/components/test-mode-clerk-provider";
 import { ThemeProvider } from "@/app/provider";
+import { PostHogProvider } from "@/components/posthog-provider";
 import "@/styles/globals.css";
 
 const inter = localFont({
@@ -34,12 +35,14 @@ export default function RootLayout({
       <html lang="en" className="dark" suppressHydrationWarning>
         <body className={`${inter.className} antialiased font-normal`}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
-            <ErrorBoundary>
-              <OnboardingProvider>
-                {children}
-                <Toaster />
-              </OnboardingProvider>
-            </ErrorBoundary>
+            <PostHogProvider>
+              <ErrorBoundary>
+                <OnboardingProvider>
+                  {children}
+                  <Toaster />
+                </OnboardingProvider>
+              </ErrorBoundary>
+            </PostHogProvider>
           </ThemeProvider>
         </body>
       </html>

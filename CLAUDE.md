@@ -31,6 +31,10 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 - **briefing_agent.py** — Builds a text digest (stdout) from Sentry, Vercel, SonarQube, and DB stats when run
 - **run_all.py** — Orchestrator with max 10 restarts per child process, logs to agents/logs/
 
+### Production URLs (reference)
+- **Web app**: `https://myconsilium.xyz`
+- **Nest API origin** (default `CONSILIUM_API_URL` in CLI and Python MCP, no path suffix): `https://api.myconsilium.xyz` — HTTP routes are under `/api/v1`. Health checks use `/health` at the API host root.
+
 ### Key Infrastructure
 - **Redis**: Upstash (debate engine and other services; optional for agents telemetry)
 - **DB**: Neon PostgreSQL via Prisma

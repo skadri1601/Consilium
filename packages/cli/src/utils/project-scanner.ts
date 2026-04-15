@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PermissionManager, PermissionLevel } from './permission-manager';
+import { classifyFile, type FileClassification } from './file-privacy';
 
 export interface ScannedFile {
   path: string;
@@ -8,218 +8,170 @@ export interface ScannedFile {
   category: 'manifest' | 'source' | 'config' | 'doc';
 }
 
+const SKIP_DIRS = new Set([
+  '.git',
+  '.next',
+  '.turbo',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  '__pycache__',
+  '.venv',
+  'vendor',
+  'target',
+]);
+
+const DEFAULT_MAX_FILES = Number(process.env.CONSILIUM_CONTEXT_MAX_FILES || 2000);
+const DEFAULT_MAX_BYTES = Number(process.env.CONSILIUM_CONTEXT_MAX_BYTES || 12 * 1024 * 1024);
+const DEFAULT_MAX_DEPTH = Number(process.env.CONSILIUM_CONTEXT_MAX_DEPTH || 18);
+
+type SkipReason = 'secret' | 'binary' | 'skip-rule' | 'payload-limit' | 'read-error' | 'max-files';
+
+export interface ScanManifest {
+  root: string;
+  loaded: number;
+  loadedBytes: number;
+  skipped: Record<SkipReason, number>;
+  loadedPaths: string[];
+}
+
 export interface ProjectScanResult {
   files: ScannedFile[];
   summary: string;
+  manifest: ScanManifest;
 }
 
-const SKIP_DIRS = new Set([
-  'node_modules', 'dist', '.git', '__pycache__', '.next',
-  'vendor', '.venv', 'build', 'coverage',
-]);
-
-const ALLOWED_EXTS = new Set([
-  '.ts', '.tsx', '.js', '.py', '.go', '.rs', '.java',
-  '.css', '.html', '.sql', '.yaml', '.yml', '.json',
-  '.md', '.prisma',
-]);
-
-const ALLOWED_BASENAMES = new Set([
-  'Dockerfile', 'Makefile',
-]);
-
-const BINARY_EXTS = new Set([
-  '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.svg', '.webp',
-  '.pdf', '.docx', '.doc', '.xlsx', '.xls', '.pptx',
-  '.mp3', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.wav', '.ogg',
-  '.zip', '.tar', '.gz', '.rar', '.7z', '.bz2',
-  '.woff', '.woff2', '.ttf', '.otf', '.eot',
-  '.lock',
-]);
-
-const SECRET_PATTERNS = [
-  /^\.env/i,
-  /\.key$/i,
-  /\.pem$/i,
-  /^credentials/i,
-  /^secret/i,
-  /^\.npmrc$/i,
-];
-
-const MANIFEST_NAMES = new Set([
-  'package.json', 'Cargo.toml', 'pyproject.toml', 'go.mod',
-  'pom.xml', 'build.gradle', 'setup.py', 'setup.cfg',
-  'requirements.txt', 'Gemfile',
-]);
-
-const MAX_FILES = 200;
-const MAX_FILE_SIZE = 50 * 1024;
-const MAX_TOTAL_SIZE = 2 * 1024 * 1024;
-
-let permissionManagerInstance: PermissionManager | null = null;
-
-function getPermissionManager(): PermissionManager {
-  permissionManagerInstance ??= new PermissionManager();
-  return permissionManagerInstance;
+interface ScanOptions {
+  maxFiles?: number;
+  maxTotalBytes?: number;
+  maxDepth?: number;
 }
 
-function isSecretFile(basename: string): boolean {
-  return SECRET_PATTERNS.some((p) => p.test(basename));
+function classificationToCategory(classification: FileClassification): ScannedFile['category'] | null {
+  if (classification === 'manifest') return 'manifest';
+  if (classification === 'source') return 'source';
+  if (classification === 'config') return 'config';
+  if (classification === 'doc') return 'doc';
+  return null;
 }
 
-function isBinaryExt(ext: string): boolean {
-  return BINARY_EXTS.has(ext.toLowerCase());
+function createManifest(root: string): ScanManifest {
+  return {
+    root,
+    loaded: 0,
+    loadedBytes: 0,
+    skipped: {
+      secret: 0,
+      binary: 0,
+      'skip-rule': 0,
+      'payload-limit': 0,
+      'read-error': 0,
+      'max-files': 0,
+    },
+    loadedPaths: [],
+  };
 }
 
-function isAllowedFile(basename: string, ext: string): boolean {
-  if (isSecretFile(basename)) return false;
-  if (isBinaryExt(ext)) return false;
-  if (ALLOWED_BASENAMES.has(basename)) return true;
-  if (ALLOWED_EXTS.has(ext.toLowerCase())) {
-    if (ext === '.json' && basename.endsWith('-lock.json')) return false;
-    if (ext === '.json' && basename === 'package-lock.json') return false;
-    return true;
-  }
-  return false;
-}
-
-function categorizeFile(basename: string, ext: string): ScannedFile['category'] {
-  if (MANIFEST_NAMES.has(basename)) return 'manifest';
-  if (ext === '.md' || ext === '.txt' || ext === '.rst') return 'doc';
-  if (ext === '.json' || ext === '.yaml' || ext === '.yml' || ext === '.prisma' ||
-      basename === 'Dockerfile' || basename === 'Makefile') return 'config';
-  return 'source';
-}
-
-interface DiscoveredFile {
-  relativePath: string;
-  size: number;
-  category: ScannedFile['category'];
-  depth: number;
-}
-
-function tryReadProjectDir(dir: string): fs.Dirent[] | undefined {
+function listSortedEntries(dir: string): fs.Dirent[] {
   try {
-    return fs.readdirSync(dir, { withFileTypes: true });
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+    return entries;
   } catch {
-    return undefined;
+    return [];
   }
 }
 
-function tryPushDiscoveredFile(
-  projectPath: string,
-  dir: string,
-  entry: fs.Dirent,
+function walkAndCollect(
+  root: string,
+  currentDir: string,
   depth: number,
-  results: DiscoveredFile[],
+  files: ScannedFile[],
+  manifest: ScanManifest,
+  options: Required<ScanOptions>,
 ): void {
-  if (!entry.isFile()) return;
-  const ext = path.extname(entry.name).toLowerCase();
-  if (!isAllowedFile(entry.name, ext)) return;
-  const fullPath = path.join(dir, entry.name);
-  try {
-    const stat = fs.statSync(fullPath);
-    if (stat.size > MAX_FILE_SIZE) return;
-    if (stat.size === 0) return;
-    const relativePath = path.relative(projectPath, fullPath).replaceAll('\\', '/');
-    results.push({
-      relativePath,
-      size: stat.size,
-      category: categorizeFile(entry.name, ext),
-      depth,
-    });
-  } catch {
-    return;
-  }
-}
-
-function walkProjectTree(projectPath: string, dir: string, depth: number, results: DiscoveredFile[]): void {
-  if (depth > 10) return;
-  const entries = tryReadProjectDir(dir);
-  if (!entries) return;
-
+  if (depth > options.maxDepth) return;
+  const entries = listSortedEntries(currentDir);
   for (const entry of entries) {
+    const fullPath = path.join(currentDir, entry.name);
+    const relativePath = path.relative(root, fullPath).replaceAll('\\', '/');
+
     if (entry.isDirectory()) {
       if (SKIP_DIRS.has(entry.name)) continue;
       if (entry.name.startsWith('.') && entry.name !== '.github') continue;
-      walkProjectTree(projectPath, path.join(dir, entry.name), depth + 1, results);
+      walkAndCollect(root, fullPath, depth + 1, files, manifest, options);
       continue;
     }
-    tryPushDiscoveredFile(projectPath, dir, entry, depth, results);
-  }
-}
+    if (!entry.isFile()) continue;
 
-function discoverFiles(projectPath: string): DiscoveredFile[] {
-  const results: DiscoveredFile[] = [];
-  walkProjectTree(projectPath, projectPath, 0, results);
-  return results;
-}
+    if (files.length >= options.maxFiles) {
+      manifest.skipped['max-files'] += 1;
+      continue;
+    }
 
-function prioritizeFiles(files: DiscoveredFile[]): DiscoveredFile[] {
-  const manifests = files.filter((f) => f.category === 'manifest');
-  const source = files.filter((f) => f.category === 'source');
-  const config = files.filter((f) => f.category === 'config');
-  const docs = files.filter((f) => f.category === 'doc');
+    const classification = classifyFile(relativePath);
+    if (classification === 'secret') {
+      manifest.skipped.secret += 1;
+      continue;
+    }
+    if (classification === 'dependency' || classification === 'skip') {
+      const ext = path.extname(relativePath).toLowerCase();
+      if (ext && ['.png', '.jpg', '.jpeg', '.gif', '.pdf', '.zip', '.mp4', '.woff', '.woff2'].includes(ext)) {
+        manifest.skipped.binary += 1;
+      } else {
+        manifest.skipped['skip-rule'] += 1;
+      }
+      continue;
+    }
 
-  source.sort((a, b) => a.depth - b.depth);
+    const category = classificationToCategory(classification);
+    if (!category) {
+      manifest.skipped['skip-rule'] += 1;
+      continue;
+    }
 
-  return [...manifests, ...source, ...config, ...docs].slice(0, MAX_FILES);
-}
-
-function readFileContents(projectPath: string, files: DiscoveredFile[]): ScannedFile[] {
-  const result: ScannedFile[] = [];
-  let totalSize = 0;
-  let totalLines = 0;
-
-  for (const file of files) {
-    if (totalSize >= MAX_TOTAL_SIZE) break;
-
-    const fullPath = path.join(projectPath, file.relativePath);
+    let buffer: Buffer;
     try {
-      const buffer = fs.readFileSync(fullPath);
-      if (buffer.includes(0)) continue;
-
-      const remaining = MAX_TOTAL_SIZE - totalSize;
-      if (buffer.length > remaining) continue;
-
-      const content = buffer.toString('utf-8');
-      totalSize += buffer.length;
-      totalLines += content.split('\n').length;
-
-      result.push({
-        path: file.relativePath,
-        content,
-        category: file.category,
-      });
+      buffer = fs.readFileSync(fullPath);
     } catch {
+      manifest.skipped['read-error'] += 1;
       continue;
     }
-  }
 
-  return result;
+    if (buffer.includes(0)) {
+      manifest.skipped.binary += 1;
+      continue;
+    }
+
+    if (manifest.loadedBytes + buffer.length > options.maxTotalBytes) {
+      manifest.skipped['payload-limit'] += 1;
+      continue;
+    }
+
+    const content = buffer.toString('utf-8');
+    files.push({
+      path: relativePath,
+      content,
+      category,
+    });
+    manifest.loaded += 1;
+    manifest.loadedBytes += buffer.length;
+    manifest.loadedPaths.push(relativePath);
+  }
 }
 
-export async function scanProject(projectPath?: string): Promise<ProjectScanResult | null> {
-  const cwd = path.resolve(projectPath || process.cwd());
-  const pm = getPermissionManager();
-  const permission = await pm.requestPermission(cwd);
-
-  if (permission === 'deny') {
-    return null;
-  }
-
-  const discovered = discoverFiles(cwd);
-  const prioritized = prioritizeFiles(discovered);
-  const files = readFileContents(cwd, prioritized);
-
+export function scanProject(projectPath: string, opts: ScanOptions = {}): ProjectScanResult {
+  const root = path.resolve(projectPath);
+  const options: Required<ScanOptions> = {
+    maxFiles: opts.maxFiles ?? DEFAULT_MAX_FILES,
+    maxTotalBytes: opts.maxTotalBytes ?? DEFAULT_MAX_BYTES,
+    maxDepth: opts.maxDepth ?? DEFAULT_MAX_DEPTH,
+  };
+  const files: ScannedFile[] = [];
+  const manifest = createManifest(root);
+  walkAndCollect(root, root, 0, files, manifest, options);
   const totalLines = files.reduce((sum, f) => sum + f.content.split('\n').length, 0);
-  const summary = `${files.length} files, ${totalLines} lines`;
-
-  return { files, summary };
-}
-
-export function hasProjectPermission(projectPath?: string): PermissionLevel {
-  const cwd = path.resolve(projectPath || process.cwd());
-  const pm = getPermissionManager();
-  return pm.checkPermission(cwd);
+  const summary = `${files.length} files, ${totalLines} lines (${(manifest.loadedBytes / 1024).toFixed(1)} KB)`;
+  return { files, summary, manifest };
 }

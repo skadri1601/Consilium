@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { loadConfig } from './config';
+import { DEFAULT_API_ORIGIN, loadConfig } from './config';
 
 export type DecisionConfidence = 'high' | 'medium' | 'low';
 
@@ -93,7 +93,7 @@ function setCachedResult(text: string, result: SemanticExtractionResult): void {
 
 async function callLLMForExtraction(text: string): Promise<SemanticExtractionResult> {
   const config = loadConfig();
-  const apiUrl = config.apiUrl || 'http://localhost:4000';
+  const apiUrl = config.apiUrl || DEFAULT_API_ORIGIN;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (config.apiKey) {
     headers['Authorization'] = `Bearer ${config.apiKey}`;
@@ -106,6 +106,7 @@ async function callLLMForExtraction(text: string): Promise<SemanticExtractionRes
       topic: `${EXTRACTION_PROMPT}\n\n--- DEBATE SYNTHESIS ---\n${text}`,
       models: ['claude-haiku-4-5-20251001'],
       mode: 'quick',
+      debateSource: 'cli',
     }),
     signal: AbortSignal.timeout(15000),
   });

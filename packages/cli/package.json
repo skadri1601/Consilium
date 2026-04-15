@@ -35,7 +35,7 @@
   "bugs": {
     "url": "https://github.com/skadri1601/Consilium/issues"
   },
-  "author": "",
+  "author": "Saad Kadri <saad@myconsilium.xyz>",
   "license": "MIT",
   "dependencies": {
     "ansi-escapes": "^6.2.1",
@@ -44,6 +44,7 @@
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "eventsource": "^2.0.2",
+    "log-update": "^8.0.0",
     "open": "^10.1.0",
     "ora": "^8.0.1",
     "string-width": "^7.2.0",

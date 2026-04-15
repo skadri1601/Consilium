@@ -85,6 +85,10 @@ export class ContextManager {
     }));
   }
 
+  getFilesWithContent(): Array<{ name: string; content: string }> {
+    return Array.from(this.files.entries()).map(([name, content]) => ({ name, content }));
+  }
+
   getImages(): Array<{ name: string; base64: string }> {
     return Array.from(this.images.entries()).map(([name, base64]) => ({
       name,

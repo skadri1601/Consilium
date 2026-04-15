@@ -98,4 +98,26 @@ export class CreateDeliberationDto {
   @IsOptional()
   @IsObject()
   responses?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    description: "Stored on the debate session for analytics (web, cli, mcp, deliberation)",
+    enum: ["web", "cli", "mcp", "deliberation"],
+  })
+  @IsOptional()
+  @IsIn(["web", "cli", "mcp", "deliberation"])
+  debateSource?: string;
+
+  @ApiPropertyOptional({
+    description: "Structured workspace or tool context (merged with eval responses when present)",
+  })
+  @IsOptional()
+  @IsObject()
+  projectContext?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    description: "Optional request context (e.g. files for workers); merged into stored projectContext",
+  })
+  @IsOptional()
+  @IsObject()
+  context?: Record<string, unknown>;
 }

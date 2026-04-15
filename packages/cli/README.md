@@ -119,11 +119,15 @@ consilium config list
 
 Configuration is stored in `~/.consilium/config.json`.
 
-Environment variable override:
+Defaults target production (`https://api.myconsilium.xyz`, `https://myconsilium.xyz`). For a local Nest API, set:
 
 ```bash
 export CONSILIUM_API_URL="http://localhost:4000"
 ```
+
+## MCP (Cursor, Claude Code, etc.)
+
+Run `consilium mcp` for a copy-paste stdio config. The Python module `consilium.mcp` calls the same Nest API as the CLI using `CONSILIUM_API_KEY` (your `consilium_` token) and `CONSILIUM_API_URL` (API origin, no `/api/v1` suffix). Install: `pip install -e packages/python-sdk` and optional `pip install 'consilium[mcp]'` for the official MCP stdio transport.
 
 ## Features
 

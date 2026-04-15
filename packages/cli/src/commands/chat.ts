@@ -6,11 +6,11 @@ import { ContextManager } from '../utils/context-manager';
 import { ChatSession } from './chat-session';
 import { SessionManager } from '../utils/session-manager';
 import { requireAuth } from '../utils/require-auth';
-import { loadConfig } from '../utils/config';
+import { DEFAULT_API_ORIGIN, loadConfig } from '../utils/config';
 import { border, borderBottom, contentLine, style } from '../utils/visual-system';
 import { formatPrompt } from '../utils/prompt-renderer';
 import { terminal } from '../utils/terminal-capabilities';
-import { detectWorkspace, getAutoLoadFiles } from '../utils/workspace-detector';
+import { loadWorkspaceDebateContext } from '../utils/workspace-debate-context';
 import { log } from '../utils/logger';
 import { dispatchSlashCommand } from './chat-slash-dispatch';
 
@@ -54,6 +54,7 @@ function printHelp(): void {
   console.log(st.dim('  /clear          - Clear context'));
   console.log(st.bold('\n  Session'));
   console.log(st.dim('  /status         - Show session status'));
+  console.log(st.dim('  /manifest       - Show workspace context manifest (loaded/skipped files)'));
   console.log(st.dim('  /models [m1 ..] - Set models; no args to show current'));
   console.log(st.dim('  /save [file]    - Save synthesis to file, or session to disk'));
   console.log(st.dim('  /history        - Show conversation history'));
@@ -64,6 +65,12 @@ function printHelp(): void {
   console.log(st.dim('  /delete <id>    - Delete a saved session'));
   console.log(st.bold('\n  Config'));
   console.log(st.dim('  /api            - Show API key status; /api set <key> or /api open'));
+  console.log(st.dim('  /keys [open|status] - Provider LLM keys page or account status'));
+  console.log(st.dim('  /track, /insights - Open web analytics (usage)'));
+  console.log(st.dim('  /codebase       - allow | status | revoke local file read for debates'));
+  console.log(st.dim('  /permissions    - status | allow-write | revoke-write for read/write policy'));
+  console.log(st.dim('  /apply          - Apply structured edits from latest synthesis (preview + permission gated)'));
+  console.log(st.dim('  /redo, /again   - Re-run last topic with current workspace permission and files'));
   console.log(st.dim('  /help           - Show this help'));
   console.log(st.dim('  /exit           - Exit and save session'));
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
@@ -213,6 +220,23 @@ async function handleSlashCommand(
     handleSearchCommand,
     handleSessionsListCommand,
     handleRenameCommand,
+    rerunLastDebateWithWorkspace: async () => {
+      const last = session.debates.at(-1);
+      if (!last?.topic) {
+        console.log(st.warning('\nNo previous debate to redo. Ask a question first.\n'));
+        return;
+      }
+      const ctx = await loadWorkspaceDebateContext({});
+      if (ctx?.projectFiles.length) {
+        session.projectFiles = ctx.projectFiles;
+        session.contextManifest = ctx.contextManifest;
+      } else {
+        session.projectFiles = undefined;
+        session.contextManifest = undefined;
+      }
+      console.log(st.brand(`\nRe-running: ${last.topic}\n`));
+      await session.debate(last.topic);
+    },
   });
 }
 
@@ -342,7 +366,7 @@ export async function chatCommand(): Promise<void> {
 
   printWelcome();
   const config = loadConfig();
-  const baseUrl = config.apiUrl || 'http://localhost:4000';
+  const baseUrl = config.apiUrl || DEFAULT_API_ORIGIN;
   try {
     const host = new URL(baseUrl).host;
     console.log(st.dim('Ready. Connected to ' + host));
@@ -350,19 +374,14 @@ export async function chatCommand(): Promise<void> {
     console.log(st.dim('Ready. Connected.'));
   }
 
-  const workspace = detectWorkspace();
-  if (workspace.projectType !== 'unknown') {
-    console.log(st.dim(`Detected: ${workspace.language} project (${workspace.framework || workspace.projectType})`));
-    const autoFiles = getAutoLoadFiles(workspace);
-    for (const f of autoFiles) {
-      try {
-        contextManager.addFile(f);
-        session.contextFilePaths.push(f);
-      } catch { /* skip files that fail */ }
-    }
-    if (autoFiles.length > 0) {
-      console.log(st.dim(`Auto-loaded ${session.contextFilePaths.length} project file(s)`));
-    }
+  const wsContext = await loadWorkspaceDebateContext({});
+  if (wsContext?.projectFiles.length) {
+    session.projectFiles = wsContext.projectFiles;
+    session.contextManifest = wsContext.contextManifest;
+    console.log(st.dim(`Prepared ${wsContext.projectFiles.length} scanned project file(s) for debates.`));
+  } else {
+    session.projectFiles = undefined;
+    session.contextManifest = undefined;
   }
   console.log('');
 

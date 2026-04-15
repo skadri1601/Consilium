@@ -27,15 +27,18 @@ async function linearApiQuery(query: string, variables: Record<string, unknown> 
   });
 
   if (!response.ok) return null;
-  const data = await response.json();
-  return data?.data;
+  const payload = (await response.json()) as { data?: unknown };
+  return payload.data;
 }
 
 export async function fetchTicket(identifier: string): Promise<LinearTicket | null> {
   const parts = identifier.split("-");
   if (parts.length !== 2) return null;
+  const teamKey = parts[0];
+  const numberPart = parts[1];
+  if (!teamKey || !numberPart) return null;
 
-  const data = await linearApiQuery(
+  const data = (await linearApiQuery(
     `query ($filter: IssueFilter) {
       issues(filter: $filter, first: 1) {
         nodes {
@@ -52,11 +55,27 @@ export async function fetchTicket(identifier: string): Promise<LinearTicket | nu
     }`,
     {
       filter: {
-        team: { key: { eq: parts[0] } },
-        number: { eq: parseInt(parts[1], 10) },
+        team: { key: { eq: teamKey } },
+        number: { eq: parseInt(numberPart, 10) },
       },
     },
-  );
+  )) as
+    | {
+        issues?: {
+          nodes?: Array<{
+            id: string;
+            identifier: string;
+            title: string;
+            description?: string | null;
+            state?: { name?: string | null } | null;
+            priority?: number | null;
+            labels?: { nodes?: Array<{ name?: string }> | null } | null;
+            comments?: { nodes?: Array<{ body?: string }> | null } | null;
+          }>;
+        };
+      }
+    | null
+    | undefined;
 
   const issue = data?.issues?.nodes?.[0];
   if (!issue) return null;

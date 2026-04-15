@@ -5,10 +5,10 @@ import { createStreamHandlers } from '../utils/stream-renderer';
 import { DecisionLog } from '../utils/decision-extractor';
 import { DebateMode, getDefaultMode } from '../utils/debate-modes';
 import { OutputFormat } from '../utils/output-formatter';
-import { type ScannedFile } from '../utils/project-scanner';
+import { type ScanManifest, type ScannedFile } from '../utils/project-scanner';
 
 const DEFAULT_MODELS = ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
-const MAX_CONTEXT_SYNTHESES = 5;
+const MAX_CONTEXT_CHARS = 80_000;
 
 export interface DebateRecord {
   topic: string;
@@ -28,6 +28,7 @@ export interface ChatSessionData {
   decisions: any;
   createdAt: string;
   updatedAt: string;
+  contextManifest?: ScanManifest;
 }
 
 export class ChatSession {
@@ -45,6 +46,7 @@ export class ChatSession {
   contextFilePaths: string[];
   contextImagePaths: string[];
   projectFiles: ScannedFile[] | undefined;
+  contextManifest: ScanManifest | undefined;
   createdAt: string;
   updatedAt: string;
 
@@ -67,6 +69,7 @@ export class ChatSession {
     this.contextFilePaths = [];
     this.contextImagePaths = [];
     this.projectFiles = undefined;
+    this.contextManifest = undefined;
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
   }
@@ -75,9 +78,33 @@ export class ChatSession {
     const previous = this.debates.filter((d) => d.goldenPrompt);
     if (previous.length === 0) return '';
 
-    const recent = previous.slice(-MAX_CONTEXT_SYNTHESES);
-    const blocks = recent.flatMap((d) => [`--- Topic: ${d.topic} ---`, d.goldenPrompt ?? '', '']);
-    return ['=== PREVIOUS DEBATE SYNTHESES ===\n', ...blocks, '=== END PREVIOUS SYNTHESES ===\n'].join('\n');
+    const included: string[] = [];
+    let usedChars = 0;
+    let firstIncludedIdx = previous.length;
+
+    for (let i = previous.length - 1; i >= 0; i--) {
+      const d = previous[i];
+      const block = `--- Turn ${i + 1}: ${d.topic} ---\n${d.goldenPrompt ?? ''}\n`;
+      if (usedChars + block.length > MAX_CONTEXT_CHARS) break;
+      included.unshift(block);
+      usedChars += block.length;
+      firstIncludedIdx = i;
+    }
+
+    const parts: string[] = ['=== CONVERSATION HISTORY ===\n'];
+
+    if (firstIncludedIdx > 0) {
+      const older = previous.slice(0, firstIncludedIdx);
+      parts.push(`[Earlier turns — topics only]\n`);
+      for (let i = 0; i < older.length; i++) {
+        parts.push(`  Turn ${i + 1}: ${older[i].topic}`);
+      }
+      parts.push('');
+    }
+
+    parts.push(...included);
+    parts.push('=== END CONVERSATION HISTORY ===\n');
+    return parts.join('\n');
   }
 
   private buildEffectiveTopic(userInput: string, followUp: string, context: string, decisionContext: string): string {
@@ -98,9 +125,7 @@ export class ChatSession {
     const effectiveTopic = this.buildEffectiveTopic(userInput, followUp, context, decisionContext);
 
     const files = this.contextManager.getFiles().length > 0
-      ? Array.from(
-        (this.contextManager as unknown as { files?: Map<string, string> }).files?.entries() ?? [],
-      ).map(([name, content]) => ({ name, content }))
+      ? this.contextManager.getFilesWithContent()
       : undefined;
     const images = this.contextManager.getImages().length > 0
       ? this.contextManager.getImages()
@@ -115,9 +140,10 @@ export class ChatSession {
       models: this.models,
       mode: this.mode,
       conversationId: this.conversationId,
-      files: files as any,
+      files,
       images,
       projectFiles,
+      debateSource: 'cli',
     });
 
     let goldenPrompt = '';
@@ -168,6 +194,7 @@ export class ChatSession {
       decisions: this.decisionLog.toJSON(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt || now,
+      contextManifest: this.contextManifest,
     };
   }
 
@@ -190,6 +217,7 @@ export class ChatSession {
     }
     session.createdAt = data.createdAt || new Date().toISOString();
     session.updatedAt = data.updatedAt || data.createdAt || new Date().toISOString();
+    session.contextManifest = data.contextManifest;
     const last = session.debates.at(-1);
     if (last?.goldenPrompt) {
       session.lastGoldenPrompt = last.goldenPrompt;
