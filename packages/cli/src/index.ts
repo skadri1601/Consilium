@@ -9,7 +9,6 @@ const require = createRequire(import.meta.url);
 const pkg = require("../package.json") as { version: string };
 import readline from "node:readline";
 import { debateCommand } from "./commands/debate.js";
-import { runDebateFromStdin } from "./commands/stdin-debate.js";
 import { redteamCommand } from "./commands/redteam.js";
 import { evalCommand } from "./commands/eval.js";
 import { benchmarkCommand } from "./commands/benchmark.js";
@@ -27,7 +26,14 @@ import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
-import { checkAndNotifyUpdate } from "./utils/update-checker.js";
+import {
+  getBillingInfo,
+  formatBillingDashboard,
+  formatWalletBalance,
+  formatTierBadge,
+} from "./billing/index.js";
+import { openBrowser } from "./utils/open-browser.js";
+import { DEFAULT_API_ORIGIN, DEFAULT_WEB_ORIGIN } from "./utils/config.js";
 
 const st = style();
 const KNOWN_SUBCOMMANDS = [
@@ -36,7 +42,6 @@ const KNOWN_SUBCOMMANDS = [
   "chat",
   "config",
   "sessions",
-  "history",
   "login",
   "logout",
   "debug",
@@ -46,6 +51,8 @@ const KNOWN_SUBCOMMANDS = [
   "eval",
   "benchmark",
   "mcp",
+  "upgrade",
+  "billing",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -59,35 +66,15 @@ const isOneShot =
   !KNOWN_SUBCOMMANDS.includes(firstArg);
 
 async function main(): Promise<void> {
-  const isStdinPipe = !process.stdin.isTTY;
-
-  if (isStdinPipe && (isDefaultRepl || (firstArg !== undefined && firstArg === 'debate') || (firstArg !== undefined && firstArg === 'ask'))) {
-    const rawArgs = process.argv.slice(2);
-    const mode = (() => {
-      const idx = rawArgs.indexOf('--mode');
-      return idx !== -1 ? rawArgs[idx + 1] : undefined;
-    })();
-    const outputFlag = (() => {
-      const idx = rawArgs.indexOf('--output');
-      return idx !== -1 ? rawArgs[idx + 1] : undefined;
-    })();
-    const modelsIdx = rawArgs.indexOf('--models');
-    const models = modelsIdx !== -1 ? rawArgs.slice(modelsIdx + 1).filter(a => !a.startsWith('-')) : undefined;
-    await runDebateFromStdin({ mode, output: outputFlag, models });
-    return;
-  }
-
   if (isDefaultRepl) {
     const { isLoggedIn } = await import("./utils/config.js");
     if (isLoggedIn()) {
-      checkAndNotifyUpdate().catch(() => {});
       const { showMenu } = await import("./commands/menu.js");
       await showMenu();
     } else {
       const { loginFlow } = await import("./commands/login.js");
       const ok = await loginFlow();
       if (ok) {
-        checkAndNotifyUpdate().catch(() => {});
         const { showMenu } = await import("./commands/menu.js");
         await showMenu();
       }
@@ -120,9 +107,8 @@ async function main(): Promise<void> {
     )
     .option(
       "--output <format>",
-      "Output format: markdown, cursorrules, claude-md, json, minimal (default: pretty-print)",
+      "Output format: markdown, cursorrules, claude-md, json (default: pretty-print)",
     )
-    .option("--output-file <path>", "Write output to file instead of stdout")
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
@@ -137,9 +123,8 @@ async function main(): Promise<void> {
     .option("--mode <mode>", "Debate mode: quick, council, deep, blind, redteam, jury, market, auto")
     .option(
       "--output <format>",
-      "Output format: markdown, cursorrules, claude-md, json, minimal",
+      "Output format: markdown, cursorrules, claude-md, json",
     )
-    .option("--output-file <path>", "Write output to file instead of stdout")
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
@@ -213,75 +198,83 @@ async function main(): Promise<void> {
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
 
-  const historySessionManager = new SessionManager(path.join(os.homedir(), ".consilium", "sessions"));
+  program
+    .command("billing")
+    .description("Show billing dashboard (tier, usage, wallet)")
+    .action(async () => {
+      const { loadConfig: lc } = await import("./utils/config.js");
+      const cfg = lc();
+      if (!cfg.apiKey) {
+        console.log(st.warning("Not logged in. Run: consilium login"));
+        return;
+      }
+      const info = await getBillingInfo();
+      if (!info) {
+        console.log(st.warning("Could not load billing info. Check your connection."));
+        return;
+      }
+      console.log("\n" + formatBillingDashboard(info) + "\n");
+    });
 
   program
-    .command("history [id]")
-    .description("Show session history or a specific session by ID")
-    .option("--all", "List all sessions (default: last 10)")
-    .action((id: string | undefined, opts: { all?: boolean }) => {
-      if (id) {
-        try {
-          const session = historySessionManager.loadSession(id);
-          const data = session.toJSON();
-          console.log(st.bold(`\nSession: ${data.name || data.id}\n`));
-          if (data.createdAt) console.log(st.dim(`Created: ${new Date(data.createdAt).toLocaleString()}`));
-          if (data.updatedAt) console.log(st.dim(`Updated: ${new Date(data.updatedAt).toLocaleString()}`));
-          console.log(st.brand(`Models: ${(data.models || []).join(', ')}`));
-          console.log(st.brand(`Mode: ${data.mode || 'auto'}`));
-          console.log(st.brand(`Debates: ${(data.debates || []).length}`));
-          console.log('');
-          for (const debate of data.debates || []) {
-            const ts = debate.timestamp ? new Date(debate.timestamp).toLocaleString() : '';
-            console.log(st.bold(`  ${debate.topic}`));
-            if (ts) console.log(st.dim(`  ${ts}`));
-            if (debate.goldenPrompt) {
-              const preview = debate.goldenPrompt.length > 200
-                ? debate.goldenPrompt.substring(0, 200) + '...'
-                : debate.goldenPrompt;
-              console.log('');
-              console.log(preview);
-            }
-            console.log('');
-          }
-        } catch {
-          console.log(st.error(`Session not found: ${id}`));
-          process.exit(1);
+    .command("upgrade")
+    .description("Show upgrade options or open Stripe checkout")
+    .argument("[tier]", "Tier to upgrade to: pro or max")
+    .action(async (tier?: string) => {
+      const { loadConfig: lc } = await import("./utils/config.js");
+      const cfg = lc();
+      const apiUrl = cfg.apiUrl || DEFAULT_API_ORIGIN;
+      const webUrl = cfg.webUrl || DEFAULT_WEB_ORIGIN;
+      const apiKey = cfg.apiKey;
+
+      const tierArg = (tier || "").toLowerCase();
+
+      if (tierArg === "pro" || tierArg === "max") {
+        if (!apiKey) {
+          console.log(st.warning("Not logged in. Run: consilium login"));
+          return;
         }
+        const tierUp = tierArg.toUpperCase();
+        console.log(st.brand(`\nOpening Stripe checkout for ${tierUp}...\n`));
+        try {
+          const res = await fetch(`${apiUrl}/api/v1/billing/checkout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({ tier: tierUp }),
+            signal: AbortSignal.timeout(10000),
+          });
+          if (!res.ok) {
+            console.log(st.error(`Failed to create checkout (${res.status}).`));
+            return;
+          }
+          const { url } = (await res.json()) as { url: string };
+          openBrowser(url);
+          console.log(st.success("Opening Stripe checkout in your browser..."));
+          console.log(st.dim(url));
+        } catch {
+          console.log(st.error("Failed to start checkout. Check your connection."));
+        }
+        console.log("");
         return;
       }
 
-      const list = historySessionManager.listSessions();
-      const limit = opts.all ? list.length : Math.min(10, list.length);
-      const shown = list.slice(0, limit);
-
-      if (shown.length === 0) {
-        console.log(st.dim('No sessions found. Start a debate with "consilium chat".'));
-        return;
+      const info = await getBillingInfo();
+      const currentTier = info?.subscription.tier ?? "FREE";
+      console.log(st.bold("\nUpgrade options\n"));
+      console.log(st.brand("Current tier:"), formatTierBadge(currentTier));
+      if (info) {
+        console.log(st.brand("Wallet:"), formatWalletBalance(info.wallet.balanceCents));
       }
-
-      console.log(st.bold(`\nSession history (${shown.length}${opts.all ? '' : ` of ${list.length}`})\n`));
-      for (let i = 0; i < shown.length; i++) {
-        const s = shown[i]!;
-        const timeAgo = historySessionManager.formatRelativeTime(s.updatedAt);
-        const label = s.name || s.topic || 'Untitled';
-        const preview = label.length > 60 ? label.substring(0, 60) + '...' : label;
-        const modelStr = s.modelCount > 0 ? `${s.modelCount} model${s.modelCount !== 1 ? 's' : ''}` : '';
-        const debateStr = `${s.debateCount} debate${s.debateCount !== 1 ? 's' : ''}`;
-        console.log(
-          st.brand(`  ${String(i + 1).padStart(2)}.`),
-          preview,
-        );
-        const meta = [timeAgo, debateStr, modelStr].filter(Boolean).join(' · ');
-        console.log(st.dim(`       ${meta}`));
-        console.log(st.dim(`       ID: ${s.id}`));
-      }
-
-      if (!opts.all && list.length > 10) {
-        console.log(st.dim(`\n  Showing 10 of ${list.length}. Use --all to see all.\n`));
-      } else {
-        console.log('');
-      }
+      console.log("");
+      console.log(st.dim("  PRO  - $29/mo - 50 debates/day, 5 models, $50 compute"));
+      console.log(st.dim("  MAX  - $99/mo - Unlimited debates, all models, $200 compute"));
+      console.log("");
+      console.log(st.brand("Upgrade at:"), `${webUrl}/pricing`);
+      console.log(st.dim("Or run: consilium upgrade pro"));
+      console.log("");
     });
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
