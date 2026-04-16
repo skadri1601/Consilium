@@ -1,0 +1,14 @@
+name: "scan-pull-request"
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+permissions:
+  contents: read
+jobs:
+  scan-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noop scan
+        run: |
+          echo "::notice::This check is intentionally a no-op. JFrog Xray is not configured and is a paid service that will not be used."
+          echo "Returning success."
