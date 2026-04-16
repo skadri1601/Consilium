@@ -9,6 +9,7 @@ const require = createRequire(import.meta.url);
 const pkg = require("../package.json") as { version: string };
 import readline from "node:readline";
 import { debateCommand } from "./commands/debate.js";
+import { runDebateFromStdin } from "./commands/stdin-debate.js";
 import { redteamCommand } from "./commands/redteam.js";
 import { evalCommand } from "./commands/eval.js";
 import { benchmarkCommand } from "./commands/benchmark.js";
@@ -26,6 +27,7 @@ import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
+import { checkAndNotifyUpdate } from "./utils/update-checker.js";
 
 const st = style();
 const KNOWN_SUBCOMMANDS = [
@@ -34,6 +36,7 @@ const KNOWN_SUBCOMMANDS = [
   "chat",
   "config",
   "sessions",
+  "history",
   "login",
   "logout",
   "debug",
@@ -56,15 +59,35 @@ const isOneShot =
   !KNOWN_SUBCOMMANDS.includes(firstArg);
 
 async function main(): Promise<void> {
+  const isStdinPipe = !process.stdin.isTTY;
+
+  if (isStdinPipe && (isDefaultRepl || (firstArg !== undefined && firstArg === 'debate') || (firstArg !== undefined && firstArg === 'ask'))) {
+    const rawArgs = process.argv.slice(2);
+    const mode = (() => {
+      const idx = rawArgs.indexOf('--mode');
+      return idx !== -1 ? rawArgs[idx + 1] : undefined;
+    })();
+    const outputFlag = (() => {
+      const idx = rawArgs.indexOf('--output');
+      return idx !== -1 ? rawArgs[idx + 1] : undefined;
+    })();
+    const modelsIdx = rawArgs.indexOf('--models');
+    const models = modelsIdx !== -1 ? rawArgs.slice(modelsIdx + 1).filter(a => !a.startsWith('-')) : undefined;
+    await runDebateFromStdin({ mode, output: outputFlag, models });
+    return;
+  }
+
   if (isDefaultRepl) {
     const { isLoggedIn } = await import("./utils/config.js");
     if (isLoggedIn()) {
+      checkAndNotifyUpdate().catch(() => {});
       const { showMenu } = await import("./commands/menu.js");
       await showMenu();
     } else {
       const { loginFlow } = await import("./commands/login.js");
       const ok = await loginFlow();
       if (ok) {
+        checkAndNotifyUpdate().catch(() => {});
         const { showMenu } = await import("./commands/menu.js");
         await showMenu();
       }

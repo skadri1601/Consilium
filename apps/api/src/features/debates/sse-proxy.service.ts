@@ -39,6 +39,9 @@ export class SseProxyService {
       let goldenPrompt: string | undefined;
       let totalCost: number | undefined;
       let totalTokens: number | undefined;
+      let synthesisMethod: string | undefined;
+      let judgeModel: string | undefined;
+      let improvementScore: number | undefined;
       let statusUpdated = false;
 
       fetch(streamUrl, {
@@ -84,6 +87,9 @@ export class SseProxyService {
                   goldenPrompt,
                   totalCost,
                   totalTokens,
+                  synthesisMethod,
+                  judgeModel,
+                  improvementScore,
                 );
               }
               subscriber.complete();
@@ -125,6 +131,15 @@ export class SseProxyService {
                     if (gp) {
                       goldenPrompt = gp;
                     }
+                    if (parsed.synthesis_method) {
+                      synthesisMethod = parsed.synthesis_method as string;
+                    }
+                    if (parsed.judge_model) {
+                      judgeModel = parsed.judge_model as string;
+                    }
+                    if (parsed.improvement_score !== undefined) {
+                      improvementScore = parsed.improvement_score as number;
+                    }
                   }
 
                   if (currentEvent === "done") {
@@ -139,6 +154,15 @@ export class SseProxyService {
                     if (parsed.total_tokens !== undefined) {
                       totalTokens = parsed.total_tokens as number;
                     }
+                    if (parsed.synthesis_method && !synthesisMethod) {
+                      synthesisMethod = parsed.synthesis_method as string;
+                    }
+                    if (parsed.judge_model && !judgeModel) {
+                      judgeModel = parsed.judge_model as string;
+                    }
+                    if (parsed.improvement_score !== undefined && improvementScore === undefined) {
+                      improvementScore = parsed.improvement_score as number;
+                    }
                     if (!statusUpdated) {
                       statusUpdated = true;
                       await this.handleStreamComplete(
@@ -146,6 +170,9 @@ export class SseProxyService {
                         goldenPrompt,
                         totalCost,
                         totalTokens,
+                        synthesisMethod,
+                        judgeModel,
+                        improvementScore,
                       );
                     }
                   }
@@ -192,19 +219,21 @@ export class SseProxyService {
     goldenPrompt?: string,
     totalCost?: number,
     _totalTokens?: number,
+    synthesisMethod?: string,
+    judgeModel?: string,
+    improvementScore?: number,
   ): Promise<void> {
     try {
       this.sseVerbose(
         `[SSE PROXY] Updating debate ${debateId} status to completed`,
       );
-      await this.debatesService.updateStatus(
-        debateId,
-        "completed",
+      await this.debatesService.completeDebate(debateId, {
         goldenPrompt,
-      );
-      if (totalCost !== undefined) {
-        await this.debatesService.updateTotalCost(debateId, totalCost);
-      }
+        totalCost,
+        synthesisMethod,
+        judgeModel,
+        improvementScore,
+      });
     } catch (error) {
       this.logger.error(`[SSE PROXY] Failed to update debate status: ${error}`);
     }

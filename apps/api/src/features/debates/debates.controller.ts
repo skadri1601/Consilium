@@ -9,8 +9,11 @@ import {
   Query,
   UseGuards,
   Sse,
+  Res,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import type { FastifyReply } from "fastify";
+import { ApiTags, ApiOperation, ApiResponse, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, IsOptional, IsIn, MaxLength, IsArray, ArrayMinSize, ArrayMaxSize } from "class-validator";
 import { DebatesService } from "./debates.service";
 import { CreateDebateDto } from "./dto/create-debate.dto";
 import {
@@ -27,6 +30,43 @@ import {
 } from "../auth/decorators/current-user.decorator";
 import { Observable, interval } from "rxjs";
 import { SseProxyService } from "./sse-proxy.service";
+
+class RecommendModelsDto {
+  @ApiProperty({ description: "Topic or problem statement to analyze", maxLength: 2000 })
+  @IsString()
+  @MaxLength(2000)
+  topic: string;
+
+  @ApiProperty({ description: "Budget tier", enum: ["free", "balanced", "premium"] })
+  @IsIn(["free", "balanced", "premium"])
+  budget: "free" | "balanced" | "premium";
+}
+
+class CompareDto {
+  @ApiProperty({ description: "First option to compare" })
+  @IsString()
+  @MaxLength(500)
+  optionA: string;
+
+  @ApiProperty({ description: "Second option to compare" })
+  @IsString()
+  @MaxLength(500)
+  optionB: string;
+
+  @ApiPropertyOptional({ description: "Additional context for the comparison" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  context?: string;
+
+  @ApiPropertyOptional({ description: "Models to use in the comparison debate", type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(2)
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  models?: string[];
+}
 
 @ApiTags("debates")
 @Controller("debates")
@@ -180,6 +220,55 @@ export class DebatesController {
     @Param("id") id: string,
   ) {
     return this.debatesService.retryDebate(id, user.userId);
+  }
+
+  @Post("recommend-models")
+  @UseGuards(RateLimitGuard)
+  @RateLimit(30, 60)
+  @ApiOperation({ summary: "Recommend best model combination for a topic and budget" })
+  @ApiResponse({ status: 200, description: "Recommended models" })
+  recommendModels(@Body() dto: RecommendModelsDto) {
+    return this.debatesService.recommendModels(dto.topic, dto.budget);
+  }
+
+  @Post("compare")
+  @UseGuards(ClerkAuthGuard, RateLimitGuard)
+  @RateLimit(10, 60)
+  @ApiOperation({ summary: "Start a head-to-head comparison debate between two options" })
+  @ApiResponse({ status: 201, description: "Comparison debate created", type: DebateResponseDto })
+  async compareOptions(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: CompareDto,
+  ) {
+    return this.debatesService.createComparisonDebate(user.userId, dto.optionA, dto.optionB, dto.context, dto.models);
+  }
+
+  @Post(":id/replay")
+  @UseGuards(ClerkAuthGuard, RateLimitGuard)
+  @RateLimit(5, 60)
+  @ApiOperation({ summary: "Replay a debate with the same configuration but fresh LLM calls" })
+  @ApiResponse({ status: 201, description: "New debate session created", type: DebateResponseDto })
+  async replayDebate(
+    @CurrentUser() user: CurrentUserData,
+    @Param("id") id: string,
+  ) {
+    return this.debatesService.replayDebate(id, user.userId);
+  }
+
+  @Get(":id/export")
+  @UseGuards(ClerkAuthGuard)
+  @ApiOperation({ summary: "Export debate as markdown or JSON" })
+  @ApiResponse({ status: 200, description: "Debate export" })
+  async exportDebate(
+    @CurrentUser() user: CurrentUserData,
+    @Param("id") id: string,
+    @Query("format") format: string = "markdown",
+    @Res() reply: FastifyReply,
+  ) {
+    const result = await this.debatesService.getExport(id, format, user.userId);
+    reply.header("Content-Type", result.contentType);
+    reply.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    reply.send(result.content);
   }
 
   @Sse(":id/stream")

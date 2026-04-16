@@ -7,6 +7,9 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { ArrowLeft, Loader2, Send, SlidersHorizontal, User, Sparkles, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { DiversityScore } from "./diversity-score";
+import { QualityHeatmap } from "./quality-heatmap";
+import { MinorityReport } from "./minority-report";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS } from "@/shared/lib/constants";
 
@@ -26,6 +29,19 @@ interface DebateRound {
   messages: DebateMessage[];
 }
 
+interface AgentQualityScore {
+  agent: string;
+  scores: Record<string, number>;
+}
+
+interface MinorityReportData {
+  sourceModel: string;
+  coreClaim: string;
+  bestEvidence: string;
+  whyOverruled: string;
+  dissentStrength: number;
+}
+
 interface ConversationDebate {
   id: string;
   topic: string;
@@ -36,6 +52,10 @@ interface ConversationDebate {
   conversationId: string | null;
   createdAt: string;
   rounds: DebateRound[];
+  diversityScore?: number;
+  diversityWarning?: boolean;
+  qualityScores?: AgentQualityScore[];
+  minorityReport?: MinorityReportData;
 }
 
 interface StreamEvent {
@@ -414,6 +434,21 @@ export function DebateDetail({ debateId }: { debateId: string }) {
                   cost={debate.totalCost}
                 />
               ) : null}
+
+              {debate.goldenPrompt && debate.diversityScore !== undefined && (
+                <DiversityScore
+                  score={debate.diversityScore}
+                  warning={debate.diversityWarning}
+                />
+              )}
+
+              {debate.goldenPrompt && debate.qualityScores && debate.qualityScores.length > 0 && (
+                <QualityHeatmap qualityScores={debate.qualityScores} />
+              )}
+
+              {debate.goldenPrompt && debate.minorityReport && (
+                <MinorityReport report={debate.minorityReport} />
+              )}
             </div>
           ))}
 

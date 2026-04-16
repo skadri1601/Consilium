@@ -18,6 +18,8 @@ import { PersonasModule } from "./features/personas";
 import { WebhooksModule } from "./features/webhooks";
 import { WaitlistModule } from "./features/waitlist";
 import { DebateQueueModule } from "./shared/queue/debate-queue.module";
+import { TemplatesModule } from "./features/templates";
+import { PublicModule } from "./features/public";
 
 import { HealthController } from "./health.controller";
 
@@ -63,6 +65,8 @@ import { HealthController } from "./health.controller";
     WebhooksModule,
     WaitlistModule,
     DebateQueueModule,
+    TemplatesModule,
+    PublicModule,
   ],
   controllers: [HealthController],
 })

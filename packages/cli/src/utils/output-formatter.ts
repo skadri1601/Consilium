@@ -1,6 +1,6 @@
-export type OutputFormat = 'markdown' | 'cursorrules' | 'claude-md' | 'json' | 'text';
+export type OutputFormat = 'markdown' | 'cursorrules' | 'claude-md' | 'json' | 'text' | 'minimal';
 
-const VALID_FORMATS = new Set<OutputFormat>(['markdown', 'cursorrules', 'claude-md', 'json', 'text']);
+const VALID_FORMATS = new Set<OutputFormat>(['markdown', 'cursorrules', 'claude-md', 'json', 'text', 'minimal']);
 
 export interface OutputMetadata {
   format: OutputFormat;
@@ -140,6 +140,8 @@ export function formatOutput(synthesis: string, metadata: OutputMetadata): strin
       return formatClaudeMd(synthesis, metadata);
     case 'json':
       return formatJson(synthesis, metadata);
+    case 'minimal':
+      return synthesis;
     case 'text':
     default:
       return synthesis;
@@ -156,6 +158,7 @@ export function getFileExtension(format: OutputFormat): string {
       return '.md';
     case 'json':
       return '.json';
+    case 'minimal':
     case 'text':
       return '.txt';
   }
@@ -173,6 +176,7 @@ export function getDefaultFilename(format: OutputFormat, topic: string): string 
       return 'CLAUDE.md';
     case 'json':
       return `${slug}.json`;
+    case 'minimal':
     case 'text':
       return `${slug}.txt`;
   }

@@ -31,6 +31,7 @@ const st = style();
 export interface DebateCommandOptions {
   models?: string[];
   output?: string;
+  outputFile?: string;
   mode?: string;
   scan?: boolean;
   gitDiff?: boolean;
@@ -231,7 +232,7 @@ function warnDebateCommandOptions(
     console.log(st.warning(`Invalid mode "${options.mode}". Using "${mode}". Valid: ${ALL_MODES.join(', ')}`));
   }
   if (options.output && !isValidOutputFormat(options.output)) {
-    console.log(st.warning(`Invalid output format "${options.output}". Using terminal output. Valid: markdown, cursorrules, claude-md, json`));
+    console.log(st.warning(`Invalid output format "${options.output}". Using terminal output. Valid: markdown, cursorrules, claude-md, json, minimal`));
   }
 }
 
@@ -259,8 +260,20 @@ function writeFormattedDebateOutput(
   models: string[],
   mode: DebateMode,
   debateId: string,
+  outputFile?: string,
 ): void {
   if (!goldenPrompt || outputFormat === 'text') return;
+
+  if (outputFormat === 'minimal') {
+    if (outputFile) {
+      fs.writeFileSync(outputFile, goldenPrompt, 'utf-8');
+      console.log(st.success(`Saved to ${outputFile}`));
+    } else {
+      console.log(goldenPrompt);
+    }
+    return;
+  }
+
   const formatted = formatOutput(goldenPrompt, {
     format: outputFormat,
     topic,
@@ -269,6 +282,13 @@ function writeFormattedDebateOutput(
     debateId,
     timestamp: new Date().toISOString(),
   });
+
+  if (outputFile) {
+    fs.writeFileSync(outputFile, formatted, 'utf-8');
+    console.log(st.success(`Saved to ${outputFile}`));
+    return;
+  }
+
   if (outputFormat === 'cursorrules' || outputFormat === 'claude-md') {
     const filename = getDefaultFilename(outputFormat, topic);
     fs.writeFileSync(filename, formatted, 'utf-8');
@@ -288,6 +308,7 @@ async function runClassicDebateFlow(
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
   wsContext?: WorkspaceDebateContext | null,
+  outputFile?: string,
 ): Promise<string> {
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
@@ -355,8 +376,31 @@ async function runClassicDebateFlow(
   };
   process.on('SIGINT', sigintHandler);
 
+  const STREAM_ACTIVITY_TIMEOUT_MS = 90_000;
+  const STREAM_ACTIVITY_WARN_MS = 60_000;
+  let lastEventTime = Date.now();
+  let warnedInactivity = false;
+
+  const activityTimer = setInterval(() => {
+    const elapsed = Date.now() - lastEventTime;
+    if (!warnedInactivity && elapsed > STREAM_ACTIVITY_WARN_MS) {
+      warnedInactivity = true;
+      process.stderr.write('\nWaiting for response...\n');
+    }
+    if (elapsed > STREAM_ACTIVITY_TIMEOUT_MS) {
+      clearInterval(activityTimer);
+      if (useLiveProgress) logUpdate.clear();
+      process.stderr.write('\nStream timeout — no activity for 90 seconds. Showing partial results.\n');
+      if (goldenPrompt) {
+        writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id, outputFile);
+      }
+      process.exit(1);
+    }
+  }, 5000);
+
   try {
     await client.streamDebate(debate.id, (event: DebateEvent) => {
+      lastEventTime = Date.now();
       if (event.type === 'debate_start') {
         tracker.complete('startStream');
         if (useLiveProgress) logUpdate.clear();
@@ -372,12 +416,13 @@ async function runClassicDebateFlow(
     logStreamFailureHints(msg);
     process.exit(1);
   } finally {
+    clearInterval(activityTimer);
     process.removeListener('SIGINT', sigintHandler);
   }
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });
 
-  writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id);
+  writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id, outputFile);
 
   console.log(st.success('Debate complete.\n'));
   return goldenPrompt;
@@ -416,9 +461,9 @@ export async function debateCommand(
 
   let synthesis = '';
   if (useDeliberation) {
-    synthesis = await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
+    synthesis = await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext, options.outputFile);
   } else {
-    synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
+    synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext, options.outputFile);
   }
 
   if (options.apply) {
@@ -434,6 +479,7 @@ async function runDeliberation(
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
   wsContext?: WorkspaceDebateContext | null,
+  outputFile?: string,
 ): Promise<string> {
   const startTime = Date.now();
 
@@ -509,7 +555,7 @@ async function runDeliberation(
 
   console.log(renderCostBreakdown(ctx.costs));
 
-  writeFormattedDebateOutput(ctx.resultText, outputFormat, topic, models, mode, deliberation.id);
+  writeFormattedDebateOutput(ctx.resultText, outputFormat, topic, models, mode, deliberation.id, outputFile);
 
   console.log(st.success('\nDeliberation complete.\n'));
   return ctx.resultText;
