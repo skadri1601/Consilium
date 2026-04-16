@@ -13,6 +13,7 @@ import { terminal } from '../utils/terminal-capabilities';
 import { loadWorkspaceDebateContext } from '../utils/workspace-debate-context';
 import { log } from '../utils/logger';
 import { dispatchSlashCommand } from './chat-slash-dispatch';
+import { getBillingInfo, formatTierBadge, formatWalletBalance } from '../billing/index.js';
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '',
@@ -71,6 +72,12 @@ function printHelp(): void {
   console.log(st.dim('  /permissions    - status | allow-write | revoke-write for read/write policy'));
   console.log(st.dim('  /apply          - Apply structured edits from latest synthesis (preview + permission gated)'));
   console.log(st.dim('  /redo, /again   - Re-run last topic with current workspace permission and files'));
+  console.log(st.bold('\n  Billing'));
+  console.log(st.dim('  /billing, /tier - Show billing dashboard'));
+  console.log(st.dim('  /wallet         - Show wallet balance'));
+  console.log(st.dim('  /usage          - Show usage stats'));
+  console.log(st.dim('  /upgrade [pro|max] - Show upgrade options or open Stripe checkout'));
+  console.log(st.bold('\n  Help'));
   console.log(st.dim('  /help           - Show this help'));
   console.log(st.dim('  /exit           - Exit and save session'));
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
@@ -383,6 +390,39 @@ export async function chatCommand(): Promise<void> {
     session.projectFiles = undefined;
     session.contextManifest = undefined;
   }
+
+  getBillingInfo().then((info) => {
+    if (!info) return;
+    const { subscription, wallet, usage } = info;
+    const tier = formatTierBadge(subscription.tier);
+    const balance = formatWalletBalance(wallet.balanceCents);
+    const todayLimit = usage.limits.debatesPerDay;
+    const todayUsed = usage.today.debatesCount;
+
+    let usageLine: string;
+    if (todayLimit === -1) {
+      const computeUsed = (usage.period.costCentsUsed / 100).toFixed(2);
+      const computeMax = (usage.limits.maxCostCentsPerMonth / 100).toFixed(2);
+      usageLine = `Unlimited \u00b7 $${computeUsed}/$${computeMax} compute`;
+    } else {
+      const remaining = todayLimit - todayUsed;
+      const computeUsed = (usage.period.costCentsUsed / 100).toFixed(2);
+      const computeMax = (usage.limits.maxCostCentsPerMonth / 100).toFixed(2);
+      if (subscription.tier === 'FREE') {
+        usageLine = `${todayLimit} debates/day \u00b7 BYOK only`;
+      } else {
+        usageLine = `${remaining} debates remaining today \u00b7 $${computeUsed}/$${computeMax} compute`;
+      }
+    }
+
+    console.log(`${st.dim('Tier:')} ${tier} \u00b7 ${st.dim(usageLine)}`);
+    console.log(`${st.dim('Wallet:')} ${balance}`);
+    if (subscription.tier === 'FREE') {
+      console.log(st.dim('Type /upgrade to unlock Pro features'));
+    }
+    console.log('');
+  }).catch(() => {});
+
   console.log('');
 
   const history: string[] = [];
