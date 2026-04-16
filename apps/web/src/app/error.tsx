@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -13,8 +14,9 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to Sentry or other error reporting service
-    console.error("Application error:", error);
+    Sentry.captureException(error, {
+      tags: { location: "error-boundary", digest: error.digest },
+    });
   }, [error]);
 
   return (
@@ -35,6 +37,11 @@ export default function Error({
               <p className="text-sm font-mono text-muted-foreground">
                 {error.message}
               </p>
+              {error.digest && (
+                <p className="text-xs font-mono text-neutral-500 mt-1">
+                  Error ID: {error.digest}
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
               <Button onClick={reset}>Try Again</Button>
@@ -48,4 +55,3 @@ export default function Error({
     </div>
   );
 }
-

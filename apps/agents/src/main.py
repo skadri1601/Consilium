@@ -10,6 +10,8 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import posthog
 import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.httpx import HttpxIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.features.council import council_router
@@ -46,6 +48,13 @@ def _get_local_ip() -> str:
         return "unknown"
 
 
+def _enrich_sentry_event(event: dict, hint: dict) -> dict:
+    if "exc_info" in hint:
+        exc_type, _exc_value, _ = hint["exc_info"]
+        event.setdefault("tags", {})["exc_type"] = exc_type.__name__ if exc_type else "unknown"
+    return event
+
+
 if settings.posthog_api_key:
     posthog.project_api_key = settings.posthog_api_key
     posthog.host = settings.posthog_host
@@ -53,13 +62,18 @@ if settings.posthog_api_key:
 if settings.sentry_dsn and "xxx" not in settings.sentry_dsn:
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
-        traces_sample_rate=1.0,
+        traces_sample_rate=0.1 if settings.app_env == "production" else 1.0,
         environment=settings.app_env,
         send_default_pii=False,
         attach_stacktrace=True,
         include_local_variables=False,
         max_breadcrumbs=50,
         server_name=socket.gethostname(),
+        integrations=[
+            FastApiIntegration(),
+            HttpxIntegration(),
+        ],
+        before_send=lambda event, hint: _enrich_sentry_event(event, hint),
     )
 
     sentry_sdk.set_context("system", {
