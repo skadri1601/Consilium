@@ -6,6 +6,8 @@ import { DecisionLog } from '../utils/decision-extractor';
 import { DebateMode, getDefaultMode } from '../utils/debate-modes';
 import { OutputFormat } from '../utils/output-formatter';
 import { type ScanManifest, type ScannedFile } from '../utils/project-scanner';
+import { checkDebateLimit, checkModelLimit } from '../billing/billing-service.js';
+import { style } from '../utils/visual-system.js';
 
 const DEFAULT_MODELS = ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
 const MAX_CONTEXT_CHARS = 80_000;
@@ -84,6 +86,7 @@ export class ChatSession {
 
     for (let i = previous.length - 1; i >= 0; i--) {
       const d = previous[i];
+      if (!d) break;
       const block = `--- Turn ${i + 1}: ${d.topic} ---\n${d.goldenPrompt ?? ''}\n`;
       if (usedChars + block.length > MAX_CONTEXT_CHARS) break;
       included.unshift(block);
@@ -97,7 +100,7 @@ export class ChatSession {
       const older = previous.slice(0, firstIncludedIdx);
       parts.push(`[Earlier turns — topics only]\n`);
       for (let i = 0; i < older.length; i++) {
-        parts.push(`  Turn ${i + 1}: ${older[i].topic}`);
+        parts.push(`  Turn ${i + 1}: ${older[i]?.topic ?? ''}`);
       }
       parts.push('');
     }
@@ -118,6 +121,19 @@ export class ChatSession {
   }
 
   async debate(userInput: string): Promise<void> {
+    const st = style();
+
+    const debateCheck = await checkDebateLimit();
+    if (!debateCheck.allowed) {
+      console.log(st.error('\u2717 ' + (debateCheck.message ?? 'Daily debate limit reached.')));
+      return;
+    }
+
+    const modelCheck = await checkModelLimit(this.models.length);
+    if (!modelCheck.allowed && modelCheck.message) {
+      console.log(st.warning('\u26a0 ' + modelCheck.message));
+    }
+
     const context = this.contextManager.buildContext();
     const followUp = this.buildFollowUpContext();
     const decisionContext = this.decisionLog.getContext();
