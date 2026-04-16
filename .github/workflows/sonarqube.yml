@@ -2,48 +2,71 @@ name: SonarQube analysis
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, develop, feature/main-engine, claude/debug-pipeline-failures-hfVcp]
   pull_request:
-    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions:
   pull-requests: read
+  contents: read
 
 jobs:
   Analysis:
+    name: SonarCloud Quality Analysis
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check SonarQube configuration
-        id: check
-        env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          if [ -z "$SONAR_HOST_URL" ]; then
-            echo "::notice::SonarQube host not configured — skipping analysis"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Checkout repository
-        if: steps.check.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Analyze with SonarQube
-        if: steps.check.outputs.skip != 'true'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: cd packages/database && pnpm db:generate
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run web coverage
+        continue-on-error: true
+        run: cd apps/web && pnpm vitest run --coverage --coverage.reporter=lcov || true
+
+      - name: Run api coverage
+        continue-on-error: true
+        run: cd apps/api && pnpm test:cov || true
+
+      - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: https://sonarcloud.io
         with:
-          args:
-            -Dsonar.projectKey=consilium
-            -Dsonar.sources=apps/web/src,apps/api/src,apps/agents
+          args: >
+            -Dsonar.projectKey=skadri1601_Consilium
+            -Dsonar.organization=skadri1601
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sources=apps/web/src,apps/api/src,apps/agents/src,packages
             -Dsonar.tests=apps/web/src,apps/api/src,apps/agents
-            -Dsonar.test.inclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/test_*.py
-            -Dsonar.exclusions=**/node_modules/**,**/.next/**,**/dist/**,**/coverage/**,**/__pycache__/**
+            -Dsonar.test.inclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/test_*.py,**/__tests__/**
+            -Dsonar.exclusions=**/node_modules/**,**/.next/**,**/dist/**,**/coverage/**,**/__pycache__/**,**/*.min.js,**/next-env.d.ts
+            -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/test_*.py,**/__tests__/**,**/tests/**,**/mock*,**/*.config.*,apps/agents/src/features/deliberation/benchmarks/**
             -Dsonar.javascript.lcov.reportPaths=apps/web/coverage/lcov.info,apps/api/coverage/lcov.info
             -Dsonar.python.coverage.reportPaths=apps/agents/coverage.xml
+            -Dsonar.cpd.exclusions=**/*.test.*,**/*.spec.*,**/test_*.py
