@@ -174,7 +174,7 @@ jobs:
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: apps/agents/.venv
-          key: poetry-${{ runner.os }}-${{ hashFiles('apps/agents/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('apps/agents/pyproject.toml') }}
           restore-keys: |
             poetry-${{ runner.os }}-
 

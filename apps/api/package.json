@@ -27,6 +27,7 @@
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.0.0",
     "@consilium/database": "workspace:*",
+    "@consilium/shared": "workspace:*",
     "@fastify/static": "^9.0.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/bullmq": "^10.2.0",

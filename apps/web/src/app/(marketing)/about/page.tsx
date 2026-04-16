@@ -3,8 +3,6 @@
 import Link from "next/link";
 import {
   Shield,
-  Code,
-  Users,
   Github,
   Swords,
   Vote,
@@ -13,7 +11,6 @@ import {
   Gauge,
   FileSearch,
   Key,
-  Settings,
   Server,
   Zap,
 } from "lucide-react";

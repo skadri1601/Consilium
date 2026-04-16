@@ -3,6 +3,7 @@ name: Consilium Multi-Model Review
 on:
   pull_request:
     types: [opened, synchronize]
+    branches: [main]
 
 concurrency:
   group: consilium-review-${{ github.event.pull_request.number }}
@@ -16,9 +17,22 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Check required secrets
+        id: check
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CONSILIUM_URL: ${{ secrets.CONSILIUM_API_URL }}
+        run: |
+          if [ -z "$OPENAI_KEY" ] || [ -z "$CONSILIUM_URL" ]; then
+            echo "::notice::Consilium review secrets not configured — skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.check.outputs.skip != 'true'
 
       - uses: ./.github/actions/consilium-review
+        if: steps.check.outputs.skip != 'true'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

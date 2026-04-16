@@ -1,15 +1,18 @@
 import { render, screen, within } from "@testing-library/react";
 
-vi.mock("framer-motion", () => {
-  const React = require("react");
+vi.mock("framer-motion", async () => {
+  const React = await import("react");
   return {
     motion: new Proxy(
       {},
       {
-        get: (_target: unknown, prop: string) =>
-          React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
+        get: (_target: unknown, prop: string) => {
+          const Component = React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
             React.createElement(prop, { ...props, ref })
-          ),
+          );
+          Component.displayName = `motion.${prop}`;
+          return Component;
+        },
       }
     ),
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
@@ -46,8 +49,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("recharts", () => {
-  const React = require("react");
+vi.mock("recharts", async () => {
+  const React = await import("react");
   return {
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div data-testid="responsive-container">{children}</div>

@@ -6,29 +6,35 @@ on:
 
 jobs:
   claude-review:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       issues: write
       id-token: write
-    env:
-      ANTHROPIC_MODEL: claude-sonnet-4-20250514
-      ANTHROPIC_DEFAULT_SONNET_MODEL: claude-sonnet-4-20250514
-      ANTHROPIC_DEFAULT_HAIKU_MODEL: claude-haiku-4-5-20251001
 
     steps:
+      - name: Check ANTHROPIC_API_KEY configuration
+        id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice::ANTHROPIC_API_KEY not configured — skipping review"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.check.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Run Claude Code Review
-        id: claude-review
+        if: steps.check.outputs.skip != 'true'
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          claude_args: '--model sonnet --fallback-model haiku'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: 'Please review this pull request for code quality, potential bugs, and security issues.'

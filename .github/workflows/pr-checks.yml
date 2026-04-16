@@ -37,6 +37,7 @@ jobs:
             database
             config
             deps
+            ci
           requireScope: false
 
   pr-size:
