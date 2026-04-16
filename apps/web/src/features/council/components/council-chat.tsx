@@ -17,8 +17,7 @@ import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS, FREE_MODEL_IDS } from "@/shared/lib/constants";
 import { getProviderStyles, getAgentDisplayName } from "../utils/council-helpers";
-import { TemplatePicker } from "@/features/templates/components/template-picker";
-import type { Template } from "@/features/templates/components/template-picker";
+import { TemplatePicker, type Template } from "@/features/templates/components/template-picker";
 
 interface AgentProgress {
   agentId: string;

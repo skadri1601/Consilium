@@ -76,6 +76,18 @@ function printHelp(): void {
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
 }
 
+function formatHistoryDate(isoDate: string): string {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 function printConversationHistory(session: ChatSession): void {
   if (session.debates.length === 0) {
     console.log(st.dim('\nNo debates in this session yet.\n'));
@@ -86,19 +98,18 @@ function printConversationHistory(session: ChatSession): void {
   let historyIndex = 0;
   for (const d of session.debates) {
     historyIndex += 1;
-    const topicPreview = d.topic.length > 70
-      ? d.topic.substring(0, 70) + '...'
+    const topicPreview = d.topic.length > 60
+      ? d.topic.substring(0, 60) + '...'
       : d.topic;
-    const time = d.timestamp
-      ? st.dim(` (${new Date(d.timestamp).toLocaleString()})`)
-      : '';
-    console.log(st.brand(`  ${historyIndex}.`), topicPreview + time);
+    const timeLabel = d.timestamp ? formatHistoryDate(d.timestamp) : '';
+    const timePart = timeLabel ? st.dim(` · ${timeLabel}`) : '';
+    console.log(st.brand(`  ${historyIndex}.`), topicPreview + timePart);
 
     if (d.goldenPrompt) {
       const synthPreview = d.goldenPrompt.length > 100
         ? d.goldenPrompt.substring(0, 100) + '...'
         : d.goldenPrompt;
-      console.log(st.dim(`     Synthesis: ${synthPreview}`));
+      console.log(st.dim(`     ${synthPreview}`));
     }
   }
   console.log('');
@@ -138,16 +149,19 @@ function handleSessionsListCommand(sessionManager: SessionManager): void {
     if (!s) continue;
     const timeAgo = sessionManager.formatRelativeTime(s.updatedAt);
     const label = s.name || s.topic || 'Untitled';
-    const displayLabel = label.length > 50 ? label.substring(0, 50) + '...' : label;
+    const displayLabel = label.length > 60 ? label.substring(0, 60) + '...' : label;
     const debateSuffix = s.debateCount === 1 ? '' : 's';
+    const modelStr = s.modelCount > 0 ? ` · ${s.modelCount} model${s.modelCount !== 1 ? 's' : ''}` : '';
     console.log(
       st.brand(`  ${i + 1}.`),
       displayLabel,
-      st.dim(`(${s.debateCount} debate${debateSuffix}, ${timeAgo})`)
     );
+    console.log(st.dim(`       ${timeAgo} · ${s.debateCount} debate${debateSuffix}${modelStr}`));
     if (s.preview && s.preview !== '(no synthesis)') {
-      console.log(st.dim(`     ${s.preview}`));
+      const previewTrunc = s.preview.length > 60 ? s.preview.substring(0, 60) + '...' : s.preview;
+      console.log(st.dim(`       ${previewTrunc}`));
     }
+    console.log(st.dim(`       ID: ${s.id}`));
   }
   console.log(st.dim('\n  Resume with: consilium sessions resume <session-id>\n'));
 }

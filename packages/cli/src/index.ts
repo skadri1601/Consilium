@@ -120,8 +120,9 @@ async function main(): Promise<void> {
     )
     .option(
       "--output <format>",
-      "Output format: markdown, cursorrules, claude-md, json (default: pretty-print)",
+      "Output format: markdown, cursorrules, claude-md, json, minimal (default: pretty-print)",
     )
+    .option("--output-file <path>", "Write output to file instead of stdout")
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
@@ -136,8 +137,9 @@ async function main(): Promise<void> {
     .option("--mode <mode>", "Debate mode: quick, council, deep, blind, redteam, jury, market, auto")
     .option(
       "--output <format>",
-      "Output format: markdown, cursorrules, claude-md, json",
+      "Output format: markdown, cursorrules, claude-md, json, minimal",
     )
+    .option("--output-file <path>", "Write output to file instead of stdout")
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
@@ -210,6 +212,77 @@ async function main(): Promise<void> {
     .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  const historySessionManager = new SessionManager(path.join(os.homedir(), ".consilium", "sessions"));
+
+  program
+    .command("history [id]")
+    .description("Show session history or a specific session by ID")
+    .option("--all", "List all sessions (default: last 10)")
+    .action((id: string | undefined, opts: { all?: boolean }) => {
+      if (id) {
+        try {
+          const session = historySessionManager.loadSession(id);
+          const data = session.toJSON();
+          console.log(st.bold(`\nSession: ${data.name || data.id}\n`));
+          if (data.createdAt) console.log(st.dim(`Created: ${new Date(data.createdAt).toLocaleString()}`));
+          if (data.updatedAt) console.log(st.dim(`Updated: ${new Date(data.updatedAt).toLocaleString()}`));
+          console.log(st.brand(`Models: ${(data.models || []).join(', ')}`));
+          console.log(st.brand(`Mode: ${data.mode || 'auto'}`));
+          console.log(st.brand(`Debates: ${(data.debates || []).length}`));
+          console.log('');
+          for (const debate of data.debates || []) {
+            const ts = debate.timestamp ? new Date(debate.timestamp).toLocaleString() : '';
+            console.log(st.bold(`  ${debate.topic}`));
+            if (ts) console.log(st.dim(`  ${ts}`));
+            if (debate.goldenPrompt) {
+              const preview = debate.goldenPrompt.length > 200
+                ? debate.goldenPrompt.substring(0, 200) + '...'
+                : debate.goldenPrompt;
+              console.log('');
+              console.log(preview);
+            }
+            console.log('');
+          }
+        } catch {
+          console.log(st.error(`Session not found: ${id}`));
+          process.exit(1);
+        }
+        return;
+      }
+
+      const list = historySessionManager.listSessions();
+      const limit = opts.all ? list.length : Math.min(10, list.length);
+      const shown = list.slice(0, limit);
+
+      if (shown.length === 0) {
+        console.log(st.dim('No sessions found. Start a debate with "consilium chat".'));
+        return;
+      }
+
+      console.log(st.bold(`\nSession history (${shown.length}${opts.all ? '' : ` of ${list.length}`})\n`));
+      for (let i = 0; i < shown.length; i++) {
+        const s = shown[i]!;
+        const timeAgo = historySessionManager.formatRelativeTime(s.updatedAt);
+        const label = s.name || s.topic || 'Untitled';
+        const preview = label.length > 60 ? label.substring(0, 60) + '...' : label;
+        const modelStr = s.modelCount > 0 ? `${s.modelCount} model${s.modelCount !== 1 ? 's' : ''}` : '';
+        const debateStr = `${s.debateCount} debate${s.debateCount !== 1 ? 's' : ''}`;
+        console.log(
+          st.brand(`  ${String(i + 1).padStart(2)}.`),
+          preview,
+        );
+        const meta = [timeAgo, debateStr, modelStr].filter(Boolean).join(' · ');
+        console.log(st.dim(`       ${meta}`));
+        console.log(st.dim(`       ID: ${s.id}`));
+      }
+
+      if (!opts.all && list.length > 10) {
+        console.log(st.dim(`\n  Showing 10 of ${list.length}. Use --all to see all.\n`));
+      } else {
+        console.log('');
+      }
+    });
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);

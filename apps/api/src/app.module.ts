@@ -20,6 +20,7 @@ import { WaitlistModule } from "./features/waitlist";
 import { DebateQueueModule } from "./shared/queue/debate-queue.module";
 import { TemplatesModule } from "./features/templates";
 import { PublicModule } from "./features/public";
+import { DigestModule } from "./features/digest";
 
 import { HealthController } from "./health.controller";
 
@@ -67,6 +68,7 @@ import { HealthController } from "./health.controller";
     DebateQueueModule,
     TemplatesModule,
     PublicModule,
+    DigestModule,
   ],
   controllers: [HealthController],
 })

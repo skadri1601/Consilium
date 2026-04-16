@@ -1,15 +1,18 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpException,
   HttpStatus,
   Req,
+  Res,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString, MaxLength, IsOptional } from "class-validator";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyRequest } from "fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { PrismaService } from "../../shared/database/prisma.service";
 
 class CritiqueDto {
   @ApiProperty({ description: "Text to critique", maxLength: 5000 })
@@ -34,7 +37,10 @@ export class PublicController {
   private readonly rateLimitMap = new Map<string, RateEntry>();
   private readonly aiWorkersBaseUrl: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {
     this.aiWorkersBaseUrl =
       this.configService.get<string>("AI_WORKERS_URL") ||
       process.env.AI_WORKERS_URL ||
@@ -112,5 +118,52 @@ export class PublicController {
       timestamp: new Date().toISOString(),
       cached: false,
     };
+  }
+
+  @Get("debates/feed.xml")
+  @ApiOperation({ summary: "RSS feed of recent public debates" })
+  @ApiResponse({ status: 200, description: "RSS 2.0 XML feed" })
+  async rssFeed(@Res() reply: FastifyReply) {
+    const debates = await this.prisma.debateSession.findMany({
+      where: { status: "completed" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        topic: true,
+        goldenPrompt: true,
+        createdAt: true,
+      },
+    });
+
+    const items = debates
+      .map((d) => {
+        const description = d.goldenPrompt
+          ? d.goldenPrompt.slice(0, 500).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          : d.topic.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const title = d.topic.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const pubDate = new Date(d.createdAt).toUTCString();
+        return `    <item>
+      <title>${title}</title>
+      <link>https://myconsilium.xyz/debates/${d.id}</link>
+      <description>${description}</description>
+      <pubDate>${pubDate}</pubDate>
+      <guid>${d.id}</guid>
+    </item>`;
+      })
+      .join("\n");
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Consilium Public Debates</title>
+    <link>https://myconsilium.xyz</link>
+    <description>Multi-AI debates from the Consilium council</description>
+${items}
+  </channel>
+</rss>`;
+
+    reply.header("Content-Type", "application/rss+xml");
+    reply.send(xml);
   }
 }
