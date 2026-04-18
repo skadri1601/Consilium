@@ -17,7 +17,6 @@ import { DeliberationModule } from "./features/deliberation";
 import { PersonasModule } from "./features/personas";
 import { WebhooksModule } from "./features/webhooks";
 import { WaitlistModule } from "./features/waitlist";
-import { BillingModule } from "./features/billing";
 import { DebateQueueModule } from "./shared/queue/debate-queue.module";
 import { TemplatesModule } from "./features/templates";
 import { PublicModule } from "./features/public";
@@ -66,7 +65,6 @@ import { HealthController } from "./health.controller";
     PersonasModule,
     WebhooksModule,
     WaitlistModule,
-    BillingModule,
     DebateQueueModule,
     TemplatesModule,
     PublicModule,
