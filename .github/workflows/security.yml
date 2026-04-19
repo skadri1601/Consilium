@@ -42,19 +42,26 @@ jobs:
       contents: read
       security-events: write
       actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
     steps:
       - uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript-typescript, python
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+          languages: ${{ matrix.language }}
+          # No-build analysis: CodeQL 3.x scans source directly for JS/TS and
+          # Python. Avoids autobuild, which fails on this monorepo because it
+          # doesn't understand pnpm workspaces or Poetry projects.
+          build-mode: none
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
 
   python-security:
     name: Python Security
