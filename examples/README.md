@@ -14,13 +14,13 @@ export CONSILIUM_API_KEY="your-api-key"
 ### TypeScript SDK
 
 ```bash
-npm install @consilium/sdk
+npm install @myconsilium/sdk
 ```
 
 ### CLI
 
 ```bash
-npm install -g @consilium/cli
+npm install -g @myconsilium/cli
 consilium config set apiKey "your-api-key"
 ```
 

@@ -57,10 +57,10 @@ export default function TypeScriptSdkPage() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Installation</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto"><code className="text-emerald-400">npm install @consilium/sdk</code></pre>
+              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto"><code className="text-emerald-400">npm install @myconsilium/sdk</code></pre>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
-                <code className="text-muted-foreground block">yarn add @consilium/sdk</code>
-                <code className="text-muted-foreground block">pnpm add @consilium/sdk</code>
+                <code className="text-muted-foreground block">yarn add @myconsilium/sdk</code>
+                <code className="text-muted-foreground block">pnpm add @myconsilium/sdk</code>
               </pre>
             </CardContent>
           </Card>
@@ -69,7 +69,7 @@ export default function TypeScriptSdkPage() {
             <CardHeader><CardTitle className="text-lg">Client Configuration</CardTitle></CardHeader>
             <CardContent>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                <code className="text-muted-foreground">{`import { ConsiliumClient } from "@consilium/sdk";
+                <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
   apiUrl: "http://localhost:4000/api/v1",  // default
@@ -156,7 +156,7 @@ const client = new ConsiliumClient({
             <CardHeader><CardTitle className="text-lg">Full Example</CardTitle></CardHeader>
             <CardContent>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                <code className="text-muted-foreground">{`import { ConsiliumClient } from "@consilium/sdk";
+                <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
   apiUrl: "http://localhost:4000/api/v1",
@@ -226,7 +226,7 @@ for await (const event of client.streamDeliberation({
   AuthenticationError,
   RateLimitError,
   TimeoutError,
-} from "@consilium/sdk";
+} from "@myconsilium/sdk";
 
 try {
   const result = await client.deliberate({ ... });

@@ -149,12 +149,12 @@ export default function GettingStartedPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                    <code className="text-emerald-400">npm install -g @consilium/cli</code>
+                    <code className="text-emerald-400">npm install -g @myconsilium/cli</code>
                   </pre>
                   <p className="text-sm text-muted-foreground">Or with yarn/pnpm:</p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
-                    <code className="text-muted-foreground block">yarn global add @consilium/cli</code>
-                    <code className="text-muted-foreground block">pnpm add -g @consilium/cli</code>
+                    <code className="text-muted-foreground block">yarn global add @myconsilium/cli</code>
+                    <code className="text-muted-foreground block">pnpm add -g @myconsilium/cli</code>
                   </pre>
                 </CardContent>
               </Card>
@@ -230,10 +230,10 @@ print(f"Dissent: {result.dissent_report}")`}</code>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                    <code className="text-emerald-400">npm install @consilium/sdk</code>
+                    <code className="text-emerald-400">npm install @myconsilium/sdk</code>
                   </pre>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                    <code className="text-muted-foreground">{`import { ConsiliumClient } from "@consilium/sdk";
+                    <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
   apiUrl: "http://localhost:4000/api/v1",

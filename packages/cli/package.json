@@ -1,5 +1,5 @@
 {
-  "name": "@consilium/cli",
+  "name": "@myconsilium/cli",
   "version": "0.2.0",
   "description": "CLI for Consilium AI Council - Multi-agent debate platform",
   "type": "module",
