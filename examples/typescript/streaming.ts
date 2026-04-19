@@ -1,5 +1,5 @@
-import { ConsiliumClient } from "@consilium/sdk";
-import type { DeliberationEvent } from "@consilium/sdk";
+import { ConsiliumClient } from "@myconsilium/sdk";
+import type { DeliberationEvent } from "@myconsilium/sdk";
 
 async function runStreamingDeliberation(): Promise<void> {
   const client = new ConsiliumClient({

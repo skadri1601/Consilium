@@ -1,7 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Code, BookOpen, ShieldAlert, HeartPulse, Scale, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Debate Templates",
+  description:
+    "Prebuilt debate templates for Consilium — code review, architecture decisions, security red-team, clinical reasoning, legal analysis, and forecasting.",
+  path: "/docs/templates",
+});
 
 function attackCategoryLabelCount(attackCategories: string | null | undefined): number {
   if (!attackCategories) return 0;

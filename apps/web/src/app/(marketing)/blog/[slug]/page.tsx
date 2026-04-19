@@ -1,9 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Calendar, Clock, Github } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "../blog-data";
+import { buildMetadata } from "@/lib/seo";
 
 const categoryColors: Record<BlogCategory, string> = {
   Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -22,6 +24,29 @@ function formatDate(dateStr: string) {
 
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = blogPosts.find((p) => p.slug === slug);
+  if (!post) {
+    return {
+      title: "Post not found",
+      robots: { index: false, follow: false },
+    };
+  }
+  return buildMetadata({
+    title: post.title,
+    description: post.excerpt ?? post.title,
+    path: `/blog/${post.slug}`,
+    type: "article",
+    publishedTime: post.date,
+    keywords: [post.category.toLowerCase(), "consilium", "ai council"],
+  });
 }
 
 function BenchmarkPost() {

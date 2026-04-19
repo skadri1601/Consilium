@@ -24,8 +24,11 @@ export class CouncilController {
 
   @Sse("stream/:sessionId")
   @ApiOperation({ summary: "Stream council responses via SSE" })
-  stream(@Param("sessionId") sessionId: string): Observable<MessageEvent> {
-    return this.councilService.streamResponses(sessionId);
+  stream(
+    @CurrentUser() user: CurrentUserData,
+    @Param("sessionId") sessionId: string,
+  ): Observable<MessageEvent> {
+    return this.councilService.streamResponses(sessionId, user.userId);
   }
 }
 

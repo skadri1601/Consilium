@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/skadri1601/Consilium/actions/workflows/ci.yml/badge.svg)](https://github.com/skadri1601/Consilium/actions)
-[![npm](https://img.shields.io/npm/v/@consilium/cli)](https://www.npmjs.com/package/@consilium/cli)
+[![npm](https://img.shields.io/npm/v/@myconsilium/cli)](https://www.npmjs.com/package/@myconsilium/cli)
 [![PyPI](https://img.shields.io/pypi/v/consilium)](https://pypi.org/project/consilium/)
 
 ---
@@ -86,13 +86,13 @@ Research shows multi-agent debate improves factual accuracy by reducing hallucin
 ### Option 1: CLI (fastest)
 
 ```bash
-npx @consilium/cli deliberate "Should we use microservices or a monolith?"
+npx @myconsilium/cli deliberate "Should we use microservices or a monolith?"
 ```
 
 Or install globally:
 
 ```bash
-npm install -g @consilium/cli
+npm install -g @myconsilium/cli
 consilium debate "What causes inflation?" --mode council
 consilium debate "Review this architecture" --mode redteam
 consilium debate "Is Rust better than Go for CLIs?" --mode blind
@@ -131,11 +131,11 @@ for attack in report.attacks:
 ### Option 3: TypeScript SDK
 
 ```bash
-npm install @consilium/sdk
+npm install @myconsilium/sdk
 ```
 
 ```typescript
-import { ConsiliumClient } from '@consilium/sdk';
+import { ConsiliumClient } from '@myconsilium/sdk';
 
 const client = new ConsiliumClient({ apiKey: 'your-key' });
 
@@ -273,8 +273,8 @@ Consilium/
     api/                 NestJS 11 + Fastify API
     agents/              Python FastAPI deliberation engine
   packages/
-    cli/                 @consilium/cli
-    sdk/                 @consilium/sdk (TypeScript)
+    cli/                 @myconsilium/cli
+    sdk/                 @myconsilium/sdk (TypeScript)
     python-sdk/          consilium (Python)
     shared/              Shared types and constants
     database/            Prisma schema and migrations

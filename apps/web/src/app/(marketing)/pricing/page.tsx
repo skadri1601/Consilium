@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Check, X, Github, Calculator, Zap } from "lucide-react";
 import {
   Card,
@@ -7,6 +8,15 @@ import {
   CardTitle,
   CardDescription,
 } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Pricing",
+  description:
+    "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
+  path: "/pricing",
+  keywords: ["consilium pricing", "ai council pricing", "byok", "free ai debate"],
+});
 
 const tiers = [
   {

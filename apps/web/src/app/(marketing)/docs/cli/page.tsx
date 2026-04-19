@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "CLI",
+  description:
+    "Install and use the Consilium CLI — run multi-AI debates from your terminal, stream rounds over SSE, and script deliberation into your workflow.",
+  path: "/docs/cli",
+  keywords: ["consilium cli", "ai debate cli", "terminal llm"],
+});
 
 const commands = [
   {
@@ -160,14 +170,14 @@ export default function CliReferencePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                <code className="text-emerald-400">npm install -g @consilium/cli</code>
+                <code className="text-emerald-400">npm install -g @myconsilium/cli</code>
               </pre>
               <p className="text-sm text-muted-foreground">
                 Or with your preferred package manager:
               </p>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
-                <code className="text-muted-foreground block">yarn global add @consilium/cli</code>
-                <code className="text-muted-foreground block">pnpm add -g @consilium/cli</code>
+                <code className="text-muted-foreground block">yarn global add @myconsilium/cli</code>
+                <code className="text-muted-foreground block">pnpm add -g @myconsilium/cli</code>
               </pre>
             </CardContent>
           </Card>

@@ -349,7 +349,7 @@ Import the [Postman Collection](./consilium-api.postman.json) for easy testing.
 ### TypeScript/JavaScript
 
 ```typescript
-import { ConsiliumClient } from '@consilium/sdk';
+import { ConsiliumClient } from '@myconsilium/sdk';
 
 const client = new ConsiliumClient({
   apiUrl: 'https://api.myconsilium.xyz',

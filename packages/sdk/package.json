@@ -1,5 +1,5 @@
 {
-  "name": "@consilium/sdk",
+  "name": "@myconsilium/sdk",
   "version": "0.2.0",
   "description": "TypeScript SDK for the Consilium AI Council Platform",
   "license": "MIT",

@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   Logger,
 } from "@nestjs/common";
+import { timingSafeEqual } from "node:crypto";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 import { RateLimit } from "../../shared/decorators/rate-limit.decorator";
@@ -80,11 +81,17 @@ export class ClerkWebhooksController {
     const expectedSecret = process.env.INTERNAL_WEBHOOK_SECRET;
 
     if (!expectedSecret) {
-      this.logger.warn("INTERNAL_WEBHOOK_SECRET not configured");
-      return; // Allow in development
+      this.logger.error("INTERNAL_WEBHOOK_SECRET not configured");
+      throw new UnauthorizedException("Webhook endpoint not configured");
     }
 
-    if (secret !== expectedSecret) {
+    if (typeof secret !== "string") {
+      throw new UnauthorizedException("Invalid webhook secret");
+    }
+
+    const a = Buffer.from(secret, "utf8");
+    const b = Buffer.from(expectedSecret, "utf8");
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
       throw new UnauthorizedException("Invalid webhook secret");
     }
   }

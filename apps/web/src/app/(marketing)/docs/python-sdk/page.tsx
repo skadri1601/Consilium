@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Python SDK",
+  description:
+    "The official Consilium Python SDK — start debates, stream rounds, manage personas, and integrate multi-AI deliberation into your Python app.",
+  path: "/docs/python-sdk",
+  keywords: ["consilium python sdk", "ai debate python", "llm council python"],
+});
 
 const methods = [
   { name: "health_check()", returns: "HealthStatus", desc: "Check API connectivity. Returns status, version, uptime." },

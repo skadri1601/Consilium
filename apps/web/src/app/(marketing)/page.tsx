@@ -152,7 +152,7 @@ print(result.synthesis)
 print(result.confidence)
 print(result.dissenting_views)`;
 
-const typescriptCode = `import { Consilium } from "@consilium/sdk";
+const typescriptCode = `import { Consilium } from "@myconsilium/sdk";
 
 const client = new Consilium({ apiKey: "your-key" });
 

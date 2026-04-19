@@ -1,17 +1,17 @@
-# @consilium/cli
+# @myconsilium/cli
 
 Command-line interface for Consilium -- a multi-model debate platform that lets you pit AI models against each other before writing code.
 
 ## Installation
 
 ```bash
-npm install -g @consilium/cli
+npm install -g @myconsilium/cli
 ```
 
 Or run without installing:
 
 ```bash
-npx @consilium/cli debate "your question"
+npx @myconsilium/cli debate "your question"
 ```
 
 ## Requirements

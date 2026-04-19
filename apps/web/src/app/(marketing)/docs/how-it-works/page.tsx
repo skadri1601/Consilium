@@ -1,6 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, GitBranch, BarChart3, TrendingUp, Split, Gauge, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "How It Works",
+  description:
+    "How Consilium deliberation works under the hood — independent analysis, cross-examination, rebuttal, and judge synthesis across multiple AI models.",
+  path: "/docs/how-it-works",
+});
 
 const stateFields = [
   { field: "topic", type: "string", desc: "The question or topic being deliberated" },

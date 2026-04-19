@@ -5,6 +5,14 @@ import {
   UnauthorizedException,
   Logger,
 } from "@nestjs/common";
+import { timingSafeEqual } from "node:crypto";
+
+function safeCompare(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a, "utf8");
+  const bBuf = Buffer.from(b, "utf8");
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 @Injectable()
 export class InternalAuthGuard implements CanActivate {
@@ -12,7 +20,8 @@ export class InternalAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const secret = request.headers["x-internal-secret"];
+    const raw = request.headers["x-internal-secret"];
+    const secret = Array.isArray(raw) ? raw[0] : raw;
     const expectedSecret = process.env.INTERNAL_API_SECRET;
 
     if (!expectedSecret) {
@@ -20,7 +29,7 @@ export class InternalAuthGuard implements CanActivate {
       throw new UnauthorizedException("Internal endpoint not configured");
     }
 
-    if (!secret || secret !== expectedSecret) {
+    if (typeof secret !== "string" || !safeCompare(secret, expectedSecret)) {
       throw new UnauthorizedException("Unauthorized");
     }
 

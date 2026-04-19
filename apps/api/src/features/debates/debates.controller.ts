@@ -37,7 +37,7 @@ export class DebatesController {
   ) {}
 
   @Post("estimate")
-  @UseGuards(RateLimitGuard)
+  @UseGuards(ClerkAuthGuard, RateLimitGuard)
   @RateLimit(30, 60)
   @ApiOperation({ summary: "Estimate cost of a debate session" })
   @ApiResponse({

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 import {
   BookOpen,
   Code,
@@ -63,6 +65,14 @@ const quickLinks = [
   { icon: Globe, title: "Research", description: "Peer-reviewed papers behind Consilium", href: "/docs/notion/research" },
   { icon: Wrench, title: "Community", description: "Contribute, discuss, and get help", href: "/community" },
 ];
+
+export const metadata: Metadata = buildMetadata({
+  title: "Documentation",
+  description:
+    "Consilium documentation — get started, understand the debate modes, integrate the API, CLI, Python SDK, TypeScript SDK, and self-host your own council.",
+  path: "/docs",
+  keywords: ["consilium docs", "ai council docs", "multi-agent api"],
+});
 
 export default function DocsPage() {
   return (

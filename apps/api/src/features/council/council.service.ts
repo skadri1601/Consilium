@@ -36,35 +36,56 @@ export class CouncilService {
     };
   }
 
-  streamResponses(sessionId: string): Observable<any> {
-    const subject = this.responseStreams.get(sessionId);
-
-    if (!subject) {
-      return new Observable((subscriber) => {
-        subscriber.next({
-          data: JSON.stringify({ error: "Session not found" }),
-        });
-        subscriber.complete();
-      });
-    }
-
+  streamResponses(sessionId: string, userId: string): Observable<any> {
     return new Observable((subscriber) => {
-      const subscription = subject.subscribe({
-        next: (response) => {
-          subscriber.next({ data: JSON.stringify(response) });
-        },
-        complete: () => {
-          subscriber.complete();
-          this.responseStreams.delete(sessionId);
-        },
-        error: (error) => {
+      let cancelled = false;
+      let inner: { unsubscribe: () => void } | null = null;
+
+      this.prisma.councilSession
+        .findUnique({
+          where: { id: sessionId },
+          select: { tenantId: true },
+        })
+        .then((session) => {
+          if (cancelled) return;
+          if (!session || session.tenantId !== userId) {
+            subscriber.next({
+              data: JSON.stringify({ error: "Session not found" }),
+            });
+            subscriber.complete();
+            return;
+          }
+
+          const subject = this.responseStreams.get(sessionId);
+          if (!subject) {
+            subscriber.next({
+              data: JSON.stringify({ error: "Session not found" }),
+            });
+            subscriber.complete();
+            return;
+          }
+
+          inner = subject.subscribe({
+            next: (response) => {
+              subscriber.next({ data: JSON.stringify(response) });
+            },
+            complete: () => {
+              subscriber.complete();
+              this.responseStreams.delete(sessionId);
+            },
+            error: (error) => {
+              subscriber.error(error);
+              this.responseStreams.delete(sessionId);
+            },
+          });
+        })
+        .catch((error) => {
           subscriber.error(error);
-          this.responseStreams.delete(sessionId);
-        },
-      });
+        });
 
       return () => {
-        subscription.unsubscribe();
+        cancelled = true;
+        inner?.unsubscribe();
       };
     });
   }

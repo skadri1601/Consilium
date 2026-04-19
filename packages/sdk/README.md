@@ -1,17 +1,17 @@
-# @consilium/sdk
+# @myconsilium/sdk
 
 TypeScript SDK for the Consilium AI Council Platform.
 
 ## Install
 
 ```bash
-npm install @consilium/sdk
+npm install @myconsilium/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { ConsiliumClient } from '@consilium/sdk';
+import { ConsiliumClient } from '@myconsilium/sdk';
 
 const client = new ConsiliumClient({
   apiUrl: 'https://api.consilium.dev',
@@ -126,7 +126,7 @@ import {
   TimeoutError,
   ServerError,
   RateLimitError,
-} from '@consilium/sdk';
+} from '@myconsilium/sdk';
 
 try {
   await client.deliberate({ topic: '...', mode: 'council' });

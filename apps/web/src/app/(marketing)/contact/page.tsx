@@ -1,6 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Mail, Github, Linkedin, AlertTriangle, Bug } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Contact",
+  description:
+    "Get in touch with the Consilium team. Bug reports, feature requests, security disclosures, and partnerships.",
+  path: "/contact",
+});
 
 const channels = [
   {

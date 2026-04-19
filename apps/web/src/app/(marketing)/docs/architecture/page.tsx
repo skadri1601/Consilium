@@ -1,6 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Database, Radio, Lock, AlertTriangle, GitBranch } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Architecture",
+  description:
+    "System architecture of Consilium — Next.js web app, NestJS API, FastAPI debate engine, Postgres, Redis, and BullMQ for async deliberation.",
+  path: "/docs/architecture",
+});
 
 const services = [
   { name: "Web App", stack: "Next.js 15, React 19, Tailwind, shadcn/ui, Clerk, Zustand", port: "3000", purpose: "Frontend, marketing, dashboard, debate UI" },

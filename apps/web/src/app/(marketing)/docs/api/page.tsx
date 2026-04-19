@@ -1,6 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "API Reference",
+  description:
+    "Consilium REST and SSE API reference — start debates, stream rounds, manage personas, and integrate with your own tools.",
+  path: "/docs/api",
+});
 
 const endpointGroups = [
   {

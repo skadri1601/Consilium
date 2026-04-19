@@ -1,4 +1,5 @@
 import json
+import time
 import traceback
 import uuid
 from typing import Optional, AsyncGenerator
@@ -10,6 +11,19 @@ from ...shared.database.redis import get_redis
 from ...core.orchestrator import DebateOrchestrator, _set_runtime_context
 
 _LOCAL_STORAGE: dict[str, dict] = {}
+
+# BYOK API keys are kept in process memory only — never serialized to Redis or
+# any disk store. Entries expire shortly after the debate is started to bound
+# exposure if the stream is never initiated.
+_EPHEMERAL_KEYS: dict[str, tuple[dict, float]] = {}
+_EPHEMERAL_KEY_TTL_SECONDS = 10 * 60
+
+
+def _prune_ephemeral_keys() -> None:
+    now = time.time()
+    expired = [k for k, (_, exp) in _EPHEMERAL_KEYS.items() if exp <= now]
+    for k in expired:
+        _EPHEMERAL_KEYS.pop(k, None)
 
 
 class DebatesService:
@@ -29,7 +43,6 @@ class DebatesService:
             "debate_id": debate_id,
             "topic": request.topic,
             "models": request.models,
-            "api_keys": request.api_keys.model_dump(),
             "system_prompt": request.system_prompt,
             "mode": request.mode,
             "round_count": request.round_count,
@@ -46,6 +59,12 @@ class DebatesService:
 
         if not redis_success:
             _LOCAL_STORAGE[f"debate:{debate_id}"] = debate_data
+
+        _prune_ephemeral_keys()
+        _EPHEMERAL_KEYS[debate_id] = (
+            request.api_keys.model_dump(),
+            time.time() + _EPHEMERAL_KEY_TTL_SECONDS,
+        )
 
         return DebateStartResponse(
             debate_id=debate_id,
@@ -70,7 +89,21 @@ class DebatesService:
     ) -> AsyncGenerator[str, None]:
         orchestrator = DebateOrchestrator(self.redis)
 
-        api_keys_raw = debate_data.get("api_keys", {})
+        _prune_ephemeral_keys()
+        ephemeral = _EPHEMERAL_KEYS.pop(debate_id, None)
+        if ephemeral is None:
+            yield (
+                "data: "
+                + json.dumps(
+                    {
+                        "event": "error",
+                        "error": "API keys unavailable or expired; restart the debate",
+                    }
+                )
+                + "\n\n"
+            )
+            return
+        api_keys_raw, _ = ephemeral
         round_count = debate_data.get("round_count", 3)
         system_prompt = debate_data.get("system_prompt")
         mode = debate_data.get("mode", "debate")

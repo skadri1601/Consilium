@@ -1,9 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 
-const IS_TEST_MODE =
-  process.env.PLAYWRIGHT_TEST === "true" ||
-  process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === "true";
 const IS_PROD = process.env.NODE_ENV === "production";
+// E2E bypass flag. Server-only: NEXT_PUBLIC_* variants are intentionally
+// not accepted, since they're shipped to the browser and settable by clients.
+const IS_TEST_MODE = !IS_PROD && process.env.PLAYWRIGHT_TEST === "true";
 
 export async function getAuthContext(): Promise<{
   userId: string | null;

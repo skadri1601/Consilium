@@ -1,12 +1,35 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { NOTION_DOCS, fetchNotionPage } from "@/lib/notion";
+import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 3600;
 
 export function generateStaticParams() {
   return Object.keys(NOTION_DOCS).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const pageId = NOTION_DOCS[slug];
+  if (!pageId) {
+    return {
+      title: "Not found",
+      robots: { index: false, follow: false },
+    };
+  }
+  const { title } = await fetchNotionPage(pageId);
+  return buildMetadata({
+    title,
+    description: `${title} — Consilium documentation.`,
+    path: `/docs/notion/${slug}`,
+  });
 }
 
 export default async function NotionDocPage({
