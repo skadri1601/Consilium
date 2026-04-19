@@ -5,8 +5,13 @@ from fastapi.responses import StreamingResponse
 import sentry_sdk
 from .service import DebatesService
 from .schema import DebateStartRequest, DebateStartResponse
+from ...shared.auth import require_api_key
 
-router = APIRouter(prefix="/debates", tags=["debates"])
+router = APIRouter(
+    prefix="/debates",
+    tags=["debates"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 def get_debates_service() -> DebatesService:

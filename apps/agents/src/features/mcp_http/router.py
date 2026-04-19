@@ -11,6 +11,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from src.features.deliberation.mcp_server import TOOLS, TOOL_HANDLERS
+from src.shared.auth import verify_api_key
 from src.shared.config import settings
 
 router = APIRouter(tags=["mcp"])
@@ -58,15 +59,7 @@ def _ensure_cleanup_running() -> None:
 
 
 def _verify_api_key(authorization: Optional[str]) -> None:
-    if not settings.consilium_api_key:
-        return
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    parts = authorization.split(" ", 1)
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid Authorization format")
-    if parts[1] != settings.consilium_api_key:
-        raise HTTPException(status_code=401, detail="Invalid API key")
+    verify_api_key(authorization)
 
 
 def _get_or_create_session(session_id: Optional[str]) -> tuple[MCPSession, bool]:
