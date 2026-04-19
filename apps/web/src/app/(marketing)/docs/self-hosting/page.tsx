@@ -1,7 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Self-Hosting",
+  description:
+    "Self-host Consilium on your own infrastructure — Docker Compose, Kubernetes, or a single droplet. Deploy the web app, API, debate engine, and workers.",
+  path: "/docs/self-hosting",
+  keywords: ["self-host consilium", "docker ai council", "open source ai debate"],
+});
 
 const dockerServices = [
   { name: "PostgreSQL 16", container: "consilium_postgres", port: "5432", desc: "Primary database" },

@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Use Cases",
+  description:
+    "How teams use Consilium — architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
+  path: "/use-cases",
+  keywords: ["ai use cases", "llm council use cases", "ai for engineering teams"],
+});
 import {
   Code,
   BookOpen,

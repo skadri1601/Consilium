@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "CLI",
+  description:
+    "Install and use the Consilium CLI — run multi-AI debates from your terminal, stream rounds over SSE, and script deliberation into your workflow.",
+  path: "/docs/cli",
+  keywords: ["consilium cli", "ai debate cli", "terminal llm"],
+});
 
 const commands = [
   {

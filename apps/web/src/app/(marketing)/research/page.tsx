@@ -1,7 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ExternalLink, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Research",
+  description:
+    "The peer-reviewed research behind Consilium's deliberation modes: multi-agent debate, self-consistency, tree-of-thoughts, constitutional AI, and more.",
+  path: "/research",
+  keywords: ["ai debate research", "multi-agent research", "llm ensemble", "tree of thoughts"],
+});
 
 const papers = [
   {

@@ -1,9 +1,19 @@
+import type { Metadata } from "next";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/shared/components/ui/accordion";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "FAQ",
+  description:
+    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, self-hosting, and pricing.",
+  path: "/faq",
+  keywords: ["consilium faq", "ai council faq", "multi-agent debate questions"],
+});
 
 const generalFaqs = [
   {

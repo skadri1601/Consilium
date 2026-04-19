@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 import {
   Github,
   MessageCircle,
@@ -24,6 +26,13 @@ import {
   CardTitle,
   CardDescription,
 } from "@/shared/components/ui/card";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Community",
+  description:
+    "Join the Consilium community on GitHub and Discord. Contribute code, file issues, and help shape multi-AI deliberation tooling.",
+  path: "/community",
+});
 
 const links = [
   {

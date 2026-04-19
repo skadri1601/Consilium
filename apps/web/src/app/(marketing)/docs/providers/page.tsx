@@ -1,7 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Providers & Models",
+  description:
+    "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, and xAI. Pricing, capabilities, and model selection guide.",
+  path: "/docs/providers",
+  keywords: ["ai providers", "openai claude gemini", "llm comparison", "model pricing"],
+});
 
 const models = [
   { provider: "Anthropic", model: "Claude Opus 4.6", id: "claude-opus-4-6", input: "$15.00", output: "$75.00", free: false, tier: "Most Capable" },

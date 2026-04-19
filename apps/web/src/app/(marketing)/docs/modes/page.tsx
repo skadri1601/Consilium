@@ -1,7 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Zap, Users, FileText, Eye, Target, Shield, BarChart3, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Deliberation Modes",
+  description:
+    "The eight deliberation modes in Consilium — classic debate, socratic, tree-of-thoughts, red-team, constitutional, ranked-choice, and more — each backed by peer-reviewed research.",
+  path: "/docs/modes",
+  keywords: ["ai deliberation modes", "multi-agent debate modes", "tree of thoughts", "socratic ai"],
+});
 
 const modesComparison = [
   { mode: "Quick", rounds: 1, models: "1", phases: "Propose → Evaluate → Output", time: "~15s", best: "Simple factual queries" },

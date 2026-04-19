@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "TypeScript SDK",
+  description:
+    "The official Consilium TypeScript SDK — start debates, stream rounds over SSE, and embed multi-AI deliberation in your Node.js or browser app.",
+  path: "/docs/typescript-sdk",
+  keywords: ["consilium typescript sdk", "ai debate javascript", "llm council node"],
+});
 
 const methods = [
   { name: "healthCheck()", returns: "Promise<HealthStatus>", desc: "Check API health. Returns status, version, uptime." },

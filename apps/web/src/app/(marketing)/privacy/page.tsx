@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Privacy Policy",
+  description:
+    "How Consilium collects, uses, and protects your data. We do not train on your debates and you can bring your own API keys.",
+  path: "/privacy",
+});
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen">

@@ -1,7 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, Globe, Terminal, Code, Server, Key, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Getting Started",
+  description:
+    "Quickstart for Consilium — sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+  path: "/docs/getting-started",
+});
 
 const providers = [
   { name: "Anthropic", env: "ANTHROPIC_API_KEY", models: "Claude Opus 4.6, Sonnet 4.5, Haiku 4.5", free: false },
