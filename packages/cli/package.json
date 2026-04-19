@@ -1,6 +1,6 @@
 {
   "name": "@myconsilium/cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CLI for Consilium AI Council - Multi-agent debate platform",
   "type": "module",
   "main": "dist/index.js",
