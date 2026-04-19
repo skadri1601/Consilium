@@ -31,9 +31,13 @@ jobs:
         uses: actions/checkout@v4
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v4
-        # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
+        # Configuration options: https://github.com/actions/dependency-review-action#configuration-options
         with:
           comment-summary-in-pr: always
-        #   fail-on-severity: moderate
-        #   deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
-        #   retry-on-snapshot-warnings: true
+          # Default is "low" which blocks PRs on any known CVE in any transitive
+          # dep. Raise to "high" so only critical/high-severity advisories fail
+          # the check. Moderate/low issues still show up in the PR summary.
+          fail-on-severity: high
+          # Block known-viral licenses; allow permissive.
+          deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later, AGPL-1.0-or-later
+          retry-on-snapshot-warnings: true
