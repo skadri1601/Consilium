@@ -17,6 +17,7 @@ import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS, FREE_MODEL_IDS } from "@/shared/lib/constants";
 import { getProviderStyles, getAgentDisplayName } from "../utils/council-helpers";
+import { TemplatePicker, type Template } from "@/features/templates/components/template-picker";
 
 interface AgentProgress {
   agentId: string;
@@ -159,6 +160,11 @@ export function CouncilChat() {
       description: "Copy Synthesis",
     },
   ]);
+
+  const handleTemplateSelect = (template: Template) => {
+    setInput(template.placeholder);
+    textareaRef.current?.focus();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -380,11 +386,14 @@ export function CouncilChat() {
         <div className="flex-1 flex flex-col gap-4 min-w-0">
           <Card>
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <CardTitle className="text-lg">Start a Debate</CardTitle>
-                <FeatureTooltip content="Describe what you want to build. The council will debate and produce a synthesized recommendation.">
-                  <span className="text-xs text-muted-foreground">What is this?</span>
-                </FeatureTooltip>
+                <div className="flex items-center gap-2">
+                  <TemplatePicker onSelect={handleTemplateSelect} disabled={isLoading} />
+                  <FeatureTooltip content="Describe what you want to build. The council will debate and produce a synthesized recommendation.">
+                    <span className="text-xs text-muted-foreground">What is this?</span>
+                  </FeatureTooltip>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-4">

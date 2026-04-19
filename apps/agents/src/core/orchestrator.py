@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from typing import AsyncGenerator
 
@@ -43,6 +44,8 @@ from .shared import (
 from ..features.agents.base_agent import BaseAgent
 from ..shared.database.redis import RedisClient
 from ..shared.config.models import get_free_fallback_models
+from ..utils.diversity import compute_diversity_score
+from ..utils.constitution import get_random_principle, SELF_CRITIQUE_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +221,26 @@ async def _call_agent(
     return FALLBACK_RESPONSE, 0.0
 
 
+_BELIEF_PROMPT = (
+    "On a scale of 0-100%, what probability do you assign to the following proposition "
+    "being correct or the best approach? Give ONLY a number between 0 and 100, nothing else.\n\n"
+    "Proposition: {topic}"
+)
+
+_DISSENT_PATTERN = re.compile(
+    r"##\s*DISSENT MINORITY REPORT\s*(.*?)(?=##|\Z)", re.DOTALL | re.IGNORECASE
+)
+
+
+def _parse_dissent_report(golden_prompt: str) -> tuple[str, str | None]:
+    match = _DISSENT_PATTERN.search(golden_prompt)
+    if not match:
+        return golden_prompt, None
+    dissent_text = match.group(1).strip()
+    synthesis = golden_prompt[:match.start()].strip()
+    return synthesis, dissent_text
+
+
 class DebateOrchestrator:
 
     def __init__(self, redis: RedisClient):
@@ -226,6 +249,154 @@ class DebateOrchestrator:
         self.cost_tracker = CostTracker()
         self._event_counter = 0
         self._debate_start_time = 0.0
+        self._belief_trajectories: dict[str, list[int]] = {}
+        self._self_critiques: dict[str, dict] = {}
+
+    async def _elicit_belief(
+        self,
+        model_id: str,
+        agent: BaseAgent,
+        topic: str,
+    ) -> int:
+        try:
+            prompt = _BELIEF_PROMPT.format(topic=topic[:500])
+            raw, _ = await asyncio.wait_for(
+                agent.generate_response(prompt),
+                timeout=20,
+            )
+            stripped = raw.strip().rstrip("%").strip()
+            value = int(float(stripped))
+            return max(0, min(100, value))
+        except Exception as exc:
+            logger.debug("Belief elicitation failed for %s: %s", _correlation_token(model_id), _log_exc(exc))
+            return -1
+
+    async def _elicit_all_beliefs(
+        self,
+        topic: str,
+        agents: dict[str, BaseAgent],
+    ) -> None:
+        tasks = {
+            model_id: asyncio.create_task(self._elicit_belief(model_id, agent, topic))
+            for model_id, agent in agents.items()
+        }
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        for model_id, result in zip(tasks.keys(), results):
+            if isinstance(result, Exception):
+                value = -1
+            else:
+                value = result
+            if model_id not in self._belief_trajectories:
+                self._belief_trajectories[model_id] = []
+            self._belief_trajectories[model_id].append(value)
+
+    def _compute_belief_trajectories(self) -> list[dict]:
+        import statistics
+        output = []
+        for model_id, trajectory in self._belief_trajectories.items():
+            valid = [v for v in trajectory if v >= 0]
+            if len(valid) < 2:
+                conviction = None
+            else:
+                try:
+                    stddev = statistics.stdev(valid)
+                    conviction = round(1.0 - (stddev / 50.0), 4)
+                    conviction = max(0.0, min(1.0, conviction))
+                except statistics.StatisticsError:
+                    conviction = None
+            shift = (valid[-1] - valid[0]) if len(valid) >= 2 else 0
+            output.append({
+                "agent": model_id,
+                "belief_trajectory": trajectory,
+                "belief_shift": shift,
+                "conviction_score": conviction,
+            })
+        return output
+
+    async def _run_self_critique(
+        self,
+        model_id: str,
+        agent: BaseAgent,
+        original_argument: str,
+    ) -> dict:
+        principle = get_random_principle()
+        prompt = SELF_CRITIQUE_PROMPT.format(
+            principle=principle,
+            argument=original_argument[:3000],
+        )
+        try:
+            raw, _ = await asyncio.wait_for(
+                agent.generate_response(prompt),
+                timeout=45,
+            )
+            raw = raw.strip()
+            weakness = ""
+            revised_text = ""
+            for line in raw.splitlines():
+                if line.startswith("WEAKNESS:"):
+                    weakness = line[len("WEAKNESS:"):].strip()
+                elif line.startswith("REVISED:"):
+                    revised_text = line[len("REVISED:"):].strip()
+            is_revised = bool(revised_text) and not revised_text.upper().startswith("HOLDS")
+            final_argument = revised_text if is_revised else original_argument
+            return {
+                "principle": principle,
+                "weakness": weakness,
+                "revised": is_revised,
+                "revised_argument": final_argument,
+            }
+        except Exception as exc:
+            logger.debug("Self-critique failed for %s: %s", _correlation_token(model_id), _log_exc(exc))
+            return {
+                "principle": principle,
+                "weakness": "",
+                "revised": False,
+                "revised_argument": original_argument,
+            }
+
+    async def _run_all_self_critiques(
+        self,
+        agents: dict[str, BaseAgent],
+        responses: dict[str, str],
+    ) -> dict[str, dict]:
+        tasks = {
+            model_id: asyncio.create_task(
+                self._run_self_critique(model_id, agent, responses.get(model_id, ""))
+            )
+            for model_id, agent in agents.items()
+            if responses.get(model_id) and responses[model_id] != FALLBACK_RESPONSE
+        }
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        critiques: dict[str, dict] = {}
+        for model_id, result in zip(tasks.keys(), results):
+            if isinstance(result, Exception):
+                logger.debug("Self-critique task failed for %s: %s", _correlation_token(model_id), _log_exc(result))
+                critiques[model_id] = {"principle": "", "weakness": "", "revised": False, "revised_argument": responses.get(model_id, "")}
+            else:
+                critiques[model_id] = result
+        return critiques
+
+    async def _score_argument_quality(
+        self,
+        model_id: str,
+        argument: str,
+        api_keys: dict[str, str | None],
+    ) -> dict:
+        try:
+            cheap_agent = AgentFactory.create(CHEAP_VARIANTS.get(model_id, "gpt-4o-mini") or "gpt-4o-mini", api_keys)
+            from ..utils.argument_quality import score_argument
+
+            async def _llm_call(prompt: str, max_tokens: int = 100) -> str:
+                raw, _ = await asyncio.wait_for(
+                    cheap_agent.generate_response(prompt),
+                    timeout=20,
+                )
+                return raw
+
+            return await score_argument(argument, _llm_call)
+        except Exception as exc:
+            logger.debug("Argument quality scoring failed for %s: %s", _correlation_token(model_id), _log_exc(exc))
+            return {"relevance": 0, "sufficiency": 0, "acceptability": 0, "cogency": 0, "rebuttal_quality": 0, "total": 0, "quality_pct": 0.0}
 
     async def _persist_event(self, debate_id: str, event_str: str):
         try:
@@ -311,6 +482,7 @@ class DebateOrchestrator:
         user_prompt: str,
         anon_map: AnonymityMap,
         all_responses: dict[int, dict[str, str]],
+        api_keys: dict[str, str | None] | None = None,
     ) -> AsyncGenerator[str, None]:
         responses_out: dict[str, str] = {}
 
@@ -329,11 +501,67 @@ class DebateOrchestrator:
         ):
             yield event
 
+        diversity_data: dict = {}
+        try:
+            texts = [v for v in responses_out.values() if v != FALLBACK_RESPONSE]
+            if texts:
+                diversity_data = await asyncio.get_event_loop().run_in_executor(
+                    None, compute_diversity_score, texts
+                )
+        except Exception as exc:
+            logger.debug("Diversity computation failed round %d: %s", round_number, _log_exc(exc))
+
+        quality_scores: dict[str, dict] = {}
+        if api_keys:
+            try:
+                quality_tasks = {
+                    mid: asyncio.create_task(self._score_argument_quality(mid, text, api_keys))
+                    for mid, text in responses_out.items()
+                    if text and text != FALLBACK_RESPONSE
+                }
+                quality_results = await asyncio.gather(*quality_tasks.values(), return_exceptions=True)
+                for mid, qresult in zip(quality_tasks.keys(), quality_results):
+                    if not isinstance(qresult, Exception):
+                        quality_scores[mid] = qresult
+            except Exception as exc:
+                logger.debug("Argument quality scoring failed round %d: %s", round_number, _log_exc(exc))
+
+        self_critique_data: dict[str, dict] = {}
+        if round_number == 1:
+            try:
+                self_critique_data = await self._run_all_self_critiques(agents, responses_out)
+                for model_id, critique in self_critique_data.items():
+                    self._self_critiques[model_id] = {
+                        "principle": critique["principle"],
+                        "weakness": critique["weakness"],
+                        "revised": critique["revised"],
+                    }
+                    if critique["revised"] and critique["revised_argument"]:
+                        responses_out[model_id] = critique["revised_argument"]
+            except Exception as exc:
+                logger.debug("Self-critique phase failed: %s", _log_exc(exc))
+
         all_responses[round_number] = responses_out
+
+        round_complete_extra: dict = {}
+        if diversity_data:
+            round_complete_extra["diversityScore"] = diversity_data
+        if quality_scores:
+            round_complete_extra["qualityScores"] = quality_scores
+        if self_critique_data:
+            round_complete_extra["selfCritiques"] = {
+                mid: {
+                    "principle": c["principle"],
+                    "weakness": c["weakness"],
+                    "revised": c["revised"],
+                }
+                for mid, c in self_critique_data.items()
+            }
 
         rc_event = self._tracked_sse("round_complete", {
             "round": round_number,
             "responses": self._format_round_results(responses_out, anon_map, round_number),
+            **round_complete_extra,
         })
         await self._persist_event(debate_id, rc_event)
         yield rc_event
@@ -450,9 +678,14 @@ class DebateOrchestrator:
     ) -> AsyncGenerator[str, None]:
         r2_prompt = self._build_round_user_prompt(2, topic, anon_map, all_responses)
         async for ev in self._run_single_round(
-            debate_id, 2, agents, ROUND_2_SYSTEM, r2_prompt, anon_map, all_responses,
+            debate_id, 2, agents, ROUND_2_SYSTEM, r2_prompt, anon_map, all_responses, api_keys,
         ):
             yield ev
+
+        try:
+            await self._elicit_all_beliefs(topic, agents)
+        except Exception as exc:
+            logger.debug("Post-round-2 belief elicitation failed: %s", _log_exc(exc))
 
         if round_count < 3:
             async for ev in self._finalize(
@@ -463,9 +696,14 @@ class DebateOrchestrator:
 
         r3_prompt = self._build_round_user_prompt(3, topic, anon_map, all_responses)
         async for ev in self._run_single_round(
-            debate_id, 3, agents, ROUND_3_SYSTEM, r3_prompt, anon_map, all_responses,
+            debate_id, 3, agents, ROUND_3_SYSTEM, r3_prompt, anon_map, all_responses, api_keys,
         ):
             yield ev
+
+        try:
+            await self._elicit_all_beliefs(topic, agents)
+        except Exception as exc:
+            logger.debug("Post-round-3 belief elicitation failed: %s", _log_exc(exc))
 
         async for ev in self._finalize(
             debate_id, topic, model_ids, agents, api_keys, anon_map, all_responses,
@@ -484,6 +722,8 @@ class DebateOrchestrator:
     ) -> AsyncGenerator[str, None]:
         self._debate_start_time = time.time()
         self._event_counter = 0
+        self._belief_trajectories = {}
+        self._self_critiques = {}
 
         if not _has_any_user_key(api_keys):
             model_ids = get_free_fallback_models(count=max(len(model_ids), 2))
@@ -512,6 +752,11 @@ class DebateOrchestrator:
         await self._persist_event(debate_id, event)
         yield event
 
+        try:
+            await self._elicit_all_beliefs(topic, agents)
+        except Exception as exc:
+            logger.debug("Initial belief elicitation failed: %s", _log_exc(exc))
+
         if sub_agents:
             async for ev in self._iter_subagent_research(topic, model_ids, api_keys):
                 yield ev
@@ -520,9 +765,14 @@ class DebateOrchestrator:
         effective_system = system_prompt or ROUND_1_SYSTEM
 
         async for ev in self._run_single_round(
-            debate_id, 1, agents, effective_system, topic, anon_map, all_responses,
+            debate_id, 1, agents, effective_system, topic, anon_map, all_responses, api_keys,
         ):
             yield ev
+
+        try:
+            await self._elicit_all_beliefs(topic, agents)
+        except Exception as exc:
+            logger.debug("Post-round-1 belief elicitation failed: %s", _log_exc(exc))
 
         async for ev in self._iter_after_round_one(
             debate_id, topic, model_ids, agents, api_keys, anon_map, all_responses, round_count,
@@ -749,10 +999,16 @@ class DebateOrchestrator:
                 logger.error("Simplified judge also failed: %s", _log_exc(retry_err))
                 golden_prompt = self._golden_from_anon_fallback(anon_r1, anon_r2, anon_r3)
 
-        yield _sse("consensus", {
-            "golden_prompt": golden_prompt,
+        synthesis, dissent_report = _parse_dissent_report(golden_prompt)
+        consensus_payload: dict = {
+            "golden_prompt": synthesis,
             "judge_model": judge_model_id,
-        })
+        }
+        if dissent_report:
+            consensus_payload["dissentReport"] = dissent_report
+        else:
+            consensus_payload["dissentReport"] = None
+        yield _sse("consensus", consensus_payload)
 
     async def _persist_results(
         self,
@@ -793,6 +1049,12 @@ class DebateOrchestrator:
         models_succeeded = [m for m, r in round_1_responses.items() if r != FALLBACK_RESPONSE]
         models_failed = [m for m, r in round_1_responses.items() if r == FALLBACK_RESPONSE]
 
+        belief_trajectories: list[dict] = []
+        try:
+            belief_trajectories = self._compute_belief_trajectories()
+        except Exception as exc:
+            logger.debug("Failed to compute belief trajectories: %s", _log_exc(exc))
+
         done_event = self._tracked_sse("done", {
             "status": "completed",
             "debate_id": debate_id,
@@ -802,6 +1064,7 @@ class DebateOrchestrator:
             "models_succeeded": models_succeeded,
             "models_failed": models_failed,
             "completed_at": _now_iso(),
+            "beliefTrajectories": belief_trajectories,
         })
         await self._persist_event(debate_id, done_event)
         yield done_event

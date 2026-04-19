@@ -363,6 +363,29 @@ export class DebatesService {
     });
   }
 
+  async completeDebate(
+    id: string,
+    result: {
+      goldenPrompt?: string;
+      totalCost?: number;
+      synthesisMethod?: string;
+      judgeModel?: string;
+      improvementScore?: number;
+    },
+  ): Promise<DebateSession> {
+    return this.prisma.debateSession.update({
+      where: { id },
+      data: {
+        status: 'completed',
+        ...(result.goldenPrompt !== undefined && { goldenPrompt: result.goldenPrompt }),
+        ...(result.totalCost !== undefined && { totalCost: result.totalCost }),
+        ...(result.synthesisMethod !== undefined && { synthesisMethod: result.synthesisMethod }),
+        ...(result.judgeModel !== undefined && { judgeModel: result.judgeModel }),
+        ...(result.improvementScore !== undefined && { improvementScore: result.improvementScore }),
+      },
+    });
+  }
+
   async addRound(sessionId: string, roundNumber: number) {
     return this.prisma.debateRound.create({
       data: {
@@ -522,6 +545,168 @@ export class DebatesService {
     }
 
     return { id, cancelled: true };
+  }
+
+  recommendModels(topic: string, budget: "free" | "balanced" | "premium") {
+    const lower = topic.toLowerCase();
+
+    const isCoding = /\b(code|bug|function|api|typescript|python|javascript|error|stack trace|algorithm|database|sql|schema)\b/.test(lower);
+    const isData = /\b(data|analytics|statistics|ml|machine learning|model|dataset|csv|analysis)\b/.test(lower);
+    const isCreative = /\b(design|creative|write|story|marketing|content|brand|ux|ui)\b/.test(lower);
+    const isScience = /\b(research|study|hypothesis|experiment|paper|evidence|biology|chemistry|physics)\b/.test(lower);
+    const isBusiness = /\b(strategy|revenue|market|customer|business|product|startup|growth|pricing)\b/.test(lower);
+
+    let recommended: string[];
+    let reasoning: string;
+    let estimatedCostCents: number;
+
+    if (budget === "free") {
+      recommended = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+      reasoning = "Free Groq-hosted models for zero-cost debates";
+      estimatedCostCents = 0;
+    } else if (budget === "balanced") {
+      if (isCoding) {
+        recommended = ["claude-sonnet-4-6", "gpt-4o", "gemini-2.0-flash"];
+        reasoning = "Strong coding models with complementary strengths";
+      } else if (isData || isScience) {
+        recommended = ["gemini-2.5-pro", "claude-sonnet-4-6", "gpt-4o"];
+        reasoning = "Data and science reasoning specialists";
+      } else if (isCreative) {
+        recommended = ["claude-sonnet-4-6", "gpt-4o", "grok-2-1212"];
+        reasoning = "Creative writing and content generation specialists";
+      } else if (isBusiness) {
+        recommended = ["claude-sonnet-4-6", "gpt-4o", "gemini-2.0-flash"];
+        reasoning = "Business analysis with broad context handling";
+      } else {
+        recommended = ["claude-sonnet-4-6", "gpt-4o", "gemini-2.0-flash"];
+        reasoning = "Well-rounded balanced model panel";
+      }
+      estimatedCostCents = 10;
+    } else {
+      if (isCoding) {
+        recommended = ["claude-opus-4-6", "gpt-4o", "gemini-2.5-pro", "claude-sonnet-4-6"];
+        reasoning = "Top-tier coding models for maximum accuracy";
+      } else if (isScience || isData) {
+        recommended = ["gemini-2.5-pro", "claude-opus-4-6", "gpt-4o", "claude-sonnet-4-6"];
+        reasoning = "Premium science and data reasoning ensemble";
+      } else if (isBusiness) {
+        recommended = ["claude-opus-4-6", "gpt-4o", "grok-2-1212", "gemini-2.5-pro"];
+        reasoning = "Strategic business analysis with diverse perspectives";
+      } else {
+        recommended = ["claude-opus-4-6", "gpt-4o", "gemini-2.5-pro", "claude-sonnet-4-6"];
+        reasoning = "Best-in-class premium model ensemble";
+      }
+      estimatedCostCents = 30;
+    }
+
+    return { recommended, reasoning, budget, estimatedCostCents };
+  }
+
+  async createComparisonDebate(
+    userId: string,
+    optionA: string,
+    optionB: string,
+    context?: string,
+    models?: string[],
+  ) {
+    const contextClause = context ? ` Context: ${context}.` : "";
+    const topic = `Compare and contrast: ${optionA} vs ${optionB}.${contextClause} Provide a structured analysis covering: advantages, disadvantages, use cases, performance, maintainability, and a clear recommendation.`;
+
+    const effectiveModels = models && models.length >= 2
+      ? models
+      : ["claude-sonnet-4-6", "gpt-4o", "gemini-2.0-flash"];
+
+    return this.createDebate(userId, {
+      topic,
+      models: effectiveModels,
+      mode: "council",
+      debateSource: "web",
+    });
+  }
+
+  async replayDebate(id: string, clerkId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const original = await this.prisma.debateSession.findFirst({
+      where: { id, userId: user.id },
+    });
+
+    if (!original) {
+      throw new NotFoundException("Debate session not found");
+    }
+
+    return this.createDebate(clerkId, {
+      topic: original.topic,
+      models: original.modelsUsed as string[],
+      mode: (original.mode as string) || "council",
+      debateSource: (original.debateSource as string) || "web",
+    });
+  }
+
+  async getExport(id: string, format: string, clerkId: string): Promise<{ content: string; contentType: string; filename: string }> {
+    const debate = await this.findOne(id, clerkId);
+
+    if (format === 'json') {
+      return {
+        content: JSON.stringify(debate, null, 2),
+        contentType: 'application/json',
+        filename: `debate-${id}.json`,
+      };
+    }
+
+    const date = new Date(debate.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    const models = (debate.modelsUsed as string[]).join(', ');
+
+    const roundSections = debate.rounds
+      .map((round) => {
+        const roundTitle = round.roundNumber === 1
+          ? 'Round 1: Independent Analysis'
+          : round.roundNumber === 2
+          ? 'Round 2: Cross-Examination'
+          : `Round ${round.roundNumber}: Rebuttal & Refinement`;
+
+        const messages = round.messages
+          .map((msg) => `### ${msg.modelUsed}\n${msg.content}`)
+          .join('\n\n');
+
+        return `## ${roundTitle}\n\n${messages}`;
+      })
+      .join('\n\n---\n\n');
+
+    const consensusSection = debate.goldenPrompt
+      ? `## Consensus\n\n${debate.goldenPrompt}`
+      : '';
+
+    const content = [
+      `# ${debate.topic}`,
+      ``,
+      `> Debate ID: ${debate.id} | Mode: ${debate.mode ?? 'council'} | Date: ${date}`,
+      `> Models: ${models}`,
+      ``,
+      consensusSection,
+      roundSections,
+      ``,
+      `---`,
+      `*Generated by Consilium — myconsilium.xyz*`,
+    ]
+      .filter((line) => line !== undefined)
+      .join('\n');
+
+    return {
+      content,
+      contentType: 'text/markdown',
+      filename: `debate-${id}.md`,
+    };
   }
 
   estimateCost(topic: string, models: string[], mode: string) {

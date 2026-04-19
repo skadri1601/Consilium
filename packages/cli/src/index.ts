@@ -26,6 +26,14 @@ import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
+import {
+  getBillingInfo,
+  formatBillingDashboard,
+  formatWalletBalance,
+  formatTierBadge,
+} from "./billing/index.js";
+import { openBrowser } from "./utils/open-browser.js";
+import { DEFAULT_API_ORIGIN, DEFAULT_WEB_ORIGIN } from "./utils/config.js";
 
 const st = style();
 const KNOWN_SUBCOMMANDS = [
@@ -43,6 +51,8 @@ const KNOWN_SUBCOMMANDS = [
   "eval",
   "benchmark",
   "mcp",
+  "upgrade",
+  "billing",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -187,6 +197,85 @@ async function main(): Promise<void> {
     .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  program
+    .command("billing")
+    .description("Show billing dashboard (tier, usage, wallet)")
+    .action(async () => {
+      const { loadConfig: lc } = await import("./utils/config.js");
+      const cfg = lc();
+      if (!cfg.apiKey) {
+        console.log(st.warning("Not logged in. Run: consilium login"));
+        return;
+      }
+      const info = await getBillingInfo();
+      if (!info) {
+        console.log(st.warning("Could not load billing info. Check your connection."));
+        return;
+      }
+      console.log("\n" + formatBillingDashboard(info) + "\n");
+    });
+
+  program
+    .command("upgrade")
+    .description("Show upgrade options or open Stripe checkout")
+    .argument("[tier]", "Tier to upgrade to: pro or max")
+    .action(async (tier?: string) => {
+      const { loadConfig: lc } = await import("./utils/config.js");
+      const cfg = lc();
+      const apiUrl = cfg.apiUrl || DEFAULT_API_ORIGIN;
+      const webUrl = cfg.webUrl || DEFAULT_WEB_ORIGIN;
+      const apiKey = cfg.apiKey;
+
+      const tierArg = (tier || "").toLowerCase();
+
+      if (tierArg === "pro" || tierArg === "max") {
+        if (!apiKey) {
+          console.log(st.warning("Not logged in. Run: consilium login"));
+          return;
+        }
+        const tierUp = tierArg.toUpperCase();
+        console.log(st.brand(`\nOpening Stripe checkout for ${tierUp}...\n`));
+        try {
+          const res = await fetch(`${apiUrl}/api/v1/billing/checkout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({ tier: tierUp }),
+            signal: AbortSignal.timeout(10000),
+          });
+          if (!res.ok) {
+            console.log(st.error(`Failed to create checkout (${res.status}).`));
+            return;
+          }
+          const { url } = (await res.json()) as { url: string };
+          openBrowser(url);
+          console.log(st.success("Opening Stripe checkout in your browser..."));
+          console.log(st.dim(url));
+        } catch {
+          console.log(st.error("Failed to start checkout. Check your connection."));
+        }
+        console.log("");
+        return;
+      }
+
+      const info = await getBillingInfo();
+      const currentTier = info?.subscription.tier ?? "FREE";
+      console.log(st.bold("\nUpgrade options\n"));
+      console.log(st.brand("Current tier:"), formatTierBadge(currentTier));
+      if (info) {
+        console.log(st.brand("Wallet:"), formatWalletBalance(info.wallet.balanceCents));
+      }
+      console.log("");
+      console.log(st.dim("  PRO  - $29/mo - 50 debates/day, 5 models, $50 compute"));
+      console.log(st.dim("  MAX  - $99/mo - Unlimited debates, all models, $200 compute"));
+      console.log("");
+      console.log(st.brand("Upgrade at:"), `${webUrl}/pricing`);
+      console.log(st.dim("Or run: consilium upgrade pro"));
+      console.log("");
+    });
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);

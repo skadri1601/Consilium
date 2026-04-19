@@ -87,12 +87,9 @@ const sentryOptions = {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   tunnelRoute: "/monitoring",
-  webpack: {
-    automaticVercelMonitors: true,
-    treeshake: {
-      removeDebugLogging: true,
-    },
-  },
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
 };
 
 export default withSentryConfig(nextConfig, sentryOptions);

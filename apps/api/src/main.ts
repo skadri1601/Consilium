@@ -1,3 +1,4 @@
+import '../instrument';
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
@@ -8,7 +9,7 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
-import * as Sentry from "@sentry/node";
+import { SentryGlobalFilter } from "./shared/filters/sentry-error.filter";
 
 const truthyEnv = (v: string | undefined) =>
   (v || "").toLowerCase() === "true" || v === "1";
@@ -22,14 +23,6 @@ function resolveFastifyLogLevel(): string {
 }
 
 async function bootstrap() {
-  if (process.env.SENTRY_DSN) {
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      environment: process.env.NODE_ENV || "development",
-      tracesSampleRate: 0.1,
-    });
-  }
-
   const logger = new Logger("Bootstrap");
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -58,7 +51,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new SentryGlobalFilter(), new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const config = new DocumentBuilder()

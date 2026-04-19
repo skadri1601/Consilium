@@ -13,6 +13,7 @@ import { terminal } from '../utils/terminal-capabilities';
 import { loadWorkspaceDebateContext } from '../utils/workspace-debate-context';
 import { log } from '../utils/logger';
 import { dispatchSlashCommand } from './chat-slash-dispatch';
+import { getBillingInfo, formatTierBadge, formatWalletBalance } from '../billing/index.js';
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '',
@@ -71,9 +72,27 @@ function printHelp(): void {
   console.log(st.dim('  /permissions    - status | allow-write | revoke-write for read/write policy'));
   console.log(st.dim('  /apply          - Apply structured edits from latest synthesis (preview + permission gated)'));
   console.log(st.dim('  /redo, /again   - Re-run last topic with current workspace permission and files'));
+  console.log(st.bold('\n  Billing'));
+  console.log(st.dim('  /billing, /tier - Show billing dashboard'));
+  console.log(st.dim('  /wallet         - Show wallet balance'));
+  console.log(st.dim('  /usage          - Show usage stats'));
+  console.log(st.dim('  /upgrade [pro|max] - Show upgrade options or open Stripe checkout'));
+  console.log(st.bold('\n  Help'));
   console.log(st.dim('  /help           - Show this help'));
   console.log(st.dim('  /exit           - Exit and save session'));
   console.log(st.dim('\n  ↑/↓ - Input history\n'));
+}
+
+function formatHistoryDate(isoDate: string): string {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 function printConversationHistory(session: ChatSession): void {
@@ -86,19 +105,18 @@ function printConversationHistory(session: ChatSession): void {
   let historyIndex = 0;
   for (const d of session.debates) {
     historyIndex += 1;
-    const topicPreview = d.topic.length > 70
-      ? d.topic.substring(0, 70) + '...'
+    const topicPreview = d.topic.length > 60
+      ? d.topic.substring(0, 60) + '...'
       : d.topic;
-    const time = d.timestamp
-      ? st.dim(` (${new Date(d.timestamp).toLocaleString()})`)
-      : '';
-    console.log(st.brand(`  ${historyIndex}.`), topicPreview + time);
+    const timeLabel = d.timestamp ? formatHistoryDate(d.timestamp) : '';
+    const timePart = timeLabel ? st.dim(` · ${timeLabel}`) : '';
+    console.log(st.brand(`  ${historyIndex}.`), topicPreview + timePart);
 
     if (d.goldenPrompt) {
       const synthPreview = d.goldenPrompt.length > 100
         ? d.goldenPrompt.substring(0, 100) + '...'
         : d.goldenPrompt;
-      console.log(st.dim(`     Synthesis: ${synthPreview}`));
+      console.log(st.dim(`     ${synthPreview}`));
     }
   }
   console.log('');
@@ -138,16 +156,19 @@ function handleSessionsListCommand(sessionManager: SessionManager): void {
     if (!s) continue;
     const timeAgo = sessionManager.formatRelativeTime(s.updatedAt);
     const label = s.name || s.topic || 'Untitled';
-    const displayLabel = label.length > 50 ? label.substring(0, 50) + '...' : label;
+    const displayLabel = label.length > 60 ? label.substring(0, 60) + '...' : label;
     const debateSuffix = s.debateCount === 1 ? '' : 's';
+    const modelStr = s.modelCount > 0 ? ` · ${s.modelCount} model${s.modelCount !== 1 ? 's' : ''}` : '';
     console.log(
       st.brand(`  ${i + 1}.`),
       displayLabel,
-      st.dim(`(${s.debateCount} debate${debateSuffix}, ${timeAgo})`)
     );
+    console.log(st.dim(`       ${timeAgo} · ${s.debateCount} debate${debateSuffix}${modelStr}`));
     if (s.preview && s.preview !== '(no synthesis)') {
-      console.log(st.dim(`     ${s.preview}`));
+      const previewTrunc = s.preview.length > 60 ? s.preview.substring(0, 60) + '...' : s.preview;
+      console.log(st.dim(`       ${previewTrunc}`));
     }
+    console.log(st.dim(`       ID: ${s.id}`));
   }
   console.log(st.dim('\n  Resume with: consilium sessions resume <session-id>\n'));
 }
@@ -383,6 +404,39 @@ export async function chatCommand(): Promise<void> {
     session.projectFiles = undefined;
     session.contextManifest = undefined;
   }
+
+  getBillingInfo().then((info) => {
+    if (!info) return;
+    const { subscription, wallet, usage } = info;
+    const tier = formatTierBadge(subscription.tier);
+    const balance = formatWalletBalance(wallet.balanceCents);
+    const todayLimit = usage.limits.debatesPerDay;
+    const todayUsed = usage.today.debatesCount;
+
+    let usageLine: string;
+    if (todayLimit === -1) {
+      const computeUsed = (usage.period.costCentsUsed / 100).toFixed(2);
+      const computeMax = (usage.limits.maxCostCentsPerMonth / 100).toFixed(2);
+      usageLine = `Unlimited \u00b7 $${computeUsed}/$${computeMax} compute`;
+    } else {
+      const remaining = todayLimit - todayUsed;
+      const computeUsed = (usage.period.costCentsUsed / 100).toFixed(2);
+      const computeMax = (usage.limits.maxCostCentsPerMonth / 100).toFixed(2);
+      if (subscription.tier === 'FREE') {
+        usageLine = `${todayLimit} debates/day \u00b7 BYOK only`;
+      } else {
+        usageLine = `${remaining} debates remaining today \u00b7 $${computeUsed}/$${computeMax} compute`;
+      }
+    }
+
+    console.log(`${st.dim('Tier:')} ${tier} \u00b7 ${st.dim(usageLine)}`);
+    console.log(`${st.dim('Wallet:')} ${balance}`);
+    if (subscription.tier === 'FREE') {
+      console.log(st.dim('Type /upgrade to unlock Pro features'));
+    }
+    console.log('');
+  }).catch(() => {});
+
   console.log('');
 
   const history: string[] = [];

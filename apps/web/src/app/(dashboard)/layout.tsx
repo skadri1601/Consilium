@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
-import { Menu, X, Settings, History, BarChart3, Users, Bot } from "lucide-react";
+import { Menu, X, Settings, History, BarChart3, Users, Bot, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
 import { Logo } from "@/components/shared/logo";
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/council", label: "Council" },
   { href: "/history", label: "History", icon: History },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/compare", label: "Compare", icon: ArrowRightLeft },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/personas", label: "Personas", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },

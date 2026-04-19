@@ -35,6 +35,12 @@ import {
   handleWorkspaceCommand,
 } from '../utils/chat-commands';
 import { log } from '../utils/logger';
+import {
+  getBillingInfo,
+  formatBillingDashboard,
+  formatWalletBalance,
+  formatTierBadge,
+} from '../billing/index.js';
 
 const st = style();
 
@@ -546,6 +552,138 @@ function slashScope(): SlashResult {
   return 'continue';
 }
 
+async function slashBilling(): Promise<SlashResult> {
+  const info = await getBillingInfo();
+  if (!info) {
+    console.log(st.warning('\nCould not load billing info. Check your connection or login status.\n'));
+    return 'continue';
+  }
+  console.log('\n' + formatBillingDashboard(info) + '\n');
+  return 'continue';
+}
+
+async function slashWallet(): Promise<SlashResult> {
+  const info = await getBillingInfo();
+  if (!info) {
+    console.log(st.warning('\nCould not load wallet info.\n'));
+    return 'continue';
+  }
+  console.log(st.bold('\nWallet\n'));
+  console.log(st.brand('Balance:'), formatWalletBalance(info.wallet.balanceCents));
+  const config = loadConfig();
+  const webUrl = config.webUrl || DEFAULT_WEB_ORIGIN;
+  console.log(st.dim(`To top up, visit: ${webUrl}/dashboard/billing`));
+  console.log('');
+  return 'continue';
+}
+
+async function slashUsage(): Promise<SlashResult> {
+  const info = await getBillingInfo();
+  if (!info) {
+    console.log(st.warning('\nCould not load usage info.\n'));
+    return 'continue';
+  }
+  const { usage } = info;
+  console.log(st.bold('\nUsage\n'));
+  const todayLimit = usage.limits.debatesPerDay === -1 ? '\u221e' : String(usage.limits.debatesPerDay);
+  console.log(st.brand("Today's debates:"), `${usage.today.debatesCount} / ${todayLimit}`);
+  const computeUsed = (usage.period.costCentsUsed / 100).toFixed(2);
+  const computeLimit = usage.limits.maxCostCentsPerMonth === -1
+    ? '\u221e'
+    : `$${(usage.limits.maxCostCentsPerMonth / 100).toFixed(2)}`;
+  console.log(st.brand('Monthly compute:'), `$${computeUsed} / ${computeLimit}`);
+  console.log(st.brand('Monthly debates:'), usage.period.debatesCount);
+  console.log('');
+  return 'continue';
+}
+
+async function slashUpgrade(args: string[]): Promise<SlashResult> {
+  const config = loadConfig();
+  const apiUrl = config.apiUrl || DEFAULT_API_ORIGIN;
+  const webUrl = config.webUrl || DEFAULT_WEB_ORIGIN;
+  const apiKey = config.apiKey;
+
+  const tierArg = (args[0] || '').toLowerCase();
+
+  if (tierArg === 'pro' || tierArg === 'max') {
+    if (!apiKey) {
+      console.log(st.warning('\nNot logged in. Run consilium login first.\n'));
+      return 'continue';
+    }
+    const tier = tierArg.toUpperCase();
+    console.log(st.brand(`\nOpening Stripe checkout for ${tier}...\n`));
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/billing/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ tier }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) {
+        console.log(st.error(`Failed to create checkout session (${res.status}).\n`));
+        return 'continue';
+      }
+      const { url } = (await res.json()) as { url: string };
+      openBrowser(url);
+      console.log(st.success('Opening Stripe checkout in your browser...'));
+      console.log(st.dim(url));
+    } catch {
+      console.log(st.error('\nFailed to start checkout. Check your connection.\n'));
+    }
+    console.log('');
+    return 'continue';
+  }
+
+  const info = await getBillingInfo();
+  const currentTier = info?.subscription.tier ?? 'FREE';
+
+  console.log(st.bold('\nUpgrade options\n'));
+  console.log(st.brand('Current tier:'), formatTierBadge(currentTier));
+  console.log('');
+  console.log(st.dim('  PRO  - $29/mo - 50 debates/day, 5 models, $50 compute'));
+  console.log(st.dim('  MAX  - $99/mo - Unlimited debates, all models, $200 compute'));
+  console.log('');
+  console.log(st.brand('Upgrade at:'), `${webUrl}/pricing`);
+  console.log(st.dim('Or: /upgrade pro  or  /upgrade max'));
+  console.log('');
+  return 'continue';
+}
+
+async function slashModelsInfo(): Promise<SlashResult> {
+  const info = await getBillingInfo();
+  const tier = info?.subscription.tier ?? 'FREE';
+
+  console.log(st.bold('\nModels\n'));
+  console.log(st.brand('Your tier:'), formatTierBadge(tier));
+  console.log('');
+
+  if (tier === 'FREE') {
+    console.log(st.dim('Available models (BYOK only — your own API keys):'));
+    console.log(st.success('  \u2713'), 'All models (using your API keys)');
+    console.log(st.success('  \u2713'), 'Groq Llama 3.3 70B (always free)');
+    console.log(st.success('  \u2713'), 'Groq Llama 3.1 8B (always free)');
+    console.log('');
+    console.log(st.dim('Upgrade to PRO/MAX to use Consilium-provided models.'));
+    console.log(st.dim('Use /upgrade to see options.'));
+  } else {
+    console.log(st.dim('Consilium-provided models (compute included):'));
+    console.log(st.success('  \u2713'), 'Claude Opus 4.6 (Anthropic)');
+    console.log(st.success('  \u2713'), 'Claude Sonnet 4.6 (Anthropic)');
+    console.log(st.success('  \u2713'), 'GPT-4o (OpenAI)');
+    console.log(st.success('  \u2713'), 'GPT-4o mini (OpenAI)');
+    console.log(st.success('  \u2713'), 'Gemini 2.0 Flash (Google)');
+    console.log(st.success('  \u2713'), 'Llama 3.3 70B via Groq');
+    console.log('');
+    console.log(st.dim('BYOK models (free with your API keys):'));
+    console.log(st.success('  \u2713'), 'All of the above + any custom model');
+  }
+  console.log('');
+  return 'continue';
+}
+
 export async function dispatchSlashCommand(
   cmd: string,
   args: string[],
@@ -641,6 +779,19 @@ export async function dispatchSlashCommand(
       await run();
       return 'continue';
     }
+    case '/billing':
+    case '/tier':
+    case '/plan':
+      return slashBilling();
+    case '/wallet':
+      return slashWallet();
+    case '/usage':
+      return slashUsage();
+    case '/upgrade':
+      return slashUpgrade(args);
+    case '/plan-models':
+    case '/tier-models':
+      return slashModelsInfo();
     default:
       console.log(st.warning(`Unknown command: ${cmd}. Use /help for commands.`));
       return 'continue';

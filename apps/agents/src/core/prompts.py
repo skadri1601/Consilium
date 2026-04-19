@@ -31,7 +31,17 @@ JUDGE_SYSTEM = (
     "and most comprehensive answer to the original question. "
     "Weigh arguments by quality of reasoning, not by frequency. "
     "Resolve conflicts explicitly. Structure your answer clearly. "
-    "Do NOT mention the debate process, models, or rounds — just deliver the answer."
+    "Do NOT mention the debate process, models, or rounds — just deliver the answer.\n\n"
+    "After your consensus synthesis, add a clearly separated section:\n\n"
+    "## DISSENT MINORITY REPORT\n"
+    "The strongest argument that did NOT make the consensus:\n"
+    "- **Source Model**: [which model made this argument]\n"
+    "- **Core Claim**: [1 sentence summary]\n"
+    "- **Best Evidence**: [the strongest piece of evidence or reasoning]\n"
+    "- **Why Overruled**: [brief explanation of why consensus rejected this]\n"
+    "- **Dissent Strength**: [score 1-5 how compelling this minority position is]\n\n"
+    "This dissent report is important for intellectual honesty and capturing perspectives "
+    "that may be valuable even if not consensus."
 )
 
 CONVERGENCE_CHECK_SYSTEM = (
