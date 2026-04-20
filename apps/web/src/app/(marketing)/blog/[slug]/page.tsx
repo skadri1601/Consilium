@@ -5,7 +5,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "../blog-data";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_URL } from "@/lib/seo";
 
 const categoryColors: Record<BlogCategory, string> = {
   Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -209,8 +209,42 @@ export default async function BlogPostPage({
 
   const Content = postContent[slug];
 
+  const blogPostingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt ?? post.title,
+    datePublished: post.date,
+    url: `${SITE_URL}/blog/${post.slug}`,
+    author: { "@type": "Person", name: "Saad Kadri" },
+    publisher: {
+      "@type": "Organization",
+      name: "Consilium",
+      url: SITE_URL,
+    },
+    articleSection: post.category,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <article className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-3xl mx-auto">
           <Link

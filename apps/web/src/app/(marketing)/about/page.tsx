@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Shield,
@@ -17,6 +16,22 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { buildMetadata } from "@/lib/seo";
+import { ScrollButton } from "./scroll-button";
+
+export const metadata: Metadata = buildMetadata({
+  title: "About",
+  description:
+    "Consilium implements formal multi-AI deliberation — typed challenges, social choice voting, convergence detection, and mandatory dissent. Built on peer-reviewed research from ICML, ACL, and AAAI.",
+  path: "/about",
+  keywords: [
+    "consilium about",
+    "multi-agent deliberation",
+    "ai council",
+    "formal argumentation",
+    "open source ai",
+  ],
+});
 
 const differentiators = [
   {
@@ -96,14 +111,7 @@ export default function AboutPage() {
             propose, challenge, defend, and synthesize positions through adversarial debate.
           </p>
         </div>
-        <button
-          onClick={() => document.getElementById("about-content")?.scrollIntoView({ behavior: "smooth" })}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer z-10"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 hover:opacity-100 transition-opacity">
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
-        </button>
+        <ScrollButton />
       </section>
 
       <section id="about-content" className="container mx-auto px-4 py-20">
