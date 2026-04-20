@@ -243,7 +243,8 @@ async function handleSlashCommand(
 function autoSave(session: ChatSession, sessionManager: SessionManager): void {
   try {
     sessionManager.saveSession(session);
-  } catch {
+  } catch (err: unknown) {
+    log('WARN', 'autosave_failed', { error: err instanceof Error ? err.message : String(err) });
   }
 }
 

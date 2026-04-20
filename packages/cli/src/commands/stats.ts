@@ -26,7 +26,8 @@ async function fetchStats(client: ConsiliumClient): Promise<StatsResponse | null
     });
     if (!response.ok) return null;
     return response.json() as Promise<StatsResponse>;
-  } catch {
+  } catch (err: unknown) {
+    console.error(st.dim(`Stats fetch error: ${err instanceof Error ? err.message : String(err)}`));
     return null;
   }
 }

@@ -53,20 +53,30 @@ consilium sessions resume <id>
 | Flag | Description |
 |------|-------------|
 | `-m, --models <models...>` | Select models for the debate |
-| `-o, --output <file>` | Save output to file |
-| `--mode quick\|council\|deep\|blind` | Set debate mode |
+| `--output <format>` | Output format: markdown, cursorrules, claude-md, json |
+| `--mode <mode>` | Set debate mode (see below) |
+| `--file <paths...>` | Attach files as context (e.g., `--file src/auth.ts diagram.png`) |
+| `--git-diff` | Include current git diff as context |
+| `--ticket <id>` | Include a Linear ticket as context (e.g., `MYC-123`) |
+| `--apply` | Apply structured edits from synthesis directly to files |
 
 ## Debate Modes
 
-| Mode | Rounds | Description |
-|------|--------|-------------|
-| `quick` | 1 | Single round, fast results |
-| `council` | 3 | Multiple rounds of deliberation (default) |
-| `deep` | 5 | Multi-round with sub-agents for deeper analysis |
-| `blind` | 3 | Anonymous mode, models don't see each other's names |
+| Mode | Rounds | Cost | Description |
+|------|--------|------|-------------|
+| `quick` | 1 | ~$0.01 | Single round, fastest results |
+| `council` | 3 | ~$0.04 | Multi-round deliberation (default) |
+| `deep` | 3 | ~$0.08 | Multi-round with sub-agent research |
+| `blind` | 3 | ~$0.04 | Anonymous — models don't see each other's names |
+| `redteam` | 4 | ~$0.10 | Adversarial testing, finds attack surfaces |
+| `jury` | 3 | ~$0.05 | Panel with mandatory dissent tracking |
+| `market` | 5 | ~$0.09 | Prediction-market style with confidence voting |
+| `auto` | 3 | ~$0.04 | Auto-selects the best mode for your topic |
 
 ```bash
 consilium debate "Microservices vs monolith" --mode deep
+consilium debate "Is this API secure?" --mode redteam
+consilium debate "Which approach?" --mode auto
 ```
 
 ## Output Formats
@@ -80,7 +90,7 @@ consilium debate "Microservices vs monolith" --mode deep
 | `text` | Plain text |
 
 ```bash
-consilium debate "Error handling strategy" --format cursorrules --output .cursorrules
+consilium debate "Error handling strategy" --output cursorrules
 ```
 
 ## REPL Mode
@@ -105,7 +115,43 @@ Attach files or images to provide additional context:
 ```bash
 consilium debate "Review this architecture" --file diagram.png
 consilium debate "Refactor this module" --file src/auth.ts
+consilium debate "Compare these implementations" --file old.ts new.ts
 ```
+
+## Benchmarks
+
+Run multi-model deliberation benchmarks against MMLU, TruthfulQA, or HumanEval:
+
+```bash
+# Run remotely via the Consilium API
+consilium benchmark --benchmark mmlu -n 20
+
+# Run locally via Python (requires apps/agents)
+consilium benchmark --benchmark truthfulqa --local -n 10 --output results.json
+```
+
+| Flag | Description |
+|------|-------------|
+| `--benchmark <name>` | Required: `mmlu`, `truthfulqa`, or `humaneval` |
+| `-m, --models <models...>` | Models to use as debaters |
+| `--mode <mode>` | Deliberation mode (default: council) |
+| `-n <count>` | Number of questions to run |
+| `--output <path>` | Save JSON results to file |
+| `--local` | Run via local Python agent instead of API |
+
+## Eval
+
+Run a blind evaluation of multiple responses to the same question:
+
+```bash
+# Evaluate inline (models generate and judge their own responses)
+consilium eval "Which sorting algorithm is best for nearly-sorted data?"
+
+# Evaluate a pre-generated set of responses from a file
+consilium eval "Which sorting algorithm?" --responses responses.json
+```
+
+The `--responses` file should be a JSON array: `[{"model": "gpt-4o", "text": "..."}, ...]`
 
 ## Configuration
 
