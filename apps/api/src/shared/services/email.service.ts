@@ -10,7 +10,7 @@ export class EmailService {
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
     this.fromAddress =
-      process.env.RESEND_FROM_ADDRESS || "Consilium <welcome@consilium.dev>";
+      process.env.RESEND_FROM_ADDRESS || "Saad at Consilium <saad@myconsilium.xyz>";
 
     if (apiKey) {
       this.resend = new Resend(apiKey);
@@ -33,7 +33,7 @@ export class EmailService {
       await this.resend.emails.send({
         from: this.fromAddress,
         to,
-        subject: "Welcome to Consilium",
+        subject: "Welcome to Consilium — glad you're here",
         html: this.buildWelcomeHtml(firstName),
       });
 
@@ -49,7 +49,7 @@ export class EmailService {
 
   private buildWelcomeHtml(firstName: string): string {
     const name = firstName || "there";
-    const appUrl = process.env.APP_URL || "https://consilium.dev";
+    const appUrl = process.env.APP_URL || "https://myconsilium.xyz";
 
     return `<!DOCTYPE html>
 <html>
@@ -57,13 +57,15 @@ export class EmailService {
 <body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0">
 <tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;padding:48px;border:1px solid #e5e7eb">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:48px;border:1px solid #e5e7eb">
 <tr><td>
-<h1 style="margin:0 0 24px;font-size:24px;color:#111827">Welcome to Consilium</h1>
+<p style="margin:0 0 32px;font-size:22px;font-weight:600;color:#111827;letter-spacing:-0.3px">Consilium</p>
 <p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6">Hi ${name},</p>
-<p style="margin:0 0 24px;font-size:16px;color:#374151;line-height:1.6">Your account is ready. Start building AI-powered council debates and explore what Consilium can do for you.</p>
-<a href="${appUrl}/dashboard" style="display:inline-block;background:#111827;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500">Get Started</a>
-<p style="margin:32px 0 0;font-size:13px;color:#9ca3af">Consilium</p>
+<p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6">Thank you for creating an account and giving Consilium a chance. We hope you enjoy all the features — please don't hesitate to reach out if you have any questions, and we're always happy to take feedback.</p>
+<p style="margin:0 0 32px;font-size:16px;color:#374151;line-height:1.6">Jump in whenever you're ready:</p>
+<a href="${appUrl}/council" style="display:inline-block;background:#111827;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;letter-spacing:0.1px">Open Consilium</a>
+<p style="margin:40px 0 8px;font-size:14px;color:#374151;line-height:1.6">— Saad</p>
+<p style="margin:0;font-size:13px;color:#9ca3af">Founder, Consilium &middot; <a href="mailto:saad@myconsilium.xyz" style="color:#6b7280;text-decoration:none">saad@myconsilium.xyz</a></p>
 </td></tr>
 </table>
 </td></tr>
