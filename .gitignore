@@ -26,8 +26,6 @@ env/
 .mypy_cache/
 .ruff_cache/
 .pdm.toml
-pdm.lock
-poetry.lock
 *.whl
 
 # Environment variables
