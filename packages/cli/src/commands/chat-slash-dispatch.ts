@@ -511,7 +511,8 @@ function slashEditHistory(): SlashResult {
       const entry = JSON.parse(line) as { ts: string; snapshotId: string; files: string[]; count: number };
       const files = entry.files.slice(0, 3).join(', ') + (entry.files.length > 3 ? ` +${entry.files.length - 3} more` : '');
       console.log(st.brand(entry.snapshotId), st.dim(`  ${entry.ts}  ${entry.count} file(s): ${files}`));
-    } catch {
+    } catch (err: unknown) {
+      console.log(st.dim(`(malformed entry: ${err instanceof Error ? err.message : String(err)})`));
     }
   }
   console.log(st.dim('\nUse /rollback <snapshotId> to restore.\n'));

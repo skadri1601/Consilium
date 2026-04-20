@@ -18,9 +18,7 @@ export function mcpCommand(options: { json?: boolean }): void {
 
   const envBlock = {
     CONSILIUM_API_URL: apiUrl,
-    CONSILIUM_API_KEY: config.apiKey
-      ? "<paste CLI token from ~/.consilium/config.json or consilium login>"
-      : "<run consilium login first>",
+    CONSILIUM_API_KEY: config.apiKey || "<run consilium login first>",
   };
 
   if (options.json) {
@@ -38,7 +36,7 @@ export function mcpCommand(options: { json?: boolean }): void {
             },
           },
           _comment:
-            "Replace ${CONSILIUM_API_KEY} with your consilium_ token from the web app (Settings → CLI) or ~/.consilium/config.json",
+            "Set CONSILIUM_API_KEY in your environment or replace with your consilium_ token (run: consilium login)",
         },
         null,
         2,

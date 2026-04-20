@@ -103,6 +103,7 @@ async function main(): Promise<void> {
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
     .option("--apply", "Apply structured edits from synthesis directly to files")
+    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
     .action(debateCommand);
 
   program
@@ -119,6 +120,7 @@ async function main(): Promise<void> {
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
     .option("--apply", "Apply structured edits from synthesis directly to files")
+    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
     .action(debateCommand);
 
   program

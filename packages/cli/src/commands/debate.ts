@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import logUpdate from 'log-update';
 import { ConsiliumClient, DebateEvent, DebateOptions, DeliberationEvent } from '../api/client';
 import {
@@ -37,6 +38,7 @@ export interface DebateCommandOptions {
   ticket?: string;
   noContext?: boolean;
   apply?: boolean;
+  file?: string[];
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -350,7 +352,9 @@ async function runClassicDebateFlow(
   const sigintHandler = async () => {
     try {
       await client.cancelDebate(debate.id);
-    } catch {}
+    } catch (err: unknown) {
+      log('WARN', 'debate_cancel_failed', { debateId: debate.id, error: err instanceof Error ? err.message : String(err) });
+    }
     process.exit(0);
   };
   process.on('SIGINT', sigintHandler);
@@ -386,11 +390,47 @@ async function runClassicDebateFlow(
 async function loadWorkspaceContext(
   options: DebateCommandOptions,
 ): Promise<WorkspaceDebateContext | null> {
-  return loadWorkspaceDebateContext({
+  const ctx = await loadWorkspaceDebateContext({
     noContext: options.noContext,
     gitDiff: options.gitDiff,
     ticket: options.ticket,
   });
+
+  if (!options.file || options.file.length === 0) return ctx;
+
+  const attachedFiles: Array<{ name: string; content: string }> = [];
+  for (const fp of options.file) {
+    try {
+      const content = fs.readFileSync(fp, 'utf-8');
+      attachedFiles.push({ name: path.basename(fp), content });
+      console.log(st.dim(`  Attached: ${fp}`));
+    } catch (err: unknown) {
+      console.log(st.warning(`  Could not read file: ${fp} — ${err instanceof Error ? err.message : String(err)}`));
+    }
+  }
+
+  if (attachedFiles.length === 0) return ctx;
+
+  if (ctx) {
+    ctx.files = [...ctx.files, ...attachedFiles];
+    return ctx;
+  }
+
+  return {
+    files: attachedFiles,
+    projectFiles: [],
+    projectContext: {},
+    gitContextPrefix: '',
+    ticketPrefix: '',
+    rootPath: process.cwd(),
+    contextManifest: {
+      root: process.cwd(),
+      loaded: attachedFiles.length,
+      loadedBytes: attachedFiles.reduce((sum, f) => sum + f.content.length, 0),
+      skipped: { secret: 0, binary: 0, 'payload-limit': 0, 'skip-rule': 0, 'read-error': 0, 'max-files': 0 },
+      loadedPaths: attachedFiles.map((f) => f.name),
+    },
+  };
 }
 
 export async function debateCommand(

@@ -232,7 +232,8 @@ function handleBenchmarkStreamEvent(
       if (event.text) {
         try {
           return JSON.parse(event.text) as BenchmarkResultData;
-        } catch {
+        } catch (err: unknown) {
+          log('WARN', 'benchmark_result_parse_failed', { error: err instanceof Error ? err.message : String(err) });
           return null;
         }
       }

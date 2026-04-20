@@ -66,7 +66,6 @@ function readLocalLogs(debateId: string, level?: string): LogEntry[] {
         if (level && entry.level !== level.toUpperCase()) continue;
         entries.push(entry);
       } catch {
-        // skip malformed
       }
     }
   }
@@ -137,8 +136,8 @@ export async function logsCommand(debateId: string, options: { level?: string })
       } else {
         entries = timeline;
       }
-    } catch {
-      // ignore fetch errors
+    } catch (err: unknown) {
+      console.log(st.dim(`Could not fetch remote logs: ${err instanceof Error ? err.message : String(err)}`));
     }
   }
 
