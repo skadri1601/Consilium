@@ -5,10 +5,9 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Use Cases",
-  description:
-    "How teams use Consilium — architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
+  description: "How teams use Consilium — architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
   path: "/use-cases",
-  keywords: ["ai use cases", "llm council use cases", "ai for engineering teams"],
+  keywords: ["ai use cases","llm council use cases","ai for engineering teams"],
 });
 import {
   Code,
@@ -34,12 +33,9 @@ const useCases = [
     models: 3,
     rounds: 2,
     modeIcon: Target,
-    modeColor: "bg-red-500/10 text-red-400 border-red-500/20",
-    attackCategories: ["SECURITY_VULN", "LOGICAL_FLAW", "EDGE_CASE", "ROBUSTNESS_TEST"],
-    description: [
-      "Three models independently review your code, each generating a comprehensive analysis of potential issues. Unlike traditional code review tools that run static analysis, Consilium's code review puts models into adversarial positions where they actively attack each other's findings, uncovering issues that surface only under cross-examination. The Red Team framework ensures that every vulnerability claim is stress-tested before reaching the final report.",
-      "During the Red Team phase, models issue typed challenges categorized as SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE, or ROBUSTNESS_TEST. A defender model must rebut each challenge with evidence — conceding valid points, refuting false positives, qualifying edge cases, or redirecting to more critical issues. This adversarial dynamic mirrors real security audits where penetration testers and defenders engage in structured conflict to harden systems.",
-      "The judge model synthesizes all findings into a final vulnerability report with severity ratings (critical/high/medium/low), maps each finding to the original code location, and includes the defender's rebuttals. The result is a structured, auditable code review that catches 30-40% more issues than single-model review. Each finding is cross-referenced against OWASP Top 10, CWE identifiers, and SANS 25 categories where applicable.",
+    modeColor: "bg-red-500/10 text-dissent border-red-500/20",
+    attackCategories: ["SECURITY_VULN","LOGICAL_FLAW","EDGE_CASE","ROBUSTNESS_TEST"],
+    description: ["Three models independently review your code, each generating a comprehensive analysis of potential issues. Unlike traditional code review tools that run static analysis, Consilium's code review puts models into adversarial positions where they actively attack each other's findings, uncovering issues that surface only under cross-examination. The Red Team framework ensures that every vulnerability claim is stress-tested before reaching the final report.","During the Red Team phase, models issue typed challenges categorized as SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE, or ROBUSTNESS_TEST. A defender model must rebut each challenge with evidence — conceding valid points, refuting false positives, qualifying edge cases, or redirecting to more critical issues. This adversarial dynamic mirrors real security audits where penetration testers and defenders engage in structured conflict to harden systems.","The judge model synthesizes all findings into a final vulnerability report with severity ratings (critical/high/medium/low), maps each finding to the original code location, and includes the defender's rebuttals. The result is a structured, auditable code review that catches 30-40% more issues than single-model review. Each finding is cross-referenced against OWASP Top 10, CWE identifiers, and SANS 25 categories where applicable.",
     ],
     rubric: [
       { name: "Security", weight: "30%" },
@@ -61,12 +57,9 @@ const useCases = [
     models: 3,
     rounds: 3,
     modeIcon: Users,
-    modeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    modeColor: "bg-warm/12 text-warm border-warm/20",
     attackCategories: [],
-    description: [
-      "Models explore different perspectives on complex research topics, each bringing independent analysis of available evidence. The Council mode ensures diverse viewpoints are represented before any synthesis occurs, preventing the premature convergence that plagues single-model summarization. Three models deliberate across three rounds, with each round building on the previous one's findings and challenges.",
-      "During deliberation, models challenge each other's source interpretations, flag potential biases in cited research, and identify gaps in evidence coverage. Each claim must be backed by specific evidence, and models rate their confidence in each assertion. The confidence-weighted voting system (Condorcet + Borda count) ensures well-supported conclusions carry more weight than speculative claims.",
-      "The final synthesis includes a comprehensive overview with inline citations, a section of flagged uncertainties where models disagreed, and confidence scores for each major conclusion. Dissenting views are preserved — if one model identified contradictory evidence, that perspective is included alongside the majority position. The output distinguishes between strong consensus, weak consensus, and active disagreement.",
+    description: ["Models explore different perspectives on complex research topics, each bringing independent analysis of available evidence. The Council mode ensures diverse viewpoints are represented before any synthesis occurs, preventing the premature convergence that plagues single-model summarization. Three models deliberate across three rounds, with each round building on the previous one's findings and challenges.","During deliberation, models challenge each other's source interpretations, flag potential biases in cited research, and identify gaps in evidence coverage. Each claim must be backed by specific evidence, and models rate their confidence in each assertion. The confidence-weighted voting system (Condorcet + Borda count) ensures well-supported conclusions carry more weight than speculative claims.","The final synthesis includes a comprehensive overview with inline citations, a section of flagged uncertainties where models disagreed, and confidence scores for each major conclusion. Dissenting views are preserved — if one model identified contradictory evidence, that perspective is included alongside the majority position. The output distinguishes between strong consensus, weak consensus, and active disagreement.",
     ],
     rubric: [
       { name: "Accuracy", weight: "30%" },
@@ -88,12 +81,9 @@ const useCases = [
     models: 5,
     rounds: 3,
     modeIcon: Shield,
-    modeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    modeColor: "bg-warm/12 text-warm-bright border-warm/20",
     attackCategories: [],
-    description: [
-      "Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds. Every risk assessment must include minority opinions — no conclusion is presented as unanimous unless mathematically verified through convergence detection (Kendall tau + Jaccard + concession rate >= 0.85). This prevents the groupthink that makes single-model risk assessments dangerously overconfident.",
-      "Each model independently identifies risks, assesses likelihood and impact on standardized scales, and proposes mitigation strategies. During deliberation, models challenge each other's likelihood estimates and impact assessments, forcing quantitative justification. A model claiming 'low probability' must defend that assessment against adversarial questioning from four other models across three rounds.",
-      "The output is a structured risk matrix with likelihood/impact ratings for each identified risk, detailed mitigation strategies with implementation timelines, and mandatory minority opinions. If even one model identifies a catastrophic risk that others dismiss, that dissent is prominently featured in the final report rather than averaged away. Agglomerative clustering groups related risks and surfaces overlooked tail risks.",
+    description: ["Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds. Every risk assessment must include minority opinions — no conclusion is presented as unanimous unless mathematically verified through convergence detection (Kendall tau + Jaccard + concession rate >= 0.85). This prevents the groupthink that makes single-model risk assessments dangerously overconfident.","Each model independently identifies risks, assesses likelihood and impact on standardized scales, and proposes mitigation strategies. During deliberation, models challenge each other's likelihood estimates and impact assessments, forcing quantitative justification. A model claiming 'low probability' must defend that assessment against adversarial questioning from four other models across three rounds.","The output is a structured risk matrix with likelihood/impact ratings for each identified risk, detailed mitigation strategies with implementation timelines, and mandatory minority opinions. If even one model identifies a catastrophic risk that others dismiss, that dissent is prominently featured in the final report rather than averaged away. Agglomerative clustering groups related risks and surfaces overlooked tail risks.",
     ],
     rubric: [
       { name: "Risk Identification", weight: "25%" },
@@ -115,12 +105,9 @@ const useCases = [
     models: 3,
     rounds: 3,
     modeIcon: Users,
-    modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    modeColor: "bg-agree/14 text-agree border-agree/30",
     attackCategories: [],
-    description: [
-      "Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions. This reflects the medical principle that premature diagnostic closure is the leading cause of diagnostic error — a problem that single-model systems systematically amplify.",
-      "Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning — questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.",
-      "The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. Every recommendation includes a confidence score calibrated by how well it withstood cross-examination — models that changed their diagnosis under pressure receive lower calibration scores.",
+    description: ["Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions. This reflects the medical principle that premature diagnostic closure is the leading cause of diagnostic error — a problem that single-model systems systematically amplify.","Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning — questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.","The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. Every recommendation includes a confidence score calibrated by how well it withstood cross-examination — models that changed their diagnosis under pressure receive lower calibration scores.",
     ],
     rubric: [
       { name: "Evidence Quality", weight: "30%" },
@@ -142,12 +129,9 @@ const useCases = [
     models: 2,
     rounds: 3,
     modeIcon: Eye,
-    modeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    modeColor: "bg-warm/12 text-warm border-warm/20",
     attackCategories: [],
-    description: [
-      "Legal analysis uses Blind mode with a dialectical structure: one model argues risk, another argues acceptability, and evaluation happens without knowledge of which model produced which argument. This eliminates the brand bias where evaluators unconsciously favor responses from models they perceive as more authoritative. MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are fully explored across three rounds.",
-      "The dialectical format ensures both sides of every legal question are thoroughly explored. The risk-arguing model must identify every potential compliance gap, liability exposure, and regulatory risk. The acceptability-arguing model must demonstrate why current language or practices are legally defensible. Neither model knows the other's position during initial analysis, and the judge evaluates arguments in multiple orderings to prevent position bias.",
-      "The blind judge evaluates arguments purely on legal merit, producing clause-by-clause risk ratings, regulatory gap analysis, and recommended revisions with alternative language. The final output includes a dissent report showing where the risk and acceptability models fundamentally disagreed, ensuring stakeholders see the full spectrum of legal opinion rather than a false consensus that masks genuine legal ambiguity.",
+    description: ["Legal analysis uses Blind mode with a dialectical structure: one model argues risk, another argues acceptability, and evaluation happens without knowledge of which model produced which argument. This eliminates the brand bias where evaluators unconsciously favor responses from models they perceive as more authoritative. MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are fully explored across three rounds.","The dialectical format ensures both sides of every legal question are thoroughly explored. The risk-arguing model must identify every potential compliance gap, liability exposure, and regulatory risk. The acceptability-arguing model must demonstrate why current language or practices are legally defensible. Neither model knows the other's position during initial analysis, and the judge evaluates arguments in multiple orderings to prevent position bias.","The blind judge evaluates arguments purely on legal merit, producing clause-by-clause risk ratings, regulatory gap analysis, and recommended revisions with alternative language. The final output includes a dissent report showing where the risk and acceptability models fundamentally disagreed, ensuring stakeholders see the full spectrum of legal opinion rather than a false consensus that masks genuine legal ambiguity.",
     ],
     rubric: [
       { name: "Legal Accuracy", weight: "30%" },
@@ -169,14 +153,11 @@ const useCases = [
     models: 3,
     rounds: 3,
     modeIcon: BarChart3,
-    modeColor: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    modeColor: "bg-agree/14 text-agree border-agree/30",
     attackCategories: [],
-    metrics: ["VaR", "CVaR", "Sharpe"],
-    compliance: ["Basel III", "SOX", "Dodd-Frank", "MiFID II"],
-    description: [
-      "Financial analysis uses Jury mode with MANDATORY_DISSENT and requires quantitative metrics in every assessment. Three models must provide specific numerical analysis — VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios — rather than qualitative hand-waving. Compliance mapping covers Basel III, SOX, Dodd-Frank, and MiFID II frameworks. Every quantitative claim is stress-tested across three rounds of deliberation.",
-      "During deliberation, models challenge each other's quantitative assumptions. If one model projects 12% returns, another must stress-test that assumption against historical drawdown scenarios, current market volatility, and macroeconomic indicators. Scenario analysis is mandatory: bull case, base case, bear case, and black swan scenarios must all be addressed with specific numerical projections and probability-weighted outcomes.",
-      "The output includes a comprehensive risk assessment with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, hedging recommendations, and mandatory dissent. If one model identifies a systemic risk that others dismiss, that dissent is preserved with full quantitative backing — preventing the consensus bias that contributed to historical financial crises.",
+    metrics: ["VaR","CVaR","Sharpe"],
+    compliance: ["Basel III","SOX","Dodd-Frank","MiFID II"],
+    description: ["Financial analysis uses Jury mode with MANDATORY_DISSENT and requires quantitative metrics in every assessment. Three models must provide specific numerical analysis — VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios — rather than qualitative hand-waving. Compliance mapping covers Basel III, SOX, Dodd-Frank, and MiFID II frameworks. Every quantitative claim is stress-tested across three rounds of deliberation.","During deliberation, models challenge each other's quantitative assumptions. If one model projects 12% returns, another must stress-test that assumption against historical drawdown scenarios, current market volatility, and macroeconomic indicators. Scenario analysis is mandatory: bull case, base case, bear case, and black swan scenarios must all be addressed with specific numerical projections and probability-weighted outcomes.","The output includes a comprehensive risk assessment with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, hedging recommendations, and mandatory dissent. If one model identifies a systemic risk that others dismiss, that dissent is preserved with full quantitative backing — preventing the consensus bias that contributed to historical financial crises.",
     ],
     rubric: [
       { name: "Quantitative Rigor", weight: "30%" },
@@ -192,7 +173,7 @@ const useCases = [
 ];
 
 function buildTemplateConfigSnippet(uc: (typeof useCases)[number]): string {
-  const mode = uc.mode.toLowerCase().replaceAll(" ", "_");
+  const mode = uc.mode.toLowerCase().replaceAll("","_");
   const lines: string[] = [
     `mode: "${mode}"`,
     `template: "${uc.template}"`,
@@ -220,10 +201,10 @@ function buildTemplateConfigSnippet(uc: (typeof useCases)[number]): string {
   if ("metrics" in uc) {
     const { metrics, compliance } = uc;
     if (metrics?.length) {
-      lines.push(`metrics: [${metrics.join(", ")}]`);
+      lines.push(`metrics: [${metrics.join(",")}]`);
     }
     if (compliance?.length) {
-      lines.push(`compliance: [${compliance.join(", ")}]`);
+      lines.push(`compliance: [${compliance.join(",")}]`);
     }
   }
   return lines.join("\n");
@@ -234,7 +215,7 @@ export default function UseCasesPage() {
     <div className="min-h-screen">
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto text-center">
-          <Badge className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+          <Badge className="mb-4 bg-warm/12 text-warm border-warm/20">
             6 Vertical Templates
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -259,7 +240,7 @@ export default function UseCasesPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
                     {index + 1}
                   </span>
-                  <Icon className="h-7 w-7 text-indigo-400" />
+                  <Icon className="h-7 w-7 text-warm" />
                   <h2 className="text-2xl md:text-3xl font-bold">{uc.title}</h2>
                 </div>
 
@@ -278,7 +259,7 @@ export default function UseCasesPage() {
                     {uc.attackCategories.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {uc.attackCategories.map((cat) => (
-                          <Badge key={cat} className="bg-red-500/10 text-red-400 border-red-500/20 font-mono text-xs">
+                          <Badge key={cat} className="bg-red-500/10 text-dissent border-red-500/20 font-mono text-xs">
                             {cat}
                           </Badge>
                         ))}
@@ -288,7 +269,7 @@ export default function UseCasesPage() {
                     {"metrics" in uc && uc.metrics && uc.compliance && (
                       <div className="flex flex-wrap gap-2">
                         {uc.metrics.map((m) => (
-                          <Badge key={m} className="bg-sky-500/10 text-sky-400 border-sky-500/20 font-mono text-xs">
+                          <Badge key={m} className="bg-agree/14 text-agree border-agree/30 font-mono text-xs">
                             {m}
                           </Badge>
                         ))}
@@ -326,8 +307,8 @@ export default function UseCasesPage() {
                       </p>
                     </div>
 
-                    <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
-                      <h3 className="text-sm font-semibold text-indigo-400 mb-2">
+                    <div className="rounded-lg border border-warm/20 bg-warm/8 p-4">
+                      <h3 className="text-sm font-semibold text-warm mb-2">
                         Why Deliberation Beats Single-Model
                       </h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">

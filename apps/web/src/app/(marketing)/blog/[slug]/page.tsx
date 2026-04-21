@@ -8,10 +8,10 @@ import { blogPosts, type BlogCategory } from "../blog-data";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
 
 const categoryColors: Record<BlogCategory, string> = {
-  Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  Research: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  Product: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Engineering: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  Benchmarks: "bg-agree/14 text-agree border-agree/30",
+  Research: "bg-warm/12 text-warm border-warm/20",
+  Product: "bg-warm/12 text-warm-bright border-warm/20",
+  Engineering: "bg-agree/14 text-agree border-agree/30",
 };
 
 function formatDate(dateStr: string) {
@@ -45,7 +45,7 @@ export async function generateMetadata({
     path: `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.date,
-    keywords: [post.category.toLowerCase(), "consilium", "ai council"],
+    keywords: [post.category.toLowerCase(),"consilium","ai council"],
   });
 }
 
@@ -77,19 +77,19 @@ function BenchmarkPost() {
               <td className="px-6 py-4 font-medium">MMLU-Pro</td>
               <td className="px-6 py-4 text-muted-foreground">76.2%</td>
               <td className="px-6 py-4 text-muted-foreground">82.8%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+8.7%</td>
+              <td className="px-6 py-4 text-agree font-medium">+8.7%</td>
             </tr>
             <tr>
               <td className="px-6 py-4 font-medium">TruthfulQA</td>
               <td className="px-6 py-4 text-muted-foreground">68.5%</td>
               <td className="px-6 py-4 text-muted-foreground">79.3%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+15.8%</td>
+              <td className="px-6 py-4 text-agree font-medium">+15.8%</td>
             </tr>
             <tr>
               <td className="px-6 py-4 font-medium">HumanEval</td>
               <td className="px-6 py-4 text-muted-foreground">82.0%</td>
               <td className="px-6 py-4 text-muted-foreground">89.4%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+9.0%</td>
+              <td className="px-6 py-4 text-agree font-medium">+9.0%</td>
             </tr>
           </tbody>
         </table>
@@ -145,8 +145,8 @@ function BenchmarkPost() {
         Run your own benchmarks with the Consilium CLI:
       </p>
 
-      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-        <code className="text-emerald-400">npx consilium deliberate</code>
+      <div className="bg-bg-1 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+        <code className="text-agree">npx consilium deliberate</code>
         <span className="text-muted-foreground"> --mode structured-debate</span>
         <span className="text-muted-foreground"> --models claude-sonnet-4.5,gpt-4o,gemini-2.0-flash</span>
         <span className="text-muted-foreground"> --prompt &quot;Your question here&quot;</span>
@@ -184,8 +184,7 @@ function PlaceholderPost({ title }: { title: string }) {
   );
 }
 
-const postContent: Record<string, React.FC> = {
-  "benchmark-results-council-deliberation-vs-single-models": BenchmarkPost,
+const postContent: Record<string, React.FC> = {"benchmark-results-council-deliberation-vs-single-models": BenchmarkPost,
 };
 
 export default async function BlogPostPage({
@@ -209,29 +208,24 @@ export default async function BlogPostPage({
 
   const Content = postContent[slug];
 
-  const blogPostingJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
+  const blogPostingJsonLd = {"@context": "https://schema.org","@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt ?? post.title,
     datePublished: post.date,
     url: `${SITE_URL}/blog/${post.slug}`,
-    author: { "@type": "Person", name: "Saad Kadri" },
-    publisher: {
-      "@type": "Organization",
+    author: {"@type": "Person", name: "Saad Kadri" },
+    publisher: {"@type": "Organization",
       name: "Consilium",
       url: SITE_URL,
     },
     articleSection: post.category,
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
+  const breadcrumbJsonLd = {"@context": "https://schema.org","@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
-      { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+      {"@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      {"@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+      {"@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
     ],
   };
 

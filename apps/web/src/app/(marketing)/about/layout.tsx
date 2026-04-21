@@ -4,8 +4,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "About",
-  description:
-    "Consilium is an open-source AI council platform. Learn who built it, why multi-AI debate produces better answers, and where we're going.",
+  description: "Consilium is an open-source AI council platform. Learn who built it, why multi-AI debate produces better answers, and where we're going.",
   path: "/about",
 });
 

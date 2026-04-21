@@ -1,507 +1,459 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { buttonVariants } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { cn } from "@/shared/lib/utils";
-import {
-  Zap,
-  Shield,
-  Users,
-  Eye,
-  Target,
-  BarChart3,
-  Sparkles,
-  ArrowRight,
-  ExternalLink,
-  Code,
-  FileText,
-  Settings,
-  Key,
-  CheckCircle2,
-  X,
-  MessageSquare,
-  AlertTriangle,
-  History,
-  Search,
-  Send,
-} from "lucide-react";
+import { HomePhases } from "./_home/home-phases";
+import { HomeHero } from "./_home/home-hero";
+import { Reveal } from "@/components/shared/reveal";
 
-const steps = [
+const modeGroups = [
   {
-    id: "propose",
-    icon: <MessageSquare className="h-6 w-6" />,
-    title: "Propose",
-    description: "Each model independently analyzes the problem and presents its initial position.",
+    label: "Speed vs depth",
+    pair: [
+      {
+        name: "Quick",
+        time: "~15s",
+        desc: "Single round. When you need a fast sanity check, not a debate.",
+      },
+      {
+        name: "Deep",
+        time: "~90s",
+        desc: "Five rounds with sub-agent research. High-stakes or ambiguous questions.",
+      },
+    ],
   },
   {
-    id: "challenge",
-    icon: <AlertTriangle className="h-6 w-6" />,
-    title: "Challenge",
-    description: "Models cross-examine each other, probing assumptions and identifying weaknesses.",
+    label: "Evaluation & safety",
+    pair: [
+      {
+        name: "Blind",
+        time: "~45s",
+        desc: "Model names hidden until scoring. Removes brand anchoring from the verdict.",
+      },
+      {
+        name: "Red Team",
+        time: "~120s",
+        desc: "Models actively attack each other's arguments. Security and robustness review.",
+      },
+    ],
   },
   {
-    id: "rebut",
-    icon: <History className="h-6 w-6" />,
-    title: "Rebut",
-    description: "Models refine their positions based on challenges, strengthening or revising arguments.",
-  },
-  {
-    id: "evaluate",
-    icon: <Search className="h-6 w-6" />,
-    title: "Evaluate",
-    description: "A judge model assesses argument quality, evidence strength, and logical consistency.",
-  },
-  {
-    id: "vote",
-    icon: <Send className="h-6 w-6" />,
-    title: "Vote",
-    description: "Models cast confidence-weighted votes on the strongest positions.",
-  },
-  {
-    id: "synthesize",
-    icon: <Sparkles className="h-6 w-6" />,
-    title: "Synthesize",
-    description: "A final synthesis integrates the best arguments into a single, rigorous answer.",
+    label: "Consensus mechanism",
+    pair: [
+      {
+        name: "Jury",
+        time: "~60s",
+        desc: "Panel voting with ranked choice. Reach consensus or declare dissent.",
+      },
+      {
+        name: "Market",
+        time: "~90s",
+        desc: "Prediction market aggregation. Models stake confidence on positions.",
+      },
+    ],
   },
 ];
 
-const modes = [
-  {
-    key: "quick",
-    icon: <Zap className="h-5 w-5" />,
-    title: "Quick",
-    description: "Single round, fastest response. Best for simple questions needing a fast sanity check.",
-    time: "~15s",
-  },
-  {
-    key: "council",
-    icon: <Users className="h-5 w-5" />,
-    title: "Council",
-    description: "Multi-round deliberation between models. The default mode for most decisions.",
-    time: "~45s",
-  },
-  {
-    key: "deep",
-    icon: <FileText className="h-5 w-5" />,
-    title: "Deep",
-    description: "Extended deliberation with sub-agent research for complex, high-stakes questions.",
-    time: "~90s",
-  },
-  {
-    key: "blind",
-    icon: <Eye className="h-5 w-5" />,
-    title: "Blind",
-    description: "Model names hidden until scored. Eliminates brand bias from evaluation.",
-    time: "~45s",
-  },
-  {
-    key: "redteam",
-    icon: <Target className="h-5 w-5" />,
-    title: "Red Team",
-    description: "Adversarial assessment where models actively try to break each other's arguments.",
-    time: "~120s",
-  },
-  {
-    key: "jury",
-    icon: <Shield className="h-5 w-5" />,
-    title: "Jury",
-    description: "Panel deliberation with structured voting. Models must reach consensus or declare dissent.",
-    time: "~60s",
-  },
-  {
-    key: "market",
-    icon: <BarChart3 className="h-5 w-5" />,
-    title: "Market",
-    description: "Prediction market style confidence aggregation. Models stake credibility on positions.",
-    time: "~90s",
-  },
-  {
-    key: "auto",
-    icon: <Sparkles className="h-5 w-5" />,
-    title: "Auto",
-    description: "Automatically selects the best deliberation mode based on topic complexity.",
-    time: "~45s",
-  },
+const compareRows = [
+  { feature: "Adversarial cross-examination", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Dissent reports in output", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Confidence-weighted voting", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Blind evaluation mode", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Red team mode", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Prediction market aggregation", consilium: true, crewai: false, langgraph: false, autogen: false },
+  { feature: "Full audit trail of reasoning", consilium: true, crewai: false, langgraph: true, autogen: false },
 ];
-
-const comparisonRows = [
-  { feature: "Multiple model perspectives", deliberation: true, orchestration: true },
-  { feature: "Models challenge each other", deliberation: true, orchestration: false },
-  { feature: "Structured argumentation", deliberation: true, orchestration: false },
-  { feature: "Dissent tracking", deliberation: true, orchestration: false },
-  { feature: "Confidence-weighted voting", deliberation: true, orchestration: false },
-  { feature: "Adversarial red-teaming", deliberation: true, orchestration: false },
-  { feature: "Blind evaluation mode", deliberation: true, orchestration: false },
-  { feature: "Audit trail of reasoning", deliberation: true, orchestration: false },
-];
-
-const pythonCode = `from consilium import Consilium
-
-client = Consilium(api_key="your-key")
-
-result = client.deliberate(
-    question="Should we migrate to microservices?",
-    mode="council",
-    models=["claude-sonnet-4-20250514",
-            "gpt-4o", "gemini-2.0-flash"],
-)
-
-print(result.synthesis)
-print(result.confidence)
-print(result.dissenting_views)`;
-
-const typescriptCode = `import { Consilium } from "@myconsilium/sdk";
-
-const client = new Consilium({ apiKey: "your-key" });
-
-const result = await client.deliberate({
-  question: "Should we migrate to microservices?",
-  mode: "council",
-  models: ["claude-sonnet-4-20250514",
-           "gpt-4o", "gemini-2.0-flash"],
-});
-
-console.log(result.synthesis);
-console.log(result.confidence);
-console.log(result.dissentingViews);`;
-
-const cliCode = String.raw`# Quick deliberation
-consilium deliberate \
-  --question "Should we migrate to microservices?" \
-  --mode council \
-  --models claude-sonnet-4,gpt-4o,gemini-2.0
-
-# Red team assessment
-consilium deliberate \
-  --question "Is our auth system secure?" \
-  --mode redteam \
-  --output markdown`;
 
 const papers = [
   {
+    cite: "Khan et al. — ICML 2024",
     title: "Debating with More Persuasive LLMs Leads to More Truthful Answers",
-    authors: "Akbir Khan et al.",
-    venue: "ICML 2024",
-    insight: "AI debate produces more truthful answers than single-model prompting, even when one debater argues for the wrong answer.",
+    body: "AI debate produces more truthful answers than single-model prompting, even when one debater argues for the wrong answer.",
+    powers: "Powers Blind mode",
   },
   {
+    cite: "Du et al. — ICML 2024",
     title: "Improving Factuality and Reasoning via Multiagent Debate",
-    authors: "Yilun Du et al.",
-    venue: "ICML 2024",
-    insight: "Multi-agent debate significantly improves factual accuracy and mathematical reasoning across multiple benchmarks.",
+    body: "Multi-agent debate significantly improves factual accuracy and mathematical reasoning across multiple benchmarks.",
+    powers: "Powers Challenge & Rebut phases",
   },
   {
-    title: "LLM Discussion: Enhancing the Creativity of LLMs via Discussion Framework",
-    authors: "Li et al.",
-    venue: "AAAI 2024",
-    insight: "Structured discussion between LLMs produces more creative and diverse outputs than individual generation.",
+    cite: "Chen et al. — ACL 2024",
+    title: "ReConcile: Round-Table Reasoning via Consensus",
+    body: "Structured multi-round discussion with confidence-weighted voting outperforms single-model and simple ensemble approaches.",
+    powers: "Powers Vote & confidence calibration",
   },
   {
-    title: "Scalable AI Safety via Doubly-Efficient Debate",
-    authors: "Irving et al.",
-    venue: "AI Safety Research",
-    insight: "Debate between AI systems provides a scalable mechanism for aligning AI behavior with human values.",
+    cite: "Irving et al. — OpenAI / Anthropic",
+    title: "AI Safety via Debate",
+    body: "Debate between AI systems provides a scalable mechanism where adversarial interaction surfaces deceptive or incorrect reasoning.",
+    powers: "Powers Red Team mode",
   },
 ];
 
-const tabs = ["Python", "TypeScript", "CLI"] as const;
-type Tab = (typeof tabs)[number];
-
-function CodeBlock({ code }: Readonly<{ code: string }>) {
-  return (
-    <pre className="overflow-x-auto rounded-lg bg-muted/50 border p-4 text-sm leading-relaxed">
-      <code className="text-muted-foreground">{code}</code>
-    </pre>
-  );
-}
-
 export default function LandingPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("Python");
-
   return (
     <>
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          disablePictureInPicture
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        >
-          <source src="/api/video/consilium-prod.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
-        <button
-          onClick={() => document.getElementById("hero-content")?.scrollIntoView({ behavior: "smooth" })}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer z-10"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 hover:opacity-100 transition-opacity">
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
-        </button>
-      </section>
+      <HomeHero />
 
-      <section id="hero-content" className="space-y-6 py-24 md:py-32 lg:py-40">
-        <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
-          <Link
-            href="https://github.com/skadri1601/Consilium"
-            className="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
-            target="_blank"
-          >
-            Open source under MIT license
-          </Link>
-          <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
-            Structured Deliberation Between AI Models
-          </h1>
-          <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Not another orchestration tool. Consilium makes AI models argue, challenge, and
-            synthesize — producing answers with tracked confidence, dissent, and audit trails.
-          </p>
-          <div className="flex gap-4 flex-wrap justify-center">
-            <Link
-              href="https://github.com/skadri1601/Consilium"
-              target="_blank"
-              className={cn(buttonVariants({ size: "lg" }))}
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-            <Link
-              href="/council"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-            >
-              View Demo
-              <ExternalLink className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
+      {/* HOW IT WORKS */}
+      <section id="how" className="py-32">
+        <div className="container-narrow">
+          <Reveal>
+            <div className="eyebrow mb-5">How it works</div>
+            <h2 className="section-heading mb-4 text-[clamp(32px,4.5vw,52px)] max-w-[720px]">
+              Six phases.
+              <br />
+              One <em>running example.</em>
+            </h2>
+            <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-14">
+              Every Council deliberation moves through these phases. Click
+              through to see what each looks like with a real question: "Monolith or microservices at 50k DAU? "
+            </p>
+          </Reveal>
+
+          <Reveal delay={1}>
+            <HomePhases />
+          </Reveal>
         </div>
       </section>
 
-      <section id="how-it-works" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">How It Works</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            A structured 6-phase deliberation process inspired by academic debate and jury systems.
-          </p>
-        </div>
-        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
-          {steps.map((step, i) => (
-            <div key={step.id} className="relative overflow-hidden rounded-lg border bg-background p-2">
-              <div className="flex h-[180px] flex-col rounded-md p-6 gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                    {i + 1}
-                  </span>
-                  {step.icon}
+      {/* MODES */}
+      <section
+        id="modes"
+        className="py-32 bg-bg-1 border-y border-white/[0.08]"
+      >
+        <div className="container-narrow">
+          <Reveal>
+            <div className="eyebrow mb-5">Deliberation modes</div>
+            <h2 className="section-heading mb-4 text-[clamp(32px,4.5vw,52px)] max-w-[720px]">
+              Start with Council.
+              <br />
+              Reach for <em>the rest</em> when you need them.
+            </h2>
+            <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-14">
+              Eight modes, one default. The others exist for specific jobs:
+              speed, anonymity, adversarial probing, or consensus mechanics.
+            </p>
+          </Reveal>
+
+          <Reveal delay={1} className="flex flex-col gap-3">
+            <div className="relative overflow-hidden rounded-2xl border border-warm/30 bg-gradient-to-br from-warm/12 to-transparent p-9">
+              <div className="pointer-events-none absolute -top-32 -right-20 h-72 w-72 rounded-full bg-warm/12 blur-3xl" />
+              <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-warm flex items-center gap-[10px] mb-3.5">
+                <span className="block h-px w-6 bg-warm" />
+                Default mode
+              </div>
+              <h3 className="font-display font-light text-[40px] leading-[1.05] tracking-[-0.02em] text-ink-primary mb-3">
+                Council.
+              </h3>
+              <p className="text-[16px] leading-[1.55] text-ink-secondary max-w-[560px] mb-5">
+                Multi-round deliberation between models with cross-examination
+                and rebuttal. Use this unless the task clearly calls for one of
+                the specialized modes below.
+              </p>
+              <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary mb-6">
+                3 rounds · ~45s ·{" "}
+                <span className="text-warm">$0.05–0.10 per run</span>
+              </div>
+              <Link href="/council" className="btn-consilium btn-consilium-primary">
+                Try Council ↗
+              </Link>
+            </div>
+
+            {modeGroups.map((group) => (
+              <div key={group.label}>
+                <div className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-tertiary my-6 flex items-center gap-3">
+                  {group.label}
+                  <span className="block h-px flex-1 bg-white/[0.08]" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-bold">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {group.pair.map((mode) => (
+                    <div
+                      key={mode.name}
+                      className="surface-card hoverable px-[22px] py-5 cursor-pointer"
+                    >
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <h4 className="font-display text-[22px] font-normal tracking-[-0.01em] text-ink-primary">
+                          {mode.name}
+                        </h4>
+                        <span className="font-mono text-[10px] text-ink-tertiary">
+                          {mode.time}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-ink-secondary leading-[1.5]">
+                        {mode.desc}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="modes" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">8 Deliberation Modes</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Choose the right deliberation strategy for your use case.
-          </p>
-        </div>
-        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-4">
-          {modes.map((mode) => (
-            <Card key={mode.key} variant="interactive" className="h-full">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {mode.icon}
-                    <CardTitle className="text-base">{mode.title}</CardTitle>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{mode.time}</span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{mode.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section id="features" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">
-            Why Deliberation {'>'} Orchestration
-          </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Orchestration runs models in parallel and picks the best. Deliberation makes them argue until the truth emerges.
-          </p>
-        </div>
-        <div className="mx-auto max-w-3xl overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-3 px-4 font-medium">Capability</th>
-                <th className="text-center py-3 px-4 font-medium">Deliberation</th>
-                <th className="text-center py-3 px-4 font-medium text-muted-foreground">Orchestration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonRows.map((row) => (
-                <tr key={row.feature} className="border-b border-border/50">
-                  <td className="py-3 px-4">{row.feature}</td>
-                  <td className="py-3 px-4 text-center">
-                    {row.deliberation ? (
-                      <CheckCircle2 className="h-4 w-4 mx-auto text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 mx-auto text-muted-foreground" />
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    {row.orchestration ? (
-                      <CheckCircle2 className="h-4 w-4 mx-auto text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 mx-auto text-muted-foreground" />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="sdk" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">SDK Examples</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Integrate deliberation into your stack in minutes.
-          </p>
-        </div>
-        <div className="mx-auto max-w-3xl">
-          <div className="flex border-b mb-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
-                  activeTab === tab
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {tab}
-              </button>
             ))}
-          </div>
-          {activeTab === "Python" && <CodeBlock code={pythonCode} />}
-          {activeTab === "TypeScript" && <CodeBlock code={typescriptCode} />}
-          {activeTab === "CLI" && <CodeBlock code={cliCode} />}
-        </div>
-      </section>
 
-      <section id="integrations" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Supported Providers</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Bring your own API keys. Consilium works with all major LLM providers.
-          </p>
-        </div>
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-8">
-          {[
-            { name: "Anthropic", icon: "anthropic" },
-            { name: "OpenAI", icon: "openai" },
-            { name: "Google", icon: "google" },
-            { name: "Groq", icon: "groq" },
-            { name: "xAI", icon: "xai" },
-          ].map((provider) => (
-            <div
-              key={provider.name}
-              className="flex flex-col items-center gap-2 rounded-lg border bg-background p-6 min-w-[120px]"
-            >
-              <img
-                src={`/brand/providers/${provider.icon}.svg`}
-                alt={provider.name}
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-              <span className="text-sm font-medium">{provider.name}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="research" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Research Backed</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Consilium&apos;s deliberation approach is grounded in peer-reviewed research.
-          </p>
-        </div>
-        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl">
-          {papers.map((paper) => (
-            <Card key={paper.title} variant="default" className="h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base leading-snug">{paper.title}</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  {paper.authors} — {paper.venue}
+            <div className="mt-2 surface-card bg-bg-2 px-6 py-5 flex justify-between items-center gap-5">
+              <div>
+                <h4 className="font-display text-[22px] font-normal tracking-[-0.01em] text-ink-primary">
+                  Auto
+                </h4>
+                <p className="text-[13px] text-ink-secondary mt-1">
+                  Can't decide? Consilium picks the right mode based on topic
+                  complexity and risk.
                 </p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{paper.insight}</p>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-warm py-1.5 px-3 rounded-full border border-warm/30 whitespace-nowrap">
+                Escape hatch
+              </span>
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      <section id="open-source" className="container space-y-6 py-8 md:py-12 lg:py-24">
-        <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Open Source</h2>
-          <p className="text-muted-foreground sm:text-lg">
-            Run it your way. No vendor lock-in.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Shield className="h-4 w-4" />
-              MIT License
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Settings className="h-4 w-4" />
-              Self-Hostable
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Key className="h-4 w-4" />
-              Bring Your Own Keys
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Code className="h-4 w-4" />
-              Fork & Extend
-            </span>
-          </div>
-          <div className="flex gap-4 pt-4">
-            <Link
-              href="https://github.com/skadri1601/Consilium"
-              target="_blank"
-              className={cn(buttonVariants({ size: "lg" }))}
-            >
-              View on GitHub
-            </Link>
-            <Link
-              href="/sign-up"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-            >
-              Try Hosted Version
-            </Link>
-          </div>
+      {/* COMPARE */}
+      <section id="compare" className="py-32">
+        <div className="container-narrow">
+          <Reveal>
+            <div className="eyebrow mb-5">The comparison</div>
+            <h2 className="section-heading mb-4 text-[clamp(32px,4.5vw,52px)] max-w-[720px]">
+              If you need deliberation,
+              <br />
+              there's <em>one option.</em>
+            </h2>
+            <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-10">
+              Multi-agent frameworks orchestrate workers. Consilium is the only
+              one that makes them argue.
+            </p>
+          </Reveal>
+
+          <Reveal delay={1}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm mt-2">
+                <thead>
+                  <tr>
+                    <th className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-tertiary font-medium py-[18px] text-left pl-0 w-[40%] border-b border-white/[0.18]">
+                      Capability
+                    </th>
+                    <th className="font-mono text-[10px] uppercase tracking-[0.12em] text-warm font-medium py-[18px] text-center border-b border-white/[0.18]">
+                      Consilium
+                    </th>
+                    <th className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-tertiary font-medium py-[18px] text-center border-b border-white/[0.18]">
+                      CrewAI
+                    </th>
+                    <th className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-tertiary font-medium py-[18px] text-center border-b border-white/[0.18]">
+                      LangGraph
+                    </th>
+                    <th className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-tertiary font-medium py-[18px] text-center border-b border-white/[0.18]">
+                      AutoGen
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareRows.map((row, i) => (
+                    <tr
+                      key={row.feature}
+                      className="transition-colors hover:bg-white/[0.02]"
+                    >
+                      <td
+                        className={`text-ink-primary text-[15px] py-[18px] pl-0 ${i === compareRows.length - 1 ? "" : "border-b border-white/[0.08]"}`}
+                      >
+                        {row.feature}
+                      </td>
+                      <td
+                        className={`text-center py-[18px] bg-gradient-to-b from-warm/12 to-transparent ${row.consilium ? "text-agree font-mono text-[15px] font-medium" : "text-ink-muted text-[15px]"} ${i === compareRows.length - 1 ? "" : "border-b border-white/[0.08]"}`}
+                      >
+                        {row.consilium ? "✓" : "—"}
+                      </td>
+                      <td
+                        className={`text-center py-[18px] ${row.crewai ? "text-agree font-mono text-[15px] font-medium" : "text-ink-muted text-[15px]"} ${i === compareRows.length - 1 ? "" : "border-b border-white/[0.08]"}`}
+                      >
+                        {row.crewai ? "✓" : "—"}
+                      </td>
+                      <td
+                        className={`text-center py-[18px] ${row.langgraph ? "text-agree font-mono text-[15px] font-medium" : "text-ink-muted text-[15px]"} ${i === compareRows.length - 1 ? "" : "border-b border-white/[0.08]"}`}
+                      >
+                        {row.langgraph ? "✓" : "—"}
+                      </td>
+                      <td
+                        className={`text-center py-[18px] ${row.autogen ? "text-agree font-mono text-[15px] font-medium" : "text-ink-muted text-[15px]"} ${i === compareRows.length - 1 ? "" : "border-b border-white/[0.08]"}`}
+                      >
+                        {row.autogen ? "✓" : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="font-mono text-[11px] text-ink-tertiary leading-[1.6] max-w-[780px] mt-5 pt-4 border-t border-white/[0.08]">
+                LangGraph can express a debate as a graph but ships no
+                deliberation protocol. AutoGen's GroupChat supports turn-taking
+                without structured rebuttal or voting. Comparison is based on
+                shipping features as of April 2026.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* SDK */}
+      <section
+        id="sdk"
+        className="py-32 bg-bg-1 border-y border-white/[0.08]"
+      >
+        <div className="container-narrow">
+          <Reveal>
+            <div className="eyebrow mb-5">SDK</div>
+            <h2 className="section-heading mb-4 text-[clamp(32px,4.5vw,52px)] max-w-[720px]">
+              Structured in.
+              <br />
+              <em>Structured out.</em>
+            </h2>
+            <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-14">
+              Every verdict comes back as a typed object. Verdict, confidence,
+              per-model votes, and dissent are fields, not free text you have to
+              parse.
+            </p>
+          </Reveal>
+
+          <Reveal delay={1} className="grid md:grid-cols-2 gap-6">
+            <div className="surface-card overflow-hidden">
+              <div className="px-[18px] py-3 border-b border-white/[0.08] flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+                <span>The call</span>
+                <span>Python</span>
+              </div>
+              <pre className="px-[22px] py-5 font-mono text-[13px] leading-[1.75] text-ink-primary overflow-x-auto">
+                <span className="text-warm">from</span> consilium{" "}
+                <span className="text-warm">import</span> ConsiliumClient
+                {"\n\n"}
+                client = ConsiliumClient(api_key=
+                <span className="text-agree">"your-key"</span>)
+                {"\n\n"}
+                result = client.deliberate({"\n"}
+                {" "}topic=
+                <span className="text-agree">"Monolith or microservices</span>
+                {"\n"}
+                {" "}
+                <span className="text-agree">at 50k DAU? "</span>,{"\n"}
+                {" "}mode=
+                <span className="text-agree">"council"</span>,{"\n"}
+                {" "}models=[{"\n"}
+                {" "}
+                <span className="text-agree">"gpt-4o"</span>,{"\n"}
+                {" "}
+                <span className="text-agree">"claude-sonnet-4-5"</span>,{"\n"}
+                {" "}
+                <span className="text-agree">"gemini-2.0-flash"</span>,{"\n"}
+                {" "}],{"\n"}){"\n"}
+              </pre>
+            </div>
+            <div className="surface-card overflow-hidden">
+              <div className="px-[18px] py-3 border-b border-white/[0.08] flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+                <span>The result</span>
+                <span>REPL</span>
+              </div>
+              <pre className="px-[22px] py-5 font-mono text-[13px] leading-[1.75] text-ink-primary overflow-x-auto">
+                <span className="text-ink-muted select-none">{">>>"}</span>
+                result.verdict{"\n"}
+                <span className="text-agree">"Refactor into a modular monolith with{"\n"}
+                  {" "}explicit bounded contexts..."
+                </span>
+                {"\n\n"}
+                <span className="text-ink-muted select-none">{">>>"}</span>
+                result.confidence{"\n"}
+                <span className="text-warm">0.78</span>
+                {"\n\n"}
+                <span className="text-ink-muted select-none">{">>>"}</span>
+                result.confidence_scores{"\n"}
+                {"{"}
+                <span className="text-agree">'gpt-4o'</span>:{" "}
+                <span className="text-warm">0.87</span>,{"\n"}
+                {" "}<span className="text-agree">'claude-sonnet-4-5'</span>:{" "}
+                <span className="text-warm">0.82</span>,{"\n"}
+                {" "}<span className="text-agree">'gemini-2.0-flash'</span>:{" "}
+                <span className="text-warm">0.64</span>
+                {"}"}
+                {"\n\n"}
+                <span className="text-ink-muted select-none">{">>>"}</span>
+                result.dissent_report{"\n"}
+                <span className="text-agree">"Gemini 2.0: Team has K8s experience..."
+                </span>
+                {"\n\n"}
+                <span className="text-ink-muted select-none">{">>>"}</span>
+                result.audit_trail[<span className="text-warm">0</span>]{"\n"}
+                AuditEntry(phase=
+                <span className="text-agree">'challenge'</span>,{"\n"}
+                {" "}actor=
+                <span className="text-agree">'gemini-2.0-flash'</span>, ...)
+              </pre>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* RESEARCH */}
+      <section id="research" className="py-32">
+        <div className="container-narrow">
+          <Reveal>
+            <div className="eyebrow mb-5">Research</div>
+            <h2 className="section-heading mb-4 text-[clamp(32px,4.5vw,52px)] max-w-[720px]">
+              Not a reading list.
+              <br />
+              <em>A spec.</em>
+            </h2>
+            <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-14">
+              Each paper below maps to a specific Consilium feature. The
+              deliberation protocol implements peer-reviewed findings, not
+              vibes.
+            </p>
+          </Reveal>
+
+          <Reveal delay={1}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {papers.map((paper) => (
+                <article
+                  key={paper.title}
+                  className="surface-card hoverable px-7 py-7"
+                >
+                  <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-3">
+                    {paper.cite}
+                  </div>
+                  <h4 className="font-display italic font-normal text-[19px] leading-[1.3] tracking-[-0.01em] text-ink-primary mb-3">
+                    {paper.title}
+                  </h4>
+                  <p className="text-[13px] text-ink-secondary leading-[1.55] mb-4">
+                    {paper.body}
+                  </p>
+                  <div className="text-[12px] text-warm font-mono tracking-[0.02em] pt-3.5 border-t border-white/[0.08] flex items-center gap-2">
+                    <span className="text-ink-tertiary">→</span> {paper.powers}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="border-t border-white/[0.08] py-28 text-center">
+        <div className="container-narrow">
+          <Reveal>
+            <h2 className="font-display font-light text-[clamp(40px,6vw,72px)] tracking-[-0.03em] leading-[1.02] mb-6 text-ink-primary">
+              Ship answers
+              <br />
+              that <em className="italic text-warm font-light">hold up.</em>
+            </h2>
+            <p className="text-[17px] text-ink-secondary max-w-[560px] mx-auto mb-9">
+              Open source under MIT. Self-hostable. Your keys, your models, your
+              audit trail.
+            </p>
+            <div className="flex justify-center flex-wrap gap-3">
+              <Link href="/council" className="btn-consilium btn-consilium-primary btn-consilium-lg">
+                Try the Council ↗
+              </Link>
+              <Link
+                href="https://github.com/skadri1601/Consilium"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-consilium btn-consilium-lg"
+              >
+                View on GitHub
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
     </>

@@ -6,10 +6,9 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "TypeScript SDK",
-  description:
-    "The official Consilium TypeScript SDK — start debates, stream rounds over SSE, and embed multi-AI deliberation in your Node.js or browser app.",
+  description: "The official Consilium TypeScript SDK — start debates, stream rounds over SSE, and embed multi-AI deliberation in your Node.js or browser app.",
   path: "/docs/typescript-sdk",
-  keywords: ["consilium typescript sdk", "ai debate javascript", "llm council node"],
+  keywords: ["consilium typescript sdk","ai debate javascript","llm council node"],
 });
 
 const methods = [
@@ -57,8 +56,8 @@ export default function TypeScriptSdkPage() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Installation</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto"><code className="text-emerald-400">npm install @myconsilium/sdk</code></pre>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto"><code className="text-agree">npm install @myconsilium/sdk</code></pre>
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto space-y-1">
                 <code className="text-muted-foreground block">yarn add @myconsilium/sdk</code>
                 <code className="text-muted-foreground block">pnpm add @myconsilium/sdk</code>
               </pre>
@@ -68,7 +67,7 @@ export default function TypeScriptSdkPage() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Client Configuration</CardTitle></CardHeader>
             <CardContent>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
@@ -96,7 +95,7 @@ const client = new ConsiliumClient({
                 <tbody>
                   {methods.map((m) => (
                     <tr key={m.name} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-4 py-2.5 font-mono text-xs text-indigo-400">{m.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-warm">{m.name}</td>
                       <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{m.returns}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground hidden md:table-cell">{m.desc}</td>
                     </tr>
@@ -119,7 +118,7 @@ const client = new ConsiliumClient({
                 <tbody>
                   {types.map((t) => (
                     <tr key={t.name} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-4 py-2.5 font-mono text-sm text-indigo-400 whitespace-nowrap">{t.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-sm text-warm whitespace-nowrap">{t.name}</td>
                       <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{t.desc}</td>
                     </tr>
                   ))}
@@ -142,7 +141,7 @@ const client = new ConsiliumClient({
                 <tbody>
                   {errorClasses.map((e) => (
                     <tr key={e.name} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-4 py-2.5 font-mono text-sm text-red-400">{e.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-sm text-dissent">{e.name}</td>
                       <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">{e.status}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{e.desc}</td>
                     </tr>
@@ -155,7 +154,7 @@ const client = new ConsiliumClient({
           <Card>
             <CardHeader><CardTitle className="text-lg">Full Example</CardTitle></CardHeader>
             <CardContent>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
@@ -169,17 +168,17 @@ console.log(\`Status: \${health.status}\`);
 
 // 2. Estimate cost
 const estimate = await client.estimateCost({
-  topic: "Should we migrate from REST to GraphQL?",
+  topic: "Should we migrate from REST to GraphQL? ",
   mode: "council",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.0-flash"],
+  models: ["claude-sonnet-4-20250514","gpt-4o","gemini-2.0-flash"],
 });
 console.log(\`Estimated: $\${estimate.estimatedCost.toFixed(4)}\`);
 
 // 3. Run deliberation
 const result = await client.deliberate({
-  topic: "Should we migrate from REST to GraphQL?",
+  topic: "Should we migrate from REST to GraphQL? ",
   mode: "council",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.0-flash"],
+  models: ["claude-sonnet-4-20250514","gpt-4o","gemini-2.0-flash"],
   maxRounds: 3,
 });
 console.log(result.goldenPrompt);
@@ -188,27 +187,27 @@ console.log(\`Cost: $\${result.cost.toFixed(4)}\`);
 // 4. Red team
 const redTeam = await client.redTeam({
   topic: "Review this auth middleware for vulnerabilities",
-  models: ["claude-sonnet-4-20250514", "gpt-4o"],
+  models: ["claude-sonnet-4-20250514","gpt-4o"],
 });
 console.log(\`Vulnerabilities: \${redTeam.vulnerabilityCount}\`);
 
 // 5. Stream events
 for await (const event of client.streamDeliberation({
-  topic: "Is Kubernetes overkill for our startup?",
+  topic: "Is Kubernetes overkill for our startup? ",
   mode: "jury",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-flash"],
+  models: ["claude-sonnet-4-20250514","gpt-4o","gemini-2.5-flash"],
 })) {
   switch (event.event) {
-    case "agent:chunk":
+    case"agent:chunk":
       process.stdout.write(event.chunk ?? "");
       break;
-    case "phase:voting":
+    case"phase:voting":
       console.log("\\nVoting phase started");
       break;
-    case "convergence:detected":
+    case"convergence:detected":
       console.log("\\nConsensus reached!");
       break;
-    case "dissent:report":
+    case"dissent:report":
       console.log(\`\\nDissent: \${JSON.stringify(event.data)}\`);
       break;
   }
@@ -220,7 +219,7 @@ for await (const event of client.streamDeliberation({
           <Card>
             <CardHeader><CardTitle className="text-lg">Error Handling Example</CardTitle></CardHeader>
             <CardContent>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`import {
   ConsiliumClient,
   AuthenticationError,

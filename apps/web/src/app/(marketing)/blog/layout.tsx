@@ -4,8 +4,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Blog",
-  description:
-    "Writing on multi-AI deliberation, prompt engineering, LLM evaluation, and the research behind the Consilium debate engine.",
+  description: "Writing on multi-AI deliberation, prompt engineering, LLM evaluation, and the research behind the Consilium debate engine.",
   path: "/blog",
 });
 

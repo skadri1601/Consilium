@@ -68,18 +68,15 @@ const quickLinks = [
 
 export const metadata: Metadata = buildMetadata({
   title: "Documentation",
-  description:
-    "Consilium documentation — get started, understand the debate modes, integrate the API, CLI, Python SDK, TypeScript SDK, and self-host your own council.",
+  description: "Consilium documentation — get started, understand the debate modes, integrate the API, CLI, Python SDK, TypeScript SDK, and self-host your own council.",
   path: "/docs",
-  keywords: ["consilium docs", "ai council docs", "multi-agent api"],
+  keywords: ["consilium docs","ai council docs","multi-agent api"],
 });
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
+const breadcrumbJsonLd = {"@context": "https://schema.org","@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Documentation", item: `${SITE_URL}/docs` },
+    {"@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+    {"@type": "ListItem", position: 2, name: "Documentation", item: `${SITE_URL}/docs` },
   ],
 };
 
@@ -116,7 +113,7 @@ export default function DocsPage() {
                     <Link key={item.title} href={item.href} className="group">
                       <Card className="h-full transition-all hover:border-white/[0.12] hover:scale-[1.01]">
                         <CardHeader>
-                          <Icon className="h-7 w-7 mb-2 text-indigo-400" />
+                          <Icon className="h-7 w-7 mb-2 text-warm" />
                           <CardTitle className="text-base flex items-center gap-2">
                             {item.title}
                             <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
@@ -145,7 +142,7 @@ export default function DocsPage() {
                   <Link key={item.title} href={item.href} className="group">
                     <Card className="h-full transition-all hover:border-white/[0.12] hover:scale-[1.01]">
                       <CardHeader>
-                        <Icon className="h-7 w-7 mb-2 text-emerald-400" />
+                        <Icon className="h-7 w-7 mb-2 text-agree" />
                         <CardTitle className="text-base flex items-center gap-2">
                           {item.title}
                           <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
@@ -170,7 +167,7 @@ export default function DocsPage() {
                   <Link key={item.title} href={item.href} className="group">
                     <Card className="h-full transition-all hover:border-white/[0.12] hover:scale-[1.01]">
                       <CardHeader className="pb-2">
-                        <Icon className="h-6 w-6 mb-1 text-indigo-400" />
+                        <Icon className="h-6 w-6 mb-1 text-warm" />
                         <CardTitle className="text-sm">{item.title}</CardTitle>
                       </CardHeader>
                       <CardContent>

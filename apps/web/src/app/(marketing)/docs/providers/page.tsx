@@ -7,10 +7,9 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Providers & Models",
-  description:
-    "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, and xAI. Pricing, capabilities, and model selection guide.",
+  description: "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, and xAI. Pricing, capabilities, and model selection guide.",
   path: "/docs/providers",
-  keywords: ["ai providers", "openai claude gemini", "llm comparison", "model pricing"],
+  keywords: ["ai providers","openai claude gemini","llm comparison","model pricing"],
 });
 
 const models = [
@@ -132,12 +131,12 @@ export default function ProvidersPage() {
                     <tr key={m.id} className="border-b border-white/[0.06] last:border-0">
                       <td className="px-4 py-2.5 text-muted-foreground">{m.provider}</td>
                       <td className="px-4 py-2.5 font-medium">{m.model}</td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-indigo-400 hidden md:table-cell">{m.id}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-warm hidden md:table-cell">{m.id}</td>
                       <td className="px-4 py-2.5 text-right">
-                        {m.free ? <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Free</Badge> : <span className="text-muted-foreground">{m.input}</span>}
+                        {m.free ? <Badge className="bg-agree/14 text-agree border-agree/30">Free</Badge> : <span className="text-muted-foreground">{m.input}</span>}
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        {m.free ? <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Free</Badge> : <span className="text-muted-foreground">{m.output}</span>}
+                        {m.free ? <Badge className="bg-agree/14 text-agree border-agree/30">Free</Badge> : <span className="text-muted-foreground">{m.output}</span>}
                       </td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{m.tier}</td>
                     </tr>
@@ -155,22 +154,22 @@ export default function ProvidersPage() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{p.name}</CardTitle>
-                      <Badge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20">Judge Priority #{p.judgePriority}</Badge>
+                      <Badge className="bg-warm/12 text-warm border-warm/20">Judge Priority #{p.judgePriority}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground leading-relaxed">{p.description}</p>
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="rounded-lg bg-neutral-900 p-3">
+                      <div className="rounded-lg bg-bg-1 p-3">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Environment Variable</p>
-                        <p className="text-sm font-mono text-indigo-400">{p.env}</p>
+                        <p className="text-sm font-mono text-warm">{p.env}</p>
                       </div>
-                      <div className="rounded-lg bg-neutral-900 p-3">
+                      <div className="rounded-lg bg-bg-1 p-3">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">API Client</p>
                         <p className="text-sm font-mono text-muted-foreground">{p.api}</p>
                       </div>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
+                    <div className="rounded-lg bg-bg-1 p-3">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Strengths</p>
                       <p className="text-sm text-muted-foreground">{p.strengths}</p>
                     </div>
@@ -188,9 +187,9 @@ export default function ProvidersPage() {
                   The judge model evaluates proposals and produces the final synthesis. Consilium selects the judge based on this priority order (using the first provider for which you have a valid key):
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {["Anthropic", "Google", "OpenAI", "xAI", "Groq"].map((p, i) => (
+                  {["Anthropic","Google","OpenAI","xAI","Groq"].map((p, i) => (
                     <span key={p} className="inline-flex items-center gap-1">
-                      <span className="rounded bg-indigo-500/10 px-3 py-1.5 text-sm font-medium text-indigo-400">
+                      <span className="rounded bg-warm/12 px-3 py-1.5 text-sm font-medium text-warm">
                         #{i + 1} {p}
                       </span>
                       {i < 4 && <span className="text-muted-foreground">→</span>}
@@ -208,12 +207,12 @@ export default function ProvidersPage() {
                 <p className="text-sm text-muted-foreground">
                   When no paid API keys are configured, Consilium automatically falls back to Groq&apos;s free tier models. This means you can use Consilium at zero cost for prototyping and testing.
                 </p>
-                <div className="rounded-lg bg-neutral-900 p-3">
+                <div className="rounded-lg bg-bg-1 p-3">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Free Fallback Models</p>
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">llama-3.1-8b-instant</Badge>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">llama-3.3-70b-versatile</Badge>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">llama-4-scout-17b</Badge>
+                    <Badge className="bg-agree/14 text-agree border-agree/30">llama-3.1-8b-instant</Badge>
+                    <Badge className="bg-agree/14 text-agree border-agree/30">llama-3.3-70b-versatile</Badge>
+                    <Badge className="bg-agree/14 text-agree border-agree/30">llama-4-scout-17b</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -239,7 +238,7 @@ export default function ProvidersPage() {
                       {cheapoFallbacks.map((f) => (
                         <tr key={f.from} className="border-b border-white/[0.06] last:border-0">
                           <td className="px-4 py-2 font-mono text-sm text-muted-foreground">{f.from}</td>
-                          <td className="px-4 py-2 font-mono text-sm text-indigo-400">{f.to}</td>
+                          <td className="px-4 py-2 font-mono text-sm text-warm">{f.to}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -249,9 +248,9 @@ export default function ProvidersPage() {
             </Card>
           </div>
 
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6">
+          <div className="rounded-2xl border border-white/[0.08] bg-bg-1 p-6">
             <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 mt-0.5 text-emerald-400 shrink-0" />
+              <Shield className="h-5 w-5 mt-0.5 text-agree shrink-0" />
               <div>
                 <p className="font-medium mb-1">Security</p>
                 <p className="text-sm text-muted-foreground">

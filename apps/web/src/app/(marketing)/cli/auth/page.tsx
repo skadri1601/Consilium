@@ -147,7 +147,7 @@ export default function CliAuthPage() {
               >
                 {copied ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-agree" />
                     Copied!
                   </>
                 ) : (

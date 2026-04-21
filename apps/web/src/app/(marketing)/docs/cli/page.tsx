@@ -6,17 +6,16 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "CLI",
-  description:
-    "Install and use the Consilium CLI — run multi-AI debates from your terminal, stream rounds over SSE, and script deliberation into your workflow.",
+  description: "Install and use the Consilium CLI — run multi-AI debates from your terminal, stream rounds over SSE, and script deliberation into your workflow.",
   path: "/docs/cli",
-  keywords: ["consilium cli", "ai debate cli", "terminal llm"],
+  keywords: ["consilium cli","ai debate cli","terminal llm"],
 });
 
 const commands = [
   {
     name: "debate <topic>",
     description: "Start a multi-agent debate on any topic. Models argue, critique, and synthesize consensus across multiple rounds.",
-    usage: 'consilium debate "How should I architect my microservices?" --models claude,gpt4o,gemini --mode council --rounds 3',
+    usage: 'consilium debate"How should I architect my microservices? " --models claude,gpt4o,gemini --mode council --rounds 3',
     flags: [
       { flag: "--models <list>", desc: "Comma-separated models" },
       { flag: "--mode <mode>", desc: "council, blind, jury, deep, market, redteam, swarm, oracle" },
@@ -27,13 +26,13 @@ const commands = [
   {
     name: "ask <topic>",
     description: "Alias for debate. Quick way to get multi-model consensus on a question.",
-    usage: 'consilium ask "What is the best state management for React in 2026?"',
+    usage: 'consilium ask"What is the best state management for React in 2026? "',
     flags: [],
   },
   {
     name: "redteam <content>",
     description: "Run adversarial red-team assessment. Models attack and defend to find vulnerabilities in prompts, plans, or architectures.",
-    usage: 'consilium redteam "Our authentication flow uses JWT stored in localStorage" --models claude,gpt4o --categories security,injection',
+    usage: 'consilium redteam"Our authentication flow uses JWT stored in localStorage" --models claude,gpt4o --categories security,injection',
     flags: [
       { flag: "--models <list>", desc: "Models for attack/defense" },
       { flag: "--categories <list>", desc: "Attack categories to test" },
@@ -42,7 +41,7 @@ const commands = [
   {
     name: "eval <topic>",
     description: "Blind evaluation where model identities are hidden. Responses are anonymized and judged purely on quality.",
-    usage: 'consilium eval "Explain quantum computing to a 10-year-old" --responses answers.json --models claude,gpt4o,gemini',
+    usage: 'consilium eval"Explain quantum computing to a 10-year-old" --responses answers.json --models claude,gpt4o,gemini',
     flags: [
       { flag: "--responses <file>", desc: "JSON file with pre-generated responses" },
       { flag: "--models <list>", desc: "Models to evaluate" },
@@ -169,13 +168,13 @@ export default function CliReferencePage() {
               <CardTitle className="text-lg">Installation</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
-                <code className="text-emerald-400">npm install -g @myconsilium/cli</code>
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
+                <code className="text-agree">npm install -g @myconsilium/cli</code>
               </pre>
               <p className="text-sm text-muted-foreground">
                 Or with your preferred package manager:
               </p>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto space-y-1">
                 <code className="text-muted-foreground block">yarn global add @myconsilium/cli</code>
                 <code className="text-muted-foreground block">pnpm add -g @myconsilium/cli</code>
               </pre>
@@ -187,11 +186,11 @@ export default function CliReferencePage() {
               <CardTitle className="text-lg">Quick Start</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`consilium login
 consilium config set anthropic-key sk-ant-...
 consilium config set openai-key sk-...
-consilium debate "How should I architect my microservices?" --mode council`}</code>
+consilium debate"How should I architect my microservices? " --mode council`}</code>
               </pre>
             </CardContent>
           </Card>
@@ -203,7 +202,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
                 <Card key={cmd.name}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-mono">
-                      <span className="text-indigo-400">consilium</span>{" "}
+                      <span className="text-warm">consilium</span>{" "}
                       {cmd.name}
                     </CardTitle>
                   </CardHeader>
@@ -211,7 +210,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
                     <p className="text-sm text-muted-foreground">
                       {cmd.description}
                     </p>
-                    <pre className="rounded-lg bg-neutral-900 p-3 text-sm overflow-x-auto">
+                    <pre className="rounded-lg bg-bg-1 p-3 text-sm overflow-x-auto">
                       <code className="text-muted-foreground">{cmd.usage}</code>
                     </pre>
                     {cmd.flags.length > 0 && (
@@ -220,7 +219,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
                           <tbody>
                             {cmd.flags.map((f) => (
                               <tr key={f.flag} className="border-b border-white/[0.06] last:border-0">
-                                <td className="px-4 py-2 font-mono text-xs text-indigo-400 whitespace-nowrap">{f.flag}</td>
+                                <td className="px-4 py-2 font-mono text-xs text-warm whitespace-nowrap">{f.flag}</td>
                                 <td className="px-4 py-2 text-xs text-muted-foreground">{f.desc}</td>
                               </tr>
                             ))}
@@ -250,7 +249,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
                 <tbody>
                   {slashCommands.map((row) => (
                     <tr key={row.cmd} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-6 py-3 font-mono text-xs text-indigo-400 whitespace-nowrap">{row.cmd}</td>
+                      <td className="px-6 py-3 font-mono text-xs text-warm whitespace-nowrap">{row.cmd}</td>
                       <td className="px-6 py-3 text-muted-foreground">{row.desc}</td>
                     </tr>
                   ))}
@@ -262,7 +261,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
           <div>
             <h2 className="text-2xl font-bold mb-6">Output Formats</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Control how results are formatted with <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs text-indigo-400">--output</code> or the <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs text-indigo-400">/output</code> slash command.
+              Control how results are formatted with <code className="rounded bg-bg-1 px-1.5 py-0.5 text-xs text-warm">--output</code> or the <code className="rounded bg-bg-1 px-1.5 py-0.5 text-xs text-warm">/output</code> slash command.
             </p>
             <div className="rounded-xl border border-white/[0.06] overflow-hidden">
               <table className="w-full text-sm">
@@ -275,7 +274,7 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
                 <tbody>
                   {outputFormats.map((row) => (
                     <tr key={row.format} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-6 py-3 font-mono text-xs text-emerald-400">{row.format}</td>
+                      <td className="px-6 py-3 font-mono text-xs text-agree">{row.format}</td>
                       <td className="px-6 py-3 text-muted-foreground">{row.desc}</td>
                     </tr>
                   ))}
@@ -290,16 +289,16 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Chat sessions are persisted to <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs text-indigo-400">~/.consilium/sessions/*.json</code> and can be resumed, searched, renamed, or deleted.
+                Chat sessions are persisted to <code className="rounded bg-bg-1 px-1.5 py-0.5 text-xs text-warm">~/.consilium/sessions/*.json</code> and can be resumed, searched, renamed, or deleted.
               </p>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`consilium sessions list
 consilium sessions resume sess_abc123
-consilium sessions rename sess_abc123 "Architecture Discussion"
+consilium sessions rename sess_abc123"Architecture Discussion"
 consilium sessions delete sess_abc123`}</code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                Sessions automatically save conversation history, model selections, mode, and attached files. Use <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs text-indigo-400">/search &lt;query&gt;</code> inside chat to search across all sessions.
+                Sessions automatically save conversation history, model selections, mode, and attached files. Use <code className="rounded bg-bg-1 px-1.5 py-0.5 text-xs text-warm">/search &lt;query&gt;</code> inside chat to search across all sessions.
               </p>
             </CardContent>
           </Card>
@@ -333,7 +332,7 @@ consilium sessions delete sess_abc123`}</code>
                       { flag: "--help", desc: "Show help for any command" },
                     ].map((row) => (
                       <tr key={row.flag} className="border-b border-white/[0.06] last:border-0">
-                        <td className="px-6 py-3 font-mono text-indigo-400">{row.flag}</td>
+                        <td className="px-6 py-3 font-mono text-warm">{row.flag}</td>
                         <td className="px-6 py-3 text-muted-foreground">{row.desc}</td>
                       </tr>
                     ))}

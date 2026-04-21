@@ -12,10 +12,9 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
-  description:
-    "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
+  description: "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
   path: "/pricing",
-  keywords: ["consilium pricing", "ai council pricing", "byok", "free ai debate"],
+  keywords: ["consilium pricing","ai council pricing","byok","free ai debate"],
 });
 
 const tiers = [
@@ -24,16 +23,7 @@ const tiers = [
     price: "$0",
     period: "/mo",
     description: "Perfect for trying out AI deliberation",
-    features: [
-      "50 deliberations per month",
-      "3 models per debate",
-      "All 8 deliberation modes",
-      "All 6 vertical templates",
-      "Streaming support",
-      "Basic audit trail",
-      "Basic analytics",
-      "Community support",
-      "Export to Markdown",
+    features: ["50 deliberations per month","3 models per debate","All 8 deliberation modes","All 6 vertical templates","Streaming support","Basic audit trail","Basic analytics","Community support","Export to Markdown",
     ],
     cta: "Get Started",
     href: "/sign-up",
@@ -44,20 +34,7 @@ const tiers = [
     price: "$29",
     period: "/mo",
     description: "For developers and teams shipping with AI",
-    features: [
-      "Unlimited deliberations",
-      "5+ models per debate",
-      "All 8 deliberation modes",
-      "All 6 vertical templates",
-      "Streaming support",
-      "Full audit trail",
-      "Advanced analytics",
-      "Priority support",
-      "Full API access",
-      "CLI access",
-      "SDK access (TypeScript & Python)",
-      "Custom export formats",
-      "99.9% SLA",
+    features: ["Unlimited deliberations","5+ models per debate","All 8 deliberation modes","All 6 vertical templates","Streaming support","Full audit trail","Advanced analytics","Priority support","Full API access","CLI access","SDK access (TypeScript & Python)","Custom export formats","99.9% SLA",
     ],
     cta: "Start Free Trial",
     href: "/sign-up",
@@ -68,21 +45,7 @@ const tiers = [
     price: "Custom",
     period: "",
     description: "For organizations with advanced needs",
-    features: [
-      "Unlimited deliberations",
-      "Unlimited models per debate",
-      "All 8 modes + custom modes",
-      "All 6 templates + custom templates",
-      "Streaming support",
-      "Full audit trail + export",
-      "Advanced + custom analytics",
-      "Dedicated support",
-      "Full API access",
-      "CLI access",
-      "SDK access (TypeScript & Python)",
-      "SSO / SAML",
-      "On-premise managed deployment",
-      "99.99% SLA",
+    features: ["Unlimited deliberations","Unlimited models per debate","All 8 modes + custom modes","All 6 templates + custom templates","Streaming support","Full audit trail + export","Advanced + custom analytics","Dedicated support","Full API access","CLI access","SDK access (TypeScript & Python)","SSO / SAML","On-premise managed deployment","99.99% SLA",
     ],
     cta: "Contact Us",
     href: "/contact",
@@ -229,9 +192,9 @@ const costFormulas = [
 
 function CellValue({ value }: { value: boolean | string }) {
   if (value === true)
-    return <Check className="h-4 w-4 text-indigo-400 mx-auto" />;
+    return <Check className="h-4 w-4 text-warm mx-auto" />;
   if (value === false)
-    return <X className="h-4 w-4 text-neutral-600 mx-auto" />;
+    return <X className="h-4 w-4 text-ink-muted mx-auto" />;
   return <span>{value}</span>;
 }
 
@@ -256,13 +219,13 @@ export default function PricingPage() {
               key={tier.name}
               className={
                 tier.highlighted
-                  ? "border-indigo-500/50 bg-gradient-to-b from-indigo-500/10 to-transparent relative"
+                  ? "border-warm/30 bg-gradient-to-b from-warm/12 to-transparent relative"
                   : ""
               }
             >
               {tier.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-warm hover:bg-warm-bright px-4 py-1 text-xs font-semibold text-white">
                     Most Popular
                   </span>
                 </div>
@@ -282,7 +245,7 @@ export default function PricingPage() {
                   href={tier.href}
                   className={
                     tier.highlighted
-                      ? "flex h-11 w-full items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
+                      ? "flex h-11 w-full items-center justify-center rounded-md bg-warm hover:bg-warm-bright text-sm font-medium text-white shadow-lg transition-all  hover:shadow-xl"
                       : "flex h-11 w-full items-center justify-center rounded-md border border-input bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
                   }
                 >
@@ -291,7 +254,7 @@ export default function PricingPage() {
                 <ul className="mt-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-indigo-400" />
+                      <Check className="h-4 w-4 mt-0.5 shrink-0 text-warm" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -307,15 +270,15 @@ export default function PricingPage() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Detailed Feature Comparison
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-neutral-800">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-900/80">
+                <tr className="border-b border-white/[0.08] bg-bg-1">
                   <th className="text-left px-6 py-4 font-semibold">
                     Feature
                   </th>
                   <th className="text-center px-6 py-4 font-semibold">Free</th>
-                  <th className="text-center px-6 py-4 font-semibold text-indigo-400">
+                  <th className="text-center px-6 py-4 font-semibold text-warm">
                     Pro
                   </th>
                   <th className="text-center px-6 py-4 font-semibold">
@@ -327,7 +290,7 @@ export default function PricingPage() {
                 {comparisonFeatures.map((row, i) => (
                   <tr
                     key={row.feature}
-                    className={`border-b border-neutral-800/50 ${i % 2 === 0 ? "bg-neutral-900/30" : ""}`}
+                    className={`border-b border-white/[0.06] ${i % 2 === 0 ? "bg-bg-1/60" : ""}`}
                   >
                     <td className="px-6 py-3 text-muted-foreground">
                       {row.feature}
@@ -358,10 +321,10 @@ export default function PricingPage() {
             These are provider costs per 1M tokens, not Consilium charges.
             Consilium adds zero markup.
           </p>
-          <div className="overflow-x-auto rounded-xl border border-neutral-800">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-900/80">
+                <tr className="border-b border-white/[0.08] bg-bg-1">
                   <th className="text-left px-6 py-4 font-semibold">
                     Provider
                   </th>
@@ -379,7 +342,7 @@ export default function PricingPage() {
                   group.models.map((model, i) => (
                     <tr
                       key={model.name}
-                      className="border-b border-neutral-800/50"
+                      className="border-b border-white/[0.06]"
                     >
                       <td className="px-6 py-3 font-medium">
                         {i === 0 ? group.provider : ""}
@@ -388,12 +351,12 @@ export default function PricingPage() {
                         {model.name}
                       </td>
                       <td
-                        className={`px-6 py-3 text-right ${model.input === "Free" ? "text-green-400 font-medium" : "text-muted-foreground"}`}
+                        className={`px-6 py-3 text-right ${model.input === "Free" ? "text-agree font-medium" : "text-muted-foreground"}`}
                       >
                         {model.input}
                       </td>
                       <td
-                        className={`px-6 py-3 text-right ${model.output === "Free" ? "text-green-400 font-medium" : "text-muted-foreground"}`}
+                        className={`px-6 py-3 text-right ${model.output === "Free" ? "text-agree font-medium" : "text-muted-foreground"}`}
                       >
                         {model.output}
                       </td>
@@ -410,19 +373,19 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Zap className="h-6 w-6 text-indigo-400" />
+              <Zap className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Cost Examples</h2>
             </div>
             <div className="space-y-4">
               {costExamples.map((example) => (
                 <div
                   key={example.label}
-                  className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
+                  className="rounded-lg border border-white/[0.08] bg-bg-1 p-4"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium">{example.label}</span>
                     <span
-                      className={`text-sm font-bold ${example.cost === "$0.00" ? "text-green-400" : "text-indigo-400"}`}
+                      className={`text-sm font-bold ${example.cost === "$0.00" ? "text-agree" : "text-warm"}`}
                     >
                       {example.cost}
                     </span>
@@ -437,11 +400,11 @@ export default function PricingPage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Calculator className="h-6 w-6 text-indigo-400" />
+              <Calculator className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Cost Estimation Formula</h2>
             </div>
-            <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-6 mb-6">
-              <code className="text-sm text-indigo-300">
+            <div className="rounded-lg border border-white/[0.08] bg-bg-1 p-6 mb-6">
+              <code className="text-sm text-warm-bright">
                 estimated_cost = num_api_calls * estimated_tokens *
                 cost_per_token
               </code>
@@ -450,7 +413,7 @@ export default function PricingPage() {
               {costFormulas.map((item) => (
                 <div
                   key={item.mode}
-                  className="flex items-center justify-between rounded-lg border border-neutral-800/50 px-4 py-3"
+                  className="flex items-center justify-between rounded-lg border border-white/[0.06] px-4 py-3"
                 >
                   <span className="text-sm font-medium">{item.mode}</span>
                   <code className="text-xs text-muted-foreground">
@@ -464,7 +427,7 @@ export default function PricingPage() {
       </section>
 
       <section className="container mx-auto px-4 pb-24">
-        <div className="max-w-2xl mx-auto rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
+        <div className="max-w-2xl mx-auto rounded-2xl border border-white/[0.08] bg-bg-1 p-8 text-center">
           <Github className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-bold mb-2">Self-Host for Free</h2>
           <p className="text-muted-foreground mb-6">
@@ -476,7 +439,7 @@ export default function PricingPage() {
             href="https://github.com/skadri1601/Consilium"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-11 items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-warm hover:bg-warm-bright px-8 text-sm font-medium text-white shadow-lg transition-all  hover:shadow-xl"
           >
             <Github className="mr-2 h-4 w-4" />
             View Self-Hosting Guide

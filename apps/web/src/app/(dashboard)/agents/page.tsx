@@ -1,15 +1,21 @@
 import { AgentList } from "@/features/agents";
+import { PageHeader } from "@/components/shared/page-header";
 
 export default function AgentsPage() {
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Agents</h1>
-        <p className="text-muted-foreground">
-          Available LLM models and their configuration status
-        </p>
+    <>
+      <PageHeader
+        eyebrow="Agents"
+        title={
+          <>
+            Models on the <em className="not-italic text-warm">bench.</em>
+          </>
+        }
+        description="Available LLM models and their configuration status. Bring your own keys for any provider you want to seat in the Council."
+      />
+      <div className="px-6 lg:px-8 py-8">
+        <AgentList />
       </div>
-      <AgentList />
-    </div>
+    </>
   );
 }

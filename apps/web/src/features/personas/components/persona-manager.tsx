@@ -37,7 +37,7 @@ export function PersonaManager() {
         setPersonas(data);
       }
     } catch (error) {
-      console.error("Failed to fetch personas:", error);
+      console.error("Failed to fetch personas: ", error);
     }
   };
 
@@ -58,12 +58,12 @@ export function PersonaManager() {
         setFormData({ name: "", description: "", systemPrompt: "" });
       }
     } catch (error) {
-      console.error("Failed to save persona:", error);
+      console.error("Failed to save persona: ", error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this persona?")) return;
+    if (!confirm("Are you sure you want to delete this persona? ")) return;
 
     try {
       const response = await fetch(`/api/personas/${id}`, {
@@ -74,7 +74,7 @@ export function PersonaManager() {
         await fetchPersonas();
       }
     } catch (error) {
-      console.error("Failed to delete persona:", error);
+      console.error("Failed to delete persona: ", error);
     }
   };
 

@@ -21,15 +21,9 @@ import { ScrollButton } from "./scroll-button";
 
 export const metadata: Metadata = buildMetadata({
   title: "About",
-  description:
-    "Consilium implements formal multi-AI deliberation — typed challenges, social choice voting, convergence detection, and mandatory dissent. Built on peer-reviewed research from ICML, ACL, and AAAI.",
+  description: "Consilium implements formal multi-AI deliberation — typed challenges, social choice voting, convergence detection, and mandatory dissent. Built on peer-reviewed research from ICML, ACL, and AAAI.",
   path: "/about",
-  keywords: [
-    "consilium about",
-    "multi-agent deliberation",
-    "ai council",
-    "formal argumentation",
-    "open source ai",
+  keywords: ["consilium about","multi-agent deliberation","ai council","formal argumentation","open source ai",
   ],
 });
 
@@ -99,7 +93,7 @@ export default function AboutPage() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-          <Badge className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+          <Badge className="mb-4 bg-warm/12 text-warm border-warm/20">
             Open Source Multi-AI Deliberation
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -134,7 +128,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-20">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center p-4 rounded-lg border bg-card">
-              <div className="text-2xl md:text-3xl font-bold text-indigo-400">{stat.value}</div>
+              <div className="text-2xl md:text-3xl font-bold text-warm">{stat.value}</div>
               <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
             </div>
           ))}
@@ -150,14 +144,14 @@ export default function AboutPage() {
             return (
               <Card key={diff.title}>
                 <CardHeader>
-                  <Icon className="h-8 w-8 mb-2 text-indigo-400" />
+                  <Icon className="h-8 w-8 mb-2 text-warm" />
                   <CardTitle className="text-lg">{diff.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {diff.description}
                   </p>
-                  <pre className="text-xs font-mono text-indigo-400/70 bg-indigo-500/5 rounded p-2 overflow-x-auto">
+                  <pre className="text-xs font-mono text-warm/70 bg-warm/8 rounded p-2 overflow-x-auto">
                     <code>{diff.detail}</code>
                   </pre>
                 </CardContent>
@@ -238,22 +232,22 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
           </p>
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
-              <Shield className="h-6 w-6 text-indigo-400" />
+              <Shield className="h-6 w-6 text-warm" />
               <span className="text-sm font-medium">MIT Licensed</span>
               <span className="text-xs text-muted-foreground text-center">Use commercially, fork, extend</span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
-              <Key className="h-6 w-6 text-indigo-400" />
+              <Key className="h-6 w-6 text-warm" />
               <span className="text-sm font-medium">BYOK</span>
               <span className="text-xs text-muted-foreground text-center">Bring Your Own API Keys</span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
-              <Server className="h-6 w-6 text-indigo-400" />
+              <Server className="h-6 w-6 text-warm" />
               <span className="text-sm font-medium">Self-Hostable</span>
               <span className="text-xs text-muted-foreground text-center">Docker Compose deployment</span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
-              <Zap className="h-6 w-6 text-indigo-400" />
+              <Zap className="h-6 w-6 text-warm" />
               <span className="text-sm font-medium">Free Tier</span>
               <span className="text-xs text-muted-foreground text-center">Groq fallback, no paid keys required</span>
             </div>

@@ -6,8 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "How It Works",
-  description:
-    "How Consilium deliberation works under the hood — independent analysis, cross-examination, rebuttal, and judge synthesis across multiple AI models.",
+  description: "How Consilium deliberation works under the hood — independent analysis, cross-examination, rebuttal, and judge synthesis across multiple AI models.",
   path: "/docs/how-it-works",
 });
 
@@ -58,7 +57,7 @@ export default function HowItWorksPage() {
 
           <div id="state-machine">
             <div className="flex items-center gap-3 mb-6">
-              <GitBranch className="h-6 w-6 text-indigo-400" />
+              <GitBranch className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">A. The State Machine</h2>
             </div>
             <div className="space-y-6">
@@ -72,9 +71,9 @@ export default function HowItWorksPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    {["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"].map((phase, i) => (
+                    {["PROPOSAL","CHALLENGE","REBUTTAL","EVALUATION","VOTING","AGGREGATION","CONVERGENCE","OUTPUT"].map((phase, i) => (
                       <span key={phase} className="inline-flex items-center gap-1">
-                        <span className="rounded bg-indigo-500/10 px-2.5 py-1.5 text-xs font-mono text-indigo-400">{phase}</span>
+                        <span className="rounded bg-warm/12 px-2.5 py-1.5 text-xs font-mono text-warm">{phase}</span>
                         {i < 7 && <span className="text-muted-foreground text-xs">→</span>}
                       </span>
                     ))}
@@ -102,7 +101,7 @@ export default function HowItWorksPage() {
                       <tbody>
                         {stateFields.map((f) => (
                           <tr key={f.field} className="border-b border-white/[0.06] last:border-0">
-                            <td className="px-4 py-2 font-mono text-xs text-indigo-400">{f.field}</td>
+                            <td className="px-4 py-2 font-mono text-xs text-warm">{f.field}</td>
                             <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{f.type}</td>
                             <td className="px-4 py-2 text-xs text-muted-foreground">{f.desc}</td>
                           </tr>
@@ -119,29 +118,29 @@ export default function HowItWorksPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">PROPOSAL</span> — Each model independently generates: claims (list of assertions), reasoning chain (step-by-step logic), confidence score, and supporting evidence. No model sees others&apos; proposals.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">PROPOSAL</span> — Each model independently generates: claims (list of assertions), reasoning chain (step-by-step logic), confidence score, and supporting evidence. No model sees others&apos; proposals.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CHALLENGE</span> — Models cross-examine each other. Challenges are typed: factual errors, missing evidence, logical flaws, better alternatives. Each challenge targets a specific claim in another model&apos;s proposal.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">CHALLENGE</span> — Models cross-examine each other. Challenges are typed: factual errors, missing evidence, logical flaws, better alternatives. Each challenge targets a specific claim in another model&apos;s proposal.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">REBUTTAL</span> — Defenders respond with categorized rebuttals: CONCEDE (accept the challenge), REFUTE (counter with evidence), QUALIFY (accept partially with conditions), or REDIRECT (reframe the question). Rebuttal types feed into convergence and confidence metrics.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">REBUTTAL</span> — Defenders respond with categorized rebuttals: CONCEDE (accept the challenge), REFUTE (counter with evidence), QUALIFY (accept partially with conditions), or REDIRECT (reframe the question). Rebuttal types feed into convergence and confidence metrics.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">EVALUATION</span> — Proposals scored against a rubric with weighted dimensions. Each dimension gets a 0-1 score. The rubric varies by template (e.g., security 30% + correctness 25% for code review).</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">EVALUATION</span> — Proposals scored against a rubric with weighted dimensions. Each dimension gets a 0-1 score. The rubric varies by template (e.g., security 30% + correctness 25% for code review).</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">VOTING</span> — Models cast RankedBallots: an ordered preference list of proposals with a confidence_weight (0-1). Higher confidence = more influence on the final ranking.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">VOTING</span> — Models cast RankedBallots: an ordered preference list of proposals with a confidence_weight (0-1). Higher confidence = more influence on the final ranking.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">AGGREGATION</span> — Votes aggregated through the voting pipeline: Borda scores → full ranking → Condorcet check → Ranked Pairs fallback. Produces winner, method used, and confidence level.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">AGGREGATION</span> — Votes aggregated through the voting pipeline: Borda scores → full ranking → Condorcet check → Ranked Pairs fallback. Produces winner, method used, and confidence level.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CONVERGENCE</span> — Three metrics combined to determine if debate should continue. If converged (score ≥ 0.85) or max rounds reached, proceeds to OUTPUT. Otherwise loops back to PROPOSAL.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">CONVERGENCE</span> — Three metrics combined to determine if debate should continue. If converged (score ≥ 0.85) or max rounds reached, proceeds to OUTPUT. Otherwise loops back to PROPOSAL.</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">OUTPUT</span> — Final synthesis: judge model integrates strongest arguments, applies dissent detection, calibrates confidence, and produces the golden prompt.</p>
+                    <div className="rounded-lg bg-bg-1 p-3">
+                      <p className="text-sm"><span className="text-warm font-medium">OUTPUT</span> — Final synthesis: judge model integrates strongest arguments, applies dissent detection, calibrates confidence, and produces the golden prompt.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -151,7 +150,7 @@ export default function HowItWorksPage() {
 
           <div id="voting">
             <div className="flex items-center gap-3 mb-6">
-              <BarChart3 className="h-6 w-6 text-indigo-400" />
+              <BarChart3 className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">B. Voting Mechanisms</h2>
             </div>
             <div className="space-y-6">
@@ -167,7 +166,7 @@ export default function HowItWorksPage() {
                   <p className="text-sm text-muted-foreground">
                     Checks if any candidate beats ALL others in pairwise matchups. For each pair of candidates (A, B), counts how many voters prefer A over B (weighted by confidence_weight). If one candidate wins every pairwise comparison, it&apos;s the Condorcet winner — the strongest possible consensus.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each pair (A, B):
   score_A = sum(confidence_weight for ballots where A ranked above B)
   score_B = sum(confidence_weight for ballots where B ranked above A)
@@ -187,7 +186,7 @@ Returns: single winner or None (triggers Ranked Pairs fallback)`}</code>
                   <p className="text-sm text-muted-foreground">
                     Assigns points based on rank position, weighted by voter confidence. Produces a complete ranking of all candidates, not just a winner.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each ballot:
   For each candidate at rank r (0-indexed):
     points[candidate] += (n - 1 - r) * confidence_weight
@@ -206,7 +205,7 @@ Used even when Condorcet winner exists, to produce complete ordering`}</code>
                   <p className="text-sm text-muted-foreground">
                     When no Condorcet winner exists (a cycle: A beats B, B beats C, C beats A), Ranked Pairs resolves by locking the strongest victories first while preventing cycles.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`1. List all pairwise matchups with victory margins
 2. Sort by margin (descending) — strongest victories first
 3. For each matchup:
@@ -227,7 +226,7 @@ Complexity: O(n² log n) where n = number of candidates`}</code>
                   <p className="text-sm text-muted-foreground">
                     Simple win/loss scoring for comparative analysis. Not used for final winner selection, but provides intuitive &quot;how dominant is this candidate?&quot; metric.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each candidate:
   copeland_score = (# pairwise wins) - (# pairwise losses)
   Range: -(n-1) to +(n-1)
@@ -244,7 +243,7 @@ Example with 4 candidates:
                   <CardTitle className="text-base">Aggregation Pipeline</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`1. Calculate Borda scores (confidence-weighted)
 2. Generate full_ranking from Borda
 3. Check for Condorcet winner
@@ -259,7 +258,7 @@ Example with 4 candidates:
 
           <div id="convergence">
             <div className="flex items-center gap-3 mb-6">
-              <TrendingUp className="h-6 w-6 text-indigo-400" />
+              <TrendingUp className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">C. Convergence Detection</h2>
             </div>
             <div className="space-y-6">
@@ -275,7 +274,7 @@ Example with 4 candidates:
                   <p className="text-sm text-muted-foreground mb-3">
                     Measures how similar the vote rankings are between consecutive rounds. Maps items to positions, counts concordant vs discordant pairs. Normalized to [0, 1] where 1.0 = identical rankings across rounds.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`tau = (concordant_pairs - discordant_pairs) / total_pairs
 normalized = tau * 0.5 + 0.5  → maps [-1, 1] to [0, 1]
 
@@ -293,7 +292,7 @@ discordant: pair (i,j) ranked opposite order`}</code>
                   <p className="text-sm text-muted-foreground mb-3">
                     Measures how much the actual content of proposals overlaps between rounds. Converts proposals to word sets, computes intersection/union.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each model's proposals across rounds:
   words_prev = set(proposal_round_n.lower().split())
   words_curr = set(proposal_round_n+1.lower().split())
@@ -312,7 +311,7 @@ Average across all model-pair comparisons`}</code>
                   <p className="text-sm text-muted-foreground mb-3">
                     Fraction of rebuttals where models concede or qualify their positions. High concession = models are willing to adapt, indicating movement toward consensus.
                   </p>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`concession_rate = count(rebuttals where type == CONCEDE or QUALIFY) / total_rebuttals`}</code>
                   </pre>
                 </CardContent>
@@ -323,7 +322,7 @@ Average across all model-pair comparisons`}</code>
                   <CardTitle className="text-base">Combined Convergence Score</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`score = 0.40 * ranking_similarity    (Kendall tau)
       + 0.35 * proposal_similarity   (Jaccard)
       + 0.25 * concession_rate        (rebuttal analysis)
@@ -343,7 +342,7 @@ Output: { converged, score, components, recommendation }`}</code>
 
           <div id="dissent">
             <div className="flex items-center gap-3 mb-6">
-              <Split className="h-6 w-6 text-indigo-400" />
+              <Split className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">D. Dissent Detection</h2>
             </div>
             <div className="space-y-6">
@@ -356,7 +355,7 @@ Output: { converged, score, components, recommendation }`}</code>
                   <CardTitle className="text-base">Agglomerative Clustering Algorithm</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`1. Build similarity matrix:
    matrix[i][j] = Jaccard(words_i, words_j)
    Symmetric: matrix[i][j] == matrix[j][i]
@@ -383,11 +382,11 @@ Output: { converged, score, components, recommendation }`}</code>
                   <CardTitle className="text-base">Dissent Report Structure</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`{
-  type: "consensus" | "dissent",
+  type: "consensus" |"dissent",
   majority: {
-    models: ["claude-sonnet-4", "gpt-4o"],
+    models: ["claude-sonnet-4","gpt-4o"],
     position_summary: "First 200 chars of largest cluster's proposal",
     key_arguments: ["extracted from claims"],
     proposals: [full proposal objects]
@@ -412,7 +411,7 @@ Output: { converged, score, components, recommendation }`}</code>
 
           <div id="confidence">
             <div className="flex items-center gap-3 mb-6">
-              <Gauge className="h-6 w-6 text-indigo-400" />
+              <Gauge className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">E. Confidence Calibration</h2>
             </div>
             <div className="space-y-6">
@@ -425,7 +424,7 @@ Output: { converged, score, components, recommendation }`}</code>
                   <CardTitle className="text-base">Calibration Formula</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`stability_score = avg(Jaccard(original_claims, post_challenge_claims))
   → 1.0 = claims unchanged, 0.0 = completely revised
 
@@ -455,7 +454,7 @@ Output: {
 
           <div id="cost-routing">
             <div className="flex items-center gap-3 mb-6">
-              <DollarSign className="h-6 w-6 text-indigo-400" />
+              <DollarSign className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">F. Cost-Based Routing</h2>
             </div>
             <div className="space-y-6">
@@ -468,14 +467,13 @@ Output: {
                   <CardTitle className="text-base">Feature Extraction</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`token_count:      number of words in topic
 has_code:         presence of code markers (\`\`\`, def, class, import, {})
-is_factual:       starts with "what is", "who is", "when did", "how many"
-is_creative:      contains "write", "create", "design", "brainstorm", "imagine"
-is_analytical:    contains "compare", "analyze", "evaluate", "pros and cons"
-has_stakes:       contains "medical", "legal", "financial", "security",
-                  "compliance", "hipaa", "soc"`}</code>
+is_factual:       starts with"what is","who is","when did","how many"
+is_creative:      contains"write","create","design","brainstorm","imagine"
+is_analytical:    contains"compare","analyze","evaluate","pros and cons"
+has_stakes:       contains"medical","legal","financial","security","compliance","hipaa","soc"`}</code>
                   </pre>
                 </CardContent>
               </Card>
@@ -485,7 +483,7 @@ has_stakes:       contains "medical", "legal", "financial", "security",
                   <CardTitle className="text-base">Complexity Scoring &amp; Routing</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`Base score (from token count):
   < 20 tokens:   0.1
   ≤ 100 tokens:  0.3
@@ -521,7 +519,7 @@ Cost estimation:
           <div className="flex gap-4 flex-wrap">
             <Link
               href="/docs/modes"
-              className="inline-flex h-11 items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700"
+              className="inline-flex h-11 items-center justify-center rounded-md bg-warm hover:bg-warm-bright px-8 text-sm font-medium text-white shadow-lg transition-all"
             >
               Deliberation Modes
             </Link>

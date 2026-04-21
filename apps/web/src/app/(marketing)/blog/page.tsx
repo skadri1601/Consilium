@@ -7,19 +7,14 @@ import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "./blog-data";
 
-const categories: Array<"All" | BlogCategory> = [
-  "All",
-  "Benchmarks",
-  "Engineering",
-  "Product",
-  "Research",
+const categories: Array<"All" | BlogCategory> = ["All","Benchmarks","Engineering","Product","Research",
 ];
 
 const categoryColors: Record<BlogCategory, string> = {
-  Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  Research: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  Product: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Engineering: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  Benchmarks: "bg-agree/14 text-agree border-agree/30",
+  Research: "bg-warm/12 text-warm border-warm/20",
+  Product: "bg-warm/12 text-warm-bright border-warm/20",
+  Engineering: "bg-agree/14 text-agree border-agree/30",
 };
 
 function formatDate(dateStr: string) {
@@ -58,8 +53,7 @@ export default function BlogPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                 activeCategory === cat
                   ? "bg-white text-black"
                   : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]"

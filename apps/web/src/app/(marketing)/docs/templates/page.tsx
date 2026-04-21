@@ -7,8 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Debate Templates",
-  description:
-    "Prebuilt debate templates for Consilium — code review, architecture decisions, security red-team, clinical reasoning, legal analysis, and forecasting.",
+  description: "Prebuilt debate templates for Consilium — code review, architecture decisions, security red-team, clinical reasoning, legal analysis, and forecasting.",
   path: "/docs/templates",
 });
 
@@ -25,7 +24,7 @@ const templates = [
     icon: Code,
     name: "Code Review",
     mode: "Red Team",
-    modeColor: "bg-red-500/10 text-red-400 border-red-500/20",
+    modeColor: "bg-red-500/10 text-dissent border-red-500/20",
     defaultModels: 3,
     maxRounds: 2,
     description: "Three models independently review code, then adversarially attack each other's findings. Attackers probe for security vulnerabilities, logical flaws, edge cases, and robustness issues. Defenders respond to each attack. A judge evaluates the validity of attacks and strength of defenses.",
@@ -44,7 +43,7 @@ const templates = [
     icon: BookOpen,
     name: "Research Synthesis",
     mode: "Council",
-    modeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    modeColor: "bg-warm/12 text-warm border-warm/20",
     defaultModels: 3,
     maxRounds: 3,
     description: "Models explore different perspectives on complex research topics, challenge each other's sources and interpretations, and converge on well-supported conclusions. All claims must include citations. Uncertainties are explicitly flagged rather than glossed over.",
@@ -63,7 +62,7 @@ const templates = [
     icon: ShieldAlert,
     name: "Risk Assessment",
     mode: "Jury",
-    modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    modeColor: "bg-agree/14 text-agree border-agree/30",
     defaultModels: 5,
     maxRounds: 3,
     description: "Five models evaluate risks with mandatory dissent reporting. Every assessment must explicitly identify both majority and minority positions. Models rate likelihood and impact for each risk, propose concrete mitigations, and map to compliance frameworks.",
@@ -82,7 +81,7 @@ const templates = [
     icon: HeartPulse,
     name: "Healthcare Diagnostics",
     mode: "Council",
-    modeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    modeColor: "bg-warm/12 text-warm border-warm/20",
     defaultModels: 3,
     maxRounds: 3,
     description: "Safety-critical deliberation with mandatory citations and dissent. Models provide differential diagnoses with evidence strength ratings. Red flags are automatically highlighted. Every claim must be backed by medical literature or clinical guidelines.",
@@ -101,7 +100,7 @@ const templates = [
     icon: Scale,
     name: "Legal Review (Dialectical)",
     mode: "Blind",
-    modeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    modeColor: "bg-warm/12 text-warm-bright border-warm/20",
     defaultModels: 2,
     maxRounds: 3,
     description: "Dialectical format: one model argues the risk position (this is dangerous/non-compliant), the other argues acceptability (this is fine/compliant). Both are evaluated blindly — model identity stripped — to ensure the quality of legal reasoning matters, not the model brand. Mandatory dissent ensures both sides are fully explored.",
@@ -120,7 +119,7 @@ const templates = [
     icon: TrendingUp,
     name: "Finance Risk Assessment",
     mode: "Jury",
-    modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    modeColor: "bg-agree/14 text-agree border-agree/30",
     defaultModels: 3,
     maxRounds: 3,
     description: "Quantitative financial risk analysis with mandatory dissent. Models evaluate market, credit, operational, and liquidity risks using standard metrics (VaR, CVaR, Sharpe ratio). Stress testing scenarios are required. Results mapped to regulatory frameworks (Basel III, SOX, Dodd-Frank, MiFID II).",
@@ -182,7 +181,7 @@ export default function TemplatesPage() {
                     <td className="px-4 py-2.5 text-xs text-muted-foreground hidden md:table-cell">
                       {t.attackCategories
                         ? `${attackCategoryLabelCount(t.attackCategories)} attack categories`
-                        : t.rubric[0].dimension + " (" + t.rubric[0].weight + ")"}
+                        : t.rubric[0].dimension +" (" + t.rubric[0].weight +")"}
                     </td>
                   </tr>
                 ))}
@@ -197,10 +196,10 @@ export default function TemplatesPage() {
           {templates.map((t) => {
             const Icon = t.icon;
             return (
-              <Card key={t.name} id={t.name.toLowerCase().replaceAll(/[^a-z]/g, "-")}>
+              <Card key={t.name} id={t.name.toLowerCase().replaceAll(/[^a-z]/g,"-")}>
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-2">
-                    <Icon className="h-6 w-6 text-indigo-400" />
+                    <Icon className="h-6 w-6 text-warm" />
                     <CardTitle className="text-xl">{t.name}</CardTitle>
                     <Badge className={t.modeColor}>{t.mode}</Badge>
                   </div>
@@ -209,15 +208,15 @@ export default function TemplatesPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{t.description}</p>
 
                   <div className="grid sm:grid-cols-3 gap-3">
-                    <div className="rounded-lg bg-neutral-900 p-3">
+                    <div className="rounded-lg bg-bg-1 p-3">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Default Models</p>
                       <p className="text-sm font-medium">{t.defaultModels}</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
+                    <div className="rounded-lg bg-bg-1 p-3">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Max Rounds</p>
                       <p className="text-sm font-medium">{t.maxRounds}</p>
                     </div>
-                    <div className="rounded-lg bg-neutral-900 p-3">
+                    <div className="rounded-lg bg-bg-1 p-3">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Mode</p>
                       <p className="text-sm font-medium">{t.mode}</p>
                     </div>
@@ -237,7 +236,7 @@ export default function TemplatesPage() {
                         <tbody>
                           {t.rubric.map((r) => (
                             <tr key={r.dimension} className="border-b border-white/[0.06] last:border-0">
-                              <td className="px-4 py-2 font-medium text-indigo-400">{r.dimension}</td>
+                              <td className="px-4 py-2 font-medium text-warm">{r.dimension}</td>
                               <td className="px-4 py-2 font-mono text-sm">{r.weight}</td>
                               <td className="px-4 py-2 text-xs text-muted-foreground">{r.desc}</td>
                             </tr>
@@ -251,8 +250,8 @@ export default function TemplatesPage() {
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Attack Categories</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {t.attackCategories.split(", ").map((cat) => (
-                          <Badge key={cat} className="bg-red-500/10 text-red-400 border-red-500/20 text-xs">{cat}</Badge>
+                        {t.attackCategories.split(",").map((cat) => (
+                          <Badge key={cat} className="bg-red-500/10 text-dissent border-red-500/20 text-xs">{cat}</Badge>
                         ))}
                       </div>
                     </div>
@@ -260,7 +259,7 @@ export default function TemplatesPage() {
 
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Example Prompt</p>
-                    <pre className="rounded-lg bg-neutral-900 p-3 text-sm overflow-x-auto">
+                    <pre className="rounded-lg bg-bg-1 p-3 text-sm overflow-x-auto">
                       <code className="text-muted-foreground">{t.example}</code>
                     </pre>
                   </div>
@@ -282,13 +281,13 @@ export default function TemplatesPage() {
               <p className="text-sm text-muted-foreground">
                 Templates can be loaded programmatically via the template registry. Each template returns a configuration object with mode, rubric, system prompts, max rounds, and default models.
               </p>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`from consilium.templates import get_template, TEMPLATES
 
 # List all templates
 print(TEMPLATES.keys())
-# → ["code_review", "research_synthesis", "risk_assessment",
-#    "healthcare", "legal", "finance"]
+# → ["code_review","research_synthesis","risk_assessment",
+#"healthcare","legal","finance"]
 
 # Load a template
 template = get_template("code_review")

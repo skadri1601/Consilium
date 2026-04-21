@@ -6,8 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Architecture",
-  description:
-    "System architecture of Consilium — Next.js web app, NestJS API, FastAPI debate engine, Postgres, Redis, and BullMQ for async deliberation.",
+  description: "System architecture of Consilium — Next.js web app, NestJS API, FastAPI debate engine, Postgres, Redis, and BullMQ for async deliberation.",
   path: "/docs/architecture",
 });
 
@@ -87,7 +86,7 @@ export default function ArchitecturePage() {
             <h2 className="text-2xl font-bold mb-6">System Overview</h2>
             <Card>
               <CardContent className="pt-6">
-                <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+                <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                   <code className="text-muted-foreground">{`┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT LAYER                             │
 │  Web App (Next.js 15)  │  CLI (Commander.js)  │  SDKs (Py/TS)  │
@@ -150,7 +149,7 @@ export default function ArchitecturePage() {
                     <tr key={s.name} className="border-b border-white/[0.06] last:border-0">
                       <td className="px-4 py-2.5 font-medium">{s.name}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{s.stack}</td>
-                      <td className="px-4 py-2.5 font-mono text-indigo-400">{s.port}</td>
+                      <td className="px-4 py-2.5 font-mono text-warm">{s.port}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{s.purpose}</td>
                     </tr>
                   ))}
@@ -161,7 +160,7 @@ export default function ArchitecturePage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <GitBranch className="h-6 w-6 text-indigo-400" />
+              <GitBranch className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Data Flow</h2>
             </div>
             <Card>
@@ -175,8 +174,8 @@ export default function ArchitecturePage() {
                   { step: "6", desc: "On completion: golden_prompt, dissent_report, cost stored in PostgreSQL" },
                   { step: "7", desc: "AuditEntry records per-step: model, tokens, cost, latency for full transparency" },
                 ].map((item) => (
-                  <div key={item.step} className="flex items-start gap-3 rounded-lg bg-neutral-900 p-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-400">{item.step}</span>
+                  <div key={item.step} className="flex items-start gap-3 rounded-lg bg-bg-1 p-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-warm/20 text-xs font-bold text-warm">{item.step}</span>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
                 ))}
@@ -186,7 +185,7 @@ export default function ArchitecturePage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Database className="h-6 w-6 text-indigo-400" />
+              <Database className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Database Schema</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
@@ -203,7 +202,7 @@ export default function ArchitecturePage() {
                 <tbody>
                   {dbModels.map((m) => (
                     <tr key={m.model} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-4 py-2.5 font-mono text-sm text-indigo-400 whitespace-nowrap">{m.model}</td>
+                      <td className="px-4 py-2.5 font-mono text-sm text-warm whitespace-nowrap">{m.model}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{m.fields}</td>
                     </tr>
                   ))}
@@ -214,11 +213,11 @@ export default function ArchitecturePage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Radio className="h-6 w-6 text-indigo-400" />
+              <Radio className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">SSE Event Types</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Real-time streaming uses Server-Sent Events. Connect to <code className="text-xs bg-neutral-900 px-1.5 py-0.5 rounded">/deliberation/:id/stream</code> to receive typed events as the debate progresses.
+              Real-time streaming uses Server-Sent Events. Connect to <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">/deliberation/:id/stream</code> to receive typed events as the debate progresses.
             </p>
             <div className="rounded-xl border border-white/[0.06] overflow-hidden">
               <table className="w-full text-sm">
@@ -232,7 +231,7 @@ export default function ArchitecturePage() {
                   {sseEvents.map((e) => (
                     <tr key={e.category} className="border-b border-white/[0.06] last:border-0">
                       <td className="px-4 py-2.5 font-medium whitespace-nowrap">{e.category}</td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-indigo-400">{e.events}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-warm">{e.events}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -242,7 +241,7 @@ export default function ArchitecturePage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Lock className="h-6 w-6 text-indigo-400" />
+              <Lock className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Authentication Flow</h2>
             </div>
             <div className="space-y-4">
@@ -255,7 +254,7 @@ export default function ArchitecturePage() {
               <Card>
                 <CardHeader><CardTitle className="text-base">CLI</CardTitle></CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground"><code className="text-xs bg-neutral-900 px-1.5 py-0.5 rounded">consilium login</code> → opens browser → Clerk auth → CLI token generated and stored (hashed, not plaintext) in <code className="text-xs bg-neutral-900 px-1.5 py-0.5 rounded">~/.consilium/config.json</code>. One token per user.</p>
+                  <p className="text-sm text-muted-foreground"><code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">consilium login</code> → opens browser → Clerk auth → CLI token generated and stored (hashed, not plaintext) in <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">~/.consilium/config.json</code>. One token per user.</p>
                 </CardContent>
               </Card>
               <Card>
@@ -269,26 +268,26 @@ export default function ArchitecturePage() {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <AlertTriangle className="h-6 w-6 text-indigo-400" />
+              <AlertTriangle className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">Error Handling &amp; Resilience</h2>
             </div>
             <Card>
               <CardContent className="pt-6 space-y-3">
                 <div className="grid gap-3">
-                  <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Circuit Breakers</span> — Per-provider failure tracking. After consecutive failures, requests are short-circuited to prevent cascading failures.</p>
+                  <div className="rounded-lg bg-bg-1 p-3">
+                    <p className="text-sm"><span className="text-warm font-medium">Circuit Breakers</span> — Per-provider failure tracking. After consecutive failures, requests are short-circuited to prevent cascading failures.</p>
                   </div>
-                  <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Retry Logic</span> — MAX_RETRIES: 2 attempts, RETRY_BACKOFF: [2s, 5s] exponential. Only retries on transient errors (5xx, 429).</p>
+                  <div className="rounded-lg bg-bg-1 p-3">
+                    <p className="text-sm"><span className="text-warm font-medium">Retry Logic</span> — MAX_RETRIES: 2 attempts, RETRY_BACKOFF: [2s, 5s] exponential. Only retries on transient errors (5xx, 429).</p>
                   </div>
-                  <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Error Classification</span> — Errors categorized as: rate_limit, auth, timeout, server_error, unknown. Raised as LLMProviderError(provider, error_type, original_error).</p>
+                  <div className="rounded-lg bg-bg-1 p-3">
+                    <p className="text-sm"><span className="text-warm font-medium">Error Classification</span> — Errors categorized as: rate_limit, auth, timeout, server_error, unknown. Raised as LLMProviderError(provider, error_type, original_error).</p>
                   </div>
-                  <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Context Overflow</span> — On 413/400 errors, automatically retries with cheaper model variant (e.g., gpt-4o → gpt-4o-mini).</p>
+                  <div className="rounded-lg bg-bg-1 p-3">
+                    <p className="text-sm"><span className="text-warm font-medium">Context Overflow</span> — On 413/400 errors, automatically retries with cheaper model variant (e.g., gpt-4o → gpt-4o-mini).</p>
                   </div>
-                  <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Timeout</span> — 60 seconds per API call. Configurable per-provider.</p>
+                  <div className="rounded-lg bg-bg-1 p-3">
+                    <p className="text-sm"><span className="text-warm font-medium">Timeout</span> — 60 seconds per API call. Configurable per-provider.</p>
                   </div>
                 </div>
               </CardContent>
@@ -309,7 +308,7 @@ export default function ArchitecturePage() {
                 <tbody>
                   {ciWorkflows.map((w) => (
                     <tr key={w.name} className="border-b border-white/[0.06] last:border-0">
-                      <td className="px-4 py-2.5 font-mono text-sm text-indigo-400">{w.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-sm text-warm">{w.name}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{w.trigger}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{w.purpose}</td>
                     </tr>

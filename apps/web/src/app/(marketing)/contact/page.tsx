@@ -6,8 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact",
-  description:
-    "Get in touch with the Consilium team. Bug reports, feature requests, security disclosures, and partnerships.",
+  description: "Get in touch with the Consilium team. Bug reports, feature requests, security disclosures, and partnerships.",
   path: "/contact",
 });
 
@@ -64,11 +63,11 @@ export default function ContactPage() {
                 >
                   <Card className="transition-all hover:border-white/[0.12] hover:scale-[1.005]">
                     <CardContent className="flex items-center gap-6 p-6">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
-                        <Icon className="h-6 w-6 text-indigo-400" />
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-warm/12">
+                        <Icon className="h-6 w-6 text-warm" />
                       </div>
                       <div>
-                        <CardTitle className="text-base mb-1 group-hover:text-indigo-400 transition-colors">
+                        <CardTitle className="text-base mb-1 group-hover:text-warm transition-colors">
                           {channel.title}
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">{channel.value}</p>
@@ -84,7 +83,7 @@ export default function ContactPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="flex items-start gap-4 p-6">
-                <Bug className="h-5 w-5 mt-0.5 shrink-0 text-amber-400" />
+                <Bug className="h-5 w-5 mt-0.5 shrink-0 text-warm-bright" />
                 <div>
                   <p className="font-medium mb-1">Bug Reports</p>
                   <p className="text-sm text-muted-foreground">
@@ -93,7 +92,7 @@ export default function ContactPage() {
                       href="https://github.com/skadri1601/Consilium/issues"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-indigo-400 hover:underline"
+                      className="text-warm hover:underline"
                     >
                       GitHub Issues
                     </Link>.
@@ -104,14 +103,14 @@ export default function ContactPage() {
 
             <Card>
               <CardContent className="flex items-start gap-4 p-6">
-                <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0 text-red-400" />
+                <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0 text-dissent" />
                 <div>
                   <p className="font-medium mb-1">Security Issues</p>
                   <p className="text-sm text-muted-foreground">
                     For security vulnerabilities, please email{" "}
                     <Link
                       href="mailto:saad@myconsilium.xyz"
-                      className="text-indigo-400 hover:underline"
+                      className="text-warm hover:underline"
                     >
                      saad@myconsilium.xyz
                     </Link>{" "}

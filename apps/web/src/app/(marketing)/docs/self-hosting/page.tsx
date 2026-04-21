@@ -7,10 +7,9 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Self-Hosting",
-  description:
-    "Self-host Consilium on your own infrastructure — Docker Compose, Kubernetes, or a single droplet. Deploy the web app, API, debate engine, and workers.",
+  description: "Self-host Consilium on your own infrastructure — Docker Compose, Kubernetes, or a single droplet. Deploy the web app, API, debate engine, and workers.",
   path: "/docs/self-hosting",
-  keywords: ["self-host consilium", "docker ai council", "open source ai debate"],
+  keywords: ["self-host consilium","docker ai council","open source ai debate"],
 });
 
 const dockerServices = [
@@ -75,10 +74,10 @@ export default function SelfHostingPage() {
             <CardHeader><CardTitle className="text-lg">Prerequisites</CardTitle></CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2"><span className="text-indigo-400 mt-0.5">&#8226;</span>Docker &amp; Docker Compose v2+</li>
-                <li className="flex items-start gap-2"><span className="text-indigo-400 mt-0.5">&#8226;</span>Node.js 20+ and pnpm (for manual setup without Docker)</li>
-                <li className="flex items-start gap-2"><span className="text-indigo-400 mt-0.5">&#8226;</span>2GB RAM minimum, 4GB recommended</li>
-                <li className="flex items-start gap-2"><span className="text-indigo-400 mt-0.5">&#8226;</span>API keys for at least one LLM provider (or use Groq free tier at $0)</li>
+                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Docker &amp; Docker Compose v2+</li>
+                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Node.js 20+ and pnpm (for manual setup without Docker)</li>
+                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>2GB RAM minimum, 4GB recommended</li>
+                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>API keys for at least one LLM provider (or use Groq free tier at $0)</li>
               </ul>
             </CardContent>
           </Card>
@@ -86,7 +85,7 @@ export default function SelfHostingPage() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Quick Start (Docker Compose)</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
 cd Consilium
 cp .env.example .env
@@ -94,7 +93,7 @@ cp .env.example .env
 docker compose -f docker-compose.selfhost.yml up`}</code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                Once running, open <code className="text-xs bg-neutral-900 px-1.5 py-0.5 rounded">http://localhost:3000</code> to access the web app.
+                Once running, open <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">http://localhost:3000</code> to access the web app.
               </p>
             </CardContent>
           </Card>
@@ -115,7 +114,7 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
                   {dockerServices.map((s) => (
                     <tr key={s.name} className="border-b border-white/[0.06] last:border-0">
                       <td className="px-4 py-2.5 font-medium">{s.name}</td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-indigo-400">{s.container}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-warm">{s.container}</td>
                       <td className="px-4 py-2.5 font-mono text-muted-foreground">{s.port}</td>
                       <td className="px-4 py-2.5 text-xs text-muted-foreground">{s.desc}</td>
                     </tr>
@@ -137,13 +136,13 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
                         <tbody>
                           {group.vars.map((v) => (
                             <tr key={v.name} className="border-b border-white/[0.06] last:border-0">
-                              <td className="px-4 py-2.5 font-mono text-xs text-indigo-400 whitespace-nowrap">{v.name}</td>
+                              <td className="px-4 py-2.5 font-mono text-xs text-warm whitespace-nowrap">{v.name}</td>
                               <td className="px-4 py-2.5 text-xs text-muted-foreground">{v.desc}</td>
                               <td className="px-4 py-2.5">
                                 {v.required ? (
-                                  <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-xs">Required</Badge>
+                                  <Badge className="bg-red-500/10 text-dissent border-red-500/20 text-xs">Required</Badge>
                                 ) : (
-                                  <Badge className="bg-neutral-500/10 text-neutral-400 border-neutral-500/20 text-xs">Optional</Badge>
+                                  <Badge className="bg-neutral-500/10 text-ink-secondary border-neutral-500/20 text-xs">Optional</Badge>
                                 )}
                               </td>
                             </tr>
@@ -160,7 +159,7 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
           <Card>
             <CardHeader><CardTitle className="text-lg">Manual Setup (Without Docker)</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
 cd Consilium
 pnpm install
@@ -173,7 +172,7 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
 ./run.sh`}</code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                The <code className="text-xs bg-neutral-900 px-1.5 py-0.5 rounded">run.sh</code> script checks prerequisites (Node.js 20+, pnpm), installs dependencies, generates the Prisma client, and spawns all three services in parallel with graceful shutdown handling via SIGINT/SIGTERM traps.
+                The <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">run.sh</code> script checks prerequisites (Node.js 20+, pnpm), installs dependencies, generates the Prisma client, and spawns all three services in parallel with graceful shutdown handling via SIGINT/SIGTERM traps.
               </p>
             </CardContent>
           </Card>
@@ -181,7 +180,7 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
           <Card>
             <CardHeader><CardTitle className="text-lg">Health Checks</CardTitle></CardHeader>
             <CardContent>
-              <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
+              <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`# API health (includes DB connectivity, memory checks)
 curl http://localhost:4000/api/v1/health
 
@@ -201,34 +200,34 @@ curl http://localhost:3000`}</code>
             <CardHeader><CardTitle className="text-lg">Production Deployment Tips</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="grid gap-2">
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Managed Database</span> — Use Neon for managed PostgreSQL with auto-scaling, branching, and zero downtime</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">Managed Database</span> — Use Neon for managed PostgreSQL with auto-scaling, branching, and zero downtime</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Managed Redis</span> — Use Upstash for serverless Redis with per-request pricing and global replication</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">Managed Redis</span> — Use Upstash for serverless Redis with per-request pricing and global replication</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Environment</span> — Set <code className="text-xs bg-black/30 px-1 py-0.5 rounded">NODE_ENV=production</code> for optimized builds and error handling</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">Environment</span> — Set <code className="text-xs bg-black/30 px-1 py-0.5 rounded">NODE_ENV=production</code> for optimized builds and error handling</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">CORS</span> — Configure <code className="text-xs bg-black/30 px-1 py-0.5 rounded">CORS_ORIGINS</code> with your actual domain(s)</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">CORS</span> — Configure <code className="text-xs bg-black/30 px-1 py-0.5 rounded">CORS_ORIGINS</code> with your actual domain(s)</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Monitoring</span> — Enable Sentry (<code className="text-xs bg-black/30 px-1 py-0.5 rounded">SENTRY_DSN</code>) for error tracking and PostHog for analytics</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">Monitoring</span> — Enable Sentry (<code className="text-xs bg-black/30 px-1 py-0.5 rounded">SENTRY_DSN</code>) for error tracking and PostHog for analytics</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">SSL</span> — Use a reverse proxy (nginx or Caddy) for SSL termination in front of the services</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">SSL</span> — Use a reverse proxy (nginx or Caddy) for SSL termination in front of the services</p>
                 </div>
-                <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Resources</span> — Minimum: 2GB RAM, 2 vCPUs. Recommended: 4GB RAM for concurrent deliberations</p>
+                <div className="rounded-lg bg-bg-1 p-3">
+                  <p className="text-sm"><span className="text-warm font-medium">Resources</span> — Minimum: 2GB RAM, 2 vCPUs. Recommended: 4GB RAM for concurrent deliberations</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6">
+          <div className="rounded-2xl border border-white/[0.08] bg-bg-1 p-6">
             <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 mt-0.5 text-emerald-400 shrink-0" />
+              <Shield className="h-5 w-5 mt-0.5 text-agree shrink-0" />
               <div>
                 <p className="font-medium mb-1">Data Sovereignty</p>
                 <p className="text-sm text-muted-foreground">
