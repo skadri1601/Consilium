@@ -112,56 +112,12 @@ export function MarketingFooter(props: MarketingFooterProps) {
               >
                 <TwitterLogoIcon className="h-4 w-4" />
               </Link>
-            </div>
-          </div>
-
-          <div className="mt-16 grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
-            {Object.entries(footerLinks).map(([category, links]) => (
-              <div key={category}>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-200">
-                  {category}
-                </h3>
-                <ul className="mt-4 space-y-3">
-                  {links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        target={link.href.startsWith("http") ? "_blank" : undefined}
-                        rel={link.href.startsWith("http") ? "noreferrer" : undefined}
-                        className="text-sm text-neutral-400 transition-colors hover:text-white"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 sm:flex-row">
-            <div className="flex flex-col items-center gap-1 sm:items-start">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/brand/consilium-icon.svg"
-                  alt="Consilium"
-                  width={20}
-                  height={20}
-                />
-                <span className="text-sm font-medium text-neutral-200">
-                  Consilium
-                </span>
-                <span className="text-sm text-neutral-400">
-                  &copy; {new Date().getFullYear()} All rights reserved.
-                </span>
-              </div>
               <Link
                 href={props.linkedinLink}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="LinkedIn"
                 className="text-ink-tertiary hover:text-ink-primary transition-colors"
-                className="text-xs text-neutral-400 transition-colors hover:text-neutral-300"
               >
                 <LinkedInLogoIcon className="h-4 w-4" />
               </Link>

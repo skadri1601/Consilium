@@ -119,29 +119,22 @@ describe("Marketing Pages", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders video hero", () => {
-      const { container } = render(<LandingPage />);
-      expect(container.querySelector("video")).toBeInTheDocument();
+    it("renders all 8 deliberation mode labels", () => {
+      render(<LandingPage />);
+      expect(screen.getAllByText("Quick").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Council.").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Deep").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Blind").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Red Team").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Jury").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Market").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Auto").length).toBeGreaterThan(0);
     });
 
-    it("renders 8 deliberation modes", () => {
+    it("renders SDK section", () => {
       render(<LandingPage />);
-      expect(screen.getByText("Quick")).toBeInTheDocument();
-      expect(screen.getByText("Council")).toBeInTheDocument();
-      expect(screen.getByText("Deep")).toBeInTheDocument();
-      expect(screen.getByText("Blind")).toBeInTheDocument();
-      expect(screen.getByText("Red Team")).toBeInTheDocument();
-      expect(screen.getByText("Jury")).toBeInTheDocument();
-      expect(screen.getByText("Market")).toBeInTheDocument();
-      expect(screen.getByText("Auto")).toBeInTheDocument();
-    });
-
-    it("renders SDK code examples", () => {
-      render(<LandingPage />);
-      expect(screen.getByText("SDK Examples")).toBeInTheDocument();
-      expect(screen.getByText("Python")).toBeInTheDocument();
-      expect(screen.getByText("TypeScript")).toBeInTheDocument();
-      expect(screen.getByText("CLI")).toBeInTheDocument();
+      expect(screen.getByText("The call")).toBeInTheDocument();
+      expect(screen.getByText("The result")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -522,10 +515,10 @@ describe("Layout Components", () => {
       expect(homeLink).toBeInTheDocument();
     });
 
-    it("renders sign in and get started links", () => {
+    it("renders sign in and try-council CTA links", () => {
       render(<MarketingHeader items={navItems} />);
-      expect(screen.getAllByText("Sign In").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("Get Started").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Sign in").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Try Council").length).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {
@@ -552,23 +545,16 @@ describe("Layout Components", () => {
       expect(screen.getByText("Product")).toBeInTheDocument();
       expect(screen.getByText("Developers")).toBeInTheDocument();
       expect(screen.getByText("Resources")).toBeInTheDocument();
-      expect(screen.getByText("Open Source")).toBeInTheDocument();
+      expect(screen.getByText("Open source")).toBeInTheDocument();
       expect(screen.getByText("Company")).toBeInTheDocument();
-    });
-
-    it("renders CTA section", () => {
-      render(<MarketingFooter {...footerProps} />);
-      expect(
-        screen.getByText("Ready to experience AI deliberation?")
-      ).toBeInTheDocument();
     });
 
     it("renders footer links in each column", () => {
       render(<MarketingFooter {...footerProps} />);
-      expect(screen.getByText("Features")).toBeInTheDocument();
+      expect(screen.getByText("How it works")).toBeInTheDocument();
       expect(screen.getByText("Pricing")).toBeInTheDocument();
-      expect(screen.getByText("Documentation")).toBeInTheDocument();
-      expect(screen.getByText("API Reference")).toBeInTheDocument();
+      expect(screen.getByText("Docs")).toBeInTheDocument();
+      expect(screen.getByText("API reference")).toBeInTheDocument();
       expect(screen.getByText("Blog")).toBeInTheDocument();
       expect(screen.getByText("About")).toBeInTheDocument();
       expect(screen.getByText("Privacy")).toBeInTheDocument();
