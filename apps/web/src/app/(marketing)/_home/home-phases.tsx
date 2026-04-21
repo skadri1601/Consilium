@@ -13,11 +13,15 @@ type Phase = {
 };
 
 function PE({
-  meta,
+  author,
+  position,
+  positionTone,
   body,
   tone = "neutral",
 }: {
-  meta: string;
+  author: string;
+  position?: string;
+  positionTone?: Tone;
   body: string;
   tone?: Tone;
 }) {
@@ -29,8 +33,22 @@ function PE({
             tone === "agree" && "text-agree",
             tone === "dissent" && "text-dissent",
           )}
-          dangerouslySetInnerHTML={{ __html: meta }}
-        />
+        >
+          {author}
+          {position && (
+            <>
+              {" · "}
+              <span
+                className={cn(
+                  positionTone === "agree" && "text-agree",
+                  positionTone === "dissent" && "text-dissent",
+                )}
+              >
+                {position}
+              </span>
+            </>
+          )}
+        </span>
       </div>
       <div className="text-ink-primary">{body}</div>
     </div>
@@ -115,18 +133,21 @@ const phases: Phase[] = [
     example: (
       <div className="flex flex-col gap-2">
         <PE
-          tone="agree"
-          meta='GPT-4o · <span class="text-agree">Modular monolith</span>'
+          author="GPT-4o"
+          position="Modular monolith"
+          positionTone="agree"
           body="At 50k DAU, operational risk of K8s exceeds scaling benefit. Keep it boring."
         />
         <PE
-          tone="agree"
-          meta='Claude 4.5 · <span class="text-agree">Modular monolith</span>'
+          author="Claude 4.5"
+          position="Modular monolith"
+          positionTone="agree"
           body="Extract notifications and billing as first split candidates. Not yet."
         />
         <PE
-          tone="dissent"
-          meta='Gemini 2.0 · <span class="text-dissent">Microservices now</span>'
+          author="Gemini 2.0"
+          position="Microservices now"
+          positionTone="dissent"
           body="Team already knows K8s. A second migration later will cost more than starting distributed today."
         />
       </div>
@@ -140,16 +161,16 @@ const phases: Phase[] = [
     example: (
       <div className="flex flex-col gap-2">
         <PE
-          meta="Gemini → GPT-4o"
-          body="The 50k DAU threshold is arbitrary. Where's the load-pattern evidence? "
+          author="Gemini → GPT-4o"
+          body="The 50k DAU threshold is arbitrary. Where's the load-pattern evidence?"
         />
         <PE
-          meta="Claude → Gemini"
-          body='"Migration cost later" ignores the blast radius of a bad split now.'
+          author="Claude → Gemini"
+          body={`"Migration cost later" ignores the blast radius of a bad split now.`}
         />
         <PE
-          meta="GPT-4o → Gemini"
-          body={`"Team has K8s experience" doesn't equal"team can run K8s in prod under a 99.9% SLA."`}
+          author="GPT-4o → Gemini"
+          body={`"Team has K8s experience" doesn't equal "team can run K8s in prod under a 99.9% SLA."`}
         />
       </div>
     ),
@@ -162,18 +183,21 @@ const phases: Phase[] = [
     example: (
       <div className="flex flex-col gap-2">
         <PE
-          tone="agree"
-          meta='GPT-4o · <span class="text-agree">qualifies</span>'
+          author="GPT-4o"
+          position="qualifies"
+          positionTone="agree"
           body="Fair. The threshold is a heuristic. At this traffic, coordination cost of microservices dominates any scaling gain."
         />
         <PE
-          tone="dissent"
-          meta='Gemini · <span class="text-dissent">concedes partially</span>'
+          author="Gemini"
+          position="concedes partially"
+          positionTone="dissent"
           body="Granted on the SLA risk. Still argue the migrate-later cost is underweighted."
         />
         <PE
-          tone="agree"
-          meta='Claude · <span class="text-agree">refutes</span>'
+          author="Claude"
+          position="refutes"
+          positionTone="agree"
           body="Bounded contexts inside a monolith are reversible. Premature microservices are not."
         />
       </div>
