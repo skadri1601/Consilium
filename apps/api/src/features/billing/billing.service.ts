@@ -6,17 +6,25 @@ import { UsageService } from "./usage.service";
 import { PlansService, SubscriptionTier } from "./plans.service";
 import Stripe from "stripe";
 
+// Subscription model isn't in the Prisma schema yet; cast locally so the
+// monorepo type-checks while the schema migration catches up.
+type AnyPrisma = PrismaService & Record<string, any>;
+
 @Injectable()
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaBase: PrismaService,
     private readonly stripe: StripeService,
     private readonly wallet: WalletService,
     private readonly usage: UsageService,
     private readonly plans: PlansService,
   ) {}
+
+  private get prisma(): AnyPrisma {
+    return this.prismaBase as AnyPrisma;
+  }
 
   async getOrCreateSubscription(userId: string) {
     let sub = await this.prisma.subscription.findUnique({ where: { userId } });

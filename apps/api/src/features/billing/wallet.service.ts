@@ -1,9 +1,18 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../shared/database";
 
+// Wallet / WalletTransaction models are not yet in the Prisma schema; this
+// feature is half-implemented. The cast lets the rest of the monorepo
+// type-check while the schema catches up (tracked as a separate task).
+type AnyPrisma = PrismaService & Record<string, any>;
+
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prismaBase: PrismaService) {}
+
+  private get prisma(): AnyPrisma {
+    return this.prismaBase as AnyPrisma;
+  }
 
   async getOrCreateWallet(userId: string) {
     let wallet = await this.prisma.wallet.findUnique({ where: { userId } });

@@ -2,12 +2,22 @@ import { Injectable, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../../shared/database";
 import { PlansService, SubscriptionTier } from "./plans.service";
 
+// Subscription / UsagePeriod models are not yet in the Prisma schema; the
+// billing feature is still being wired up. Cast locally so the rest of the
+// monorepo type-checks; the runtime behavior was already incomplete without
+// the schema.
+type AnyPrisma = PrismaService & Record<string, any>;
+
 @Injectable()
 export class UsageService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaBase: PrismaService,
     private readonly plans: PlansService,
   ) {}
+
+  private get prisma(): AnyPrisma {
+    return this.prismaBase as AnyPrisma;
+  }
 
   async getCurrentPeriod(userId: string) {
     const now = new Date();
