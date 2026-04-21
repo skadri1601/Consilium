@@ -18,9 +18,14 @@
 **/.prisma
 packages/database/node_modules
 
+# Python workspace — the agents project uses its own black+ruff formatting
+# and its pytest suite contains byte-stable snapshot fixtures. Excluding the
+# whole tree also keeps our `pnpm format` pass from tripping the
+# apps/agents/** path-filter and triggering a pytest run that has nothing to
+# do with formatting.
+apps/agents/**
+
 # Test fixtures and benchmark results (must remain byte-stable)
-apps/agents/src/features/deliberation/benchmarks/results/*.json
-apps/agents/tests/**/fixtures/*.json
 **/fixtures/**/*.json
 **/__fixtures__/**/*.json
 **/__snapshots__/**
