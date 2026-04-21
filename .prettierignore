@@ -1,0 +1,36 @@
+# Build outputs
+**/dist
+**/.next
+**/build
+**/out
+**/coverage
+
+# Dependency directories
+**/node_modules
+**/.pnpm-store
+
+# Lockfiles and generated files
+**/pnpm-lock.yaml
+**/package-lock.json
+**/yarn.lock
+
+# Prisma generated client
+**/.prisma
+packages/database/node_modules
+
+# Test fixtures and benchmark results (must remain byte-stable)
+apps/agents/src/features/deliberation/benchmarks/results/*.json
+apps/agents/tests/**/fixtures/*.json
+**/fixtures/**/*.json
+**/__fixtures__/**/*.json
+**/__snapshots__/**
+
+# Python generated
+apps/agents/.venv
+apps/agents/poetry.lock
+apps/agents/**/*.egg-info
+
+# Environment files
+.env
+.env.*
+!.env.example
