@@ -7,6 +7,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 export const metadata: Metadata = buildMetadata({
   title: "Use Cases",
@@ -265,21 +266,23 @@ function buildTemplateConfigSnippet(uc: (typeof useCases)[number]): string {
 export default function UseCasesPage() {
   return (
     <div className="min-h-screen">
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Use cases</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Use cases"
+        title={
+          <>
             How teams <em>use</em>
             <br />
             deliberation in practice.
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Six vertical templates — code review, research synthesis, risk
             assessment, healthcare, legal, financial — pre-configured for the
             job.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-6xl mx-auto space-y-24">

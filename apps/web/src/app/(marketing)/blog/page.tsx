@@ -6,6 +6,7 @@ import { ArrowRight, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "./blog-data";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 const categories: Array<"All" | BlogCategory> = [
   "All",
@@ -45,18 +46,20 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Blog</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Blog"
+        title={
+          <>
             Notes from the <em>council.</em>
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Benchmarks, engineering posts, and research write-ups on multi-agent
             deliberation.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="flex flex-wrap gap-2 mb-12 justify-center">

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 export const metadata: Metadata = buildMetadata({
   title: "CLI",
@@ -195,18 +196,20 @@ const outputFormats = [
 export default function CliReferencePage() {
   return (
     <div className="min-h-screen">
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">CLI reference</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="CLI reference"
+        title={
+          <>
             Consilium from the <em>terminal.</em>
-          </h1>
-          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Twelve commands, twenty+ slash commands, five output formats.
             Interactive chat, benchmarks, sessions, decision extraction.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-4xl mx-auto space-y-12">

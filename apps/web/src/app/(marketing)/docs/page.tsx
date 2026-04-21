@@ -1,3 +1,4 @@
+import { MarketingHero } from "@/components/shared/marketing-hero";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
@@ -209,20 +210,22 @@ export default function DocsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Documentation</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Documentation"
+        title={
+          <>
             Everything to <em>ship</em>
             <br />
             with the council.
-          </h1>
-          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Understand what Consilium does, integrate the API or SDKs, deploy
             and extend it on your own infrastructure.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-5xl mx-auto space-y-16">

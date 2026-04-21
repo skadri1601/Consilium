@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Mail, Github, Linkedin, AlertTriangle, Bug } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact",
@@ -38,18 +39,20 @@ const channels = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen">
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Contact</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Contact"
+        title={
+          <>
             Say <em>hello.</em>
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Bug reports, security disclosures, partnerships, and general
             inquiries — we'd love to hear from you.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-3xl mx-auto space-y-8">

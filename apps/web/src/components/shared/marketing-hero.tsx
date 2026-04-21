@@ -1,40 +1,38 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/lib/utils";
 
+// Shared marketing-page hero block. Extracted from the ~22 near-identical
+// copies sprinkled across marketing/docs pages so SonarQube duplication
+// stays under the 3% threshold and a single edit propagates everywhere.
 export function MarketingHero({
   eyebrow,
   title,
   description,
   actions,
+  meta,
+  children,
   className,
-  size = "md",
 }: {
-  eyebrow?: string;
+  eyebrow?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
+  meta?: ReactNode;
+  children?: ReactNode;
   className?: string;
-  size?: "sm" | "md" | "lg";
 }) {
-  const titleSize =
-    size === "lg"
-      ? "text-[clamp(44px,7vw,88px)]"
-      : size === "sm"
-        ? "text-[clamp(32px,4.5vw,52px)]"
-        : "text-[clamp(40px,6vw,72px)]";
-
   return (
     <section
-      className={cn(
-        "relative pt-28 pb-20 border-b border-white/[0.08]",
-        className,
-      )}
+      className={cn("pt-28 pb-16 border-b border-white/[0.08]", className)}
     >
       <div className="container-narrow">
-        {eyebrow && <div className="eyebrow mb-5">{eyebrow}</div>}
-        <h1
-          className={cn("display", titleSize, "max-w-[900px] leading-[1.02]")}
-        >
+        {eyebrow &&
+          (typeof eyebrow === "string" ? (
+            <div className="eyebrow mb-5">{eyebrow}</div>
+          ) : (
+            <div className="mb-5">{eyebrow}</div>
+          ))}
+        <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
           {title}
         </h1>
         {description && (
@@ -42,7 +40,13 @@ export function MarketingHero({
             {description}
           </p>
         )}
+        {meta && (
+          <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+            {meta}
+          </p>
+        )}
         {actions && <div className="mt-9 flex flex-wrap gap-3">{actions}</div>}
+        {children}
       </div>
     </section>
   );

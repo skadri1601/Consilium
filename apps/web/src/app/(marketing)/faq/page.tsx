@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
 } from "@/shared/components/ui/accordion";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
@@ -185,18 +186,20 @@ const sections = [
 export default function FAQPage() {
   return (
     <div>
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">FAQ</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="FAQ"
+        title={
+          <>
             Frequently <em>asked.</em>
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Everything worth knowing about Consilium — modes, models, BYOK,
             privacy, self-hosting, and cost.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="py-20">
         <div className="container-narrow max-w-[780px]">

@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
@@ -241,20 +242,22 @@ function CellValue({ value }: { value: boolean | string }) {
 export default function PricingPage() {
   return (
     <div>
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Pricing</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Pricing"
+        title={
+          <>
             Simple. <em>Transparent.</em>
             <br />
             Self-host for free.
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Start free. Scale when you need to. Self-host anytime. You pay the
             LLM providers directly — Consilium adds zero markup.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">

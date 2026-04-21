@@ -1,3 +1,4 @@
+import { MarketingHero } from "@/components/shared/marketing-hero";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
@@ -159,18 +160,20 @@ const statusColors: Record<string, string> = {
 export default function CommunityPage() {
   return (
     <div className="min-h-screen">
-      <section className="pt-28 pb-16 border-b border-white/[0.08]">
-        <div className="container-narrow">
-          <div className="eyebrow mb-5">Community</div>
-          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+      <MarketingHero
+        eyebrow="Community"
+        title={
+          <>
             Contribute to the <em>council.</em>
-          </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+          </>
+        }
+        description={
+          <>
             Join the open-source community building structured deliberation
             tooling. Discussions, contributing guide, roadmap.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <h2 className="text-2xl font-bold text-center mb-10">Get Involved</h2>
