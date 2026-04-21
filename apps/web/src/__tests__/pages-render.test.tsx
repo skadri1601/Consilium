@@ -158,12 +158,14 @@ describe("Marketing Pages", () => {
       expect(container.querySelector("video")).toBeInTheDocument();
     });
 
-    it("renders Our Values section", () => {
+    it("renders the mission and philosophy sections", () => {
       render(<AboutPage />);
-      expect(screen.getByText("Our Values")).toBeInTheDocument();
-      expect(screen.getByText("Open Source First")).toBeInTheDocument();
-      expect(screen.getByText("Developer Experience")).toBeInTheDocument();
-      expect(screen.getByText("Community Driven")).toBeInTheDocument();
+      expect(screen.getByText("Our Mission")).toBeInTheDocument();
+      expect(
+        screen.getByText(/What Makes Consilium Different/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText("Our Story")).toBeInTheDocument();
+      expect(screen.getByText("Open Source Philosophy")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -222,9 +224,10 @@ describe("Marketing Pages", () => {
 
     it("renders pricing tiers", () => {
       render(<PricingPage />);
-      expect(screen.getByText("Free")).toBeInTheDocument();
-      expect(screen.getByText("Pro")).toBeInTheDocument();
-      expect(screen.getByText("Enterprise")).toBeInTheDocument();
+      // Tier names are repeated across feature/comparison tables, so use getAllByText.
+      expect(screen.getAllByText("Free").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Pro").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Enterprise").length).toBeGreaterThan(0);
     });
 
     it("renders prices", () => {
@@ -259,7 +262,7 @@ describe("Marketing Pages", () => {
       expect(screen.getByText("CLI Reference")).toBeInTheDocument();
       expect(screen.getByText("Python SDK")).toBeInTheDocument();
       expect(screen.getByText("TypeScript SDK")).toBeInTheDocument();
-      expect(screen.getByText("Self-Hosting Guide")).toBeInTheDocument();
+      expect(screen.getByText("Self-Hosting")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -281,7 +284,7 @@ describe("Marketing Pages", () => {
     it("renders API endpoints", () => {
       render(<ApiDocsPage />);
       expect(screen.getAllByText("/debates").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("/deliberation").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("/agents").length).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {
@@ -302,9 +305,9 @@ describe("Marketing Pages", () => {
 
     it("renders CLI commands", () => {
       render(<CliDocsPage />);
-      expect(screen.getByText("deliberate")).toBeInTheDocument();
-      expect(screen.getByText("ask")).toBeInTheDocument();
-      expect(screen.getByText("chat")).toBeInTheDocument();
+      expect(screen.getAllByText(/consilium debate/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/consilium ask/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/consilium chat/).length).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {
@@ -461,8 +464,10 @@ describe("Marketing Pages", () => {
       expect(
         screen.getByText("How do I self-host Consilium?")
       ).toBeInTheDocument();
-      expect(screen.getByText("Do I need API keys?")).toBeInTheDocument();
-      expect(screen.getByText("How much does it cost?")).toBeInTheDocument();
+      expect(screen.getByText("Is Consilium free?")).toBeInTheDocument();
+      expect(
+        screen.getByText("How much does a typical deliberation cost?")
+      ).toBeInTheDocument();
     });
   });
 
