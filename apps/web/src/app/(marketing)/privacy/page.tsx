@@ -9,13 +9,22 @@ export const metadata: Metadata = buildMetadata({
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-48">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
-          <p className="text-muted-foreground mb-12">Effective date: April 9, 2026</p>
+    <div>
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">Legal</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Privacy <em>policy.</em>
+          </h1>
+          <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+            Effective April 9, 2026
+          </p>
+        </div>
+      </section>
 
-          <div className="prose prose-gray dark:prose-invert max-w-none">
+      <section className="py-16">
+        <div className="container-narrow max-w-[780px]">
+          <div className="prose prose-invert max-w-none prose-headings:font-display prose-headings:font-normal prose-headings:text-ink-primary prose-p:text-ink-secondary prose-a:text-warm">
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">1. Introduction &amp; Scope</h2>
               <p className="mb-4 text-muted-foreground">

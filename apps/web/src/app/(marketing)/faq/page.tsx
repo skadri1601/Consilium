@@ -159,21 +159,25 @@ const sections = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-48">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
-            Frequently Asked Questions
+    <div>
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">FAQ</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Frequently <em>asked.</em>
           </h1>
-          <p className="text-center text-muted-foreground mb-16">
-            Everything you need to know about Consilium
+          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+            Everything worth knowing about Consilium — modes, models, BYOK,
+            privacy, self-hosting, and cost.
           </p>
+        </div>
+      </section>
 
+      <section className="py-20">
+        <div className="container-narrow max-w-[780px]">
           {sections.map((section) => (
-            <div key={section.title} className="mb-12">
-              <h2 className="text-2xl font-semibold mb-6 text-warm">
-                {section.title}
-              </h2>
+            <div key={section.title} className="mb-14">
+              <div className="eyebrow mb-4">{section.title}</div>
               <Accordion type="single" collapsible className="w-full">
                 {section.faqs.map((faq) => (
                   <AccordionItem key={faq.id} value={faq.id}>

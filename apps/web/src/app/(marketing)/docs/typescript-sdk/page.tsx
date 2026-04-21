@@ -40,14 +40,15 @@ const types = [
 export default function TypeScriptSdkPage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/docs" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors mb-8">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Docs
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">TypeScript SDK</h1>
-          <p className="text-xl text-muted-foreground">Full TypeScript client with streaming, typed errors, automatic retries, and complete type definitions.</p>
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">TypeScript SDK</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            The <em>TypeScript</em> client.
+          </h1>
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Full TypeScript support, typed errors, SSE streaming, AsyncIterable. Complete type definitions.
+          </p>
         </div>
       </section>
 

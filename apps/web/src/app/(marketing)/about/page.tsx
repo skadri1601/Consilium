@@ -79,33 +79,36 @@ const stats = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen">
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+    <div>
+      <section className="relative pt-28 pb-24 border-b border-white/[0.08] overflow-hidden">
         <video
           autoPlay
           loop
           muted
           playsInline
           disablePictureInPicture
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-20"
         >
           <source src="/api/video/consilium-prod.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-          <Badge className="mb-4 bg-warm/12 text-warm border-warm/20">
-            Open Source Multi-AI Deliberation
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Structured Disagreement Produces Better Decisions
+        <div className="absolute inset-0 bg-gradient-to-b from-bg-0/40 via-bg-0/70 to-bg-0 pointer-events-none" />
+        <div className="relative z-10 container-narrow">
+          <div className="eyebrow mb-5">About · Open source</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Structured <em>disagreement</em>
+            <br />
+            produces better decisions.
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
             Consilium implements formal argumentation protocols — proven in
             peer-reviewed research at ICML, ACL, and AAAI — where AI models
-            propose, challenge, defend, and synthesize positions through adversarial debate.
+            propose, challenge, defend, and synthesize positions through
+            adversarial debate.
           </p>
+          <div className="mt-9">
+            <ScrollButton />
+          </div>
         </div>
-        <ScrollButton />
       </section>
 
       <section id="about-content" className="container mx-auto px-4 py-20">

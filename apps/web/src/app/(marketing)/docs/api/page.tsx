@@ -115,20 +115,14 @@ const methodColors: Record<string, string> = {
 export default function ApiReferencePage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href="/docs"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Docs
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            API Reference
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">API reference</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Debates, deliberation,<br />and <em>everything</em> between.
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Integrate Consilium into your applications with our REST API
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Every endpoint with request/response schemas and SSE events — the same API powers the web app, CLI, and SDKs.
           </p>
         </div>
       </section>

@@ -182,7 +182,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<BlogPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /blog/i })
+        screen.getByRole("heading", { level: 1, name: /notes from/i })
       ).toBeInTheDocument();
     });
 
@@ -251,7 +251,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<DocsPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /documentation/i })
+        screen.getByRole("heading", { level: 1, name: /ship|everything/i })
       ).toBeInTheDocument();
     });
 
@@ -324,7 +324,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<ContactPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /contact/i })
+        screen.getByRole("heading", { level: 1, name: /hello/i })
       ).toBeInTheDocument();
     });
 
@@ -349,7 +349,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<UseCasesPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /use cases/i })
+        screen.getByRole("heading", { level: 1, name: /how teams use|deliberation in practice/i })
       ).toBeInTheDocument();
     });
 
@@ -372,7 +372,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<ResearchPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /research/i })
+        screen.getByRole("heading", { level: 1, name: /science|peer-reviewed/i })
       ).toBeInTheDocument();
     });
 
@@ -400,7 +400,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<CommunityPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /community/i })
+        screen.getByRole("heading", { level: 1, name: /contribute|council/i })
       ).toBeInTheDocument();
     });
 
@@ -453,7 +453,7 @@ describe("Marketing Pages", () => {
       expect(
         screen.getByRole("heading", {
           level: 1,
-          name: /frequently asked questions/i,
+          name: /frequently/i,
         })
       ).toBeInTheDocument();
     });

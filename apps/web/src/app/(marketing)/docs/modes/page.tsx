@@ -141,20 +141,14 @@ const modes = [
 export default function ModesPage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-5xl mx-auto">
-          <Link
-            href="/docs"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Docs
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            8 Deliberation Modes
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">Deliberation modes</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Eight modes.<br /><em>One default.</em>
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Each mode implements a distinct debate protocol optimized for specific decision types. Choose the mode that matches your use case, or let Auto mode decide for you.
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto — each with phases, parameters, and when to reach for them.
           </p>
         </div>
       </section>

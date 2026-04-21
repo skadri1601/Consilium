@@ -19,8 +19,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,6 +36,11 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    # CodeQL's upload step fails with "Code scanning is not enabled for this
+    # repository" until the repo owner enables Code scanning under
+    # Settings → Code security → Code scanning. Keep the job running so SARIF
+    # is still generated, but don't block PRs on it until that flag is flipped.
+    continue-on-error: true
     permissions:
       contents: read
       security-events: write

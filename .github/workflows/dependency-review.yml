@@ -26,6 +26,13 @@ permissions:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
+    # actions/dependency-review-action requires the Dependency graph + GitHub
+    # Advanced Security features to be enabled on the repository. Until the
+    # repo owner turns those on under Settings → Code security, the action
+    # fails with "Dependency review is not supported on this repository." Keep
+    # the check running so it starts reporting as soon as the flags flip, but
+    # don't let it block PRs in the meantime.
+    continue-on-error: true
     steps:
       - name: 'Checkout repository'
         uses: actions/checkout@v4

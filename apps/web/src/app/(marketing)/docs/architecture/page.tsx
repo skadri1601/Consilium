@@ -61,20 +61,14 @@ const ciWorkflows = [
 export default function ArchitecturePage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-5xl mx-auto">
-          <Link
-            href="/docs"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Docs
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            System Architecture
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">Architecture</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            How <em>the council</em><br />is wired together.
           </h1>
-          <p className="text-xl text-muted-foreground">
-            How Consilium&apos;s microservices, database, queue system, and streaming infrastructure work together.
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Three-tier system, LangGraph state machine, BullMQ jobs, and the SSE contract that ties them together.
           </p>
         </div>
       </section>

@@ -128,12 +128,14 @@ const statusColors: Record<string, string> = {
 export default function CommunityPage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Community</h1>
-          <p className="text-xl text-muted-foreground">
-            Join the open-source community building the future of AI
-            deliberation
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">Community</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Contribute to the <em>council.</em>
+          </h1>
+          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+            Join the open-source community building structured deliberation tooling. Discussions, contributing guide, roadmap.
           </p>
         </div>
       </section>

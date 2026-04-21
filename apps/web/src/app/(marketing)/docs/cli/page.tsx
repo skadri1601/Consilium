@@ -143,20 +143,14 @@ const outputFormats = [
 export default function CliReferencePage() {
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href="/docs"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Docs
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            CLI Reference
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">CLI reference</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Consilium from the <em>terminal.</em>
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Run deliberations from your terminal
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Twelve commands, twenty+ slash commands, five output formats. Interactive chat, benchmarks, sessions, decision extraction.
           </p>
         </div>
       </section>

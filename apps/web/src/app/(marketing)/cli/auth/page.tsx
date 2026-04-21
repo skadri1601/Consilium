@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { SignIn } from "@clerk/nextjs";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
+import { useUser, SignIn } from "@clerk/nextjs";
 import { Terminal, Copy, Loader2, CheckCircle2 } from "lucide-react";
 
 export default function CliAuthPage() {
@@ -61,109 +52,121 @@ export default function CliAuthPage() {
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 px-4 pt-24">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <Terminal className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Consilium CLI Setup
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-sm">
-            Sign in to generate a CLI authentication token.
-          </p>
-        </div>
-        <SignIn
-          appearance={{
-            elements: {
-              formButtonPrimary: "bg-primary hover:bg-primary/90",
-              card: "shadow-lg",
-            },
-          }}
-          fallbackRedirectUrl="/cli/auth"
-        />
+        <Loader2 className="h-8 w-8 animate-spin text-ink-tertiary" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4 pt-24 pb-12">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-          <Terminal className="h-6 w-6" />
+    <div>
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5 inline-flex items-center gap-2">
+            <Terminal className="h-3.5 w-3.5" /> CLI · Authentication
+          </div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Pair your <em>terminal</em>
+            <br />
+            with the council.
+          </h1>
+          <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
+            {isSignedIn
+              ? "Generate a long-lived CLI token. Paste it back into your terminal to finish setup."
+              : "Sign in to generate a CLI authentication token for the Consilium command-line tool."}
+          </p>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Consilium CLI Setup
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Signed in as{" "}
-          <span className="font-medium text-foreground">
-            {user?.primaryEmailAddress?.emailAddress ?? user?.fullName}
-          </span>
-        </p>
-      </div>
+      </section>
 
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Terminal className="h-4 w-4" />
-            CLI Token
-            {token && (
-              <Badge variant="secondary" className="ml-auto">
-                Ready
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <section className="py-16">
+        <div className="container-narrow max-w-[620px]">
+          {!isSignedIn ? (
+            <div className="rounded-2xl border border-white/[0.08] bg-bg-1 p-6 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)]">
+              <SignIn
+                appearance={{
+                  variables: {
+                    colorPrimary: "#d4a574",
+                    colorBackground: "#141310",
+                    colorText: "#f5efe5",
+                    colorTextSecondary: "#a9a29a",
+                    colorInputBackground: "#1c1a17",
+                    colorInputText: "#f5efe5",
+                    borderRadius: "8px",
+                  },
+                  elements: {
+                    rootBox: "w-full",
+                    card: "bg-transparent shadow-none p-0 border-0",
+                    headerTitle: "hidden",
+                    headerSubtitle: "hidden",
+                    formButtonPrimary:
+                      "bg-warm hover:bg-warm-bright text-bg-0 font-medium",
+                    footer: "hidden",
+                  },
+                }}
+                fallbackRedirectUrl="/cli/auth"
+              />
             </div>
-          )}
-
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-          {token && (
-            <>
-              <div className="rounded-md bg-muted p-4 font-mono text-sm break-all select-all leading-relaxed">
-                {token}
-              </div>
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={copyToClipboard}
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-agree" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy to Clipboard
-                  </>
+          ) : (
+            <div className="surface-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-tertiary">
+                  CLI token
+                </div>
+                {token && (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full bg-agree/14 text-agree">
+                    Ready
+                  </span>
                 )}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Paste this token in your terminal to complete setup.
-              </p>
-            </>
+              </div>
+              <div className="text-[13px] text-ink-secondary mb-5">
+                Signed in as{" "}
+                <span className="text-ink-primary">
+                  {user?.primaryEmailAddress?.emailAddress ?? user?.fullName}
+                </span>
+              </div>
+
+              {loading && (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-ink-tertiary" />
+                </div>
+              )}
+
+              {error && (
+                <div className="rounded-md border border-dissent/30 bg-dissent/14 p-3 text-[13px] text-dissent">
+                  {error}
+                </div>
+              )}
+
+              {token && (
+                <>
+                  <pre className="rounded-md bg-bg-2 border border-white/[0.08] p-4 font-mono text-[12px] text-ink-primary break-all select-all leading-relaxed whitespace-pre-wrap">
+                    {token}
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={copyToClipboard}
+                    className="btn-consilium btn-consilium-primary btn-consilium-lg mt-4 w-full justify-center"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-bg-0" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy to clipboard
+                      </>
+                    )}
+                  </button>
+                  <p className="mt-4 text-center text-[13px] text-ink-secondary">
+                    Paste this token in your terminal to complete setup.
+                  </p>
+                </>
+              )}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }

@@ -82,18 +82,22 @@ const breadcrumbJsonLd = {"@context": "https://schema.org","@type": "BreadcrumbL
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Documentation
+      <section className="pt-28 pb-16 border-b border-white/[0.08]">
+        <div className="container-narrow">
+          <div className="eyebrow mb-5">Documentation</div>
+          <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
+            Everything to <em>ship</em>
+            <br />
+            with the council.
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to understand, integrate, deploy, and extend Consilium — organized by audience.
+          <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
+            Understand what Consilium does, integrate the API or SDKs, deploy
+            and extend it on your own infrastructure.
           </p>
         </div>
       </section>
