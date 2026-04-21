@@ -113,7 +113,7 @@ export function MarketingFooter(props: MarketingFooterProps) {
                 <span className="text-sm font-medium text-neutral-200">
                   Consilium
                 </span>
-                <span className="text-sm text-neutral-500">
+                <span className="text-sm text-neutral-400">
                   &copy; {new Date().getFullYear()} All rights reserved.
                 </span>
               </div>
@@ -121,7 +121,7 @@ export function MarketingFooter(props: MarketingFooterProps) {
                 href={props.builtByLink}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-neutral-500 transition-colors hover:text-neutral-300"
+                className="text-xs text-neutral-400 transition-colors hover:text-neutral-300"
               >
                 Built by {props.builtBy}
               </Link>

@@ -5,12 +5,6 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { useUser } from "@clerk/nextjs";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useMotionValueEvent,
-} from "framer-motion";
 
 interface NavProps {
   items?: {
@@ -67,12 +61,8 @@ function AuthButtons() {
 
 function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => void }>) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-      className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden"
+    <div
+      className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden animate-in fade-in slide-in-from-top-4 duration-200"
     >
       <nav className="flex flex-col gap-1">
         {items?.map((item) => (
@@ -94,26 +84,31 @@ function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => voi
           <AuthButtons />
         </div>
       </nav>
-    </motion.div>
+    </div>
   );
 }
 
 export function MarketingHeader(props: Readonly<NavProps>) {
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
-  const { scrollY } = useScroll();
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious() ?? 0;
-    if (latest < 50) {
-      setVisible(true);
-    } else if (latest > previous) {
-      setVisible(false);
-      setShowMobileMenu(false);
-    } else {
-      setVisible(true);
-    }
-  });
+  React.useEffect(() => {
+    let prevScroll = window.scrollY;
+    const onScroll = () => {
+      const curr = window.scrollY;
+      if (curr < 50) {
+        setVisible(true);
+      } else if (curr > prevScroll) {
+        setVisible(false);
+        setShowMobileMenu(false);
+      } else {
+        setVisible(true);
+      }
+      prevScroll = curr;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
@@ -121,10 +116,11 @@ export function MarketingHeader(props: Readonly<NavProps>) {
         <div className="h-16 w-[700px] max-w-[calc(100vw-2rem)] bg-gradient-to-r from-indigo-500/10 via-cyan-500/10 to-indigo-500/10 blur-2xl rounded-full" />
       </div>
 
-      <motion.header
-        animate={{ y: visible ? 0 : -100, opacity: visible ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed top-4 inset-x-0 mx-auto z-50 w-fit max-w-[calc(100vw-2rem)]"
+      <header
+        className={cn(
+          "fixed top-4 inset-x-0 mx-auto z-50 w-fit max-w-[calc(100vw-2rem)] transition-all duration-300 ease-in-out",
+          visible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0"
+        )}
       >
         <div className="flex h-14 items-center gap-6 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] px-5 md:px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -174,15 +170,13 @@ export function MarketingHeader(props: Readonly<NavProps>) {
           </div>
         </div>
 
-        <AnimatePresence>
-          {showMobileMenu && props.items && (
-            <MobileMenu
-              items={props.items}
-              onClose={() => setShowMobileMenu(false)}
-            />
-          )}
-        </AnimatePresence>
-      </motion.header>
+        {showMobileMenu && props.items && (
+          <MobileMenu
+            items={props.items}
+            onClose={() => setShowMobileMenu(false)}
+          />
+        )}
+      </header>
     </>
   );
 }
