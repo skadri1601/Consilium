@@ -52,13 +52,55 @@ const modeGroups = [
 ];
 
 const compareRows = [
-  { feature: "Adversarial cross-examination", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Dissent reports in output", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Confidence-weighted voting", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Blind evaluation mode", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Red team mode", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Prediction market aggregation", consilium: true, crewai: false, langgraph: false, autogen: false },
-  { feature: "Full audit trail of reasoning", consilium: true, crewai: false, langgraph: true, autogen: false },
+  {
+    feature: "Adversarial cross-examination",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Dissent reports in output",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Confidence-weighted voting",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Blind evaluation mode",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Red team mode",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Prediction market aggregation",
+    consilium: true,
+    crewai: false,
+    langgraph: false,
+    autogen: false,
+  },
+  {
+    feature: "Full audit trail of reasoning",
+    consilium: true,
+    crewai: false,
+    langgraph: true,
+    autogen: false,
+  },
 ];
 
 const papers = [
@@ -105,7 +147,8 @@ export default function LandingPage() {
             </h2>
             <p className="text-[16px] leading-[1.6] text-ink-secondary max-w-[560px] mb-14">
               Every Council deliberation moves through these phases. Click
-              through to see what each looks like with a real question: "Monolith or microservices at 50k DAU? "
+              through to see what each looks like with a real question:
+              "Monolith or microservices at 50k DAU? "
             </p>
           </Reveal>
 
@@ -153,7 +196,10 @@ export default function LandingPage() {
                 3 rounds · ~45s ·{" "}
                 <span className="text-warm">$0.05–0.10 per run</span>
               </div>
-              <Link href="/council" className="btn-consilium btn-consilium-primary">
+              <Link
+                href="/council"
+                className="btn-consilium btn-consilium-primary"
+              >
                 Try Council ↗
               </Link>
             </div>
@@ -290,10 +336,7 @@ export default function LandingPage() {
       </section>
 
       {/* SDK */}
-      <section
-        id="sdk"
-        className="py-32 bg-bg-1 border-y border-white/[0.08]"
-      >
+      <section id="sdk" className="py-32 bg-bg-1 border-y border-white/[0.08]">
         <div className="container-narrow">
           <Reveal>
             <div className="eyebrow mb-5">SDK</div>
@@ -320,24 +363,16 @@ export default function LandingPage() {
                 <span className="text-warm">import</span> ConsiliumClient
                 {"\n\n"}
                 client = ConsiliumClient(api_key=
-                <span className="text-agree">"your-key"</span>)
-                {"\n\n"}
-                result = client.deliberate({"\n"}
-                {" "}topic=
+                <span className="text-agree">"your-key"</span>){"\n\n"}
+                result = client.deliberate({"\n"} topic=
                 <span className="text-agree">"Monolith or microservices</span>
-                {"\n"}
-                {" "}
-                <span className="text-agree">at 50k DAU? "</span>,{"\n"}
-                {" "}mode=
-                <span className="text-agree">"council"</span>,{"\n"}
-                {" "}models=[{"\n"}
-                {" "}
-                <span className="text-agree">"gpt-4o"</span>,{"\n"}
-                {" "}
-                <span className="text-agree">"claude-sonnet-4-5"</span>,{"\n"}
-                {" "}
-                <span className="text-agree">"gemini-2.0-flash"</span>,{"\n"}
-                {" "}],{"\n"}){"\n"}
+                {"\n"} <span className="text-agree">at 50k DAU? "</span>,{"\n"}{" "}
+                mode=
+                <span className="text-agree">"council"</span>,{"\n"} models=[
+                {"\n"} <span className="text-agree">"gpt-4o"</span>,{"\n"}{" "}
+                <span className="text-agree">"claude-sonnet-4-5"</span>,{"\n"}{" "}
+                <span className="text-agree">"gemini-2.0-flash"</span>,{"\n"} ],
+                {"\n"}){"\n"}
               </pre>
             </div>
             <div className="surface-card overflow-hidden">
@@ -348,8 +383,9 @@ export default function LandingPage() {
               <pre className="px-[22px] py-5 font-mono text-[13px] leading-[1.75] text-ink-primary overflow-x-auto">
                 <span className="text-ink-muted select-none">{">>>"}</span>
                 result.verdict{"\n"}
-                <span className="text-agree">"Refactor into a modular monolith with{"\n"}
-                  {" "}explicit bounded contexts..."
+                <span className="text-agree">
+                  "Refactor into a modular monolith with{"\n"} explicit bounded
+                  contexts..."
                 </span>
                 {"\n\n"}
                 <span className="text-ink-muted select-none">{">>>"}</span>
@@ -360,23 +396,23 @@ export default function LandingPage() {
                 result.confidence_scores{"\n"}
                 {"{"}
                 <span className="text-agree">'gpt-4o'</span>:{" "}
-                <span className="text-warm">0.87</span>,{"\n"}
-                {" "}<span className="text-agree">'claude-sonnet-4-5'</span>:{" "}
-                <span className="text-warm">0.82</span>,{"\n"}
-                {" "}<span className="text-agree">'gemini-2.0-flash'</span>:{" "}
+                <span className="text-warm">0.87</span>,{"\n"}{" "}
+                <span className="text-agree">'claude-sonnet-4-5'</span>:{" "}
+                <span className="text-warm">0.82</span>,{"\n"}{" "}
+                <span className="text-agree">'gemini-2.0-flash'</span>:{" "}
                 <span className="text-warm">0.64</span>
                 {"}"}
                 {"\n\n"}
                 <span className="text-ink-muted select-none">{">>>"}</span>
                 result.dissent_report{"\n"}
-                <span className="text-agree">"Gemini 2.0: Team has K8s experience..."
+                <span className="text-agree">
+                  "Gemini 2.0: Team has K8s experience..."
                 </span>
                 {"\n\n"}
                 <span className="text-ink-muted select-none">{">>>"}</span>
                 result.audit_trail[<span className="text-warm">0</span>]{"\n"}
                 AuditEntry(phase=
-                <span className="text-agree">'challenge'</span>,{"\n"}
-                {" "}actor=
+                <span className="text-agree">'challenge'</span>,{"\n"} actor=
                 <span className="text-agree">'gemini-2.0-flash'</span>, ...)
               </pre>
             </div>
@@ -441,7 +477,10 @@ export default function LandingPage() {
               audit trail.
             </p>
             <div className="flex justify-center flex-wrap gap-3">
-              <Link href="/council" className="btn-consilium btn-consilium-primary btn-consilium-lg">
+              <Link
+                href="/council"
+                className="btn-consilium btn-consilium-primary btn-consilium-lg"
+              >
                 Try the Council ↗
               </Link>
               <Link

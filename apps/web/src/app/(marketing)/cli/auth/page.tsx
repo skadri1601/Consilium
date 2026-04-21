@@ -28,7 +28,7 @@ export default function CliAuthPage() {
         setToken(data.token);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to generate token"
+          err instanceof Error ? err.message : "Failed to generate token",
         );
       } finally {
         setLoading(false);

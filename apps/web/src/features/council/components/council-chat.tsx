@@ -4,7 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { Loader2, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useCouncilStore } from "../store/council.store";
 import { AgentSelector } from "./agent-selector";
@@ -16,7 +21,10 @@ import { useAuth } from "@/features/auth";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS, FREE_MODEL_IDS } from "@/shared/lib/constants";
-import { getProviderStyles, getAgentDisplayName } from "../utils/council-helpers";
+import {
+  getProviderStyles,
+  getAgentDisplayName,
+} from "../utils/council-helpers";
 
 interface AgentProgress {
   agentId: string;
@@ -46,8 +54,16 @@ interface Persona {
   systemPrompt: string;
 }
 
-const AGENT_NAME_BY_ID = new Map<string, string>(AGENTS.map((agent) => [agent.id, agent.name]));
-const SUPPORTED_PROVIDERS = ["ChatGPT", "Claude", "Google", "Groq", "Grok (XAI)"];
+const AGENT_NAME_BY_ID = new Map<string, string>(
+  AGENTS.map((agent) => [agent.id, agent.name]),
+);
+const SUPPORTED_PROVIDERS = [
+  "ChatGPT",
+  "Claude",
+  "Google",
+  "Groq",
+  "Grok (XAI)",
+];
 const ROUND_DESCRIPTIONS: Record<number, string> = {
   1: "Independent Analysis",
   2: "Cross-Examination",
@@ -66,17 +82,29 @@ export function CouncilChat() {
   const [currentRound, setCurrentRound] = useState<number>(0);
   const [roundDescription, setRoundDescription] = useState<string>("");
   const [synthesizing, setSynthesizing] = useState(false);
-  const [agentProgress, setAgentProgress] = useState<Record<string, AgentProgress>>({});
+  const [agentProgress, setAgentProgress] = useState<
+    Record<string, AgentProgress>
+  >({});
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>("");
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents, mode, setMode } = useCouncilStore();
+  const {
+    messages,
+    selectedAgents,
+    addMessage,
+    isLoading,
+    setLoading,
+    loadDefaults,
+    setSelectedAgents,
+    mode,
+    setMode,
+  } = useCouncilStore();
   const { isLoaded: isAuthLoaded } = useAuth();
   const { preferences, isLoaded: isPrefsLoaded } = useUserPreferences();
   const selectedAgentNames = selectedAgents.map(
-    (agentId) => AGENT_NAME_BY_ID.get(agentId) ?? agentId
+    (agentId) => AGENT_NAME_BY_ID.get(agentId) ?? agentId,
   );
   const selectedAgentsLabel =
     selectedAgentNames.length > 0
@@ -113,7 +141,11 @@ export function CouncilChat() {
       .then((res) => (res.ok ? res.json() : {}))
       .then((data: Record<string, string | null>) => {
         const hasAnyKey =
-          data.openaiKey || data.anthropicKey || data.googleKey || data.groqKey || data.xaiKey;
+          data.openaiKey ||
+          data.anthropicKey ||
+          data.googleKey ||
+          data.groqKey ||
+          data.xaiKey;
         if (!hasAnyKey) {
           setSelectedAgents([...FREE_MODEL_IDS.slice(0, 2)]);
           setUsingFreeModels(true);
@@ -175,7 +207,8 @@ export function CouncilChat() {
       if (topic.length < 3) {
         addMessage({
           role: "assistant",
-          content: "Please enter a longer topic (at least 3 characters) to start a debate.",
+          content:
+            "Please enter a longer topic (at least 3 characters) to start a debate.",
         });
         setLoading(false);
         setStreaming(false);
@@ -201,16 +234,19 @@ export function CouncilChat() {
 
       if (!createResponse.ok) {
         const errorData = await createResponse.json().catch(() => ({}));
-        const errorMsg = errorData.message || errorData.error || (Array.isArray(errorData) ? errorData.join(", ") : "Failed to create debate");
+        const errorMsg =
+          errorData.message ||
+          errorData.error ||
+          (Array.isArray(errorData)
+            ? errorData.join(", ")
+            : "Failed to create debate");
         throw new Error(errorMsg);
       }
 
       const debate = await createResponse.json();
       setDebateId(debate.id);
 
-      const eventSource = new EventSource(
-        `/api/debates/${debate.id}/stream`
-      );
+      const eventSource = new EventSource(`/api/debates/${debate.id}/stream`);
       eventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
@@ -228,10 +264,13 @@ export function CouncilChat() {
         setLoading(false);
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+      const errorMessage =
+        error instanceof Error ? error.message : "Something went wrong";
       addMessage({
         role: "assistant",
-        content: errorMessage.includes("topic") ? errorMessage : `Failed to start debate: ${errorMessage}`,
+        content: errorMessage.includes("topic")
+          ? errorMessage
+          : `Failed to start debate: ${errorMessage}`,
       });
       setLoading(false);
       setStreaming(false);
@@ -240,7 +279,8 @@ export function CouncilChat() {
 
   const handleStreamEvent = (data: StreamEvent) => {
     const eventName = (data.event || "").replace(/_/g, ":");
-    const agentId = data.agentId || (data as any).agent_id || (data as any).agent;
+    const agentId =
+      data.agentId || (data as any).agent_id || (data as any).agent;
     const chunk = data.chunk || (data as any).text;
     switch (eventName) {
       case "debate:start": {
@@ -263,13 +303,17 @@ export function CouncilChat() {
         setAgentProgress((prev) => {
           const updated = { ...prev };
           Object.keys(updated).forEach((key) => {
-            updated[key] = { ...updated[key], status: "pending", content: undefined };
+            updated[key] = {
+              ...updated[key],
+              status: "pending",
+              content: undefined,
+            };
           });
           return updated;
         });
         break;
       }
-        
+
       case "agent:start":
         if (agentId) {
           setAgentProgress((prev) => ({
@@ -299,12 +343,15 @@ export function CouncilChat() {
             [agentId]: {
               agentId,
               status: "complete",
-              content: data.content || (data as any).response || prev[agentId]?.content,
+              content:
+                data.content ||
+                (data as any).response ||
+                prev[agentId]?.content,
             },
           }));
         }
         break;
-        
+
       case "synthesis:start":
         setSynthesizing(true);
         break;
@@ -317,7 +364,9 @@ export function CouncilChat() {
         break;
 
       case "consensus":
-        setGoldenPrompt(data.goldenPrompt || (data as any).golden_prompt || data.consensus);
+        setGoldenPrompt(
+          data.goldenPrompt || (data as any).golden_prompt || data.consensus,
+        );
         setSynthesizing(false);
         break;
 
@@ -335,7 +384,9 @@ export function CouncilChat() {
         if (finalCost) {
           setDebateCost(finalCost);
         }
-        setModelsUsed(data.modelsUsed || (data as any).models || selectedAgents);
+        setModelsUsed(
+          data.modelsUsed || (data as any).models || selectedAgents,
+        );
         setStreaming(false);
         setLoading(false);
         setCurrentRound(0);
@@ -367,12 +418,23 @@ export function CouncilChat() {
     <div className="flex flex-col gap-4">
       <AgentSelector />
 
-      <DebateModeSelector selectedMode={mode} onModeChange={setMode} disabled={isLoading} />
+      <DebateModeSelector
+        selectedMode={mode}
+        onModeChange={setMode}
+        disabled={isLoading}
+      />
 
       {usingFreeModels && (
         <div className="rounded-lg border border-green-500/30 bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400 flex items-center justify-between">
-          <span>Using free models. Add API keys in Settings for more options.</span>
-          <a href="/settings" className="font-medium underline hover:no-underline">Settings</a>
+          <span>
+            Using free models. Add API keys in Settings for more options.
+          </span>
+          <a
+            href="/settings"
+            className="font-medium underline hover:no-underline"
+          >
+            Settings
+          </a>
         </div>
       )}
 
@@ -383,7 +445,9 @@ export function CouncilChat() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Start a Debate</CardTitle>
                 <FeatureTooltip content="Describe what you want to build. The council will debate and produce a synthesized recommendation.">
-                  <span className="text-xs text-muted-foreground">What is this?</span>
+                  <span className="text-xs text-muted-foreground">
+                    What is this?
+                  </span>
                 </FeatureTooltip>
               </div>
             </CardHeader>
@@ -422,7 +486,8 @@ export function CouncilChat() {
                   }}
                 />
                 <span id="debate-input-help" className="sr-only">
-                  Describe what you want to build. The council will debate and produce a synthesized recommendation.
+                  Describe what you want to build. The council will debate and
+                  produce a synthesized recommendation.
                 </span>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col text-xs text-muted-foreground min-w-0">
@@ -434,7 +499,9 @@ export function CouncilChat() {
                   </div>
                   <Button
                     type="submit"
-                    disabled={isLoading || !input.trim() || selectedAgents.length < 2}
+                    disabled={
+                      isLoading || !input.trim() || selectedAgents.length < 2
+                    }
                     className="min-w-[120px]"
                     aria-label="Start debate with selected agents"
                   >
@@ -468,10 +535,16 @@ export function CouncilChat() {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        Round {currentRound}{roundDescription && `: ${roundDescription}`}
+                        Round {currentRound}
+                        {roundDescription && `: ${roundDescription}`}
                       </CardTitle>
                       <span className="text-xs text-muted-foreground">
-                        {Object.values(agentProgress).filter(a => a.status === "complete").length} / {Object.keys(agentProgress).length} complete
+                        {
+                          Object.values(agentProgress).filter(
+                            (a) => a.status === "complete",
+                          ).length
+                        }{" "}
+                        / {Object.keys(agentProgress).length} complete
                       </span>
                     </div>
                   </CardHeader>
@@ -491,26 +564,39 @@ export function CouncilChat() {
                               "relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-300",
                               getProviderStyles(agent.agentId, agent.status),
                               agent.status === "thinking" && "shadow-md",
-                              agent.status === "complete" && "shadow-sm"
+                              agent.status === "complete" && "shadow-sm",
                             )}
                           >
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <div className={cn(
-                                  "h-2 w-2 rounded-full shrink-0",
-                                  agent.status === "thinking" && "bg-primary animate-pulse",
-                                  agent.status === "complete" && "bg-green-500",
-                                  agent.status === "pending" && "bg-gray-300"
-                                )} />
+                                <div
+                                  className={cn(
+                                    "h-2 w-2 rounded-full shrink-0",
+                                    agent.status === "thinking" &&
+                                      "bg-primary animate-pulse",
+                                    agent.status === "complete" &&
+                                      "bg-green-500",
+                                    agent.status === "pending" && "bg-gray-300",
+                                  )}
+                                />
                                 <span className="font-semibold text-sm truncate">
                                   {getAgentDisplayName(agent.agentId)}
                                 </span>
                               </div>
                               {agent.status === "thinking" && (
                                 <div className="flex gap-0.5" aria-hidden>
-                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                                  <div className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                                  <div
+                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                                    style={{ animationDelay: "0ms" }}
+                                  />
+                                  <div
+                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                                    style={{ animationDelay: "150ms" }}
+                                  />
+                                  <div
+                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                                    style={{ animationDelay: "300ms" }}
+                                  />
                                 </div>
                               )}
                               {agent.status === "complete" && (
@@ -523,7 +609,9 @@ export function CouncilChat() {
                                 </motion.span>
                               )}
                               {agent.status === "pending" && (
-                                <span className="text-xs text-muted-foreground">Waiting</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Waiting
+                                </span>
                               )}
                             </div>
 
@@ -576,7 +664,9 @@ export function CouncilChat() {
                       key={message.id}
                       className={cn(
                         "flex",
-                        message.role === "user" ? "justify-end" : "justify-start"
+                        message.role === "user"
+                          ? "justify-end"
+                          : "justify-start",
                       )}
                     >
                       <div
@@ -584,7 +674,7 @@ export function CouncilChat() {
                           "max-w-[85%] rounded-lg px-4 py-2 text-sm",
                           message.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            : "bg-muted",
                         )}
                       >
                         {message.content}
@@ -606,13 +696,22 @@ export function CouncilChat() {
           )}
 
           {!streaming && !goldenPrompt && messages.length === 0 && (
-            <Card className="border-dashed" role="region" aria-label="Empty state">
+            <Card
+              className="border-dashed"
+              role="region"
+              aria-label="Empty state"
+            >
               <CardContent className="py-12 text-center">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
-                <h3 className="text-lg font-medium mb-2">Start your first debate</h3>
+                <MessageSquare
+                  className="h-12 w-12 mx-auto mb-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <h3 className="text-lg font-medium mb-2">
+                  Start your first debate
+                </h3>
                 <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                  Select agents, describe what you want to build, and get a synthesized
-                  recommendation from the council.
+                  Select agents, describe what you want to build, and get a
+                  synthesized recommendation from the council.
                 </p>
               </CardContent>
             </Card>

@@ -12,9 +12,15 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
-  description: "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
+  description:
+    "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
   path: "/pricing",
-  keywords: ["consilium pricing","ai council pricing","byok","free ai debate"],
+  keywords: [
+    "consilium pricing",
+    "ai council pricing",
+    "byok",
+    "free ai debate",
+  ],
 });
 
 const tiers = [
@@ -23,7 +29,16 @@ const tiers = [
     price: "$0",
     period: "/mo",
     description: "Perfect for trying out AI deliberation",
-    features: ["50 deliberations per month","3 models per debate","All 8 deliberation modes","All 6 vertical templates","Streaming support","Basic audit trail","Basic analytics","Community support","Export to Markdown",
+    features: [
+      "50 deliberations per month",
+      "3 models per debate",
+      "All 8 deliberation modes",
+      "All 6 vertical templates",
+      "Streaming support",
+      "Basic audit trail",
+      "Basic analytics",
+      "Community support",
+      "Export to Markdown",
     ],
     cta: "Get Started",
     href: "/sign-up",
@@ -34,7 +49,20 @@ const tiers = [
     price: "$29",
     period: "/mo",
     description: "For developers and teams shipping with AI",
-    features: ["Unlimited deliberations","5+ models per debate","All 8 deliberation modes","All 6 vertical templates","Streaming support","Full audit trail","Advanced analytics","Priority support","Full API access","CLI access","SDK access (TypeScript & Python)","Custom export formats","99.9% SLA",
+    features: [
+      "Unlimited deliberations",
+      "5+ models per debate",
+      "All 8 deliberation modes",
+      "All 6 vertical templates",
+      "Streaming support",
+      "Full audit trail",
+      "Advanced analytics",
+      "Priority support",
+      "Full API access",
+      "CLI access",
+      "SDK access (TypeScript & Python)",
+      "Custom export formats",
+      "99.9% SLA",
     ],
     cta: "Start Free Trial",
     href: "/sign-up",
@@ -45,7 +73,21 @@ const tiers = [
     price: "Custom",
     period: "",
     description: "For organizations with advanced needs",
-    features: ["Unlimited deliberations","Unlimited models per debate","All 8 modes + custom modes","All 6 templates + custom templates","Streaming support","Full audit trail + export","Advanced + custom analytics","Dedicated support","Full API access","CLI access","SDK access (TypeScript & Python)","SSO / SAML","On-premise managed deployment","99.99% SLA",
+    features: [
+      "Unlimited deliberations",
+      "Unlimited models per debate",
+      "All 8 modes + custom modes",
+      "All 6 templates + custom templates",
+      "Streaming support",
+      "Full audit trail + export",
+      "Advanced + custom analytics",
+      "Dedicated support",
+      "Full API access",
+      "CLI access",
+      "SDK access (TypeScript & Python)",
+      "SSO / SAML",
+      "On-premise managed deployment",
+      "99.99% SLA",
     ],
     cta: "Contact Us",
     href: "/contact",
@@ -191,10 +233,8 @@ const costFormulas = [
 ];
 
 function CellValue({ value }: { value: boolean | string }) {
-  if (value === true)
-    return <Check className="h-4 w-4 text-warm mx-auto" />;
-  if (value === false)
-    return <X className="h-4 w-4 text-ink-muted mx-auto" />;
+  if (value === true) return <Check className="h-4 w-4 text-warm mx-auto" />;
+  if (value === false) return <X className="h-4 w-4 text-ink-muted mx-auto" />;
   return <span>{value}</span>;
 }
 
@@ -257,7 +297,10 @@ export default function PricingPage() {
                 </Link>
                 <ul className="mt-8 space-y-3">
                   {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm">
+                    <li
+                      key={feature}
+                      className="flex items-start gap-3 text-sm"
+                    >
                       <Check className="h-4 w-4 mt-0.5 shrink-0 text-warm" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
@@ -278,9 +321,7 @@ export default function PricingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.08] bg-bg-1">
-                  <th className="text-left px-6 py-4 font-semibold">
-                    Feature
-                  </th>
+                  <th className="text-left px-6 py-4 font-semibold">Feature</th>
                   <th className="text-center px-6 py-4 font-semibold">Free</th>
                   <th className="text-center px-6 py-4 font-semibold text-warm">
                     Pro
@@ -365,7 +406,7 @@ export default function PricingPage() {
                         {model.output}
                       </td>
                     </tr>
-                  ))
+                  )),
                 )}
               </tbody>
             </table>

@@ -1,8 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { useUsageHistory } from "../hooks/use-analytics";
 import { Button } from "@/shared/components/ui/button";
 
@@ -34,9 +49,7 @@ export function UsageChart() {
           <CardTitle>Usage Over Time</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">
-            Loading usage data...
-          </p>
+          <p className="text-sm text-muted-foreground">Loading usage data...</p>
         </CardContent>
       </Card>
     );
@@ -48,7 +61,9 @@ export function UsageChart() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Usage Over Time</CardTitle>
-            <CardDescription>Queries, tokens, and costs over the past {period} days</CardDescription>
+            <CardDescription>
+              Queries, tokens, and costs over the past {period} days
+            </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button
@@ -88,7 +103,11 @@ export function UsageChart() {
               }}
             />
             <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fontSize: 12 }}
+            />
             <Tooltip
               labelFormatter={(value) => new Date(value).toLocaleDateString()}
               formatter={(value: number) => value.toLocaleString()}

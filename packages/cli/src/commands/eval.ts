@@ -25,7 +25,11 @@ function readResponsesJsonFile(filePath: string): Record<string, unknown> {
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw) as unknown;
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
       console.log(st.error("Responses file must contain a JSON object"));
       process.exit(1);
     }
@@ -46,7 +50,10 @@ function onEvalPhaseChange(event: DeliberationEvent, ctx: EvalStreamCtx): void {
   console.log(st.brand(`  ${ctx.currentPhase}...`));
 }
 
-function onEvalModelProgress(event: DeliberationEvent, ctx: EvalStreamCtx): void {
+function onEvalModelProgress(
+  event: DeliberationEvent,
+  ctx: EvalStreamCtx,
+): void {
   if (!ctx.useLiveProgress) return;
   if (event.agent === undefined || event.progress === undefined) return;
   const pct = Math.round(event.progress);
@@ -193,9 +200,12 @@ export async function evalCommand(
   };
 
   try {
-    await client.streamDeliberation(deliberation.id, (event: DeliberationEvent) => {
-      processEvalEvent(event, ctx);
-    });
+    await client.streamDeliberation(
+      deliberation.id,
+      (event: DeliberationEvent) => {
+        processEvalEvent(event, ctx);
+      },
+    );
   } catch (error: unknown) {
     if (useLiveProgress) logUpdate.clear();
     const msg = error instanceof Error ? error.message : "Unknown error";

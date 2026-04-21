@@ -62,7 +62,7 @@ function getRankColor(index: number): string {
 function getRankBarOpacity(
   index: number,
   total: number,
-  confidenceWeight?: number
+  confidenceWeight?: number,
 ): number {
   const base = 1 - index * (0.6 / Math.max(total - 1, 1));
   if (confidenceWeight != null) {
@@ -84,7 +84,7 @@ function MethodBadge({
         "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider",
         confident
           ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-          : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+          : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
       )}
     >
       {confident ? (
@@ -140,7 +140,10 @@ function RankingChart({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={Math.max(200, result.fullRanking.length * 50)}>
+        <ResponsiveContainer
+          width="100%"
+          height={Math.max(200, result.fullRanking.length * 50)}
+        >
           <BarChart
             data={chartData}
             layout="vertical"
@@ -165,10 +168,7 @@ function RankingChart({
                 <Cell
                   key={entry.name}
                   fill={entry.fill}
-                  opacity={getRankBarOpacity(
-                    index,
-                    chartData.length
-                  )}
+                  opacity={getRankBarOpacity(index, chartData.length)}
                 />
               ))}
             </Bar>
@@ -244,10 +244,7 @@ function BallotList({ ballots }: Readonly<{ ballots: RankedBallot[] }>) {
               </div>
               <ol className="space-y-1">
                 {ballot.rankedChoices.map((choice, rank) => (
-                  <li
-                    key={choice}
-                    className="flex items-center gap-2 text-xs"
-                  >
+                  <li key={choice} className="flex items-center gap-2 text-xs">
                     <span
                       className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
                       style={{
@@ -255,7 +252,7 @@ function BallotList({ ballots }: Readonly<{ ballots: RankedBallot[] }>) {
                         color: rank < 3 ? "#fff" : "inherit",
                         opacity: getRankBarOpacity(
                           rank,
-                          ballot.rankedChoices.length
+                          ballot.rankedChoices.length,
                         ),
                       }}
                     >
@@ -328,7 +325,7 @@ function PairwiseMatrix({
                   key={c}
                   className={cn(
                     "p-2 text-center font-semibold",
-                    c === result.winner && "text-amber-600 dark:text-amber-400"
+                    c === result.winner && "text-amber-600 dark:text-amber-400",
                   )}
                 >
                   {c}
@@ -342,8 +339,7 @@ function PairwiseMatrix({
                 <td
                   className={cn(
                     "p-2 font-semibold",
-                    a === result.winner &&
-                      "text-amber-600 dark:text-amber-400"
+                    a === result.winner && "text-amber-600 dark:text-amber-400",
                   )}
                 >
                   {a}
@@ -373,8 +369,7 @@ function PairwiseMatrix({
                         !won &&
                           !tied &&
                           "bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400",
-                        tied &&
-                          "bg-muted/30 text-muted-foreground"
+                        tied && "bg-muted/30 text-muted-foreground",
                       )}
                     >
                       {aWins.toFixed(1)}
@@ -420,7 +415,7 @@ function AggregationSteps({
                   "mt-0.5 h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
                   step.locked
                     ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 {index + 1}

@@ -95,7 +95,10 @@ function applyProjectKind(root: string, info: WorkspaceInfo): void {
     applyNodeProject(root, info);
     return;
   }
-  if (fileExists(root, "pyproject.toml") || fileExists(root, "requirements.txt")) {
+  if (
+    fileExists(root, "pyproject.toml") ||
+    fileExists(root, "requirements.txt")
+  ) {
     applyPythonProject(root, info);
     return;
   }
@@ -198,8 +201,7 @@ export function getAutoLoadFiles(info: WorkspaceInfo, dir?: string): string[] {
 export function formatWorkspaceInfo(info: WorkspaceInfo): string {
   const lines: string[] = [];
   lines.push(`Project: ${info.projectType} (${info.language})`);
-  if (info.framework !== "none")
-    lines.push(`Framework: ${info.framework}`);
+  if (info.framework !== "none") lines.push(`Framework: ${info.framework}`);
   if (info.packageManager !== "unknown")
     lines.push(`Package Manager: ${info.packageManager}`);
   if (info.keyFiles.length > 0)

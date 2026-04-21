@@ -2,7 +2,13 @@
 
 import React from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 
 interface ErrorBoundaryState {
@@ -15,7 +21,10 @@ interface ErrorBoundaryProps {
   fallback?: React.ComponentType<{ error: Error; resetError: () => void }>;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -38,7 +47,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError && this.state.error) {
       if (this.props.fallback) {
         const Fallback = this.props.fallback;
-        return <Fallback error={this.state.error} resetError={this.resetError} />;
+        return (
+          <Fallback error={this.state.error} resetError={this.resetError} />
+        );
       }
 
       return (
@@ -64,7 +75,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={this.resetError}>Try Again</Button>
-                  <Button variant="outline" onClick={() => window.location.href = "/"}>
+                  <Button
+                    variant="outline"
+                    onClick={() => (window.location.href = "/")}
+                  >
                     Go Home
                   </Button>
                 </div>
@@ -78,4 +92,3 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
-

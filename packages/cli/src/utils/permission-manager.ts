@@ -1,23 +1,23 @@
-import path from 'node:path';
+import path from "node:path";
 import {
   type ReadPermissionLevel as PermissionLevel,
   getCodebasePermissionLevel,
   grantCodebasePermission,
   requestCodebasePermission,
   revokeCodebasePermission,
-} from './codebase-permissions';
+} from "./codebase-permissions";
 
 export class PermissionManager {
   checkPermission(projectPath: string): PermissionLevel {
     const normalized = path.resolve(projectPath);
     const level = getCodebasePermissionLevel(normalized);
-    return level === 'unset' ? 'deny' : level;
+    return level === "unset" ? "deny" : level;
   }
 
   async requestPermission(projectPath: string): Promise<PermissionLevel> {
     const normalized = path.resolve(projectPath);
     const granted = await requestCodebasePermission(normalized);
-    if (!granted) return 'deny';
+    if (!granted) return "deny";
     return this.checkPermission(normalized);
   }
 

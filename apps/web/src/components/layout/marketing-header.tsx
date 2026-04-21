@@ -70,7 +70,7 @@ function MobileMenu({
             onClick={onClose}
             className={cn(
               "px-3 py-2.5 text-sm text-ink-secondary hover:text-ink-primary transition-colors rounded-md hover:bg-white/[0.04]",
-              item.disabled && "cursor-not-allowed opacity-60"
+              item.disabled && "cursor-not-allowed opacity-60",
             )}
             target={item.external ? "_blank" : undefined}
             rel={item.external ? "noreferrer" : undefined}
@@ -92,7 +92,9 @@ export function MarketingHeader(props: Readonly<NavProps>) {
   return (
     <header
       className="fixed top-0 inset-x-0 z-50 bg-bg-0/72 backdrop-blur-xl border-b border-white/[0.08]"
-      style={{ animation: "slideDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both" }}
+      style={{
+        animation: "slideDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both",
+      }}
     >
       <div className="container-narrow flex items-center justify-between gap-6 py-[18px]">
         <Link
@@ -110,7 +112,7 @@ export function MarketingHeader(props: Readonly<NavProps>) {
               href={item.disabled ? "#" : item.href}
               className={cn(
                 "text-[13px] text-ink-secondary hover:text-ink-primary transition-colors",
-                item.disabled && "cursor-not-allowed opacity-60"
+                item.disabled && "cursor-not-allowed opacity-60",
               )}
               target={item.external ? "_blank" : undefined}
               rel={item.external ? "noreferrer" : undefined}

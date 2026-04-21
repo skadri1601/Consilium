@@ -27,17 +27,13 @@ export function MarketingHero({
     <section
       className={cn(
         "relative pt-28 pb-20 border-b border-white/[0.08]",
-        className
+        className,
       )}
     >
       <div className="container-narrow">
         {eyebrow && <div className="eyebrow mb-5">{eyebrow}</div>}
         <h1
-          className={cn(
-            "display",
-            titleSize,
-            "max-w-[900px] leading-[1.02]"
-          )}
+          className={cn("display", titleSize, "max-w-[900px] leading-[1.02]")}
         >
           {title}
         </h1>
@@ -46,9 +42,7 @@ export function MarketingHero({
             {description}
           </p>
         )}
-        {actions && (
-          <div className="mt-9 flex flex-wrap gap-3">{actions}</div>
-        )}
+        {actions && <div className="mt-9 flex flex-wrap gap-3">{actions}</div>}
       </div>
     </section>
   );

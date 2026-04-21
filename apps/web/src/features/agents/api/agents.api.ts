@@ -14,7 +14,10 @@ export const agentsApi = {
     return apiClient.post<Agent>("/api/v1/agents", data);
   },
 
-  update: async (id: string, data: Partial<CreateAgentInput>): Promise<Agent> => {
+  update: async (
+    id: string,
+    data: Partial<CreateAgentInput>,
+  ): Promise<Agent> => {
     return apiClient.put<Agent>(`/api/v1/agents/${id}`, data);
   },
 

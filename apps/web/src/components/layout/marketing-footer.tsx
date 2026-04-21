@@ -18,7 +18,10 @@ const footerLinks = {
     { label: "API reference", href: "/docs/api" },
     { label: "CLI", href: "/docs/cli" },
     { label: "SDK", href: "/#sdk" },
-    { label: "Releases", href: "https://github.com/skadri1601/Consilium/releases" },
+    {
+      label: "Releases",
+      href: "https://github.com/skadri1601/Consilium/releases",
+    },
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
@@ -28,9 +31,18 @@ const footerLinks = {
   ],
   "Open source": [
     { label: "GitHub", href: "https://github.com/skadri1601/Consilium" },
-    { label: "Contributing", href: "https://github.com/skadri1601/Consilium/blob/main/CONTRIBUTING.md" },
-    { label: "License (MIT)", href: "https://github.com/skadri1601/Consilium/blob/main/LICENSE" },
-    { label: "Changelog", href: "https://github.com/skadri1601/Consilium/releases" },
+    {
+      label: "Contributing",
+      href: "https://github.com/skadri1601/Consilium/blob/main/CONTRIBUTING.md",
+    },
+    {
+      label: "License (MIT)",
+      href: "https://github.com/skadri1601/Consilium/blob/main/LICENSE",
+    },
+    {
+      label: "Changelog",
+      href: "https://github.com/skadri1601/Consilium/releases",
+    },
   ],
   Company: [
     { label: "About", href: "/about" },
@@ -63,8 +75,12 @@ export function MarketingFooter(props: MarketingFooterProps) {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      target={link.href.startsWith("http") ? "_blank" : undefined}
-                      rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                      target={
+                        link.href.startsWith("http") ? "_blank" : undefined
+                      }
+                      rel={
+                        link.href.startsWith("http") ? "noreferrer" : undefined
+                      }
                       className="text-[13px] text-ink-secondary hover:text-ink-primary transition-colors"
                     >
                       {link.label}

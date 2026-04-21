@@ -5,9 +5,17 @@ import { AGENTS } from "@/shared/lib/constants";
 import { AgentCard } from "./agent-card";
 import type { AgentDef, AgentProvider } from "../types/agents.types";
 
-const PROVIDER_ORDER: AgentProvider[] = ["OpenAI", "Anthropic", "Google", "Groq", "XAI"];
+const PROVIDER_ORDER: AgentProvider[] = [
+  "OpenAI",
+  "Anthropic",
+  "Google",
+  "Groq",
+  "XAI",
+];
 
-function groupByProvider(agents: readonly AgentDef[]): Record<string, AgentDef[]> {
+function groupByProvider(
+  agents: readonly AgentDef[],
+): Record<string, AgentDef[]> {
   const groups: Record<string, AgentDef[]> = {};
   for (const agent of agents) {
     if (!groups[agent.provider]) {

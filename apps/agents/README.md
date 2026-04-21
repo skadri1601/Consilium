@@ -5,6 +5,7 @@ Multi-agent LLM orchestration workers for the Consilium AI Council platform.
 ## Overview
 
 This service orchestrates debates between multiple AI models using LangGraph. It handles:
+
 - Multi-agent debate workflows
 - Real-time streaming responses via SSE
 - Integration with OpenAI, Anthropic, Google, and Groq models

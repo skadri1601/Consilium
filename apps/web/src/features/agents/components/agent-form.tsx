@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import type { CreateAgentInput } from "../types/agents.types";
 
 interface AgentFormProps {
@@ -35,7 +40,9 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
             <label className="text-sm font-medium">Name</label>
             <Input
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="GPT-4o-mini"
               required
             />
@@ -45,7 +52,9 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
             <label className="text-sm font-medium">Provider</label>
             <select
               value={formData.provider}
-              onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, provider: e.target.value })
+              }
               className="w-full rounded-md border p-2"
             >
               <option value="openai">OpenAI</option>
@@ -60,17 +69,23 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
             <label className="text-sm font-medium">Model ID</label>
             <Input
               value={formData.modelId}
-              onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, modelId: e.target.value })
+              }
               placeholder="gpt-4o-mini"
               required
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Description (optional)</label>
+            <label className="text-sm font-medium">
+              Description (optional)
+            </label>
             <Input
               value={formData.description || ""}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Fast and cost-effective model"
             />
           </div>

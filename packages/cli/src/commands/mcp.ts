@@ -1,13 +1,19 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadConfig, DEFAULT_API_ORIGIN, DEFAULT_WEB_ORIGIN } from "../utils/config.js";
+import {
+  loadConfig,
+  DEFAULT_API_ORIGIN,
+  DEFAULT_WEB_ORIGIN,
+} from "../utils/config.js";
 import { style } from "../utils/visual-system.js";
 
 const st = style();
 
 function pythonMcpModulePath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  return path.normalize(path.join(here, "..", "..", "..", "python-sdk", "consilium", "mcp.py"));
+  return path.normalize(
+    path.join(here, "..", "..", "..", "python-sdk", "consilium", "mcp.py"),
+  );
 }
 
 export function mcpCommand(options: { json?: boolean }): void {
@@ -46,13 +52,21 @@ export function mcpCommand(options: { json?: boolean }): void {
   }
 
   console.log(st.brand("\nConsilium MCP (Model Context Protocol)\n"));
-  console.log(st.dim("The MCP server calls the same Nest API as the CLI using your CLI token."));
+  console.log(
+    st.dim(
+      "The MCP server calls the same Nest API as the CLI using your CLI token.",
+    ),
+  );
   console.log(st.dim(`API base: ${apiUrl}`));
   console.log(st.dim(`Web app:  ${webUrl}\n`));
 
   console.log(st.bold("1. Auth"));
   console.log(st.dim("  Run: "), st.success("consilium login"));
-  console.log(st.dim("  Copy apiKey from ~/.consilium/config.json (starts with consilium_).\n"));
+  console.log(
+    st.dim(
+      "  Copy apiKey from ~/.consilium/config.json (starts with consilium_).\n",
+    ),
+  );
 
   console.log(st.bold("2. Environment for the MCP process"));
   console.log(st.dim(`  CONSILIUM_API_URL=${apiUrl}`));
@@ -64,7 +78,11 @@ export function mcpCommand(options: { json?: boolean }): void {
       "  pip install httpx consilium  # from packages/python-sdk, or: pip install -e packages/python-sdk",
     ),
   );
-  console.log(st.dim("  pip install 'consilium[mcp]'          # optional: official MCP stdio server\n"));
+  console.log(
+    st.dim(
+      "  pip install 'consilium[mcp]'          # optional: official MCP stdio server\n",
+    ),
+  );
 
   console.log(st.bold("4. Cursor / Claude Code (stdio)"));
   console.log(st.dim("  Add to your MCP config (merge mcpServers):\n"));

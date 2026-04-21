@@ -10,7 +10,8 @@ export class EmailService {
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
     this.fromAddress =
-      process.env.RESEND_FROM_ADDRESS || "Saad at Consilium <saad@myconsilium.xyz>";
+      process.env.RESEND_FROM_ADDRESS ||
+      "Saad at Consilium <saad@myconsilium.xyz>";
 
     if (apiKey) {
       this.resend = new Resend(apiKey);

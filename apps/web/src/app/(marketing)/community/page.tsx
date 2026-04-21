@@ -29,7 +29,8 @@ import {
 
 export const metadata: Metadata = buildMetadata({
   title: "Community",
-  description: "Join the Consilium community on GitHub and Discord. Contribute code, file issues, and help shape multi-AI deliberation tooling.",
+  description:
+    "Join the Consilium community on GitHub and Discord. Contribute code, file issues, and help shape multi-AI deliberation tooling.",
   path: "/community",
 });
 
@@ -37,21 +38,24 @@ const links = [
   {
     icon: MessageCircle,
     title: "GitHub Discussions",
-    description: "Ask questions, share use cases, propose features, get help from the community and maintainers, and browse existing solutions.",
+    description:
+      "Ask questions, share use cases, propose features, get help from the community and maintainers, and browse existing solutions.",
     href: "https://github.com/skadri1601/Consilium/discussions",
     cta: "Join the Discussion",
   },
   {
     icon: BookOpen,
     title: "Contributing Guide",
-    description: "Learn how to contribute code, documentation, bug reports, feature requests, and templates. Includes setup instructions and code style conventions.",
+    description:
+      "Learn how to contribute code, documentation, bug reports, feature requests, and templates. Includes setup instructions and code style conventions.",
     href: "https://github.com/skadri1601/Consilium/blob/main/CONTRIBUTING.md",
     cta: "Read the Guide",
   },
   {
     icon: MessageCircle,
     title: "Discord",
-    description: "Real-time chat with the community and maintainers. Share your deliberations, ask for help, and collaborate on features.",
+    description:
+      "Real-time chat with the community and maintainers. Share your deliberations, ask for help, and collaborate on features.",
     href: "#",
     cta: "Coming Soon",
     disabled: true,
@@ -59,7 +63,8 @@ const links = [
   {
     icon: Github,
     title: "GitHub Repository",
-    description: "Star the repo, fork it, browse source code, track releases, view CI/CD pipelines, and follow the project roadmap.",
+    description:
+      "Star the repo, fork it, browse source code, track releases, view CI/CD pipelines, and follow the project roadmap.",
     href: "https://github.com/skadri1601/Consilium",
     cta: "View on GitHub",
   },
@@ -69,32 +74,38 @@ const contributionTypes = [
   {
     icon: Bug,
     title: "Bug Fixes",
-    description: "Check GitHub Issues for \"good first issue\" labels. Fix a bug, write a test, submit a PR.",
+    description:
+      'Check GitHub Issues for "good first issue" labels. Fix a bug, write a test, submit a PR.',
   },
   {
     icon: Sparkles,
     title: "New Features",
-    description: "Propose new features in GitHub Discussions first. Once approved, implement and submit a PR.",
+    description:
+      "Propose new features in GitHub Discussions first. Once approved, implement and submit a PR.",
   },
   {
     icon: Puzzle,
     title: "New Deliberation Modes",
-    description: "Extend the mode enum and add a phase handler in deliberation_graph.py. Follow existing mode patterns.",
+    description:
+      "Extend the mode enum and add a phase handler in deliberation_graph.py. Follow existing mode patterns.",
   },
   {
     icon: Bot,
     title: "New AI Providers",
-    description: "Implement the BaseAgent interface: generate_response, stream_response, and health_check methods.",
+    description:
+      "Implement the BaseAgent interface: generate_response, stream_response, and health_check methods.",
   },
   {
     icon: FileText,
     title: "Vertical Templates",
-    description: "Add to the templates/ directory with mode, rubric, and system_prompts configuration.",
+    description:
+      "Add to the templates/ directory with mode, rubric, and system_prompts configuration.",
   },
   {
     icon: TestTube,
     title: "Tests",
-    description: "Add to existing suites: Vitest for web, NestJS spec files for API, pytest for the agents engine.",
+    description:
+      "Add to existing suites: Vitest for web, NestJS spec files for API, pytest for the agents engine.",
   },
 ];
 
@@ -102,19 +113,39 @@ const roadmapItems = [
   {
     status: "live",
     label: "Live",
-    items: ["8 deliberation modes","5 providers, 15 models","6 vertical templates","TypeScript & Python SDKs","CLI with streaming","Cost estimation","Audit trails","Docker self-hosting",
+    items: [
+      "8 deliberation modes",
+      "5 providers, 15 models",
+      "6 vertical templates",
+      "TypeScript & Python SDKs",
+      "CLI with streaming",
+      "Cost estimation",
+      "Audit trails",
+      "Docker self-hosting",
     ],
   },
   {
     status: "soon",
     label: "Coming Soon",
-    items: ["Discord community","Custom mode builder","Plugin system","Additional providers","Webhook notifications","Team workspaces",
+    items: [
+      "Discord community",
+      "Custom mode builder",
+      "Plugin system",
+      "Additional providers",
+      "Webhook notifications",
+      "Team workspaces",
     ],
   },
   {
     status: "planned",
     label: "Long-Term",
-    items: ["Template marketplace","Enterprise SSO / SAML","On-premise managed deployment","Custom model fine-tuning integration","Multi-language SDK support","Visual deliberation editor",
+    items: [
+      "Template marketplace",
+      "Enterprise SSO / SAML",
+      "On-premise managed deployment",
+      "Custom model fine-tuning integration",
+      "Multi-language SDK support",
+      "Visual deliberation editor",
     ],
   },
 ];
@@ -135,7 +166,8 @@ export default function CommunityPage() {
             Contribute to the <em>council.</em>
           </h1>
           <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
-            Join the open-source community building structured deliberation tooling. Discussions, contributing guide, roadmap.
+            Join the open-source community building structured deliberation
+            tooling. Discussions, contributing guide, roadmap.
           </p>
         </div>
       </section>
@@ -330,9 +362,7 @@ export default function CommunityPage() {
               <Rocket className="h-7 w-7 text-warm" />
               <h2 className="text-3xl font-bold">Roadmap</h2>
             </div>
-            <p className="text-muted-foreground">
-              Where Consilium is headed
-            </p>
+            <p className="text-muted-foreground">Where Consilium is headed</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">

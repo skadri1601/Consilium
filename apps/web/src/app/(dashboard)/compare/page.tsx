@@ -28,7 +28,10 @@ export default function ComparePage() {
               side-by-side.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <Link href="/council" className="btn-consilium btn-consilium-primary">
+              <Link
+                href="/council"
+                className="btn-consilium btn-consilium-primary"
+              >
                 Start a deliberation
               </Link>
               <Link href="/history" className="btn-consilium">

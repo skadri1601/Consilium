@@ -16,8 +16,11 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       for (const shortcut of shortcuts) {
-        const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const shiftMatches = shortcut.shiftKey ? event.shiftKey : !event.shiftKey;
+        const keyMatches =
+          event.key.toLowerCase() === shortcut.key.toLowerCase();
+        const shiftMatches = shortcut.shiftKey
+          ? event.shiftKey
+          : !event.shiftKey;
         const altMatches = shortcut.altKey ? event.altKey : !event.altKey;
 
         const modifierMatches =
@@ -48,7 +51,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
         }
       }
     },
-    [shortcuts]
+    [shortcuts],
   );
 
   useEffect(() => {
@@ -84,4 +87,3 @@ export const COMMON_SHORTCUTS = {
     description: "Submit debate",
   },
 } as const;
-

@@ -6,7 +6,8 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact",
-  description: "Get in touch with the Consilium team. Bug reports, feature requests, security disclosures, and partnerships.",
+  description:
+    "Get in touch with the Consilium team. Bug reports, feature requests, security disclosures, and partnerships.",
   path: "/contact",
 });
 
@@ -44,7 +45,8 @@ export default function ContactPage() {
             Say <em>hello.</em>
           </h1>
           <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
-            Bug reports, security disclosures, partnerships, and general inquiries — we'd love to hear from you.
+            Bug reports, security disclosures, partnerships, and general
+            inquiries — we'd love to hear from you.
           </p>
         </div>
       </section>
@@ -71,8 +73,12 @@ export default function ContactPage() {
                         <CardTitle className="text-base mb-1 group-hover:text-warm transition-colors">
                           {channel.title}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">{channel.value}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{channel.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {channel.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {channel.description}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -96,7 +102,8 @@ export default function ContactPage() {
                       className="text-warm hover:underline"
                     >
                       GitHub Issues
-                    </Link>.
+                    </Link>
+                    .
                   </p>
                 </div>
               </CardContent>
@@ -113,7 +120,7 @@ export default function ContactPage() {
                       href="mailto:saad@myconsilium.xyz"
                       className="text-warm hover:underline"
                     >
-                     saad@myconsilium.xyz
+                      saad@myconsilium.xyz
                     </Link>{" "}
                     directly.
                   </p>

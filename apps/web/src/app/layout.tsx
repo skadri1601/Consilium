@@ -145,11 +145,7 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <TestModeClerkProvider>
       <html
@@ -162,7 +158,9 @@ export default function RootLayout({
             id="ld-organization"
             type="application/ld+json"
             strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationJsonLd),
+            }}
           />
           <Script
             id="ld-software"
@@ -176,7 +174,12 @@ export default function RootLayout({
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
           />
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            forcedTheme="dark"
+          >
             <PostHogProvider>
               <ErrorBoundary>
                 <OnboardingProvider>

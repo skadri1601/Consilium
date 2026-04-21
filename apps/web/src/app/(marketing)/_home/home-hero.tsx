@@ -6,19 +6,24 @@ import { useEffect, useRef } from "react";
 const agents = [
   { name: "GPT-4o", chip: "Agrees", chipKind: "agree" as const, pct: 87 },
   { name: "Claude 4.5", chip: "Agrees", chipKind: "agree" as const, pct: 82 },
-  { name: "Gemini 2.0", chip: "Dissents", chipKind: "dissent" as const, pct: 64 },
+  {
+    name: "Gemini 2.0",
+    chip: "Dissents",
+    chipKind: "dissent" as const,
+    pct: 64,
+  },
 ];
 
 export function HomeHero() {
   const barsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const bars = barsRef.current?.querySelectorAll<HTMLDivElement>("[data-pct]"
-    );
+    const bars =
+      barsRef.current?.querySelectorAll<HTMLDivElement>("[data-pct]");
     if (!bars) return;
     const t = setTimeout(() => {
       bars.forEach((b) => {
-        b.style.width = (b.dataset.pct ?? "0") +"%";
+        b.style.width = (b.dataset.pct ?? "0") + "%";
       });
     }, 1800);
     return () => clearTimeout(t);
@@ -87,7 +92,8 @@ export function HomeHero() {
           <div
             className="demo-card-frame opacity-0 translate-y-10 scale-[0.98]"
             style={{
-              animation: "demoReveal 1s cubic-bezier(0.2,0.8,0.2,1) 0.7s forwards",
+              animation:
+                "demoReveal 1s cubic-bezier(0.2,0.8,0.2,1) 0.7s forwards",
             }}
             ref={barsRef}
           >
@@ -96,7 +102,8 @@ export function HomeHero() {
                 <div className="font-mono text-[10px] text-ink-tertiary uppercase tracking-[0.1em]">
                   Sample verdict
                 </div>
-                <div className="font-display italic text-[15px] text-ink-primary mt-1">"Monolith or microservices at 50k DAU? "
+                <div className="font-display italic text-[15px] text-ink-primary mt-1">
+                  "Monolith or microservices at 50k DAU? "
                 </div>
               </div>
               <div className="font-mono text-[10px] text-ink-tertiary">
@@ -136,7 +143,8 @@ export function HomeHero() {
             <div
               className="px-4 py-3.5 bg-bg-2 rounded-[10px] opacity-0"
               style={{
-                animation: "fadeUp 0.6s cubic-bezier(0.2,0.8,0.2,1) 2.1s forwards",
+                animation:
+                  "fadeUp 0.6s cubic-bezier(0.2,0.8,0.2,1) 2.1s forwards",
               }}
             >
               <div className="flex justify-between items-center mb-2">

@@ -1,4 +1,4 @@
-import type { DebateMode } from '@consilium/shared';
+import type { DebateMode } from "@consilium/shared";
 
 export type JudgePhase = 1 | 2 | 3 | 4 | 5;
 
@@ -10,86 +10,177 @@ export interface RubricWeight {
 }
 
 export interface JudgeConfig {
-  source: 'cli' | 'web';
+  source: "cli" | "web";
   priorities: string[];
   phase5Prompt: string;
   rubric: RubricWeight[];
 }
 
 const DEFAULT_RUBRIC: RubricWeight[] = [
-  { dimension: 'correctness', weight: 0.3, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
-  { dimension: 'reasoning_quality', weight: 0.25, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
-  { dimension: 'completeness', weight: 0.2, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
-  { dimension: 'actionability', weight: 0.15, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-  { dimension: 'conciseness', weight: 0.1, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
+  {
+    dimension: "correctness",
+    weight: 0.3,
+    description: "Factual accuracy and logical validity",
+    anchors: { 1: "Major errors", 5: "Mostly correct", 10: "Flawless" },
+  },
+  {
+    dimension: "reasoning_quality",
+    weight: 0.25,
+    description: "Depth and rigor of reasoning",
+    anchors: { 1: "No reasoning", 5: "Basic", 10: "Rigorous multi-step" },
+  },
+  {
+    dimension: "completeness",
+    weight: 0.2,
+    description: "Covers all aspects",
+    anchors: { 1: "Misses key points", 5: "Adequate", 10: "Comprehensive" },
+  },
+  {
+    dimension: "actionability",
+    weight: 0.15,
+    description: "Practical applicability",
+    anchors: {
+      1: "Abstract only",
+      5: "Some actionable",
+      10: "Immediately usable",
+    },
+  },
+  {
+    dimension: "conciseness",
+    weight: 0.1,
+    description: "Information density",
+    anchors: { 1: "Extreme padding", 5: "Reasonable", 10: "Zero waste" },
+  },
 ];
 
 const DEFAULT_PRIORITIES = [
-  'code_correctness',
-  'project_relevance',
-  'implementation_feasibility',
-  'codebase_compatibility',
-  'maintainability',
-  'security',
+  "code_correctness",
+  "project_relevance",
+  "implementation_feasibility",
+  "codebase_compatibility",
+  "maintainability",
+  "security",
 ];
 
 const MODE_PRIORITY_OVERRIDES: Partial<Record<DebateMode, string[]>> = {
   redteam: [
-    'security',
-    'code_correctness',
-    'codebase_compatibility',
-    'implementation_feasibility',
-    'project_relevance',
-    'maintainability',
+    "security",
+    "code_correctness",
+    "codebase_compatibility",
+    "implementation_feasibility",
+    "project_relevance",
+    "maintainability",
   ],
   council: [
-    'consensus_strength',
-    'code_correctness',
-    'project_relevance',
-    'implementation_feasibility',
-    'codebase_compatibility',
-    'maintainability',
+    "consensus_strength",
+    "code_correctness",
+    "project_relevance",
+    "implementation_feasibility",
+    "codebase_compatibility",
+    "maintainability",
   ],
   blind: [
-    'objectivity',
-    'code_correctness',
-    'reasoning_quality',
-    'implementation_feasibility',
-    'project_relevance',
-    'maintainability',
+    "objectivity",
+    "code_correctness",
+    "reasoning_quality",
+    "implementation_feasibility",
+    "project_relevance",
+    "maintainability",
   ],
   jury: [
-    'consensus_strength',
-    'evidence_quality',
-    'code_correctness',
-    'project_relevance',
-    'implementation_feasibility',
-    'maintainability',
+    "consensus_strength",
+    "evidence_quality",
+    "code_correctness",
+    "project_relevance",
+    "implementation_feasibility",
+    "maintainability",
   ],
   market: [
-    'confidence_calibration',
-    'code_correctness',
-    'evidence_quality',
-    'project_relevance',
-    'implementation_feasibility',
-    'maintainability',
+    "confidence_calibration",
+    "code_correctness",
+    "evidence_quality",
+    "project_relevance",
+    "implementation_feasibility",
+    "maintainability",
   ],
 };
 
 const MODE_RUBRIC_OVERRIDES: Partial<Record<DebateMode, RubricWeight[]>> = {
   redteam: [
-    { dimension: 'correctness', weight: 0.25, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
-    { dimension: 'reasoning_quality', weight: 0.2, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
-    { dimension: 'completeness', weight: 0.15, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
-    { dimension: 'actionability', weight: 0.1, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-    { dimension: 'security_rigor', weight: 0.3, description: 'Thoroughness of security analysis', anchors: { 1: 'Surface level', 5: 'Common vectors', 10: 'Comprehensive threat model' } },
+    {
+      dimension: "correctness",
+      weight: 0.25,
+      description: "Factual accuracy and logical validity",
+      anchors: { 1: "Major errors", 5: "Mostly correct", 10: "Flawless" },
+    },
+    {
+      dimension: "reasoning_quality",
+      weight: 0.2,
+      description: "Depth and rigor of reasoning",
+      anchors: { 1: "No reasoning", 5: "Basic", 10: "Rigorous multi-step" },
+    },
+    {
+      dimension: "completeness",
+      weight: 0.15,
+      description: "Covers all aspects",
+      anchors: { 1: "Misses key points", 5: "Adequate", 10: "Comprehensive" },
+    },
+    {
+      dimension: "actionability",
+      weight: 0.1,
+      description: "Practical applicability",
+      anchors: {
+        1: "Abstract only",
+        5: "Some actionable",
+        10: "Immediately usable",
+      },
+    },
+    {
+      dimension: "security_rigor",
+      weight: 0.3,
+      description: "Thoroughness of security analysis",
+      anchors: {
+        1: "Surface level",
+        5: "Common vectors",
+        10: "Comprehensive threat model",
+      },
+    },
   ],
   blind: [
-    { dimension: 'correctness', weight: 0.3, description: 'Factual accuracy and logical validity', anchors: { 1: 'Major errors', 5: 'Mostly correct', 10: 'Flawless' } },
-    { dimension: 'reasoning_quality', weight: 0.3, description: 'Depth and rigor of reasoning', anchors: { 1: 'No reasoning', 5: 'Basic', 10: 'Rigorous multi-step' } },
-    { dimension: 'completeness', weight: 0.2, description: 'Covers all aspects', anchors: { 1: 'Misses key points', 5: 'Adequate', 10: 'Comprehensive' } },
-    { dimension: 'actionability', weight: 0.1, description: 'Practical applicability', anchors: { 1: 'Abstract only', 5: 'Some actionable', 10: 'Immediately usable' } },
-    { dimension: 'conciseness', weight: 0.1, description: 'Information density', anchors: { 1: 'Extreme padding', 5: 'Reasonable', 10: 'Zero waste' } },
+    {
+      dimension: "correctness",
+      weight: 0.3,
+      description: "Factual accuracy and logical validity",
+      anchors: { 1: "Major errors", 5: "Mostly correct", 10: "Flawless" },
+    },
+    {
+      dimension: "reasoning_quality",
+      weight: 0.3,
+      description: "Depth and rigor of reasoning",
+      anchors: { 1: "No reasoning", 5: "Basic", 10: "Rigorous multi-step" },
+    },
+    {
+      dimension: "completeness",
+      weight: 0.2,
+      description: "Covers all aspects",
+      anchors: { 1: "Misses key points", 5: "Adequate", 10: "Comprehensive" },
+    },
+    {
+      dimension: "actionability",
+      weight: 0.1,
+      description: "Practical applicability",
+      anchors: {
+        1: "Abstract only",
+        5: "Some actionable",
+        10: "Immediately usable",
+      },
+    },
+    {
+      dimension: "conciseness",
+      weight: 0.1,
+      description: "Information density",
+      anchors: { 1: "Extreme padding", 5: "Reasonable", 10: "Zero waste" },
+    },
   ],
 };
 
@@ -222,34 +313,37 @@ Synthesize the market positions into a confidence-weighted recommendation.`,
 };
 
 export const CLI_JUDGE_CONFIG = {
-  source: 'cli' as const,
+  source: "cli" as const,
   priorities: [...DEFAULT_PRIORITIES],
-  phase5Emphasis: 'working code > elegant code',
+  phase5Emphasis: "working code > elegant code",
 };
 
 export const CLI_JUDGE_PHASE5_PROMPT = DEFAULT_PHASE5_PROMPT;
 
 export const WEB_JUDGE_PRIORITIES = [
-  'logical_reasoning',
-  'evidence_quality',
-  'completeness',
-  'real_world_applicability',
-  'nuance',
+  "logical_reasoning",
+  "evidence_quality",
+  "completeness",
+  "real_world_applicability",
+  "nuance",
 ] as const;
 
 const WEB_JUDGE_CONFIG = {
-  source: 'web' as const,
+  source: "web" as const,
   priorities: [...WEB_JUDGE_PRIORITIES],
 };
 
-export function buildJudgePayload(projectContext?: any, mode?: DebateMode): object {
-  const config = getJudgeConfig(mode || 'auto');
+export function buildJudgePayload(
+  projectContext?: any,
+  mode?: DebateMode,
+): object {
+  const config = getJudgeConfig(mode || "auto");
   const phase5Prompt = projectContext
     ? config.phase5Prompt.replace(
-        '{projectContext}',
-        `ProjectContext:\n${JSON.stringify(projectContext, null, 2)}`
+        "{projectContext}",
+        `ProjectContext:\n${JSON.stringify(projectContext, null, 2)}`,
       )
-    : config.phase5Prompt.replace('{projectContext}', '');
+    : config.phase5Prompt.replace("{projectContext}", "");
 
   return {
     judgeConfig: {
@@ -261,25 +355,25 @@ export function buildJudgePayload(projectContext?: any, mode?: DebateMode): obje
   };
 }
 
-export function getJudgeConfig(source: 'cli' | 'web'): JudgeConfig;
+export function getJudgeConfig(source: "cli" | "web"): JudgeConfig;
 export function getJudgeConfig(mode: DebateMode): JudgeConfig;
 export function getJudgeConfig(modeOrSource: string): JudgeConfig {
-  if (modeOrSource === 'web') {
+  if (modeOrSource === "web") {
     return {
-      source: 'web',
+      source: "web",
       priorities: [...WEB_JUDGE_PRIORITIES],
       phase5Prompt: DEFAULT_PHASE5_PROMPT,
       rubric: [...DEFAULT_RUBRIC],
     };
   }
 
-  const mode = (modeOrSource === 'cli' ? 'auto' : modeOrSource) as DebateMode;
+  const mode = (modeOrSource === "cli" ? "auto" : modeOrSource) as DebateMode;
   const priorities = MODE_PRIORITY_OVERRIDES[mode] || [...DEFAULT_PRIORITIES];
   const rubric = MODE_RUBRIC_OVERRIDES[mode] || [...DEFAULT_RUBRIC];
   const phase5Prompt = MODE_PHASE5_PROMPTS[mode] || DEFAULT_PHASE5_PROMPT;
 
   return {
-    source: 'cli',
+    source: "cli",
     priorities: [...priorities],
     phase5Prompt,
     rubric: [...rubric],

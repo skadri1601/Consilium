@@ -13,15 +13,19 @@ import { Label } from "@/shared/components/ui/label";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
-import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
+import {
+  AGENTS,
+  MIN_AGENTS_PER_DEBATE,
+  MAX_AGENTS_PER_DEBATE,
+} from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
 
 export function PreferencesSettings() {
   const { preferences, updatePreferences, isLoaded } = useUserPreferences();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  const [selectedMode, setSelectedMode] = useState<"quick" | "council" | "deep" | "blind">(
-    "council"
-  );
+  const [selectedMode, setSelectedMode] = useState<
+    "quick" | "council" | "deep" | "blind"
+  >("council");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const { toast } = useToast();
@@ -123,7 +127,8 @@ export function PreferencesSettings() {
 
               let borderStyle = "border-border hover:bg-accent";
               if (isSelected) borderStyle = "border-primary bg-primary/10";
-              else if (isDisabled) borderStyle = "opacity-50 cursor-not-allowed border-border";
+              else if (isDisabled)
+                borderStyle = "opacity-50 cursor-not-allowed border-border";
 
               return (
                 <button
@@ -133,7 +138,7 @@ export function PreferencesSettings() {
                   disabled={isDisabled}
                   className={cn(
                     "w-full rounded-lg border p-3 text-left transition-colors",
-                    borderStyle
+                    borderStyle,
                   )}
                 >
                   <div className="flex items-start justify-between">
@@ -181,7 +186,7 @@ export function PreferencesSettings() {
                 "w-full rounded-lg border p-4 text-left transition-colors",
                 selectedMode === "council"
                   ? "border-primary bg-primary/10"
-                  : "border-border hover:bg-accent"
+                  : "border-border hover:bg-accent",
               )}
             >
               <div className="flex items-center gap-3">
@@ -190,7 +195,7 @@ export function PreferencesSettings() {
                     "h-4 w-4 rounded-full border-2 flex items-center justify-center",
                     selectedMode === "council"
                       ? "border-primary"
-                      : "border-muted-foreground"
+                      : "border-muted-foreground",
                   )}
                 >
                   {selectedMode === "council" && (
@@ -213,7 +218,7 @@ export function PreferencesSettings() {
                 "w-full rounded-lg border p-4 text-left transition-colors",
                 selectedMode === "blind"
                   ? "border-primary bg-primary/10"
-                  : "border-border hover:bg-accent"
+                  : "border-border hover:bg-accent",
               )}
             >
               <div className="flex items-center gap-3">
@@ -222,7 +227,7 @@ export function PreferencesSettings() {
                     "h-4 w-4 rounded-full border-2 flex items-center justify-center",
                     selectedMode === "blind"
                       ? "border-primary"
-                      : "border-muted-foreground"
+                      : "border-muted-foreground",
                   )}
                 >
                   {selectedMode === "blind" && (
@@ -232,8 +237,7 @@ export function PreferencesSettings() {
                 <div>
                   <Label className="font-medium cursor-pointer">Blind</Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Agents respond independently without seeing other
-                    responses
+                    Agents respond independently without seeing other responses
                   </p>
                 </div>
               </div>
@@ -244,7 +248,9 @@ export function PreferencesSettings() {
 
       <Button
         onClick={handleSave}
-        disabled={saving || !dirty || selectedAgents.length < MIN_AGENTS_PER_DEBATE}
+        disabled={
+          saving || !dirty || selectedAgents.length < MIN_AGENTS_PER_DEBATE
+        }
         className="w-full"
       >
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

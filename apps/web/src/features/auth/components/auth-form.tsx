@@ -41,11 +41,13 @@ export function AuthForm({ mode }: AuthFormProps) {
             <h1 className="font-display font-light text-[clamp(28px,4vw,40px)] tracking-[-0.025em] leading-[1.1] text-ink-primary">
               {isSignIn ? (
                 <>
-                  Re-enter <em className="not-italic text-warm">the council.</em>
+                  Re-enter{" "}
+                  <em className="not-italic text-warm">the council.</em>
                 </>
               ) : (
                 <>
-                  Convene your <em className="not-italic text-warm">first council.</em>
+                  Convene your{" "}
+                  <em className="not-italic text-warm">first council.</em>
                 </>
               )}
             </h1>

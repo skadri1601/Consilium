@@ -159,7 +159,10 @@ function appendMatchingEntriesFromFile(
   results: LogEntry[],
 ): void {
   const content = fs.readFileSync(path.join(LOG_DIR, file), "utf-8");
-  const lines = content.split("\n").filter((l) => l.trim()).reverse();
+  const lines = content
+    .split("\n")
+    .filter((l) => l.trim())
+    .reverse();
 
   for (const line of lines) {
     if (results.length >= limit) break;

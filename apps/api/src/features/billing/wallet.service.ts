@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../shared/database';
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../../shared/database";
 
 @Injectable()
 export class WalletService {
@@ -13,13 +13,21 @@ export class WalletService {
     return wallet;
   }
 
-  async getBalance(userId: string): Promise<{ balanceCents: number; currency: string }> {
+  async getBalance(
+    userId: string,
+  ): Promise<{ balanceCents: number; currency: string }> {
     const wallet = await this.getOrCreateWallet(userId);
     return { balanceCents: wallet.balanceCents, currency: wallet.currency };
   }
 
-  async credit(userId: string, amountCents: number, description: string, metadata?: Record<string, unknown>): Promise<void> {
-    if (amountCents <= 0) throw new BadRequestException('Credit amount must be positive');
+  async credit(
+    userId: string,
+    amountCents: number,
+    description: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
+    if (amountCents <= 0)
+      throw new BadRequestException("Credit amount must be positive");
     const wallet = await this.getOrCreateWallet(userId);
     await this.prisma.$transaction([
       this.prisma.wallet.update({
@@ -29,7 +37,7 @@ export class WalletService {
       this.prisma.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          type: 'CREDIT',
+          type: "CREDIT",
           amountCents,
           description,
           metadata: metadata as any,
@@ -46,12 +54,13 @@ export class WalletService {
     modelId?: string;
     debateId?: string;
   }): Promise<void> {
-    const { userId, amountCents, description, provider, modelId, debateId } = params;
+    const { userId, amountCents, description, provider, modelId, debateId } =
+      params;
     if (amountCents <= 0) return;
 
     const wallet = await this.getOrCreateWallet(userId);
     if (wallet.balanceCents < amountCents) {
-      throw new BadRequestException('Insufficient wallet balance');
+      throw new BadRequestException("Insufficient wallet balance");
     }
 
     await this.prisma.$transaction([
@@ -62,7 +71,7 @@ export class WalletService {
       this.prisma.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          type: 'DEBIT',
+          type: "DEBIT",
           amountCents,
           description,
           provider,
@@ -77,13 +86,17 @@ export class WalletService {
     const wallet = await this.getOrCreateWallet(userId);
     return this.prisma.walletTransaction.findMany({
       where: { walletId: wallet.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
     });
   }
 
-  async creditFromStripePayment(userId: string, amountCents: number, stripePaymentIntentId: string): Promise<void> {
+  async creditFromStripePayment(
+    userId: string,
+    amountCents: number,
+    stripePaymentIntentId: string,
+  ): Promise<void> {
     const wallet = await this.getOrCreateWallet(userId);
     const existing = await this.prisma.walletTransaction.findFirst({
       where: { stripePaymentIntentId },
@@ -98,9 +111,9 @@ export class WalletService {
       this.prisma.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          type: 'CREDIT',
+          type: "CREDIT",
           amountCents,
-          description: 'Wallet top-up via Stripe',
+          description: "Wallet top-up via Stripe",
           stripePaymentIntentId,
         },
       }),

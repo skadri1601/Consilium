@@ -37,41 +37,41 @@ consilium sessions resume <id>
 
 ## Commands
 
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `consilium debate <topic>` | `ask` | Start a multi-model debate |
-| `consilium chat` | | Interactive REPL with session persistence |
-| `consilium config set\|get\|list` | | Configuration management |
-| `consilium login` | | Web-based authentication (opens browser) |
-| `consilium debug <debateId>` | | Full debate trace |
-| `consilium logs <debateId>` | | Query debate logs |
-| `consilium stats` | | Model performance dashboard |
-| `consilium sessions list\|resume\|rename\|delete` | | Manage saved sessions |
+| Command                                           | Alias | Description                               |
+| ------------------------------------------------- | ----- | ----------------------------------------- |
+| `consilium debate <topic>`                        | `ask` | Start a multi-model debate                |
+| `consilium chat`                                  |       | Interactive REPL with session persistence |
+| `consilium config set\|get\|list`                 |       | Configuration management                  |
+| `consilium login`                                 |       | Web-based authentication (opens browser)  |
+| `consilium debug <debateId>`                      |       | Full debate trace                         |
+| `consilium logs <debateId>`                       |       | Query debate logs                         |
+| `consilium stats`                                 |       | Model performance dashboard               |
+| `consilium sessions list\|resume\|rename\|delete` |       | Manage saved sessions                     |
 
 ## Debate Options
 
-| Flag | Description |
-|------|-------------|
-| `-m, --models <models...>` | Select models for the debate |
-| `--output <format>` | Output format: markdown, cursorrules, claude-md, json |
-| `--mode <mode>` | Set debate mode (see below) |
-| `--file <paths...>` | Attach files as context (e.g., `--file src/auth.ts diagram.png`) |
-| `--git-diff` | Include current git diff as context |
-| `--ticket <id>` | Include a Linear ticket as context (e.g., `MYC-123`) |
-| `--apply` | Apply structured edits from synthesis directly to files |
+| Flag                       | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `-m, --models <models...>` | Select models for the debate                                     |
+| `--output <format>`        | Output format: markdown, cursorrules, claude-md, json            |
+| `--mode <mode>`            | Set debate mode (see below)                                      |
+| `--file <paths...>`        | Attach files as context (e.g., `--file src/auth.ts diagram.png`) |
+| `--git-diff`               | Include current git diff as context                              |
+| `--ticket <id>`            | Include a Linear ticket as context (e.g., `MYC-123`)             |
+| `--apply`                  | Apply structured edits from synthesis directly to files          |
 
 ## Debate Modes
 
-| Mode | Rounds | Cost | Description |
-|------|--------|------|-------------|
-| `quick` | 1 | ~$0.01 | Single round, fastest results |
-| `council` | 3 | ~$0.04 | Multi-round deliberation (default) |
-| `deep` | 3 | ~$0.08 | Multi-round with sub-agent research |
-| `blind` | 3 | ~$0.04 | Anonymous — models don't see each other's names |
-| `redteam` | 4 | ~$0.10 | Adversarial testing, finds attack surfaces |
-| `jury` | 3 | ~$0.05 | Panel with mandatory dissent tracking |
-| `market` | 5 | ~$0.09 | Prediction-market style with confidence voting |
-| `auto` | 3 | ~$0.04 | Auto-selects the best mode for your topic |
+| Mode      | Rounds | Cost   | Description                                     |
+| --------- | ------ | ------ | ----------------------------------------------- |
+| `quick`   | 1      | ~$0.01 | Single round, fastest results                   |
+| `council` | 3      | ~$0.04 | Multi-round deliberation (default)              |
+| `deep`    | 3      | ~$0.08 | Multi-round with sub-agent research             |
+| `blind`   | 3      | ~$0.04 | Anonymous — models don't see each other's names |
+| `redteam` | 4      | ~$0.10 | Adversarial testing, finds attack surfaces      |
+| `jury`    | 3      | ~$0.05 | Panel with mandatory dissent tracking           |
+| `market`  | 5      | ~$0.09 | Prediction-market style with confidence voting  |
+| `auto`    | 3      | ~$0.04 | Auto-selects the best mode for your topic       |
 
 ```bash
 consilium debate "Microservices vs monolith" --mode deep
@@ -81,13 +81,13 @@ consilium debate "Which approach?" --mode auto
 
 ## Output Formats
 
-| Format | Use Case |
-|--------|----------|
-| `markdown` | General documentation |
-| `cursorrules` | Cursor IDE rules file |
-| `claude-md` | CLAUDE.md instructions |
-| `json` | Programmatic consumption |
-| `text` | Plain text |
+| Format        | Use Case                 |
+| ------------- | ------------------------ |
+| `markdown`    | General documentation    |
+| `cursorrules` | Cursor IDE rules file    |
+| `claude-md`   | CLAUDE.md instructions   |
+| `json`        | Programmatic consumption |
+| `text`        | Plain text               |
 
 ```bash
 consilium debate "Error handling strategy" --output cursorrules
@@ -130,14 +130,14 @@ consilium benchmark --benchmark mmlu -n 20
 consilium benchmark --benchmark truthfulqa --local -n 10 --output results.json
 ```
 
-| Flag | Description |
-|------|-------------|
-| `--benchmark <name>` | Required: `mmlu`, `truthfulqa`, or `humaneval` |
-| `-m, --models <models...>` | Models to use as debaters |
-| `--mode <mode>` | Deliberation mode (default: council) |
-| `-n <count>` | Number of questions to run |
-| `--output <path>` | Save JSON results to file |
-| `--local` | Run via local Python agent instead of API |
+| Flag                       | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `--benchmark <name>`       | Required: `mmlu`, `truthfulqa`, or `humaneval` |
+| `-m, --models <models...>` | Models to use as debaters                      |
+| `--mode <mode>`            | Deliberation mode (default: council)           |
+| `-n <count>`               | Number of questions to run                     |
+| `--output <path>`          | Save JSON results to file                      |
+| `--local`                  | Run via local Python agent instead of API      |
 
 ## Eval
 

@@ -33,7 +33,10 @@ export function useUserPreferences() {
     const resolvedMode =
       rawMode === "visible"
         ? "council"
-        : rawMode === "quick" || rawMode === "council" || rawMode === "deep" || rawMode === "blind"
+        : rawMode === "quick" ||
+            rawMode === "council" ||
+            rawMode === "deep" ||
+            rawMode === "blind"
           ? rawMode
           : DEFAULT_PREFERENCES.defaultMode;
 
@@ -64,7 +67,7 @@ export function useUserPreferences() {
         },
       });
     },
-    [user, preferences]
+    [user, preferences],
   );
 
   return {

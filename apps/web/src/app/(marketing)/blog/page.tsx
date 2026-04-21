@@ -7,7 +7,12 @@ import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "./blog-data";
 
-const categories: Array<"All" | BlogCategory> = ["All","Benchmarks","Engineering","Product","Research",
+const categories: Array<"All" | BlogCategory> = [
+  "All",
+  "Benchmarks",
+  "Engineering",
+  "Product",
+  "Research",
 ];
 
 const categoryColors: Record<BlogCategory, string> = {
@@ -26,7 +31,9 @@ function formatDate(dateStr: string) {
 }
 
 export default function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>("All");
+  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>(
+    "All",
+  );
 
   const filtered =
     activeCategory === "All"
@@ -45,7 +52,8 @@ export default function BlogPage() {
             Notes from the <em>council.</em>
           </h1>
           <p className="mt-6 max-w-[560px] text-[17px] leading-[1.55] text-ink-secondary">
-            Benchmarks, engineering posts, and research write-ups on multi-agent deliberation.
+            Benchmarks, engineering posts, and research write-ups on multi-agent
+            deliberation.
           </p>
         </div>
       </section>
@@ -56,10 +64,11 @@ export default function BlogPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                 activeCategory === cat
                   ? "bg-white text-black"
-                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]"
+                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]",
               )}
             >
               {cat}
@@ -74,7 +83,9 @@ export default function BlogPage() {
           >
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1">
-                <Badge className={cn("mb-4", categoryColors[featured.category])}>
+                <Badge
+                  className={cn("mb-4", categoryColors[featured.category])}
+                >
                   {featured.category}
                 </Badge>
                 <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">

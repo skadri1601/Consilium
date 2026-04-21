@@ -121,4 +121,3 @@ export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
     </tr>
   );
 }
-

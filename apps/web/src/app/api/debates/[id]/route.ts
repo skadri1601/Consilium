@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
@@ -24,7 +24,7 @@ export async function GET(
       const errorText = await response.text().catch(() => "");
       return NextResponse.json(
         { error: errorText || "Failed to fetch debate" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -32,14 +32,14 @@ export async function GET(
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch debate" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
@@ -62,7 +62,7 @@ export async function PATCH(
       const errorText = await response.text().catch(() => "");
       return NextResponse.json(
         { error: errorText || "Failed to update debate" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -70,14 +70,14 @@ export async function PATCH(
   } catch {
     return NextResponse.json(
       { error: "Failed to update debate" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
@@ -97,7 +97,7 @@ export async function DELETE(
       const errorText = await response.text().catch(() => "");
       return NextResponse.json(
         { error: errorText || "Failed to delete debate" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -105,7 +105,7 @@ export async function DELETE(
   } catch {
     return NextResponse.json(
       { error: "Failed to delete debate" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

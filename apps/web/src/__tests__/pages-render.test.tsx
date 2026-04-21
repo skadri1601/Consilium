@@ -8,9 +8,9 @@ vi.mock("framer-motion", () => {
       {
         get: (_target: unknown, prop: string) =>
           React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
-            React.createElement(prop, { ...props, ref })
+            React.createElement(prop, { ...props, ref }),
           ),
-      }
+      },
     ),
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
     useScroll: () => ({ scrollY: { getPrevious: () => 0 } }),
@@ -114,9 +114,7 @@ describe("Marketing Pages", () => {
 
     it("renders h1 heading", () => {
       render(<LandingPage />);
-      expect(
-        screen.getByRole("heading", { level: 1 })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
     });
 
     it("renders all 8 deliberation mode labels", () => {
@@ -162,7 +160,7 @@ describe("Marketing Pages", () => {
       render(<AboutPage />);
       expect(screen.getByText("Our Mission")).toBeInTheDocument();
       expect(
-        screen.getByText(/What Makes Consilium Different/i)
+        screen.getByText(/What Makes Consilium Different/i),
       ).toBeInTheDocument();
       expect(screen.getByText("Our Story")).toBeInTheDocument();
       expect(screen.getByText("Open Source Philosophy")).toBeInTheDocument();
@@ -182,7 +180,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<BlogPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /notes from/i })
+        screen.getByRole("heading", { level: 1, name: /notes from/i }),
       ).toBeInTheDocument();
     });
 
@@ -191,7 +189,9 @@ describe("Marketing Pages", () => {
       const filterSection = screen.getByText("All").parentElement!;
       expect(within(filterSection).getByText("All")).toBeInTheDocument();
       expect(within(filterSection).getByText("Benchmarks")).toBeInTheDocument();
-      expect(within(filterSection).getByText("Engineering")).toBeInTheDocument();
+      expect(
+        within(filterSection).getByText("Engineering"),
+      ).toBeInTheDocument();
       expect(within(filterSection).getByText("Research")).toBeInTheDocument();
     });
 
@@ -199,8 +199,8 @@ describe("Marketing Pages", () => {
       render(<BlogPage />);
       expect(
         screen.getByText(
-          "Benchmark Results: Council Deliberation vs Single Models"
-        )
+          "Benchmark Results: Council Deliberation vs Single Models",
+        ),
       ).toBeInTheDocument();
     });
 
@@ -217,9 +217,7 @@ describe("Marketing Pages", () => {
 
     it("renders h1 heading", () => {
       render(<PricingPage />);
-      expect(
-        screen.getByRole("heading", { level: 1 })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
     });
 
     it("renders pricing tiers", () => {
@@ -251,7 +249,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<DocsPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /ship|everything/i })
+        screen.getByRole("heading", { level: 1, name: /ship|everything/i }),
       ).toBeInTheDocument();
     });
 
@@ -324,7 +322,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<ContactPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /hello/i })
+        screen.getByRole("heading", { level: 1, name: /hello/i }),
       ).toBeInTheDocument();
     });
 
@@ -349,7 +347,10 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<UseCasesPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /how teams use|deliberation in practice/i })
+        screen.getByRole("heading", {
+          level: 1,
+          name: /how teams use|deliberation in practice/i,
+        }),
       ).toBeInTheDocument();
     });
 
@@ -358,7 +359,9 @@ describe("Marketing Pages", () => {
       expect(screen.getByText("Code Review")).toBeInTheDocument();
       expect(screen.getByText("Research Synthesis")).toBeInTheDocument();
       expect(screen.getByText("Risk Assessment")).toBeInTheDocument();
-      expect(screen.getByText("Healthcare Decision Support")).toBeInTheDocument();
+      expect(
+        screen.getByText("Healthcare Decision Support"),
+      ).toBeInTheDocument();
       expect(screen.getByText("Legal Analysis")).toBeInTheDocument();
       expect(screen.getByText("Financial Analysis")).toBeInTheDocument();
     });
@@ -372,18 +375,19 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<ResearchPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /science|peer-reviewed/i })
+        screen.getByRole("heading", {
+          level: 1,
+          name: /science|peer-reviewed/i,
+        }),
       ).toBeInTheDocument();
     });
 
     it("renders research papers", () => {
       render(<ResearchPage />);
       expect(
-        screen.getByText(/Improving Factuality and Reasoning/i)
+        screen.getByText(/Improving Factuality and Reasoning/i),
       ).toBeInTheDocument();
-      expect(
-        screen.getByText(/AI Safety via Debate/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/AI Safety via Debate/i)).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -400,7 +404,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<CommunityPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /contribute|council/i })
+        screen.getByRole("heading", { level: 1, name: /contribute|council/i }),
       ).toBeInTheDocument();
     });
 
@@ -425,7 +429,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<PrivacyPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /privacy policy/i })
+        screen.getByRole("heading", { level: 1, name: /privacy policy/i }),
       ).toBeInTheDocument();
     });
   });
@@ -438,7 +442,7 @@ describe("Marketing Pages", () => {
     it("renders h1 heading", () => {
       render(<TermsPage />);
       expect(
-        screen.getByRole("heading", { level: 1, name: /terms of service/i })
+        screen.getByRole("heading", { level: 1, name: /terms of service/i }),
       ).toBeInTheDocument();
     });
   });
@@ -454,7 +458,7 @@ describe("Marketing Pages", () => {
         screen.getByRole("heading", {
           level: 1,
           name: /frequently/i,
-        })
+        }),
       ).toBeInTheDocument();
     });
 
@@ -462,11 +466,11 @@ describe("Marketing Pages", () => {
       render(<FAQPage />);
       expect(screen.getByText("What is Consilium?")).toBeInTheDocument();
       expect(
-        screen.getByText("How do I self-host Consilium?")
+        screen.getByText("How do I self-host Consilium?"),
       ).toBeInTheDocument();
       expect(screen.getByText("Is Consilium free?")).toBeInTheDocument();
       expect(
-        screen.getByText("How much does a typical deliberation cost?")
+        screen.getByText("How much does a typical deliberation cost?"),
       ).toBeInTheDocument();
     });
   });
@@ -602,7 +606,7 @@ describe("Layout Components", () => {
     it("uses custom link", () => {
       const { container } = render(<Logo link="/dashboard" />);
       expect(
-        container.querySelector('a[href="/dashboard"]')
+        container.querySelector('a[href="/dashboard"]'),
       ).toBeInTheDocument();
     });
   });
@@ -668,14 +672,12 @@ describe("Feature Components", () => {
 
     it("renders without throwing", () => {
       expect(() =>
-        render(<VoteVisualization {...defaultProps} />)
+        render(<VoteVisualization {...defaultProps} />),
       ).not.toThrow();
     });
 
     it("renders with empty votes", () => {
-      const { container } = render(
-        <VoteVisualization votes={[]} />
-      );
+      const { container } = render(<VoteVisualization votes={[]} />);
       expect(container.innerHTML).toBe("");
     });
   });
@@ -707,15 +709,13 @@ describe("Feature Components", () => {
     it("renders majority position", () => {
       render(<DissentReport {...defaultProps} />);
       expect(
-        screen.getByText("Majority agrees on approach A")
+        screen.getByText("Majority agrees on approach A"),
       ).toBeInTheDocument();
     });
 
     it("renders minority position", () => {
       render(<DissentReport {...defaultProps} />);
-      expect(
-        screen.getByText("Alternative approach B")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Alternative approach B")).toBeInTheDocument();
     });
   });
 
@@ -757,7 +757,7 @@ describe("Feature Components", () => {
 
     it("renders without throwing", () => {
       expect(() =>
-        render(<SplitPaneComparison {...defaultProps} />)
+        render(<SplitPaneComparison {...defaultProps} />),
       ).not.toThrow();
     });
 
@@ -770,7 +770,7 @@ describe("Feature Components", () => {
     it("renders model outputs", () => {
       render(<SplitPaneComparison {...defaultProps} />);
       expect(
-        screen.getByText("Claude's proposal content here.")
+        screen.getByText("Claude's proposal content here."),
       ).toBeInTheDocument();
     });
   });
@@ -800,8 +800,16 @@ describe("Feature Components", () => {
           },
         ],
         roundCosts: [
-          { round: 1, totalCost: 0.005, models: { "claude-sonnet-4-20250514": 0.003, "gpt-4o": 0.002 } },
-          { round: 2, totalCost: 0.0075, models: { "claude-sonnet-4-20250514": 0.005, "gpt-4o": 0.0025 } },
+          {
+            round: 1,
+            totalCost: 0.005,
+            models: { "claude-sonnet-4-20250514": 0.003, "gpt-4o": 0.002 },
+          },
+          {
+            round: 2,
+            totalCost: 0.0075,
+            models: { "claude-sonnet-4-20250514": 0.005, "gpt-4o": 0.0025 },
+          },
         ],
         cumulativeCosts: [
           { timestamp: "2026-04-01T10:00:00Z", cost: 0.005, round: 1 },

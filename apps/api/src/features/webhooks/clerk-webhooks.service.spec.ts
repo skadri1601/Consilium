@@ -16,7 +16,9 @@ const mockUser = {
 
 describe("ClerkWebhooksService", () => {
   let service: ClerkWebhooksService;
-  let prismaService: { user: { findUnique: jest.Mock; create: jest.Mock; update: jest.Mock } };
+  let prismaService: {
+    user: { findUnique: jest.Mock; create: jest.Mock; update: jest.Mock };
+  };
   let emailService: { sendWelcomeEmail: jest.Mock };
   let auditLogger: { log: jest.Mock };
 

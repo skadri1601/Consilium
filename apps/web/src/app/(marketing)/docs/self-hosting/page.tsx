@@ -1,56 +1,167 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Self-Hosting",
-  description: "Self-host Consilium on your own infrastructure — Docker Compose, Kubernetes, or a single droplet. Deploy the web app, API, debate engine, and workers.",
+  description:
+    "Self-host Consilium on your own infrastructure — Docker Compose, Kubernetes, or a single droplet. Deploy the web app, API, debate engine, and workers.",
   path: "/docs/self-hosting",
-  keywords: ["self-host consilium","docker ai council","open source ai debate"],
+  keywords: [
+    "self-host consilium",
+    "docker ai council",
+    "open source ai debate",
+  ],
 });
 
 const dockerServices = [
-  { name: "PostgreSQL 16", container: "consilium_postgres", port: "5432", desc: "Primary database" },
-  { name: "Redis 7", container: "consilium_redis", port: "6379", desc: "Queue, cache, SSE relay" },
-  { name: "NestJS API", container: "consilium_api", port: "4000", desc: "REST API, auth, BullMQ" },
-  { name: "FastAPI Agents", container: "consilium_agents", port: "8000", desc: "Deliberation engine" },
-  { name: "Next.js Web", container: "consilium_web", port: "3000", desc: "Frontend application" },
-  { name: "Redis Commander", container: "redis-commander", port: "8081", desc: "Dev: Redis browser" },
-  { name: "MailHog", container: "mailhog", port: "8025", desc: "Dev: Email testing" },
+  {
+    name: "PostgreSQL 16",
+    container: "consilium_postgres",
+    port: "5432",
+    desc: "Primary database",
+  },
+  {
+    name: "Redis 7",
+    container: "consilium_redis",
+    port: "6379",
+    desc: "Queue, cache, SSE relay",
+  },
+  {
+    name: "NestJS API",
+    container: "consilium_api",
+    port: "4000",
+    desc: "REST API, auth, BullMQ",
+  },
+  {
+    name: "FastAPI Agents",
+    container: "consilium_agents",
+    port: "8000",
+    desc: "Deliberation engine",
+  },
+  {
+    name: "Next.js Web",
+    container: "consilium_web",
+    port: "3000",
+    desc: "Frontend application",
+  },
+  {
+    name: "Redis Commander",
+    container: "redis-commander",
+    port: "8081",
+    desc: "Dev: Redis browser",
+  },
+  {
+    name: "MailHog",
+    container: "mailhog",
+    port: "8025",
+    desc: "Dev: Email testing",
+  },
 ];
 
 const envVars = [
-  { category: "Core", vars: [
-    { name: "DATABASE_URL", desc: "PostgreSQL connection string", required: true },
-    { name: "REDIS_URL", desc: "Redis connection string (or use UPSTASH_REDIS_URL + UPSTASH_REDIS_TOKEN)", required: true },
-    { name: "NODE_ENV", desc: "development | production", required: false },
-  ]},
-  { category: "Authentication", vars: [
-    { name: "CLERK_SECRET_KEY", desc: "Clerk backend secret key", required: true },
-    { name: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", desc: "Clerk frontend publishable key", required: true },
-  ]},
-  { category: "LLM Providers (at least one required)", vars: [
-    { name: "ANTHROPIC_API_KEY", desc: "Anthropic Claude models", required: false },
-    { name: "OPENAI_API_KEY", desc: "OpenAI GPT models", required: false },
-    { name: "GOOGLE_API_KEY", desc: "Google Gemini models", required: false },
-    { name: "GROQ_API_KEY", desc: "Groq Llama models (free tier)", required: false },
-    { name: "XAI_API_KEY", desc: "xAI Grok models", required: false },
-  ]},
-  { category: "Frontend", vars: [
-    { name: "NEXT_PUBLIC_API_URL", desc: "API URL (default: http://localhost:4000)", required: false },
-  ]},
-  { category: "Observability (optional)", vars: [
-    { name: "SENTRY_DSN", desc: "Sentry error tracking DSN", required: false },
-    { name: "SENTRY_AUTH_TOKEN", desc: "Sentry authentication token", required: false },
-    { name: "POSTHOG_API_KEY", desc: "PostHog analytics key", required: false },
-    { name: "POSTHOG_HOST", desc: "PostHog host (default: https://us.i.posthog.com)", required: false },
-  ]},
-  { category: "CORS", vars: [
-    { name: "CORS_ORIGINS", desc: "Comma-separated allowed origins (default: localhost:3000,localhost:3001)", required: false },
-  ]},
+  {
+    category: "Core",
+    vars: [
+      {
+        name: "DATABASE_URL",
+        desc: "PostgreSQL connection string",
+        required: true,
+      },
+      {
+        name: "REDIS_URL",
+        desc: "Redis connection string (or use UPSTASH_REDIS_URL + UPSTASH_REDIS_TOKEN)",
+        required: true,
+      },
+      { name: "NODE_ENV", desc: "development | production", required: false },
+    ],
+  },
+  {
+    category: "Authentication",
+    vars: [
+      {
+        name: "CLERK_SECRET_KEY",
+        desc: "Clerk backend secret key",
+        required: true,
+      },
+      {
+        name: "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+        desc: "Clerk frontend publishable key",
+        required: true,
+      },
+    ],
+  },
+  {
+    category: "LLM Providers (at least one required)",
+    vars: [
+      {
+        name: "ANTHROPIC_API_KEY",
+        desc: "Anthropic Claude models",
+        required: false,
+      },
+      { name: "OPENAI_API_KEY", desc: "OpenAI GPT models", required: false },
+      { name: "GOOGLE_API_KEY", desc: "Google Gemini models", required: false },
+      {
+        name: "GROQ_API_KEY",
+        desc: "Groq Llama models (free tier)",
+        required: false,
+      },
+      { name: "XAI_API_KEY", desc: "xAI Grok models", required: false },
+    ],
+  },
+  {
+    category: "Frontend",
+    vars: [
+      {
+        name: "NEXT_PUBLIC_API_URL",
+        desc: "API URL (default: http://localhost:4000)",
+        required: false,
+      },
+    ],
+  },
+  {
+    category: "Observability (optional)",
+    vars: [
+      {
+        name: "SENTRY_DSN",
+        desc: "Sentry error tracking DSN",
+        required: false,
+      },
+      {
+        name: "SENTRY_AUTH_TOKEN",
+        desc: "Sentry authentication token",
+        required: false,
+      },
+      {
+        name: "POSTHOG_API_KEY",
+        desc: "PostHog analytics key",
+        required: false,
+      },
+      {
+        name: "POSTHOG_HOST",
+        desc: "PostHog host (default: https://us.i.posthog.com)",
+        required: false,
+      },
+    ],
+  },
+  {
+    category: "CORS",
+    vars: [
+      {
+        name: "CORS_ORIGINS",
+        desc: "Comma-separated allowed origins (default: localhost:3000,localhost:3001)",
+        required: false,
+      },
+    ],
+  },
 ];
 
 export default function SelfHostingPage() {
@@ -63,28 +174,46 @@ export default function SelfHostingPage() {
             Run the council <em>yourself.</em>
           </h1>
           <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
-            Docker Compose deployment, every environment variable, service topology, health checks, and production tips.
+            Docker Compose deployment, every environment variable, service
+            topology, health checks, and production tips.
           </p>
         </div>
       </section>
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-4xl mx-auto space-y-12">
-
           <Card>
-            <CardHeader><CardTitle className="text-lg">Prerequisites</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Prerequisites</CardTitle>
+            </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Docker &amp; Docker Compose v2+</li>
-                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Node.js 20+ and pnpm (for manual setup without Docker)</li>
-                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>2GB RAM minimum, 4GB recommended</li>
-                <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>API keys for at least one LLM provider (or use Groq free tier at $0)</li>
+                <li className="flex items-start gap-2">
+                  <span className="text-warm mt-0.5">&#8226;</span>Docker &amp;
+                  Docker Compose v2+
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-warm mt-0.5">&#8226;</span>Node.js 20+
+                  and pnpm (for manual setup without Docker)
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-warm mt-0.5">&#8226;</span>2GB RAM
+                  minimum, 4GB recommended
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-warm mt-0.5">&#8226;</span>API keys for
+                  at least one LLM provider (or use Groq free tier at $0)
+                </li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Quick Start (Docker Compose)</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Quick Start (Docker Compose)
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-4">
               <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
@@ -94,7 +223,11 @@ cp .env.example .env
 docker compose -f docker-compose.selfhost.yml up`}</code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                Once running, open <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">http://localhost:3000</code> to access the web app.
+                Once running, open{" "}
+                <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">
+                  http://localhost:3000
+                </code>{" "}
+                to access the web app.
               </p>
             </CardContent>
           </Card>
@@ -105,19 +238,36 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Service</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Container</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Port</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Description</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Service
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Container
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Port
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {dockerServices.map((s) => (
-                    <tr key={s.name} className="border-b border-white/[0.06] last:border-0">
+                    <tr
+                      key={s.name}
+                      className="border-b border-white/[0.06] last:border-0"
+                    >
                       <td className="px-4 py-2.5 font-medium">{s.name}</td>
-                      <td className="px-4 py-2.5 font-mono text-xs text-warm">{s.container}</td>
-                      <td className="px-4 py-2.5 font-mono text-muted-foreground">{s.port}</td>
-                      <td className="px-4 py-2.5 text-xs text-muted-foreground">{s.desc}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-warm">
+                        {s.container}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-muted-foreground">
+                        {s.port}
+                      </td>
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                        {s.desc}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -130,20 +280,35 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
             <div className="space-y-6">
               {envVars.map((group) => (
                 <Card key={group.category}>
-                  <CardHeader><CardTitle className="text-base">{group.category}</CardTitle></CardHeader>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {group.category}
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <div className="rounded-xl border border-white/[0.06] overflow-hidden">
                       <table className="w-full text-sm">
                         <tbody>
                           {group.vars.map((v) => (
-                            <tr key={v.name} className="border-b border-white/[0.06] last:border-0">
-                              <td className="px-4 py-2.5 font-mono text-xs text-warm whitespace-nowrap">{v.name}</td>
-                              <td className="px-4 py-2.5 text-xs text-muted-foreground">{v.desc}</td>
+                            <tr
+                              key={v.name}
+                              className="border-b border-white/[0.06] last:border-0"
+                            >
+                              <td className="px-4 py-2.5 font-mono text-xs text-warm whitespace-nowrap">
+                                {v.name}
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                                {v.desc}
+                              </td>
                               <td className="px-4 py-2.5">
                                 {v.required ? (
-                                  <Badge className="bg-red-500/10 text-dissent border-red-500/20 text-xs">Required</Badge>
+                                  <Badge className="bg-red-500/10 text-dissent border-red-500/20 text-xs">
+                                    Required
+                                  </Badge>
                                 ) : (
-                                  <Badge className="bg-neutral-500/10 text-ink-secondary border-neutral-500/20 text-xs">Optional</Badge>
+                                  <Badge className="bg-neutral-500/10 text-ink-secondary border-neutral-500/20 text-xs">
+                                    Optional
+                                  </Badge>
                                 )}
                               </td>
                             </tr>
@@ -158,7 +323,11 @@ docker compose -f docker-compose.selfhost.yml up`}</code>
           </div>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Manual Setup (Without Docker)</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Manual Setup (Without Docker)
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-4">
               <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
@@ -173,13 +342,22 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
 ./run.sh`}</code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                The <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">run.sh</code> script checks prerequisites (Node.js 20+, pnpm), installs dependencies, generates the Prisma client, and spawns all three services in parallel with graceful shutdown handling via SIGINT/SIGTERM traps.
+                The{" "}
+                <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">
+                  run.sh
+                </code>{" "}
+                script checks prerequisites (Node.js 20+, pnpm), installs
+                dependencies, generates the Prisma client, and spawns all three
+                services in parallel with graceful shutdown handling via
+                SIGINT/SIGTERM traps.
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Health Checks</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Health Checks</CardTitle>
+            </CardHeader>
             <CardContent>
               <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                 <code className="text-muted-foreground">{`# API health (includes DB connectivity, memory checks)
@@ -192,35 +370,80 @@ curl http://localhost:8000/health
 curl http://localhost:3000`}</code>
               </pre>
               <p className="text-sm text-muted-foreground mt-3">
-                The API health endpoint checks database connectivity, memory heap/RSS limits, and returns readiness status for container orchestration.
+                The API health endpoint checks database connectivity, memory
+                heap/RSS limits, and returns readiness status for container
+                orchestration.
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Production Deployment Tips</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Production Deployment Tips
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid gap-2">
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">Managed Database</span> — Use Neon for managed PostgreSQL with auto-scaling, branching, and zero downtime</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">
+                      Managed Database
+                    </span>{" "}
+                    — Use Neon for managed PostgreSQL with auto-scaling,
+                    branching, and zero downtime
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">Managed Redis</span> — Use Upstash for serverless Redis with per-request pricing and global replication</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">Managed Redis</span>{" "}
+                    — Use Upstash for serverless Redis with per-request pricing
+                    and global replication
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">Environment</span> — Set <code className="text-xs bg-black/30 px-1 py-0.5 rounded">NODE_ENV=production</code> for optimized builds and error handling</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">Environment</span> —
+                    Set{" "}
+                    <code className="text-xs bg-black/30 px-1 py-0.5 rounded">
+                      NODE_ENV=production
+                    </code>{" "}
+                    for optimized builds and error handling
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">CORS</span> — Configure <code className="text-xs bg-black/30 px-1 py-0.5 rounded">CORS_ORIGINS</code> with your actual domain(s)</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">CORS</span> —
+                    Configure{" "}
+                    <code className="text-xs bg-black/30 px-1 py-0.5 rounded">
+                      CORS_ORIGINS
+                    </code>{" "}
+                    with your actual domain(s)
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">Monitoring</span> — Enable Sentry (<code className="text-xs bg-black/30 px-1 py-0.5 rounded">SENTRY_DSN</code>) for error tracking and PostHog for analytics</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">Monitoring</span> —
+                    Enable Sentry (
+                    <code className="text-xs bg-black/30 px-1 py-0.5 rounded">
+                      SENTRY_DSN
+                    </code>
+                    ) for error tracking and PostHog for analytics
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">SSL</span> — Use a reverse proxy (nginx or Caddy) for SSL termination in front of the services</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">SSL</span> — Use a
+                    reverse proxy (nginx or Caddy) for SSL termination in front
+                    of the services
+                  </p>
                 </div>
                 <div className="rounded-lg bg-bg-1 p-3">
-                  <p className="text-sm"><span className="text-warm font-medium">Resources</span> — Minimum: 2GB RAM, 2 vCPUs. Recommended: 4GB RAM for concurrent deliberations</p>
+                  <p className="text-sm">
+                    <span className="text-warm font-medium">Resources</span> —
+                    Minimum: 2GB RAM, 2 vCPUs. Recommended: 4GB RAM for
+                    concurrent deliberations
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -232,7 +455,11 @@ curl http://localhost:3000`}</code>
               <div>
                 <p className="font-medium mb-1">Data Sovereignty</p>
                 <p className="text-sm text-muted-foreground">
-                  Self-hosted Consilium keeps all data on your infrastructure. API keys are encrypted with AES-256-GCM and never leave your environment. LLM API calls go directly from your servers to providers. No telemetry is sent to Consilium servers unless you explicitly configure it.
+                  Self-hosted Consilium keeps all data on your infrastructure.
+                  API keys are encrypted with AES-256-GCM and never leave your
+                  environment. LLM API calls go directly from your servers to
+                  providers. No telemetry is sent to Consilium servers unless
+                  you explicitly configure it.
                 </p>
               </div>
             </div>

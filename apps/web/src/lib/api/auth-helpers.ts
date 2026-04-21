@@ -28,7 +28,8 @@ export function shouldBypassAuth(authError?: unknown): boolean {
     const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
     const secretKey = process.env.CLERK_SECRET_KEY;
     const hasPlaceholder = (value?: string) => !value || value.includes("...");
-    const hasValidKeys = !hasPlaceholder(publishableKey) && !hasPlaceholder(secretKey);
+    const hasValidKeys =
+      !hasPlaceholder(publishableKey) && !hasPlaceholder(secretKey);
 
     if (!hasValidKeys) return true;
   }
@@ -40,10 +41,13 @@ export function shouldBypassAuth(authError?: unknown): boolean {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const secretKey = process.env.CLERK_SECRET_KEY;
   const hasPlaceholder = (value?: string) => !value || value.includes("...");
-  const hasValidKeys = !hasPlaceholder(publishableKey) && !hasPlaceholder(secretKey);
+  const hasValidKeys =
+    !hasPlaceholder(publishableKey) && !hasPlaceholder(secretKey);
 
   if (!hasValidKeys && authError) {
-    console.warn("[auth] Clerk keys not configured; bypassing auth for local dev.");
+    console.warn(
+      "[auth] Clerk keys not configured; bypassing auth for local dev.",
+    );
   }
 
   return !hasValidKeys;

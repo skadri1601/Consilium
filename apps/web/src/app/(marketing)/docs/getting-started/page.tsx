@@ -1,22 +1,61 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Globe, Terminal, Code, Server, Key, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  ArrowLeft,
+  Globe,
+  Terminal,
+  Code,
+  Server,
+  Key,
+  Shield,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Getting Started",
-  description: "Quickstart for Consilium — sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+  description:
+    "Quickstart for Consilium — sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
   path: "/docs/getting-started",
 });
 
 const providers = [
-  { name: "Anthropic", env: "ANTHROPIC_API_KEY", models: "Claude Opus 4.6, Sonnet 4.5, Haiku 4.5", free: false },
-  { name: "OpenAI", env: "OPENAI_API_KEY", models: "GPT-4o, 4o-mini, 4.1, o3-mini", free: false },
-  { name: "Google", env: "GOOGLE_API_KEY", models: "Gemini 2.0 Flash, 2.5 Flash, 2.5 Pro", free: false },
-  { name: "Groq", env: "GROQ_API_KEY", models: "Llama 3.1 8B, 3.3 70B, 4 Scout", free: true },
-  { name: "xAI", env: "XAI_API_KEY", models: "Grok 2, Grok 2 Mini", free: false },
+  {
+    name: "Anthropic",
+    env: "ANTHROPIC_API_KEY",
+    models: "Claude Opus 4.6, Sonnet 4.5, Haiku 4.5",
+    free: false,
+  },
+  {
+    name: "OpenAI",
+    env: "OPENAI_API_KEY",
+    models: "GPT-4o, 4o-mini, 4.1, o3-mini",
+    free: false,
+  },
+  {
+    name: "Google",
+    env: "GOOGLE_API_KEY",
+    models: "Gemini 2.0 Flash, 2.5 Flash, 2.5 Pro",
+    free: false,
+  },
+  {
+    name: "Groq",
+    env: "GROQ_API_KEY",
+    models: "Llama 3.1 8B, 3.3 70B, 4 Scout",
+    free: true,
+  },
+  {
+    name: "xAI",
+    env: "XAI_API_KEY",
+    models: "Grok 2, Grok 2 Mini",
+    free: false,
+  },
 ];
 
 export default function GettingStartedPage() {
@@ -26,21 +65,27 @@ export default function GettingStartedPage() {
         <div className="container-narrow">
           <div className="eyebrow mb-5">Getting started</div>
           <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
-            Run your <em>first</em><br />deliberation.
+            Run your <em>first</em>
+            <br />
+            deliberation.
           </h1>
           <p className="mt-6 max-w-[640px] text-[17px] leading-[1.55] text-ink-secondary">
-            Install the CLI, grab an API key, and ship your first Council verdict in under five minutes.
+            Install the CLI, grab an API key, and ship your first Council
+            verdict in under five minutes.
           </p>
         </div>
       </section>
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-4xl mx-auto space-y-16">
-
           <div className="rounded-2xl border border-warm/20 bg-warm/8 p-6">
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Choose your path: </span>
-              Consilium can be used through the web app (no setup), SDKs and CLI (for engineers), or self-hosted (full control). Pick the approach that fits your workflow.
+              <span className="font-medium text-foreground">
+                Choose your path:{" "}
+              </span>
+              Consilium can be used through the web app (no setup), SDKs and CLI
+              (for engineers), or self-hosted (full control). Pick the approach
+              that fits your workflow.
             </p>
           </div>
 
@@ -48,53 +93,83 @@ export default function GettingStartedPage() {
             <div className="flex items-center gap-3 mb-6">
               <Globe className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">For Users: Web App</h2>
-              <Badge className="bg-agree/14 text-agree border-agree/30">Easiest</Badge>
+              <Badge className="bg-agree/14 text-agree border-agree/30">
+                Easiest
+              </Badge>
             </div>
 
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">1. Create an Account</CardTitle>
+                  <CardTitle className="text-base">
+                    1. Create an Account
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Sign up at myconsilium.xyz. Authentication is handled by Clerk with support for email, Google, and GitHub sign-in methods. Your account gives you access to the deliberation dashboard, debate history, analytics, and API key management.
+                    Sign up at myconsilium.xyz. Authentication is handled by
+                    Clerk with support for email, Google, and GitHub sign-in
+                    methods. Your account gives you access to the deliberation
+                    dashboard, debate history, analytics, and API key
+                    management.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">2. Add Your API Keys (BYOK)</CardTitle>
+                  <CardTitle className="text-base">
+                    2. Add Your API Keys (BYOK)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Consilium uses a Bring Your Own Keys model. Navigate to Settings and add API keys for the providers you want to use. All keys are encrypted with AES-256-GCM before storage — they are never stored in plaintext or logged. You need at least one provider key, but using 2-3 different providers gives you genuine model diversity in debates.
+                    Consilium uses a Bring Your Own Keys model. Navigate to
+                    Settings and add API keys for the providers you want to use.
+                    All keys are encrypted with AES-256-GCM before storage —
+                    they are never stored in plaintext or logged. You need at
+                    least one provider key, but using 2-3 different providers
+                    gives you genuine model diversity in debates.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">No keys? </span>
-                    Consilium automatically falls back to Groq&apos;s free tier models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) when no paid keys are configured.
+                    <span className="font-medium text-foreground">
+                      No keys?{" "}
+                    </span>
+                    Consilium automatically falls back to Groq&apos;s free tier
+                    models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) when no
+                    paid keys are configured.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">3. Start Your First Deliberation</CardTitle>
+                  <CardTitle className="text-base">
+                    3. Start Your First Deliberation
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Go to the Council page. Enter your topic or question, select a deliberation mode (Council is the default), and choose 2-5 AI models. Click &quot;Start Deliberation&quot; and watch the debate unfold in real-time via Server-Sent Events streaming.
+                    Go to the Council page. Enter your topic or question, select
+                    a deliberation mode (Council is the default), and choose 2-5
+                    AI models. Click &quot;Start Deliberation&quot; and watch
+                    the debate unfold in real-time via Server-Sent Events
+                    streaming.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    You&apos;ll see each phase live: models proposing independently, cross-examining each other, defending their positions, voting, and finally synthesizing a consensus answer.
+                    You&apos;ll see each phase live: models proposing
+                    independently, cross-examining each other, defending their
+                    positions, voting, and finally synthesizing a consensus
+                    answer.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">4. Understanding Your Results</CardTitle>
+                  <CardTitle className="text-base">
+                    4. Understanding Your Results
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
@@ -102,26 +177,66 @@ export default function GettingStartedPage() {
                   </p>
                   <div className="grid gap-3">
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Golden Prompt</span> — The synthesized final answer integrating the strongest arguments from all models</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Golden Prompt
+                        </span>{" "}
+                        — The synthesized final answer integrating the strongest
+                        arguments from all models
+                      </p>
                     </div>
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Confidence Scores</span> — Per-model calibrated confidence based on explanation stability (how much each model changed its position under pressure)</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Confidence Scores
+                        </span>{" "}
+                        — Per-model calibrated confidence based on explanation
+                        stability (how much each model changed its position
+                        under pressure)
+                      </p>
                     </div>
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Dissent Report</span> — Majority and minority positions identified via agglomerative clustering. Shows where models agreed and where they fundamentally disagreed</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Dissent Report
+                        </span>{" "}
+                        — Majority and minority positions identified via
+                        agglomerative clustering. Shows where models agreed and
+                        where they fundamentally disagreed
+                      </p>
                     </div>
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Vote Results</span> — Condorcet winner (if any), Borda scores, full ranking. Shows which position won and by what margin</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Vote Results
+                        </span>{" "}
+                        — Condorcet winner (if any), Borda scores, full ranking.
+                        Shows which position won and by what margin
+                      </p>
                     </div>
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Audit Trail</span> — Every step recorded: model, input, output, tokens used, cost, latency. Full transparency into how consensus was reached</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Audit Trail
+                        </span>{" "}
+                        — Every step recorded: model, input, output, tokens
+                        used, cost, latency. Full transparency into how
+                        consensus was reached
+                      </p>
                     </div>
                     <div className="rounded-lg bg-bg-1 p-3">
-                      <p className="text-sm"><span className="text-warm font-medium">Cost Breakdown</span> — Per-model, per-round cost tracking with total cost and token usage</p>
+                      <p className="text-sm">
+                        <span className="text-warm font-medium">
+                          Cost Breakdown
+                        </span>{" "}
+                        — Per-model, per-round cost tracking with total cost and
+                        token usage
+                      </p>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Export results as Markdown, .cursorrules files, plain text, or copy to clipboard.
+                    Export results as Markdown, .cursorrules files, plain text,
+                    or copy to clipboard.
                   </p>
                 </CardContent>
               </Card>
@@ -131,8 +246,12 @@ export default function GettingStartedPage() {
           <div id="engineer">
             <div className="flex items-center gap-3 mb-6">
               <Terminal className="h-6 w-6 text-warm" />
-              <h2 className="text-2xl font-bold">For Engineers: SDK &amp; CLI</h2>
-              <Badge className="bg-agree/14 text-agree border-agree/30">Recommended</Badge>
+              <h2 className="text-2xl font-bold">
+                For Engineers: SDK &amp; CLI
+              </h2>
+              <Badge className="bg-agree/14 text-agree border-agree/30">
+                Recommended
+              </Badge>
             </div>
 
             <div className="space-y-6">
@@ -142,12 +261,20 @@ export default function GettingStartedPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
-                    <code className="text-agree">npm install -g @myconsilium/cli</code>
+                    <code className="text-agree">
+                      npm install -g @myconsilium/cli
+                    </code>
                   </pre>
-                  <p className="text-sm text-muted-foreground">Or with yarn/pnpm:</p>
+                  <p className="text-sm text-muted-foreground">
+                    Or with yarn/pnpm:
+                  </p>
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto space-y-1">
-                    <code className="text-muted-foreground block">yarn global add @myconsilium/cli</code>
-                    <code className="text-muted-foreground block">pnpm add -g @myconsilium/cli</code>
+                    <code className="text-muted-foreground block">
+                      yarn global add @myconsilium/cli
+                    </code>
+                    <code className="text-muted-foreground block">
+                      pnpm add -g @myconsilium/cli
+                    </code>
                   </pre>
                 </CardContent>
               </Card>
@@ -161,14 +288,25 @@ export default function GettingStartedPage() {
                     <code className="text-muted-foreground">{`consilium login`}</code>
                   </pre>
                   <p className="text-sm text-muted-foreground">
-                    Opens your browser for Clerk authentication. On success, a CLI token is stored in <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">~/.consilium/config.json</code>. Alternatively, set the <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">CONSILIUM_API_KEY</code> environment variable.
+                    Opens your browser for Clerk authentication. On success, a
+                    CLI token is stored in{" "}
+                    <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">
+                      ~/.consilium/config.json
+                    </code>
+                    . Alternatively, set the{" "}
+                    <code className="text-xs bg-bg-1 px-1.5 py-0.5 rounded">
+                      CONSILIUM_API_KEY
+                    </code>{" "}
+                    environment variable.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Run Your First Deliberation (CLI)</CardTitle>
+                  <CardTitle className="text-base">
+                    Run Your First Deliberation (CLI)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
@@ -178,14 +316,20 @@ export default function GettingStartedPage() {
   --output markdown`}</code>
                   </pre>
                   <p className="text-sm text-muted-foreground mt-3">
-                    The CLI renders the debate in real-time with agent progress bars, phase transitions, convergence tracking, and cost updates. The final synthesis is formatted according to your chosen output format (text, markdown, cursorrules, claude-md, or json).
+                    The CLI renders the debate in real-time with agent progress
+                    bars, phase transitions, convergence tracking, and cost
+                    updates. The final synthesis is formatted according to your
+                    chosen output format (text, markdown, cursorrules,
+                    claude-md, or json).
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Run Your First Deliberation (Python SDK)</CardTitle>
+                  <CardTitle className="text-base">
+                    Run Your First Deliberation (Python SDK)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
@@ -216,11 +360,15 @@ print(f"Dissent: {result.dissent_report}")`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Run Your First Deliberation (TypeScript SDK)</CardTitle>
+                  <CardTitle className="text-base">
+                    Run Your First Deliberation (TypeScript SDK)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
-                    <code className="text-agree">npm install @myconsilium/sdk</code>
+                    <code className="text-agree">
+                      npm install @myconsilium/sdk
+                    </code>
                   </pre>
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`import { ConsiliumClient } from "@myconsilium/sdk";
@@ -250,7 +398,9 @@ console.log(\`Cost: \$\${result.cost.toFixed(4)}\`);`}</code>
             <div className="flex items-center gap-3 mb-6">
               <Server className="h-6 w-6 text-warm" />
               <h2 className="text-2xl font-bold">For Integrators: Self-Host</h2>
-              <Badge className="bg-warm/12 text-warm border-warm/20">Full Control</Badge>
+              <Badge className="bg-warm/12 text-warm border-warm/20">
+                Full Control
+              </Badge>
             </div>
 
             <div className="space-y-6">
@@ -260,17 +410,31 @@ console.log(\`Cost: \$\${result.cost.toFixed(4)}\`);`}</code>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Docker &amp; Docker Compose v2+</li>
-                    <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>Node.js 20+ and pnpm (for manual setup without Docker)</li>
-                    <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>2GB RAM minimum, 4GB recommended</li>
-                    <li className="flex items-start gap-2"><span className="text-warm mt-0.5">&#8226;</span>API keys for at least one LLM provider (or use Groq free tier)</li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-warm mt-0.5">&#8226;</span>Docker
+                      &amp; Docker Compose v2+
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-warm mt-0.5">&#8226;</span>Node.js
+                      20+ and pnpm (for manual setup without Docker)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-warm mt-0.5">&#8226;</span>2GB RAM
+                      minimum, 4GB recommended
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-warm mt-0.5">&#8226;</span>API keys
+                      for at least one LLM provider (or use Groq free tier)
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Docker Compose (Recommended)</CardTitle>
+                  <CardTitle className="text-base">
+                    Docker Compose (Recommended)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
@@ -281,14 +445,19 @@ cp .env.example .env
 docker compose -f docker-compose.selfhost.yml up`}</code>
                   </pre>
                   <p className="text-sm text-muted-foreground mt-3">
-                    This starts 5 services: PostgreSQL 16 (port 5432), Redis 7 (port 6379), NestJS API (port 4000), FastAPI Agents (port 8000), and Next.js Web (port 3000). Plus Redis Commander (8081) and MailHog (8025) for development.
+                    This starts 5 services: PostgreSQL 16 (port 5432), Redis 7
+                    (port 6379), NestJS API (port 4000), FastAPI Agents (port
+                    8000), and Next.js Web (port 3000). Plus Redis Commander
+                    (8081) and MailHog (8025) for development.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Manual Setup (Without Docker)</CardTitle>
+                  <CardTitle className="text-base">
+                    Manual Setup (Without Docker)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
@@ -300,7 +469,9 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
 ./run.sh  # Starts web (3000), api (4000), agents (8000)`}</code>
                   </pre>
                   <p className="text-sm text-muted-foreground mt-3">
-                    The run.sh script checks prerequisites, installs dependencies, generates the Prisma client, and spawns all three services in parallel with graceful shutdown handling.
+                    The run.sh script checks prerequisites, installs
+                    dependencies, generates the Prisma client, and spawns all
+                    three services in parallel with graceful shutdown handling.
                   </p>
                 </CardContent>
               </Card>
@@ -319,23 +490,42 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Provider</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Environment Variable</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Models</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Free?</th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Provider
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Environment Variable
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Models
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Free?
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {providers.map((p) => (
-                        <tr key={p.name} className="border-b border-white/[0.06] last:border-0">
+                        <tr
+                          key={p.name}
+                          className="border-b border-white/[0.06] last:border-0"
+                        >
                           <td className="px-4 py-3 font-medium">{p.name}</td>
-                          <td className="px-4 py-3 font-mono text-xs text-warm">{p.env}</td>
-                          <td className="px-4 py-3 text-muted-foreground text-xs">{p.models}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-warm">
+                            {p.env}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                            {p.models}
+                          </td>
                           <td className="px-4 py-3">
                             {p.free ? (
-                              <Badge className="bg-agree/14 text-agree border-agree/30">Free</Badge>
+                              <Badge className="bg-agree/14 text-agree border-agree/30">
+                                Free
+                              </Badge>
                             ) : (
-                              <span className="text-muted-foreground text-xs">Paid</span>
+                              <span className="text-muted-foreground text-xs">
+                                Paid
+                              </span>
                             )}
                           </td>
                         </tr>
@@ -346,7 +536,9 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
                 <div className="mt-4 flex items-start gap-2 rounded-lg bg-bg-1 p-3">
                   <Shield className="h-4 w-4 mt-0.5 shrink-0 text-agree" />
                   <p className="text-sm text-muted-foreground">
-                    All API keys are encrypted with AES-256-GCM before storage. Keys are never stored in plaintext, never logged, and never leave your environment in self-hosted deployments.
+                    All API keys are encrypted with AES-256-GCM before storage.
+                    Keys are never stored in plaintext, never logged, and never
+                    leave your environment in self-hosted deployments.
                   </p>
                 </div>
               </CardContent>

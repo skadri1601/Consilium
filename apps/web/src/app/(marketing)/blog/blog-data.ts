@@ -1,4 +1,8 @@
-export type BlogCategory = "Benchmarks" | "Research" | "Product" | "Engineering";
+export type BlogCategory =
+  | "Benchmarks"
+  | "Research"
+  | "Product"
+  | "Engineering";
 
 export interface BlogPost {
   slug: string;

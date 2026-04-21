@@ -8,7 +8,8 @@ export default function PersonasPage() {
         eyebrow="Personas"
         title={
           <>
-            Voices the Council can <em className="not-italic text-warm">summon.</em>
+            Voices the Council can{" "}
+            <em className="not-italic text-warm">summon.</em>
           </>
         }
         description="Custom system prompts that shape how each model approaches the topic. Reuse them across deliberations."

@@ -100,7 +100,8 @@ export class CreateDeliberationDto {
   responses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    description: "Stored on the debate session for analytics (web, cli, mcp, deliberation)",
+    description:
+      "Stored on the debate session for analytics (web, cli, mcp, deliberation)",
     enum: ["web", "cli", "mcp", "deliberation"],
   })
   @IsOptional()
@@ -108,14 +109,16 @@ export class CreateDeliberationDto {
   debateSource?: string;
 
   @ApiPropertyOptional({
-    description: "Structured workspace or tool context (merged with eval responses when present)",
+    description:
+      "Structured workspace or tool context (merged with eval responses when present)",
   })
   @IsOptional()
   @IsObject()
   projectContext?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    description: "Optional request context (e.g. files for workers); merged into stored projectContext",
+    description:
+      "Optional request context (e.g. files for workers); merged into stored projectContext",
   })
   @IsOptional()
   @IsObject()

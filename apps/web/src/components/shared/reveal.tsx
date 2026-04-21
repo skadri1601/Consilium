@@ -32,7 +32,7 @@ export function Reveal({
           }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -48,10 +48,7 @@ export function Reveal({
           : undefined;
 
   return (
-    <As
-      ref={ref as never}
-      className={cn("reveal", delayClass, className)}
-    >
+    <As ref={ref as never} className={cn("reveal", delayClass, className)}>
       {children}
     </As>
   );

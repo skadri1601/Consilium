@@ -16,4 +16,10 @@ export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
   xai: "xAI",
 };
 
-export const JUDGE_PRIORITY: Provider[] = ["anthropic", "google", "openai", "xai", "groq"];
+export const JUDGE_PRIORITY: Provider[] = [
+  "anthropic",
+  "google",
+  "openai",
+  "xai",
+  "groq",
+];

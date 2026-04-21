@@ -8,7 +8,8 @@ export default function HistoryPage() {
         eyebrow="History"
         title={
           <>
-            Every verdict, with its <em className="not-italic text-warm">audit trail.</em>
+            Every verdict, with its{" "}
+            <em className="not-italic text-warm">audit trail.</em>
           </>
         }
         description="Past Council sessions are preserved verbatim — proposals, challenges, rebuttals, and the reasoning behind each verdict."

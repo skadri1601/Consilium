@@ -1,15 +1,15 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes } from "node:crypto";
 
-export type IdPrefix = 'dbt' | 'cnv' | 'msg' | 'log';
+export type IdPrefix = "dbt" | "cnv" | "msg" | "log";
 
-const VALID_PREFIXES = new Set<string>(['dbt', 'cnv', 'msg', 'log']);
+const VALID_PREFIXES = new Set<string>(["dbt", "cnv", "msg", "log"]);
 
 export function generateId(prefix: IdPrefix): string {
-  return `${prefix}_${randomBytes(12).toString('hex')}`;
+  return `${prefix}_${randomBytes(12).toString("hex")}`;
 }
 
 export function parseId(id: string): { prefix: string; randomPart: string } {
-  const separatorIndex = id.indexOf('_');
+  const separatorIndex = id.indexOf("_");
   if (separatorIndex === -1) {
     throw new Error(`Invalid prefixed ID: ${id}`);
   }

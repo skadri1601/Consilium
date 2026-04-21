@@ -3,7 +3,12 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/components/ui/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/shared/components/ui/tabs";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { cn } from "@/shared/lib/utils";
 
@@ -27,12 +32,35 @@ interface SplitPaneComparisonProps {
   defaultPhase?: Phase;
 }
 
-const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  openai: { bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400", border: "border-emerald-500/30" },
-  anthropic: { bg: "bg-orange-500/10", text: "text-orange-700 dark:text-orange-400", border: "border-orange-500/30" },
-  google: { bg: "bg-blue-500/10", text: "text-blue-700 dark:text-blue-400", border: "border-blue-500/30" },
-  groq: { bg: "bg-purple-500/10", text: "text-purple-700 dark:text-purple-400", border: "border-purple-500/30" },
-  xai: { bg: "bg-rose-500/10", text: "text-rose-700 dark:text-rose-400", border: "border-rose-500/30" },
+const PROVIDER_COLORS: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  openai: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-700 dark:text-emerald-400",
+    border: "border-emerald-500/30",
+  },
+  anthropic: {
+    bg: "bg-orange-500/10",
+    text: "text-orange-700 dark:text-orange-400",
+    border: "border-orange-500/30",
+  },
+  google: {
+    bg: "bg-blue-500/10",
+    text: "text-blue-700 dark:text-blue-400",
+    border: "border-blue-500/30",
+  },
+  groq: {
+    bg: "bg-purple-500/10",
+    text: "text-purple-700 dark:text-purple-400",
+    border: "border-purple-500/30",
+  },
+  xai: {
+    bg: "bg-rose-500/10",
+    text: "text-rose-700 dark:text-rose-400",
+    border: "border-rose-500/30",
+  },
 };
 
 const PROVIDER_DOT_COLORS: Record<string, string> = {
@@ -44,7 +72,11 @@ const PROVIDER_DOT_COLORS: Record<string, string> = {
 };
 
 function normalizeText(text: string): string {
-  return text.toLowerCase().replaceAll(/[^\w\s]/g, "").replaceAll(/\s+/g, " ").trim();
+  return text
+    .toLowerCase()
+    .replaceAll(/[^\w\s]/g, "")
+    .replaceAll(/\s+/g, " ")
+    .trim();
 }
 
 function splitIntoSentences(text: string): string[] {
@@ -76,7 +108,7 @@ interface SentenceAnnotation {
 
 function annotateSentences(
   sentences: string[],
-  allOtherOutputs: string[][]
+  allOtherOutputs: string[][],
 ): SentenceAnnotation[] {
   return sentences.map((sentence) => {
     if (sentence.trim().length < 10) {
@@ -98,7 +130,9 @@ function annotateSentences(
   });
 }
 
-function AnnotatedText({ annotations }: Readonly<{ annotations: SentenceAnnotation[] }>) {
+function AnnotatedText({
+  annotations,
+}: Readonly<{ annotations: SentenceAnnotation[] }>) {
   return (
     <div className="text-sm leading-relaxed whitespace-pre-wrap">
       {annotations.map((a, i) => (
@@ -106,8 +140,9 @@ function AnnotatedText({ annotations }: Readonly<{ annotations: SentenceAnnotati
           key={`${a.agreement}-${a.text.slice(0, 48)}-${i}`}
           className={cn(
             "rounded-sm px-0.5",
-            a.agreement === "agree" && "bg-emerald-500/15 dark:bg-emerald-500/20",
-            a.agreement === "disagree" && "bg-red-500/15 dark:bg-red-500/20"
+            a.agreement === "agree" &&
+              "bg-emerald-500/15 dark:bg-emerald-500/20",
+            a.agreement === "disagree" && "bg-red-500/15 dark:bg-red-500/20",
           )}
         >
           {a.text}{" "}
@@ -136,16 +171,23 @@ function ModelPane({
         "flex flex-col h-full",
         modelCount <= 2 && "min-w-0 flex-1",
         modelCount === 3 && "min-w-0 flex-1",
-        modelCount >= 4 && "min-w-0 flex-1"
+        modelCount >= 4 && "min-w-0 flex-1",
       )}
     >
       <CardHeader className="pb-3 pt-4 px-4">
         <div className="flex items-center gap-2">
           <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", dotColor)} />
-          <span className="text-sm font-semibold truncate">{output.modelName}</span>
+          <span className="text-sm font-semibold truncate">
+            {output.modelName}
+          </span>
           <Badge
             variant="outline"
-            className={cn("ml-auto shrink-0 text-[10px] px-1.5 py-0", colors.bg, colors.text, colors.border)}
+            className={cn(
+              "ml-auto shrink-0 text-[10px] px-1.5 py-0",
+              colors.bg,
+              colors.text,
+              colors.border,
+            )}
           >
             {output.provider}
           </Badge>
@@ -186,7 +228,9 @@ export function SplitPaneComparison({
     const map: Record<string, SentenceAnnotation[][]> = {};
 
     for (const phase of phases) {
-      const sentencesByModel = phase.outputs.map((o) => splitIntoSentences(o.content));
+      const sentencesByModel = phase.outputs.map((o) =>
+        splitIntoSentences(o.content),
+      );
       const annotated = phase.outputs.map((_, idx) => {
         const otherSentences = sentencesByModel.filter((_, j) => j !== idx);
         return annotateSentences(sentencesByModel[idx], otherSentences);
@@ -234,7 +278,8 @@ export function SplitPaneComparison({
                   count === 2 && "grid-cols-1 md:grid-cols-2",
                   count === 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
                   count === 4 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
-                  count >= 5 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+                  count >= 5 &&
+                    "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5",
                 )}
               >
                 {phase.outputs.map((output, idx) => (

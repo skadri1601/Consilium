@@ -15,7 +15,7 @@ interface ClerkUserData {
 
 async function syncUserToBackend(
   action: "create" | "update" | "delete",
-  userData: ClerkUserData
+  userData: ClerkUserData,
 ) {
   const primaryEmail = userData.email_addresses?.[0]?.email_address;
 
@@ -38,7 +38,9 @@ async function syncUserToBackend(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Failed to sync user to backend: ${response.status} - ${errorText}`);
+      console.error(
+        `Failed to sync user to backend: ${response.status} - ${errorText}`,
+      );
       return false;
     }
 
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
     console.error("CLERK_WEBHOOK_SECRET is not set");
     return NextResponse.json(
       { error: "Webhook secret not configured" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -68,7 +70,7 @@ export async function POST(req: Request) {
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return NextResponse.json(
       { error: "Missing svix headers" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -85,10 +87,7 @@ export async function POST(req: Request) {
     }) as WebhookEvent;
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
-    return NextResponse.json(
-      { error: "Invalid signature" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   const eventType = evt.type;
@@ -96,13 +95,13 @@ export async function POST(req: Request) {
   switch (eventType) {
     case "user.created": {
       const userData = evt.data as ClerkUserData;
-      
+
       const success = await syncUserToBackend("create", userData);
       if (!success) {
         // Return 500 to trigger retry
         return NextResponse.json(
           { error: "Failed to sync user" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -110,7 +109,11 @@ export async function POST(req: Request) {
         const client = await clerkClient();
         await client.users.updateUser(userData.id, {
           unsafeMetadata: {
-            defaultAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
+            defaultAgents: [
+              "gpt-4o-mini",
+              "claude-3-5-haiku-latest",
+              "gemini-2.0-flash",
+            ],
             defaultMode: "visible",
           },
         });
@@ -127,7 +130,7 @@ export async function POST(req: Request) {
       if (!success) {
         return NextResponse.json(
           { error: "Failed to sync user" },
-          { status: 500 }
+          { status: 500 },
         );
       }
       break;
@@ -135,11 +138,14 @@ export async function POST(req: Request) {
 
     case "user.deleted": {
       const userData = evt.data as { id: string };
-      const success = await syncUserToBackend("delete", userData as ClerkUserData);
+      const success = await syncUserToBackend(
+        "delete",
+        userData as ClerkUserData,
+      );
       if (!success) {
         return NextResponse.json(
           { error: "Failed to delete user" },
-          { status: 500 }
+          { status: 500 },
         );
       }
       break;
@@ -175,4 +181,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ received: true });
 }
-

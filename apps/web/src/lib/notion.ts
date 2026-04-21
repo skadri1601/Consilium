@@ -24,7 +24,8 @@ function renderRichText(richText: RichTextItemResponse[]): string {
       if (t.annotations.italic) text = `<em>${text}</em>`;
       if (t.annotations.code) text = `<code>${text}</code>`;
       if (t.annotations.strikethrough) text = `<del>${text}</del>`;
-      if (t.href) text = `<a href="${t.href}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${text}</a>`;
+      if (t.href)
+        text = `<a href="${t.href}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${text}</a>`;
       return text;
     })
     .join("");
@@ -77,11 +78,11 @@ function wrapListItems(html: string): string {
   return html
     .replace(
       /(<li class="text-zinc-300 ml-4 list-disc">[\s\S]*?<\/li>)(?!\s*<li class="text-zinc-300 ml-4 list-disc">)/g,
-      "$1</ul>"
+      "$1</ul>",
     )
     .replace(
       /(?<!<\/li>\s*)(<li class="text-zinc-300 ml-4 list-disc">)/,
-      '<ul class="mb-4 space-y-1">$1'
+      '<ul class="mb-4 space-y-1">$1',
     );
 }
 
@@ -91,7 +92,7 @@ export async function fetchNotionPage(pageId: string) {
   let title = "";
   if ("properties" in page) {
     const titleProp = Object.values(page.properties).find(
-      (p) => p.type === "title"
+      (p) => p.type === "title",
     );
     if (titleProp && titleProp.type === "title") {
       title = titleProp.title.map((t) => t.plain_text).join("");

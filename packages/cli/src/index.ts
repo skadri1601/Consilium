@@ -101,9 +101,18 @@ async function main(): Promise<void> {
     )
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
-    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
-    .option("--apply", "Apply structured edits from synthesis directly to files")
-    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
+    .option(
+      "--ticket <id>",
+      "Linear ticket ID to include as context (e.g., MYC-123)",
+    )
+    .option(
+      "--apply",
+      "Apply structured edits from synthesis directly to files",
+    )
+    .option(
+      "--file <paths...>",
+      "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
+    )
     .action(debateCommand);
 
   program
@@ -111,16 +120,28 @@ async function main(): Promise<void> {
     .description("Ask a question (alias for debate)")
     .argument("<topic>", "Question or topic")
     .option("-m, --models <models...>", "Models to use")
-    .option("--mode <mode>", "Debate mode: quick, council, deep, blind, redteam, jury, market, auto")
+    .option(
+      "--mode <mode>",
+      "Debate mode: quick, council, deep, blind, redteam, jury, market, auto",
+    )
     .option(
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json",
     )
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
-    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
-    .option("--apply", "Apply structured edits from synthesis directly to files")
-    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
+    .option(
+      "--ticket <id>",
+      "Linear ticket ID to include as context (e.g., MYC-123)",
+    )
+    .option(
+      "--apply",
+      "Apply structured edits from synthesis directly to files",
+    )
+    .option(
+      "--file <paths...>",
+      "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
+    )
     .action(debateCommand);
 
   program
@@ -142,7 +163,10 @@ async function main(): Promise<void> {
   program
     .command("benchmark")
     .description("Run deliberation benchmarks (MMLU, TruthfulQA, HumanEval)")
-    .requiredOption("--benchmark <name>", "Benchmark: mmlu, truthfulqa, humaneval")
+    .requiredOption(
+      "--benchmark <name>",
+      "Benchmark: mmlu, truthfulqa, humaneval",
+    )
     .option("-m, --models <models...>", "Models to use")
     .option("--mode <mode>", "Deliberation mode (default: council)")
     .option("-n, --n <count>", "Number of questions")
@@ -186,7 +210,9 @@ async function main(): Promise<void> {
 
   program
     .command("mcp")
-    .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
+    .description(
+      "Print MCP (Model Context Protocol) setup for Cursor and Python stdio",
+    )
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
 
@@ -221,9 +247,7 @@ async function main(): Promise<void> {
         console.log(
           st.brand(`  ${i + 1}.`),
           displayLabel,
-          st.dim(
-            `(${s.debateCount} debate${debateSuffix}, ${timeAgo})`,
-          ),
+          st.dim(`(${s.debateCount} debate${debateSuffix}, ${timeAgo})`),
         );
         console.log(st.dim(`     ID: ${s.id}`));
       }

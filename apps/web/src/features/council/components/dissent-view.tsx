@@ -2,7 +2,12 @@
 
 import { motion } from "framer-motion";
 import { Scale, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { getAgentDisplayName } from "../utils/council-helpers";
 
@@ -36,9 +41,12 @@ function SignificanceBadge({ level }: { level: DissentPoint["significance"] }) {
     <span
       className={cn(
         "text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider",
-        level === "high" && "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
-        level === "medium" && "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-        level === "low" && "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+        level === "high" &&
+          "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
+        level === "medium" &&
+          "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+        level === "low" &&
+          "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
       )}
     >
       {level}
@@ -61,7 +69,7 @@ function OpinionCard({
         "rounded-lg border p-4",
         variant === "majority"
           ? "border-green-500/30 bg-green-50/50 dark:bg-green-950/10"
-          : "border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/10"
+          : "border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/10",
       )}
     >
       <div className="flex items-center justify-between mb-2">
@@ -73,7 +81,7 @@ function OpinionCard({
             <div
               className={cn(
                 "h-full rounded-full",
-                variant === "majority" ? "bg-green-500" : "bg-amber-500"
+                variant === "majority" ? "bg-green-500" : "bg-amber-500",
               )}
               style={{ width: `${holder.confidence * 100}%` }}
             />
@@ -86,7 +94,10 @@ function OpinionCard({
       <p className="text-sm text-muted-foreground mb-3">{holder.summary}</p>
       <ul className="space-y-1">
         {holder.keyPoints.map((point, i) => (
-          <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+          <li
+            key={i}
+            className="flex items-start gap-2 text-xs text-muted-foreground"
+          >
             <span className="mt-1 h-1 w-1 rounded-full bg-muted-foreground/50 shrink-0" />
             {point}
           </li>
@@ -116,7 +127,11 @@ export function DissentView({ report }: DissentViewProps) {
             </div>
             <div className="space-y-3">
               {report.majority.map((holder) => (
-                <OpinionCard key={holder.modelId} holder={holder} variant="majority" />
+                <OpinionCard
+                  key={holder.modelId}
+                  holder={holder}
+                  variant="majority"
+                />
               ))}
             </div>
           </div>
@@ -125,12 +140,17 @@ export function DissentView({ report }: DissentViewProps) {
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               <h3 className="text-sm font-semibold">
-                Dissenting Opinion{report.minority.length !== 1 ? "s" : ""} ({report.minority.length})
+                Dissenting Opinion{report.minority.length !== 1 ? "s" : ""} (
+                {report.minority.length})
               </h3>
             </div>
             <div className="space-y-3">
               {report.minority.map((holder) => (
-                <OpinionCard key={holder.modelId} holder={holder} variant="minority" />
+                <OpinionCard
+                  key={holder.modelId}
+                  holder={holder}
+                  variant="minority"
+                />
               ))}
             </div>
           </div>

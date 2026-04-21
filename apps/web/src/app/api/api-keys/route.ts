@@ -18,7 +18,9 @@ export async function GET() {
 
     if (!response.ok) {
       if (response.status === 503 || response.status >= 500) {
-        console.warn(`Backend unavailable (${response.status}), returning empty keys`);
+        console.warn(
+          `Backend unavailable (${response.status}), returning empty keys`,
+        );
         return NextResponse.json({
           openaiKey: null,
           anthropicKey: null,
@@ -90,14 +92,12 @@ export async function PUT(request: NextRequest) {
       console.warn("Backend API not reachable during PUT");
       return NextResponse.json(
         { error: "Backend is not reachable" },
-        { status: 503 }
+        { status: 503 },
       );
     }
     console.error("Error updating API keys:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to update API keys";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to update API keys";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

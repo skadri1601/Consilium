@@ -53,7 +53,7 @@ function NavItem({
         "px-2.5 py-2 rounded-md text-[13px] flex items-center gap-2.5 transition-all duration-200",
         isActive
           ? "bg-warm/12 text-warm"
-          : "text-ink-secondary hover:bg-bg-2 hover:text-ink-primary"
+          : "text-ink-secondary hover:bg-bg-2 hover:text-ink-primary",
       )}
     >
       {label}

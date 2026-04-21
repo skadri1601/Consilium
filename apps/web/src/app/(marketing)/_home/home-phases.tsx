@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 
-type Tone ="agree" |"dissent" |"neutral";
+type Tone = "agree" | "dissent" | "neutral";
 
 type Phase = {
   num: string;
@@ -15,7 +15,7 @@ type Phase = {
 function PE({
   meta,
   body,
-  tone ="neutral",
+  tone = "neutral",
 }: {
   meta: string;
   body: string;
@@ -27,7 +27,7 @@ function PE({
         <span
           className={cn(
             tone === "agree" && "text-agree",
-            tone === "dissent" && "text-dissent"
+            tone === "dissent" && "text-dissent",
           )}
           dangerouslySetInnerHTML={{ __html: meta }}
         />
@@ -69,7 +69,7 @@ function VoteRow({
   meta,
   note,
 }: {
-  kind: "majority" |"minority";
+  kind: "majority" | "minority";
   title: string;
   meta: string;
   note: string;
@@ -77,22 +77,25 @@ function VoteRow({
   const isMaj = kind === "majority";
   return (
     <div
-      className={cn("px-3.5 py-3 rounded-[10px] mb-2",
+      className={cn(
+        "px-3.5 py-3 rounded-[10px] mb-2",
         isMaj && "bg-agree/14 border border-agree/30",
-        !isMaj && "bg-dissent/14 border border-dissent/30"
+        !isMaj && "bg-dissent/14 border border-dissent/30",
       )}
     >
       <div
-        className={cn("flex justify-between items-center mb-1 font-display text-[14px] tracking-[-0.01em]",
+        className={cn(
+          "flex justify-between items-center mb-1 font-display text-[14px] tracking-[-0.01em]",
           isMaj && "text-agree",
-          !isMaj && "text-dissent"
+          !isMaj && "text-dissent",
         )}
       >
         <span>{title}</span>
         <span
-          className={cn("font-mono text-[11px]",
+          className={cn(
+            "font-mono text-[11px]",
             isMaj && "text-agree",
-            !isMaj && "text-dissent"
+            !isMaj && "text-dissent",
           )}
         >
           {meta}
@@ -107,7 +110,8 @@ const phases: Phase[] = [
   {
     num: "01",
     label: "Propose",
-    description: "Each model analyzes the question in isolation and commits to a position with reasoning. No model sees another's answer yet.",
+    description:
+      "Each model analyzes the question in isolation and commits to a position with reasoning. No model sees another's answer yet.",
     example: (
       <div className="flex flex-col gap-2">
         <PE
@@ -131,7 +135,8 @@ const phases: Phase[] = [
   {
     num: "02",
     label: "Challenge",
-    description: "Models read each other's positions and file specific challenges against the reasoning, not the conclusion.",
+    description:
+      "Models read each other's positions and file specific challenges against the reasoning, not the conclusion.",
     example: (
       <div className="flex flex-col gap-2">
         <PE
@@ -152,7 +157,8 @@ const phases: Phase[] = [
   {
     num: "03",
     label: "Rebut",
-    description: "Each model responds to challenges: concede, refute, qualify, or redirect. Positions get revised in view of the exchange.",
+    description:
+      "Each model responds to challenges: concede, refute, qualify, or redirect. Positions get revised in view of the exchange.",
     example: (
       <div className="flex flex-col gap-2">
         <PE
@@ -176,7 +182,8 @@ const phases: Phase[] = [
   {
     num: "04",
     label: "Evaluate",
-    description: "A judge model scores each surviving position on a weighted rubric. No model scores itself.",
+    description:
+      "A judge model scores each surviving position on a weighted rubric. No model scores itself.",
     example: (
       <div>
         <RubricRow label="Correctness" pct={86} weight={30} />
@@ -190,7 +197,8 @@ const phases: Phase[] = [
   {
     num: "05",
     label: "Vote",
-    description: "Models cast ranked ballots weighted by their own confidence. Dissent is preserved, not averaged away.",
+    description:
+      "Models cast ranked ballots weighted by their own confidence. Dissent is preserved, not averaged away.",
     example: (
       <div>
         <VoteRow
@@ -211,7 +219,8 @@ const phases: Phase[] = [
   {
     num: "06",
     label: "Synthesize",
-    description: "The judge integrates majority reasoning and minority dissent into a single verdict with a calibrated confidence score.",
+    description:
+      "The judge integrates majority reasoning and minority dissent into a single verdict with a calibrated confidence score.",
     example: (
       <div className="px-[18px] py-4 bg-bg-1 border border-white/[0.08] rounded-[10px]">
         <div className="flex justify-between items-center mb-3">
@@ -251,25 +260,28 @@ export function HomePhases() {
               key={p.num}
               type="button"
               onClick={() => setActive(idx)}
-              className={cn("relative bg-transparent text-left py-4 px-2 transition-all duration-300 border-t",
-                isActive ? "border-warm" : "border-white/[0.08]"
+              className={cn(
+                "relative bg-transparent text-left py-4 px-2 transition-all duration-300 border-t",
+                isActive ? "border-warm" : "border-white/[0.08]",
               )}
             >
               {isActive && (
                 <span className="absolute -top-px left-0 h-px w-full bg-warm" />
               )}
               <span
-                className={cn("block font-mono text-[10px] tracking-[0.1em] mb-1.5",
-                  isActive ? "text-warm" : "text-ink-muted"
+                className={cn(
+                  "block font-mono text-[10px] tracking-[0.1em] mb-1.5",
+                  isActive ? "text-warm" : "text-ink-muted",
                 )}
               >
                 {p.num}
               </span>
               <span
-                className={cn("block font-display text-[17px] tracking-[-0.01em]",
+                className={cn(
+                  "block font-display text-[17px] tracking-[-0.01em]",
                   isActive
                     ? "text-ink-primary italic"
-                    : "text-ink-tertiary hover:text-ink-secondary"
+                    : "text-ink-tertiary hover:text-ink-secondary",
                 )}
               >
                 {p.label}

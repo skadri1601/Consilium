@@ -24,7 +24,8 @@ const MOCK_DEBATE_ID = "debate-e2e-4f9a-b1c3-7e2d8a6f0c15";
 const MOCK_DEBATES_LIST = [
   {
     id: "debate-hist-001",
-    topic: "Implement a real-time collaborative document editor using CRDTs and WebSocket",
+    topic:
+      "Implement a real-time collaborative document editor using CRDTs and WebSocket",
     status: "completed",
     modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest"],
     totalCost: 0.0342,
@@ -42,7 +43,8 @@ const MOCK_DEBATES_LIST = [
   },
   {
     id: "debate-hist-003",
-    topic: "Design an observability stack with distributed tracing and anomaly detection",
+    topic:
+      "Design an observability stack with distributed tracing and anomaly detection",
     status: "completed",
     modelsUsed: ["claude-3-5-sonnet-latest", "gemini-1.5-pro"],
     totalCost: 0.0256,
@@ -78,7 +80,8 @@ const MOCK_PERSONAS = [
     id: "persona-001",
     name: "Backend Performance Engineer",
     description: "Specialist in high-throughput server architectures",
-    systemPrompt: "You are a backend performance engineer focused on low-latency systems...",
+    systemPrompt:
+      "You are a backend performance engineer focused on low-latency systems...",
     isDefault: false,
   },
 ];
@@ -97,7 +100,8 @@ const MOCK_DEBATE_DETAIL = {
   status: "completed",
   modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest", "gemini-2.0-flash"],
   totalCost: 0.0456,
-  goldenPrompt: "Implement a hexagonal architecture with domain-driven design...",
+  goldenPrompt:
+    "Implement a hexagonal architecture with domain-driven design...",
   createdAt: new Date().toISOString(),
   rounds: [
     {
@@ -109,7 +113,8 @@ const MOCK_DEBATE_DETAIL = {
           id: "msg-001",
           agentId: "gpt-4o",
           modelUsed: "GPT-4o",
-          content: "For the payment processing platform, I recommend an event-sourcing pattern...",
+          content:
+            "For the payment processing platform, I recommend an event-sourcing pattern...",
           cost: 0.012,
           latencyMs: 2340,
         },
@@ -117,7 +122,8 @@ const MOCK_DEBATE_DETAIL = {
           id: "msg-002",
           agentId: "claude-3-5-sonnet-latest",
           modelUsed: "Claude 3.5 Sonnet",
-          content: "The fraud detection subsystem should use a streaming architecture...",
+          content:
+            "The fraud detection subsystem should use a streaming architecture...",
           cost: 0.015,
           latencyMs: 3120,
         },
@@ -133,22 +139,41 @@ function navigateTo(page: Page, path: string) {
 async function mockApiKeysEndpoint(page: Page) {
   await page.route("**/api/api-keys", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_API_KEYS) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_API_KEYS),
+      });
     }
     if (route.request().method() === "PUT") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true }) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
     }
     return route.continue();
   });
 }
 
-async function mockDebatesListEndpoint(page: Page, debates: typeof MOCK_DEBATES_LIST = MOCK_DEBATES_LIST) {
+async function mockDebatesListEndpoint(
+  page: Page,
+  debates: typeof MOCK_DEBATES_LIST = MOCK_DEBATES_LIST,
+) {
   await page.route("**/api/debates?*", (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(debates) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(debates),
+    }),
   );
   await page.route("**/api/debates", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(debates) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(debates),
+      });
     }
     return route.continue();
   });
@@ -167,33 +192,56 @@ async function mockDebateCreateEndpoint(page: Page) {
   });
 }
 
-async function mockDebateStreamEndpoint(page: Page, events: Array<{ event: string; [key: string]: unknown }>) {
-  await page.route(`**/api/debates/${MOCK_DEBATE_ID}/stream`, (route: Route) => {
-    const sseBody = events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("");
-    return route.fulfill({
-      status: 200,
-      contentType: "text/event-stream",
-      headers: { "Cache-Control": "no-cache", Connection: "keep-alive" },
-      body: sseBody,
-    });
-  });
+async function mockDebateStreamEndpoint(
+  page: Page,
+  events: Array<{ event: string; [key: string]: unknown }>,
+) {
+  await page.route(
+    `**/api/debates/${MOCK_DEBATE_ID}/stream`,
+    (route: Route) => {
+      const sseBody = events
+        .map((e) => `data: ${JSON.stringify(e)}\n\n`)
+        .join("");
+      return route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        headers: { "Cache-Control": "no-cache", Connection: "keep-alive" },
+        body: sseBody,
+      });
+    },
+  );
 }
 
 async function mockAnalyticsEndpoint(page: Page) {
   await page.route("**/api/analytics", (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_ANALYTICS) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_ANALYTICS),
+    }),
   );
 }
 
-async function mockPersonasEndpoint(page: Page, personas: typeof MOCK_PERSONAS = MOCK_PERSONAS) {
+async function mockPersonasEndpoint(
+  page: Page,
+  personas: typeof MOCK_PERSONAS = MOCK_PERSONAS,
+) {
   await page.route("**/api/personas", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(personas) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(personas),
+      });
     }
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
       const created = { id: "persona-new-001", ...body, isDefault: false };
-      return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(created) });
+      return route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(created),
+      });
     }
     return route.continue();
   });
@@ -202,10 +250,18 @@ async function mockPersonasEndpoint(page: Page, personas: typeof MOCK_PERSONAS =
 async function mockPersonaByIdEndpoint(page: Page) {
   await page.route("**/api/personas/*", (route: Route) => {
     if (route.request().method() === "PUT") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true }) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
     }
     if (route.request().method() === "DELETE") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true }) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
     }
     return route.continue();
   });
@@ -213,7 +269,11 @@ async function mockPersonaByIdEndpoint(page: Page) {
 
 async function mockDebateDetailEndpoint(page: Page) {
   await page.route(`**/api/debates/${MOCK_DEBATE_ID}`, (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DEBATE_DETAIL) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_DEBATE_DETAIL),
+    }),
   );
 }
 
@@ -222,8 +282,11 @@ async function mockApiKeyTestEndpoint(page: Page, valid: boolean) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ valid, message: valid ? "API key is valid" : "Invalid API key" }),
-    })
+      body: JSON.stringify({
+        valid,
+        message: valid ? "API key is valid" : "Invalid API key",
+      }),
+    }),
   );
 }
 
@@ -233,12 +296,12 @@ async function mockCliTokenEndpoint(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ token: "consilium_e2e_tkn_9f8a7b6c5d4e3f2a1b0c" }),
-    })
+    }),
   );
 }
 
 async function selectAgentsByIndex(page: Page, indices: number[]) {
-  const agentButtons = page.locator('[aria-pressed]');
+  const agentButtons = page.locator("[aria-pressed]");
   for (const idx of indices) {
     await agentButtons.nth(idx).click();
   }
@@ -252,18 +315,31 @@ test.describe("Authentication", () => {
   test("sign in page renders the Clerk sign-in component", async ({ page }) => {
     await navigateTo(page, "/sign-in");
     await waitForPageReady(page);
-    await expect(page.locator(".cl-signIn-root").or(page.locator("[data-clerk-sign-in]")).or(page.locator("text=Sign in")).first()).toBeVisible({ timeout: 15000 });
+    await expect(
+      page
+        .locator(".cl-signIn-root")
+        .or(page.locator("[data-clerk-sign-in]"))
+        .or(page.locator("text=Sign in"))
+        .first(),
+    ).toBeVisible({ timeout: 15000 });
   });
 
-  test("unauthenticated users see sign-in when auth is enforced", async ({ page }) => {
+  test("unauthenticated users see sign-in when auth is enforced", async ({
+    page,
+  }) => {
     await page.route("**/api/**", (route: Route) => route.continue());
     await navigateTo(page, "/sign-in");
     await waitForPageReady(page);
-    const signInIndicator = page.locator("text=Sign in").or(page.locator(".cl-signIn-root")).first();
+    const signInIndicator = page
+      .locator("text=Sign in")
+      .or(page.locator(".cl-signIn-root"))
+      .first();
     await expect(signInIndicator).toBeVisible({ timeout: 15000 });
   });
 
-  test("dashboard pages load when test auth bypass is active", async ({ page }) => {
+  test("dashboard pages load when test auth bypass is active", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -280,30 +356,38 @@ test.describe("Council and Debate Flow", () => {
 
   test("council page loads with agent selector", async ({ page }) => {
     await expect(page.locator("text=Select Agents").first()).toBeVisible();
-    const agentButtons = page.locator('[aria-pressed]');
+    const agentButtons = page.locator("[aria-pressed]");
     expect(await agentButtons.count()).toBeGreaterThan(0);
   });
 
   test("agent selector enforces maximum of 5 agents", async ({ page }) => {
     await selectAgentsByIndex(page, [0, 1, 2, 3, 4]);
-    await expect(page.locator(`text=Maximum 5 agents per debate`).first()).toBeVisible();
-    const sixthAgent = page.locator('[aria-pressed]').nth(5);
-    if (await sixthAgent.count() > 0) {
+    await expect(
+      page.locator(`text=Maximum 5 agents per debate`).first(),
+    ).toBeVisible();
+    const sixthAgent = page.locator("[aria-pressed]").nth(5);
+    if ((await sixthAgent.count()) > 0) {
       await expect(sixthAgent).toBeDisabled();
     }
   });
 
   test("agent selector requires minimum of 2 agents", async ({ page }) => {
-    await expect(page.locator("text=Select at least 2 agents").first()).toBeVisible();
+    await expect(
+      page.locator("text=Select at least 2 agents").first(),
+    ).toBeVisible();
   });
 
-  test("empty topic submission is blocked by disabled submit button", async ({ page }) => {
+  test("empty topic submission is blocked by disabled submit button", async ({
+    page,
+  }) => {
     await selectAgentsByIndex(page, [0, 1]);
     const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).toBeDisabled();
   });
 
-  test("short topic under 3 characters keeps submit disabled or is rejected", async ({ page }) => {
+  test("short topic under 3 characters keeps submit disabled or is rejected", async ({
+    page,
+  }) => {
     await selectAgentsByIndex(page, [0, 1]);
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(SHORT_TOPIC);
@@ -316,18 +400,24 @@ test.describe("Council and Debate Flow", () => {
           return route.fulfill({
             status: 400,
             contentType: "application/json",
-            body: JSON.stringify({ error: "Topic must be at least 3 characters" }),
+            body: JSON.stringify({
+              error: "Topic must be at least 3 characters",
+            }),
           });
         }
         return route.continue();
       });
       await submitButton.click();
-      await expect(page.locator("text=/Failed|Error|too short|at least 3/i").first()).toBeVisible({ timeout: 5000 });
+      await expect(
+        page.locator("text=/Failed|Error|too short|at least 3/i").first(),
+      ).toBeVisible({ timeout: 5000 });
     }
     expect(true).toBeTruthy();
   });
 
-  test("long topic over 1000 characters still renders without overflow", async ({ page }) => {
+  test("long topic over 1000 characters still renders without overflow", async ({
+    page,
+  }) => {
     await selectAgentsByIndex(page, [0, 1]);
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(LONG_TOPIC);
@@ -336,7 +426,9 @@ test.describe("Council and Debate Flow", () => {
     expect(textareaBox!.width).toBeGreaterThan(0);
   });
 
-  test("debate creation sends correct payload with topic and models", async ({ page }) => {
+  test("debate creation sends correct payload with topic and models", async ({
+    page,
+  }) => {
     let capturedPayload: { topic: string; models: string[] } | null = null;
     await page.route("**/api/debates", (route: Route) => {
       if (route.request().method() === "POST") {
@@ -349,12 +441,14 @@ test.describe("Council and Debate Flow", () => {
       }
       return route.continue();
     });
-    await page.route(`**/api/debates/${MOCK_DEBATE_ID}/stream`, (route: Route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "text/event-stream",
-        body: `data: ${JSON.stringify({ event: "debate:error", message: "Test ended" })}\n\n`,
-      })
+    await page.route(
+      `**/api/debates/${MOCK_DEBATE_ID}/stream`,
+      (route: Route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/event-stream",
+          body: `data: ${JSON.stringify({ event: "debate:error", message: "Test ended" })}\n\n`,
+        }),
     );
     await selectAgentsByIndex(page, [0, 1]);
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
@@ -371,10 +465,22 @@ test.describe("Council and Debate Flow", () => {
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
       { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:chunk", agentId: "gpt-4o-mini", chunk: "Analyzing the architecture requirements..." },
+      {
+        event: "agent:chunk",
+        agentId: "gpt-4o-mini",
+        chunk: "Analyzing the architecture requirements...",
+      },
       { event: "agent:start", agentId: "gpt-4o" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Full response from GPT-4o Mini" },
-      { event: "agent:complete", agentId: "gpt-4o", content: "Full response from GPT-4o" },
+      {
+        event: "agent:complete",
+        agentId: "gpt-4o-mini",
+        content: "Full response from GPT-4o Mini",
+      },
+      {
+        event: "agent:complete",
+        agentId: "gpt-4o",
+        content: "Full response from GPT-4o",
+      },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);
@@ -382,16 +488,23 @@ test.describe("Council and Debate Flow", () => {
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(REALISTIC_TOPIC);
     await page.locator('button[type="submit"]').click();
-    await expect(page.locator("text=Council Debate").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("text=Council Debate").first()).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test("synthesis output displays after debate completes", async ({ page }) => {
-    const goldenPromptText = "Use event-sourcing with Apache Kafka for command processing...";
+    const goldenPromptText =
+      "Use event-sourcing with Apache Kafka for command processing...";
     const sseEvents = [
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
       { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Response A" },
+      {
+        event: "agent:complete",
+        agentId: "gpt-4o-mini",
+        content: "Response A",
+      },
       { event: "agent:start", agentId: "gpt-4o" },
       { event: "agent:complete", agentId: "gpt-4o", content: "Response B" },
       { event: "synthesis:start" },
@@ -408,16 +521,27 @@ test.describe("Council and Debate Flow", () => {
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(REALISTIC_TOPIC);
     await page.locator('button[type="submit"]').click();
-    await expect(page.locator("text=Synthesis").first()).toBeVisible({ timeout: 15000 });
-    await expect(page.locator(`text=${goldenPromptText.slice(0, 40)}`).first()).toBeVisible();
+    await expect(page.locator("text=Synthesis").first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(
+      page.locator(`text=${goldenPromptText.slice(0, 40)}`).first(),
+    ).toBeVisible();
   });
 
-  test("copy synthesis to clipboard shows success indicator", async ({ page }) => {
+  test("copy synthesis to clipboard shows success indicator", async ({
+    page,
+  }) => {
     const sseEvents = [
       { event: "debate:start" },
       { event: "agent:start", agentId: "gpt-4o-mini" },
       { event: "agent:complete", agentId: "gpt-4o-mini", content: "Done" },
-      { event: "debate:complete", goldenPrompt: "Synthesized output for clipboard test", totalCost: 0.01, modelsUsed: ["gpt-4o-mini"] },
+      {
+        event: "debate:complete",
+        goldenPrompt: "Synthesized output for clipboard test",
+        totalCost: 0.01,
+        modelsUsed: ["gpt-4o-mini"],
+      },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);
@@ -425,10 +549,16 @@ test.describe("Council and Debate Flow", () => {
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(REALISTIC_TOPIC);
     await page.locator('button[type="submit"]').click();
-    await expect(page.locator("text=Synthesis").first()).toBeVisible({ timeout: 15000 });
-    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await expect(page.locator("text=Synthesis").first()).toBeVisible({
+      timeout: 15000,
+    });
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.locator('button[aria-label="Copy to clipboard"]').click();
-    await expect(page.locator("text=Copied").first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Copied").first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("export as markdown triggers download", async ({ page }) => {
@@ -436,7 +566,12 @@ test.describe("Council and Debate Flow", () => {
       { event: "debate:start" },
       { event: "agent:start", agentId: "gpt-4o-mini" },
       { event: "agent:complete", agentId: "gpt-4o-mini", content: "Done" },
-      { event: "debate:complete", goldenPrompt: "Markdown export content", totalCost: 0.01, modelsUsed: ["gpt-4o-mini"] },
+      {
+        event: "debate:complete",
+        goldenPrompt: "Markdown export content",
+        totalCost: 0.01,
+        modelsUsed: ["gpt-4o-mini"],
+      },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);
@@ -444,7 +579,9 @@ test.describe("Council and Debate Flow", () => {
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(REALISTIC_TOPIC);
     await page.locator('button[type="submit"]').click();
-    await expect(page.locator("text=Synthesis").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=Synthesis").first()).toBeVisible({
+      timeout: 15000,
+    });
     const downloadPromise = page.waitForEvent("download");
     await page.locator('button[aria-label="Export as Markdown"]').click();
     const download = await downloadPromise;
@@ -453,7 +590,9 @@ test.describe("Council and Debate Flow", () => {
 });
 
 test.describe("History", () => {
-  test("history page loads with search and filter controls", async ({ page }) => {
+  test("history page loads with search and filter controls", async ({
+    page,
+  }) => {
     await mockDebatesListEndpoint(page);
     await navigateTo(page, "/history");
     await waitForPageReady(page);
@@ -498,7 +637,7 @@ test.describe("History", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ ...MOCK_DEBATE_DETAIL, id: "debate-hist-001" }),
-      })
+      }),
     );
     await navigateTo(page, "/history");
     await waitForPageReady(page);
@@ -514,7 +653,12 @@ test.describe("History", () => {
     await mockDebatesListEndpoint(page, []);
     await navigateTo(page, "/history");
     await waitForPageReady(page);
-    await expect(page.locator("text=No debates yet").or(page.locator("text=Start Debate")).first()).toBeVisible({ timeout: 10000 });
+    await expect(
+      page
+        .locator("text=No debates yet")
+        .or(page.locator("text=Start Debate"))
+        .first(),
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -523,7 +667,13 @@ test.describe("Settings", () => {
     await mockApiKeysEndpoint(page);
     await navigateTo(page, "/settings");
     await waitForPageReady(page);
-    await expect(page.locator("text=Settings").or(page.locator("text=API Keys")).or(page.locator("text=Preferences")).first()).toBeVisible({ timeout: 15000 });
+    await expect(
+      page
+        .locator("text=Settings")
+        .or(page.locator("text=API Keys"))
+        .or(page.locator("text=Preferences"))
+        .first(),
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test("API key inputs use password type for masking", async ({ page }) => {
@@ -536,7 +686,7 @@ test.describe("Settings", () => {
       await page.waitForTimeout(500);
     }
     const passwordInputs = page.locator('input[type="password"]');
-    if (await passwordInputs.count() > 0) {
+    if ((await passwordInputs.count()) > 0) {
       const inputType = await passwordInputs.first().getAttribute("type");
       expect(inputType).toBe("password");
     }
@@ -557,7 +707,9 @@ test.describe("Settings", () => {
       await openaiInput.fill("sk-test-invalid-key-12345");
       const testButton = page.locator('button:has-text("Test")').first();
       await testButton.click();
-      await expect(page.locator("text=/Invalid|Error/i").first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("text=/Invalid|Error/i").first()).toBeVisible({
+        timeout: 5000,
+      });
     }
   });
 
@@ -571,10 +723,14 @@ test.describe("Settings", () => {
       await cliLink.click();
       await page.waitForTimeout(500);
     }
-    const generateButton = page.locator('button:has-text("Generate CLI token")');
+    const generateButton = page.locator(
+      'button:has-text("Generate CLI token")',
+    );
     if (await generateButton.isVisible()) {
       await generateButton.click();
-      await expect(page.locator("text=consilium_e2e_tkn").first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("text=consilium_e2e_tkn").first()).toBeVisible({
+        timeout: 5000,
+      });
     }
   });
 
@@ -586,7 +742,9 @@ test.describe("Settings", () => {
     if (await prefsLink.isVisible()) {
       await prefsLink.click();
       await page.waitForTimeout(1000);
-      const saveButton = page.locator('button:has-text("Save Preferences")').or(page.locator('button:has-text("Preferences Saved")'));
+      const saveButton = page
+        .locator('button:has-text("Save Preferences")')
+        .or(page.locator('button:has-text("Preferences Saved")'));
       if (await saveButton.isVisible()) {
         await expect(saveButton).toBeVisible();
       }
@@ -604,8 +762,12 @@ test.describe("Personas", () => {
   test("persona list loads with existing personas", async ({ page }) => {
     await navigateTo(page, "/personas");
     await waitForPageReady(page);
-    await expect(page.locator("text=Custom Agent Personas").first()).toBeVisible();
-    await expect(page.locator("text=Backend Performance Engineer").first()).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator("text=Custom Agent Personas").first(),
+    ).toBeVisible();
+    await expect(
+      page.locator("text=Backend Performance Engineer").first(),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("create persona with valid data shows the form", async ({ page }) => {
@@ -619,7 +781,9 @@ test.describe("Personas", () => {
     await expect(createButton).toBeEnabled();
   });
 
-  test("create persona with empty name keeps create button present", async ({ page }) => {
+  test("create persona with empty name keeps create button present", async ({
+    page,
+  }) => {
     await navigateTo(page, "/personas");
     await waitForPageReady(page);
     await page.locator("#name").fill("");
@@ -633,7 +797,10 @@ test.describe("Personas", () => {
     await navigateTo(page, "/personas");
     await waitForPageReady(page);
     await page.waitForTimeout(1500);
-    const editButton = page.locator('button:has(svg.lucide-pencil)').or(page.locator('button:has(svg.lucide-edit)')).first();
+    const editButton = page
+      .locator("button:has(svg.lucide-pencil)")
+      .or(page.locator("button:has(svg.lucide-edit)"))
+      .first();
     if (await editButton.isVisible()) {
       await editButton.click();
       await expect(page.locator("text=Edit Persona").first()).toBeVisible();
@@ -651,13 +818,18 @@ test.describe("Personas", () => {
     await navigateTo(page, "/personas");
     await waitForPageReady(page);
     await page.waitForTimeout(1500);
-    const deleteButton = page.locator('button:has(svg.lucide-trash-2)').or(page.locator('button:has(svg.lucide-trash2)')).first();
+    const deleteButton = page
+      .locator("button:has(svg.lucide-trash-2)")
+      .or(page.locator("button:has(svg.lucide-trash2)"))
+      .first();
     if (await deleteButton.isVisible()) {
       await deleteButton.click();
     }
   });
 
-  test("very long system prompt of 10K characters is accepted in textarea", async ({ page }) => {
+  test("very long system prompt of 10K characters is accepted in textarea", async ({
+    page,
+  }) => {
     await navigateTo(page, "/personas");
     await waitForPageReady(page);
     const textarea = page.locator("#systemPrompt");
@@ -676,13 +848,17 @@ test.describe("Analytics", () => {
   test("analytics dashboard loads with heading", async ({ page }) => {
     await navigateTo(page, "/analytics");
     await waitForPageReady(page);
-    await expect(page.locator("text=Analytics").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=Analytics").first()).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("stat cards render with values", async ({ page }) => {
     await navigateTo(page, "/analytics");
     await waitForPageReady(page);
-    await expect(page.locator("text=Total Debates").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=Total Debates").first()).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.locator("text=Total Cost").first()).toBeVisible();
     await expect(page.locator("text=47").first()).toBeVisible();
   });
@@ -690,7 +866,9 @@ test.describe("Analytics", () => {
   test("charts render with data sections visible", async ({ page }) => {
     await navigateTo(page, "/analytics");
     await waitForPageReady(page);
-    await expect(page.locator("text=Debates by Day").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=Debates by Day").first()).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.locator("text=Model Usage").first()).toBeVisible();
   });
 });
@@ -707,7 +885,12 @@ test.describe("Navigation and Layout", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await navigateTo(page, "/council");
     await waitForPageReady(page);
-    const sidebarNav = page.locator('nav.hidden.lg\\:flex').or(page.locator("nav").filter({ has: page.locator('a[href="/council"]') })).first();
+    const sidebarNav = page
+      .locator("nav.hidden.lg\\:flex")
+      .or(
+        page.locator("nav").filter({ has: page.locator('a[href="/council"]') }),
+      )
+      .first();
     await expect(sidebarNav).toBeVisible();
   });
 
@@ -752,7 +935,9 @@ test.describe("Navigation and Layout", () => {
     if (await textarea.isVisible()) {
       await page.keyboard.press("Control+k");
       await page.waitForTimeout(300);
-      const isFocused = await textarea.evaluate((el) => document.activeElement === el);
+      const isFocused = await textarea.evaluate(
+        (el) => document.activeElement === el,
+      );
       expect(isFocused).toBeTruthy();
     }
   });
@@ -763,7 +948,9 @@ test.describe("Edge Cases and Stress", () => {
     await mockApiKeysEndpoint(page);
   });
 
-  test("rapid form submissions do not create duplicate debates", async ({ page }) => {
+  test("rapid form submissions do not create duplicate debates", async ({
+    page,
+  }) => {
     let requestCount = 0;
     await page.route("**/api/debates", (route: Route) => {
       if (route.request().method() === "POST") {
@@ -781,7 +968,7 @@ test.describe("Edge Cases and Stress", () => {
         status: 200,
         contentType: "text/event-stream",
         body: `data: ${JSON.stringify({ event: "debate:error", message: "Rapid test" })}\n\n`,
-      })
+      }),
     );
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -809,13 +996,20 @@ test.describe("Edge Cases and Stress", () => {
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(REALISTIC_TOPIC);
     await page.locator('button[type="submit"]').click();
-    await expect(page.locator("text=/Failed|Error|try again/i").first()).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator("text=/Failed|Error|try again/i").first(),
+    ).toBeVisible({ timeout: 10000 });
   });
 
-  test("very long debate topic renders without layout breakage", async ({ page }) => {
+  test("very long debate topic renders without layout breakage", async ({
+    page,
+  }) => {
     await navigateTo(page, "/council");
     await waitForPageReady(page);
-    const longTopic = "Implement a comprehensive " + "multi-region ".repeat(80) + "deployment strategy";
+    const longTopic =
+      "Implement a comprehensive " +
+      "multi-region ".repeat(80) +
+      "deployment strategy";
     const textarea = page.locator('textarea[aria-label="Debate topic input"]');
     await textarea.fill(longTopic);
     const box = await textarea.boundingBox();
@@ -824,7 +1018,9 @@ test.describe("Edge Cases and Stress", () => {
     expect(box!.width).toBeLessThan(2000);
   });
 
-  test("concurrent debate creation is prevented by loading state", async ({ page }) => {
+  test("concurrent debate creation is prevented by loading state", async ({
+    page,
+  }) => {
     let concurrentRequests = 0;
     let maxConcurrent = 0;
     await page.route("**/api/debates", (route: Route) => {
@@ -850,7 +1046,7 @@ test.describe("Edge Cases and Stress", () => {
         status: 200,
         contentType: "text/event-stream",
         body: `data: ${JSON.stringify({ event: "debate:error", message: "Concurrent test" })}\n\n`,
-      })
+      }),
     );
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -862,15 +1058,19 @@ test.describe("Edge Cases and Stress", () => {
     await expect(submitButton).toBeDisabled();
   });
 
-  test("page refresh during active debate recovers gracefully", async ({ page }) => {
+  test("page refresh during active debate recovers gracefully", async ({
+    page,
+  }) => {
     await mockDebateCreateEndpoint(page);
-    await page.route(`**/api/debates/${MOCK_DEBATE_ID}/stream`, (route: Route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "text/event-stream",
-        headers: { "Cache-Control": "no-cache" },
-        body: `data: ${JSON.stringify({ event: "debate:start" })}\n\ndata: ${JSON.stringify({ event: "round:start", roundNumber: 1 })}\n\n`,
-      })
+    await page.route(
+      `**/api/debates/${MOCK_DEBATE_ID}/stream`,
+      (route: Route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/event-stream",
+          headers: { "Cache-Control": "no-cache" },
+          body: `data: ${JSON.stringify({ event: "debate:start" })}\n\ndata: ${JSON.stringify({ event: "round:start", roundNumber: 1 })}\n\n`,
+        }),
     );
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -885,7 +1085,9 @@ test.describe("Edge Cases and Stress", () => {
     await expect(page.locator("text=Select Agents").first()).toBeVisible();
   });
 
-  test("browser back and forward navigation works between pages", async ({ page }) => {
+  test("browser back and forward navigation works between pages", async ({
+    page,
+  }) => {
     await mockDebatesListEndpoint(page);
     await mockAnalyticsEndpoint(page);
     await navigateTo(page, "/council");
