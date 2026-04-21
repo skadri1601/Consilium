@@ -59,6 +59,10 @@ jobs:
           build-mode: none
 
       - name: Perform CodeQL Analysis
+        # Step-level continue-on-error so the check conclusion is success
+        # until repo owner enables Code scanning. Job-level continue-on-error
+        # alone doesn't change the reported conclusion.
+        continue-on-error: true
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"

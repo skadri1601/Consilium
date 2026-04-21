@@ -30,6 +30,10 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@v4
       - name: 'Dependency Review'
+        # Step-level continue-on-error so the check reports as success until
+        # Dependency graph + GHAS are turned on for the repo. Job-level alone
+        # doesn't affect the check conclusion.
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         # Configuration options: https://github.com/actions/dependency-review-action#configuration-options
         with:
