@@ -41,6 +41,9 @@ jobs:
           no-fail: true
 
       - name: Upload analysis results to GitHub
+        # Same "Code scanning not enabled" gate as the CodeQL workflow. Don't
+        # let it block the PR until the repo owner flips the flag.
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: hadolint-results.sarif
