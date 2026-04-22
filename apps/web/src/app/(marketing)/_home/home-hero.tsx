@@ -39,7 +39,7 @@ export function HomeHero() {
               style={{ animationDelay: "0.15s" }}
             >
               <span className="dot" />
-              Open source · MIT · v0.4.2
+              Private beta · v0.4.2
             </div>
 
             <h1 className="display text-[clamp(44px,7vw,88px)]">
@@ -78,13 +78,8 @@ export function HomeHero() {
               >
                 Try the Council ↗
               </Link>
-              <Link
-                href="https://github.com/skadri1601/Consilium"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-consilium btn-consilium-lg"
-              >
-                Star on GitHub
+              <Link href="/pricing" className="btn-consilium btn-consilium-lg">
+                See pricing
               </Link>
             </div>
           </div>
@@ -174,7 +169,7 @@ export function HomeHero() {
             { num: "8", lab: "Deliberation modes" },
             { num: "5", lab: "LLM providers" },
             { num: "350", lab: "Benchmark runs" },
-            { num: "100%", lab: "Open source · BYOK" },
+            { num: "BYOK", lab: "Bring your own keys" },
           ].map((stat) => (
             <div key={stat.lab}>
               <div className="font-display text-[42px] font-light text-warm leading-none mb-1.5 tracking-[-0.02em]">

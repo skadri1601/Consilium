@@ -11,7 +11,7 @@ import { MarketingHero } from "@/components/shared/marketing-hero";
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
   description:
-    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, self-hosting, and pricing.",
+    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, and pricing.",
   path: "/faq",
   keywords: ["consilium faq", "ai council faq", "multi-agent debate questions"],
 });
@@ -21,7 +21,7 @@ const generalFaqs = [
     id: "what-is",
     question: "What is Consilium? ",
     answer:
-      "Consilium is an open-source multi-AI deliberation platform. Not orchestration — it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
+      "Consilium is a multi-AI deliberation platform for teams. Not orchestration — it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
   },
   {
     id: "difference",
@@ -42,16 +42,16 @@ const generalFaqs = [
       "A golden prompt (the synthesized consensus answer), confidence scores per model, a dissent report showing majority vs minority positions, vote results (Condorcet winner, Borda scores, Ranked Pairs outcome), a full audit trail recording every step with tokens, cost, and latency, and a total cost breakdown by model and round.",
   },
   {
-    id: "free",
-    question: "Is Consilium free? ",
+    id: "pricing",
+    question: "What does Consilium cost? ",
     answer:
-      "MIT licensed and free to self-host. The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) — Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free.",
+      "A Starter tier for evaluation (50 deliberations/month), a Pro tier for teams ($29/month, higher limits + SLA), and custom Enterprise pricing for single-tenant deployments. You pay LLM providers directly through your own keys (BYOK) — Consilium adds zero markup on top of provider costs. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are free at the provider level.",
   },
   {
     id: "who-built",
     question: "Who built Consilium? ",
     answer:
-      "Saad Kadri. Consilium is an MIT licensed open-source project. Contributions are welcome from developers of all skill levels.",
+      "Consilium was founded by Saad Kadri. The product is developed by a small team focused on making multi-agent deliberation practical for enterprise use.",
   },
 ];
 
@@ -94,30 +94,30 @@ const technicalFaqs = [
   },
 ];
 
-const selfHostingFaqs = [
+const platformFaqs = [
   {
-    id: "self-host",
-    question: "How do I self-host Consilium? ",
+    id: "byok",
+    question: "What does BYOK mean and how does it work? ",
     answer:
-      "Docker Compose: clone the repo, cp .env.example .env, add your API keys, then docker compose -f docker-compose.selfhost.yml up. This starts 5 services: PostgreSQL, Redis, the API server, the Agents engine, and the Web UI.",
+      "BYOK = bring your own keys. You add your private API keys for Anthropic, OpenAI, Google, Groq, or xAI in Settings → API keys. Consilium encrypts each key with AES-256-GCM before storing it, decrypts only in memory when calling the provider, and never logs or transmits the key elsewhere. You pay the providers directly at their standard rates — Consilium adds zero markup.",
   },
   {
-    id: "infrastructure",
-    question: "What infrastructure do I need? ",
+    id: "enterprise",
+    question: "Do you offer enterprise plans? ",
     answer:
-      "Minimum: 2GB RAM + Docker. Recommended: 4GB RAM, 2 vCPUs. Required services: PostgreSQL 16 (or Neon), Redis 7 (or Upstash). Runtime: Node.js 20+ for the API and Web, Python 3.11+ for the Agents engine.",
+      "Yes. Enterprise plans include SSO / SAML, SCIM user provisioning, regional data residency, custom SLAs, and dedicated onboarding. Contact sales to scope a plan.",
   },
   {
-    id: "kubernetes",
-    question: "Can I deploy to Kubernetes? ",
+    id: "data-residency",
+    question: "Where is my data stored? ",
     answer:
-      "Yes. Each service (web, api, agents) has its own Dockerfile in its respective apps/ directory. Use the docker-compose.selfhost.yml as a reference for environment variables, service dependencies, and health checks.",
+      "The managed service runs in US-based cloud infrastructure by default. Enterprise plans can specify EU or other regions as part of the contract. All data is encrypted at rest and in transit.",
   },
   {
     id: "data-storage",
     question: "How is data stored? ",
     answer:
-      "PostgreSQL via Prisma ORM. All debate sessions, rounds, messages, audit entries, and user data are stored relationally. API keys are encrypted with AES-256-GCM before being written to the database. The Prisma schema lives in packages/database/.",
+      "PostgreSQL is used for relational data (debate sessions, rounds, messages, audit entries, user data). API keys are encrypted with AES-256-GCM before being written to the database. Redis handles the real-time queue and SSE session state.",
   },
 ];
 
@@ -144,7 +144,7 @@ const securityFaqs = [
     id: "compliance",
     question: "What about HIPAA, SOX, and GDPR compliance? ",
     answer:
-      "Self-hosted Consilium can be deployed within compliant infrastructure you control. BYOK ensures API keys never leave your environment. Audit trails provide record-keeping required by most frameworks. Data residency is fully under your control when self-hosted.",
+      "BYOK keeps LLM traffic on your own provider accounts. Audit trails provide record-keeping required by most frameworks. Enterprise plans support regional data residency, SSO/SAML, and signed BAA/DPA. Contact sales to scope your compliance requirements.",
   },
 ];
 
@@ -163,9 +163,9 @@ const costFaqs = [
   },
   {
     id: "free-options",
-    question: "What are the free options? ",
+    question: "What are the lowest-cost options? ",
     answer:
-      "Groq models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) are completely free with no rate-limit costs. Self-hosting is free — you only pay for your own infrastructure. The hosted free tier includes 50 deliberations per month with no credit card required.",
+      "Groq models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) are free at the provider level, so any deliberation run entirely on Groq has zero LLM cost. The Starter tier includes 50 deliberations per month with no credit card required.",
   },
   {
     id: "cost-per-mode",
@@ -178,7 +178,7 @@ const costFaqs = [
 const sections = [
   { title: "General", faqs: generalFaqs },
   { title: "Technical", faqs: technicalFaqs },
-  { title: "Self-Hosting", faqs: selfHostingFaqs },
+  { title: "Platform", faqs: platformFaqs },
   { title: "Security", faqs: securityFaqs },
   { title: "Pricing & Costs", faqs: costFaqs },
 ];
@@ -196,7 +196,7 @@ export default function FAQPage() {
         description={
           <>
             Everything worth knowing about Consilium — modes, models, BYOK,
-            privacy, self-hosting, and cost.
+            privacy, and cost.
           </>
         }
       />

@@ -72,9 +72,9 @@ export default function TermsPage() {
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
                 <li>
                   <strong>&quot;Service&quot;</strong> means the Consilium
-                  platform, including the hosted SaaS version, self-hosted
-                  instances of the software, APIs, websites, documentation, and
-                  all related services operated by Consilium.
+                  platform, including the hosted SaaS application, APIs,
+                  command-line interface, client SDKs, websites, documentation,
+                  and all related services operated by Consilium.
                 </li>
                 <li>
                   <strong>&quot;User&quot;</strong> or{" "}
@@ -131,27 +131,20 @@ export default function TermsPage() {
                 3. Description of Service
               </h2>
               <p className="mb-4 text-muted-foreground">
-                Consilium is an open-source AI deliberation platform that
-                orchestrates multi-agent debates among artificial intelligence
-                models. The Service enables multiple AI agents to argue,
-                critique, cross-examine, and synthesize consensus on
-                user-provided topics across multiple deliberation modes backed
-                by peer-reviewed research.
-              </p>
-              <p className="mb-4 text-muted-foreground">
-                The Service is available in two forms: (a) a hosted
-                Software-as-a-Service (&quot;SaaS&quot;) version operated by
-                Consilium, and (b) a self-hosted version that Users may deploy
-                on their own infrastructure under the MIT open-source license.
-                These Terms govern both forms of the Service, with certain
-                provisions applying specifically to one or the other as noted
-                herein.
+                Consilium is a multi-agent AI deliberation platform that
+                orchestrates structured debates among large language models to
+                produce verdicts with calibrated confidence, preserved dissent,
+                and complete audit trails. The Service is delivered as a hosted
+                Software-as-a-Service (&quot;SaaS&quot;) application operated by
+                Consilium.
               </p>
               <p className="mb-4 text-muted-foreground">
                 The Service operates on a Bring Your Own Key (&quot;BYOK&quot;)
-                model, meaning Users must supply their own API keys from
-                supported AI providers. Consilium does not provide AI model
-                access directly and acts solely as an orchestration layer.
+                model: Users supply their own API keys from supported AI
+                providers, which Consilium encrypts in transit and at rest and
+                uses solely to fulfill Your deliberation requests. Consilium
+                does not resell, proxy, or mark up provider inference and acts
+                solely as an orchestration layer between You and the providers.
               </p>
             </section>
 
@@ -267,9 +260,9 @@ export default function TermsPage() {
                 </li>
                 <li>
                   Reverse engineer, decompile, disassemble, or otherwise attempt
-                  to derive the source code of any proprietary component of the
-                  Service, except as expressly permitted by the MIT License for
-                  open-source components or as required by applicable law.
+                  to derive the source code of any component of the Service,
+                  except to the limited extent such restriction is prohibited by
+                  applicable law.
                 </li>
                 <li>
                   Use automated scripts, bots, scrapers, or other automated
@@ -385,12 +378,14 @@ export default function TermsPage() {
                 8. Intellectual Property
               </h2>
               <p className="mb-4 text-muted-foreground">
-                <strong>Open-Source Software:</strong> The Consilium software is
-                released under the MIT License. Subject to the terms of that
-                license, you may use, copy, modify, merge, publish, distribute,
-                sublicense, and/or sell copies of the software. The MIT License
-                applies solely to the software code and does not grant any
-                rights to trademarks, service marks, or trade dress.
+                <strong>Service and Proprietary Rights:</strong> The Service,
+                including all software, platform code, deliberation engine,
+                synthesis algorithms, UI, documentation, trademarks, service
+                marks, trade dress, and all associated intellectual property
+                rights, is and will remain the sole and exclusive property of
+                Consilium and its licensors. These Terms do not grant You any
+                ownership interest in the Service. All rights not expressly
+                granted are reserved.
               </p>
               <p className="mb-4 text-muted-foreground">
                 <strong>User Content:</strong> You retain all ownership rights
@@ -644,13 +639,6 @@ export default function TermsPage() {
                   your API Key usage, charges incurred, or violations of
                   provider terms.
                 </li>
-                <li>
-                  Any claims arising from your deployment, operation, or use of
-                  self-hosted instances of the Consilium software, including but
-                  not limited to claims related to data breaches, privacy
-                  violations, regulatory non-compliance, or harm to third
-                  parties.
-                </li>
                 <li>Your negligent or wrongful conduct.</li>
                 <li>
                   Any dispute between you and any third party, including other
@@ -667,52 +655,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">
-                13. Self-Hosted Instances
-              </h2>
-              <p className="mb-4 text-muted-foreground">
-                The Consilium software is available under the MIT License for
-                self-hosting. If you deploy, operate, or use a self-hosted
-                instance of Consilium, you acknowledge and agree that:
-              </p>
-              <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>
-                  The software is provided under the MIT License &quot;AS
-                  IS,&quot; without warranty of any kind. All disclaimers of
-                  warranty and limitations of liability set forth in these Terms
-                  apply fully and without modification to self-hosted instances.
-                </li>
-                <li>
-                  You are solely and exclusively responsible for the security,
-                  configuration, maintenance, availability, backup, and data
-                  handling of your self-hosted instance.
-                </li>
-                <li>
-                  You are solely responsible for compliance with all applicable
-                  laws, regulations, and industry standards (including but not
-                  limited to GDPR, CCPA/CPRA, HIPAA, and any other data
-                  protection or privacy laws) in connection with your
-                  self-hosted instance.
-                </li>
-                <li>
-                  Consilium has no access to, control over, or liability for any
-                  data processed through, stored on, or transmitted by your
-                  self-hosted instance.
-                </li>
-                <li>
-                  Consilium has no obligation to provide support, updates,
-                  patches, bug fixes, or security updates for self-hosted
-                  instances unless separately agreed in writing.
-                </li>
-                <li>
-                  You are responsible for ensuring that your self-hosted
-                  instance does not infringe upon the rights of any third party.
-                </li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">14. Termination</h2>
+              <h2 className="text-2xl font-semibold mb-4">13. Termination</h2>
               <p className="mb-4 text-muted-foreground">
                 We may suspend or terminate your access to the Service, in whole
                 or in part, at our sole discretion, at any time, for any reason
@@ -733,9 +676,10 @@ export default function TermsPage() {
                 The following sections shall survive termination of these Terms:
                 Definitions, AI-Generated Content, Intellectual Property,
                 Disclaimer of Warranties, Limitation of Liability,
-                Indemnification, Self-Hosted Instances, Governing Law and
-                Dispute Resolution, Export Controls, and any other provisions
-                that by their nature should survive termination.
+                Indemnification, Governing Law and Dispute Resolution, Export
+                Controls, Force Majeure, Severability, Entire Agreement,
+                Assignment, No Waiver, and any other provisions that by their
+                nature should survive termination.
               </p>
             </section>
 
@@ -1001,19 +945,6 @@ export default function TermsPage() {
                 >
                   saad@myconsilium.xyz
                 </a>
-              </p>
-              <p className="mb-4 text-muted-foreground">
-                For open-source related inquiries, you may also open an issue on
-                our{" "}
-                <a
-                  href="https://github.com/skadri1601/"
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub repository
-                </a>
-                .
               </p>
             </section>
           </div>

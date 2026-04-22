@@ -54,7 +54,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <p className="text-[14px] text-ink-secondary mt-3">
               {isSignIn
                 ? "Pick up where you left off."
-                : "Bring your own keys. Open source under MIT."}
+                : "Bring your own keys. Enterprise-grade deliberation."}
             </p>
           </div>
 

@@ -480,8 +480,8 @@ export default function ProvidersPage() {
                 <p className="text-sm text-muted-foreground">
                   All API keys are encrypted with AES-256-GCM before storage.
                   Keys are never stored in plaintext, never logged, and never
-                  transmitted to any third party. In self-hosted deployments,
-                  keys never leave your infrastructure.
+                  transmitted to any third party beyond the provider you're
+                  calling.
                 </p>
               </div>
             </div>

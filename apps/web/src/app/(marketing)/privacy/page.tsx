@@ -32,21 +32,16 @@ export default function PrivacyPage() {
               </h2>
               <p className="mb-4 text-muted-foreground">
                 Consilium (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;, or
-                the &quot;Platform&quot;) is an open-source AI deliberation
-                platform operated by Saad Kadri as a sole proprietorship. This
-                Privacy Policy describes how we collect, use, disclose, retain,
-                and protect your personal information when you access or use the
-                Consilium hosted service available at consilium.app (the
+                the &quot;Platform&quot;) is an AI deliberation platform
+                operated by Saad Kadri as a sole proprietorship. This Privacy
+                Policy describes how we collect, use, disclose, retain, and
+                protect your personal information when you access or use the
+                Consilium service available at consilium.app (the
                 &quot;Service&quot;), our APIs, our command-line interface, and
                 any related websites or applications.
               </p>
               <p className="mb-4 text-muted-foreground">
-                This policy applies to all users of the hosted Service
-                worldwide. It does not apply to self-hosted instances of the
-                Consilium open-source software, which are governed entirely by
-                the operator of that instance. If you deploy Consilium on your
-                own infrastructure, you assume full responsibility for
-                compliance with all applicable data protection laws.
+                This policy applies to all users of the Service worldwide.
               </p>
               <p className="mb-4 text-muted-foreground">
                 This policy is designed to comply with the European Union
@@ -1190,53 +1185,6 @@ export default function PrivacyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">
-                13. Self-Hosting &amp; Data Control
-              </h2>
-              <p className="mb-4 text-muted-foreground">
-                Consilium is open-source software released under the MIT license
-                and can be self-hosted on your own infrastructure. When you
-                self-host Consilium:
-              </p>
-              <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>
-                  All data remains entirely on your own infrastructure under
-                  your sole control
-                </li>
-                <li>
-                  No data is sent to Consilium servers or any infrastructure
-                  operated by us
-                </li>
-                <li>
-                  You are the data controller and are solely responsible for
-                  compliance with all applicable data protection and privacy
-                  laws in your jurisdiction
-                </li>
-                <li>
-                  You control all aspects of data collection, processing,
-                  retention, and deletion
-                </li>
-                <li>
-                  You are responsible for implementing appropriate security
-                  measures
-                </li>
-                <li>
-                  This Privacy Policy does not apply to self-hosted instances
-                </li>
-              </ul>
-              <p className="mb-4 text-muted-foreground">
-                <strong className="text-foreground">
-                  Limitation of Liability:
-                </strong>{" "}
-                We disclaim all responsibility and liability for data processing
-                conducted on self-hosted instances of Consilium. The operator of
-                a self-hosted instance bears full responsibility for data
-                protection compliance, security, and any data breaches occurring
-                on their infrastructure.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">
                 14. Do Not Track Signals
               </h2>
               <p className="mb-4 text-muted-foreground">
@@ -1545,24 +1493,7 @@ export default function PrivacyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">
-                20. Open-Source Contributors
-              </h2>
-              <p className="mb-4 text-muted-foreground">
-                Consilium is open-source software. Contributors to the Consilium
-                codebase via pull requests, issues, or other contributions on
-                GitHub are not data processors or sub-processors under this
-                Privacy Policy. Contributors do not have access to user data,
-                production systems, or databases by virtue of their
-                contributions. Any Personal Data visible in public GitHub
-                contributions (e.g., name, email in Git commits) is governed by
-                GitHub&apos;s privacy policy and the contributor&apos;s own
-                choices.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">
-                21. User Responsibilities &amp; Content
+                20. User Responsibilities &amp; Content
               </h2>
               <p className="mb-4 text-muted-foreground">
                 You are solely responsible for the content you submit to the
@@ -1618,10 +1549,6 @@ export default function PrivacyPage() {
                 <li>
                   AI provider training, retention, or processing of data beyond
                   what is specified in their terms of service and API agreements
-                </li>
-                <li>
-                  Data processing conducted by operators of self-hosted
-                  Consilium instances
                 </li>
               </ul>
               <p className="mb-4 text-muted-foreground">

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   Shield,
-  Github,
   MessageSquare,
   BarChart3,
   Activity,
@@ -13,7 +11,6 @@ import {
   Server,
   Zap,
 } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -34,7 +31,7 @@ export const metadata: Metadata = buildMetadata({
     "multi-agent deliberation",
     "ai council",
     "formal argumentation",
-    "open source ai",
+    "enterprise ai",
   ],
 });
 
@@ -96,7 +93,7 @@ const stats = [
   { value: "4", label: "Voting Algorithms" },
   { value: "3", label: "Convergence Metrics" },
   { value: "2", label: "SDKs + CLI" },
-  { value: "MIT", label: "Licensed" },
+  { value: "99.9%", label: "Uptime SLA" },
 ];
 
 export default function AboutPage() {
@@ -115,7 +112,7 @@ export default function AboutPage() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-bg-0/40 via-bg-0/70 to-bg-0 pointer-events-none" />
         <div className="relative z-10 container-narrow">
-          <div className="eyebrow mb-5">About · Open source</div>
+          <div className="eyebrow mb-5">About</div>
           <h1 className="display text-[clamp(40px,6vw,72px)] leading-[1.02] max-w-[900px]">
             Structured <em>disagreement</em>
             <br />
@@ -265,38 +262,38 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
 
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Open Source Philosophy</h2>
+          <h2 className="text-3xl font-bold mb-4">Built for teams</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Run it your way. No vendor lock-in. No hidden costs. MIT licensed
-            with full source available.
+            BYOK model: bring your existing provider keys, keep full ownership
+            of your data, and integrate with the tools you already use.
           </p>
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
               <Shield className="h-6 w-6 text-warm" />
-              <span className="text-sm font-medium">MIT Licensed</span>
+              <span className="text-sm font-medium">Enterprise-grade</span>
               <span className="text-xs text-muted-foreground text-center">
-                Use commercially, fork, extend
+                Encryption at rest, audit trails
               </span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
               <Key className="h-6 w-6 text-warm" />
               <span className="text-sm font-medium">BYOK</span>
               <span className="text-xs text-muted-foreground text-center">
-                Bring Your Own API Keys
+                Bring your existing API keys
               </span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
               <Server className="h-6 w-6 text-warm" />
-              <span className="text-sm font-medium">Self-Hostable</span>
+              <span className="text-sm font-medium">Dedicated deploy</span>
               <span className="text-xs text-muted-foreground text-center">
-                Docker Compose deployment
+                Single-tenant options for enterprise
               </span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
               <Zap className="h-6 w-6 text-warm" />
-              <span className="text-sm font-medium">Free Tier</span>
+              <span className="text-sm font-medium">Fast setup</span>
               <span className="text-xs text-muted-foreground text-center">
-                Groq fallback, no paid keys required
+                First deliberation in minutes
               </span>
             </div>
           </div>
@@ -317,35 +314,7 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
             <Badge variant="outline" className="text-xs">
               SSE Streaming
             </Badge>
-            <Badge variant="outline" className="text-xs">
-              Docker Compose
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              GitHub Actions
-            </Badge>
           </div>
-        </div>
-      </section>
-
-      <section className="bg-muted py-20">
-        <div className="container mx-auto px-4 text-center">
-          <Github className="h-12 w-12 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-4">Contribute to Consilium</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground">
-            We&apos;re open source and welcome contributions from developers of
-            all skill levels.
-          </p>
-
-          <Button asChild size="lg">
-            <Link
-              href="https://github.com/skadri1601/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Github className="mr-2 h-4 w-4" />
-              View on GitHub
-            </Link>
-          </Button>
         </div>
       </section>
     </div>

@@ -83,7 +83,6 @@ import CliDocsPage from "@/app/(marketing)/docs/cli/page";
 import ContactPage from "@/app/(marketing)/contact/page";
 import UseCasesPage from "@/app/(marketing)/use-cases/page";
 import ResearchPage from "@/app/(marketing)/research/page";
-import CommunityPage from "@/app/(marketing)/community/page";
 import PrivacyPage from "@/app/(marketing)/privacy/page";
 import TermsPage from "@/app/(marketing)/terms/page";
 import FAQPage from "@/app/(marketing)/faq/page";
@@ -163,7 +162,7 @@ describe("Marketing Pages", () => {
         screen.getByText(/What Makes Consilium Different/i),
       ).toBeInTheDocument();
       expect(screen.getByText("Our Story")).toBeInTheDocument();
-      expect(screen.getByText("Open Source Philosophy")).toBeInTheDocument();
+      expect(screen.getByText("Built for teams")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -260,7 +259,7 @@ describe("Marketing Pages", () => {
       expect(screen.getByText("CLI Reference")).toBeInTheDocument();
       expect(screen.getByText("Python SDK")).toBeInTheDocument();
       expect(screen.getByText("TypeScript SDK")).toBeInTheDocument();
-      expect(screen.getByText("Self-Hosting")).toBeInTheDocument();
+      expect(screen.getByText("Vertical Templates")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
@@ -396,31 +395,6 @@ describe("Marketing Pages", () => {
     });
   });
 
-  describe("Community Page (/community)", () => {
-    it("renders without throwing", () => {
-      expect(() => render(<CommunityPage />)).not.toThrow();
-    });
-
-    it("renders h1 heading", () => {
-      render(<CommunityPage />);
-      expect(
-        screen.getByRole("heading", { level: 1, name: /contribute|council/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders community links", () => {
-      render(<CommunityPage />);
-      expect(screen.getByText("GitHub Discussions")).toBeInTheDocument();
-      expect(screen.getByText("Contributing Guide")).toBeInTheDocument();
-      expect(screen.getByText("GitHub Repository")).toBeInTheDocument();
-    });
-
-    it("has valid links", () => {
-      const { container } = render(<CommunityPage />);
-      assertLinksHaveHref(container);
-    });
-  });
-
   describe("Privacy Page (/privacy)", () => {
     it("renders without throwing", () => {
       expect(() => render(<PrivacyPage />)).not.toThrow();
@@ -464,11 +438,11 @@ describe("Marketing Pages", () => {
 
     it("renders FAQ items", () => {
       render(<FAQPage />);
-      expect(screen.getByText("What is Consilium?")).toBeInTheDocument();
+      expect(screen.getByText(/What is Consilium\?/)).toBeInTheDocument();
+      expect(screen.getByText(/What does BYOK mean/)).toBeInTheDocument();
       expect(
-        screen.getByText("How do I self-host Consilium?"),
+        screen.getByText(/What does Consilium cost\?/),
       ).toBeInTheDocument();
-      expect(screen.getByText("Is Consilium free?")).toBeInTheDocument();
       expect(
         screen.getByText("How much does a typical deliberation cost?"),
       ).toBeInTheDocument();
@@ -554,7 +528,6 @@ describe("Layout Components", () => {
       expect(screen.getByText("Product")).toBeInTheDocument();
       expect(screen.getByText("Developers")).toBeInTheDocument();
       expect(screen.getByText("Resources")).toBeInTheDocument();
-      expect(screen.getByText("Open source")).toBeInTheDocument();
       expect(screen.getByText("Company")).toBeInTheDocument();
     });
 

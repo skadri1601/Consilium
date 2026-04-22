@@ -7,7 +7,6 @@ import {
   Code,
   Terminal,
   Package,
-  Server,
   ArrowRight,
   Layers,
   Cpu,
@@ -36,7 +35,7 @@ const sections = [
         icon: BookOpen,
         title: "Getting Started",
         description:
-          "Set up Consilium and run your first deliberation — via web app, CLI, SDK, or self-hosted.",
+          "Set up Consilium and run your first deliberation — via the web app, CLI, or SDKs.",
         href: "/docs/getting-started",
       },
       {
@@ -105,16 +104,8 @@ const sections = [
   },
   {
     title: "For Integrators",
-    description:
-      "Deploy, customize, and extend Consilium for your organization",
+    description: "Customize and extend Consilium for your organization",
     items: [
-      {
-        icon: Server,
-        title: "Self-Hosting",
-        description:
-          "Docker Compose deployment, all environment variables, service architecture, health checks, production tips.",
-        href: "/docs/self-hosting",
-      },
       {
         icon: FileText,
         title: "Vertical Templates",
@@ -124,10 +115,10 @@ const sections = [
       },
       {
         icon: Blocks,
-        title: "Deployment",
+        title: "Enterprise Deployment",
         description:
-          "Self-hosting, Docker Compose, environment variables, production operations, and health checks.",
-        href: "/docs/self-hosting",
+          "Single-tenant deployments, SSO/SAML, data residency, and custom SLAs. Contact our team to scope a plan.",
+        href: "/contact",
       },
     ],
   },
@@ -175,16 +166,16 @@ const quickLinks = [
   },
   {
     icon: Wrench,
-    title: "Community",
-    description: "Contribute, discuss, and get help",
-    href: "/community",
+    title: "Support",
+    description: "Contact support, request features, report bugs",
+    href: "/contact",
   },
 ];
 
 export const metadata: Metadata = buildMetadata({
   title: "Documentation",
   description:
-    "Consilium documentation — get started, understand the debate modes, integrate the API, CLI, Python SDK, TypeScript SDK, and self-host your own council.",
+    "Consilium documentation — get started, understand the debate modes, and integrate via the API, CLI, Python SDK, or TypeScript SDK.",
   path: "/docs",
   keywords: ["consilium docs", "ai council docs", "multi-agent api"],
 });

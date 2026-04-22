@@ -86,9 +86,9 @@ export default function GettingStartedPage() {
               <span className="font-medium text-foreground">
                 Choose your path:{" "}
               </span>
-              Consilium can be used through the web app (no setup), SDKs and CLI
-              (for engineers), or self-hosted (full control). Pick the approach
-              that fits your workflow.
+              Consilium can be used through the web app (no setup) or via our
+              SDKs and CLI (for engineers). Pick the approach that fits your
+              workflow.
             </p>
           </div>
 
@@ -397,88 +397,48 @@ console.log(\`Cost: \$\${result.cost.toFixed(4)}\`);`}</code>
             </div>
           </div>
 
-          <div id="self-host">
+          <div id="enterprise">
             <div className="flex items-center gap-3 mb-6">
               <Server className="h-6 w-6 text-warm" />
-              <h2 className="text-2xl font-bold">For Integrators: Self-Host</h2>
+              <h2 className="text-2xl font-bold">Enterprise deployment</h2>
               <Badge className="bg-warm/12 text-warm border-warm/20">
-                Full Control
+                Dedicated
               </Badge>
             </div>
 
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Prerequisites</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-warm mt-0.5">&#8226;</span>Docker
-                      &amp; Docker Compose v2+
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-warm mt-0.5">&#8226;</span>Node.js
-                      20+ and pnpm (for manual setup without Docker)
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-warm mt-0.5">&#8226;</span>2GB RAM
-                      minimum, 4GB recommended
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-warm mt-0.5">&#8226;</span>API keys
-                      for at least one LLM provider (or use Groq free tier)
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    Docker Compose (Recommended)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
-                    <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
-cd Consilium
-cp .env.example .env
-# Edit .env with your API keys
-docker compose -f docker-compose.selfhost.yml up`}</code>
-                  </pre>
-                  <p className="text-sm text-muted-foreground mt-3">
-                    This starts 5 services: PostgreSQL 16 (port 5432), Redis 7
-                    (port 6379), NestJS API (port 4000), FastAPI Agents (port
-                    8000), and Next.js Web (port 3000). Plus Redis Commander
-                    (8081) and MailHog (8025) for development.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    Manual Setup (Without Docker)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="rounded-lg bg-bg-1 p-4 text-sm overflow-x-auto">
-                    <code className="text-muted-foreground">{`git clone https://github.com/skadri1601/Consilium.git
-cd Consilium
-pnpm install
-npx prisma generate --schema=packages/database/prisma/schema.prisma
-npx prisma db push --schema=packages/database/prisma/schema.prisma
-./run.sh  # Starts web (3000), api (4000), agents (8000)`}</code>
-                  </pre>
-                  <p className="text-sm text-muted-foreground mt-3">
-                    The run.sh script checks prerequisites, installs
-                    dependencies, generates the Prisma client, and spawns all
-                    three services in parallel with graceful shutdown handling.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Enterprise customers can run Consilium on a dedicated
+                  single-tenant deployment with custom SLAs, SSO/SAML, data
+                  residency controls, and integration support.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-warm mt-0.5">&#8226;</span>
+                    Single-tenant deployment in our cloud or yours
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-warm mt-0.5">&#8226;</span>SSO / SAML,
+                    SCIM user provisioning
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-warm mt-0.5">&#8226;</span>Regional
+                    data residency and audit-log export
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-warm mt-0.5">&#8226;</span>Custom
+                    SLAs, dedicated support, onboarding
+                  </li>
+                </ul>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-warm hover:bg-warm-bright px-6 text-sm font-medium text-bg-0 shadow transition-all"
+                >
+                  Talk to sales
+                </Link>
+              </CardContent>
+            </Card>
           </div>
 
           <div id="byok">
@@ -540,8 +500,8 @@ npx prisma db push --schema=packages/database/prisma/schema.prisma
                   <Shield className="h-4 w-4 mt-0.5 shrink-0 text-agree" />
                   <p className="text-sm text-muted-foreground">
                     All API keys are encrypted with AES-256-GCM before storage.
-                    Keys are never stored in plaintext, never logged, and never
-                    leave your environment in self-hosted deployments.
+                    Keys are never stored in plaintext, never logged, and are
+                    only decrypted in memory at call time.
                   </p>
                 </div>
               </CardContent>

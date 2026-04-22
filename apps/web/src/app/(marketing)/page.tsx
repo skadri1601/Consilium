@@ -473,8 +473,8 @@ export default function LandingPage() {
               that <em className="italic text-warm font-light">hold up.</em>
             </h2>
             <p className="text-[17px] text-ink-secondary max-w-[560px] mx-auto mb-9">
-              Open source under MIT. Self-hostable. Your keys, your models, your
-              audit trail.
+              Enterprise-grade deliberation. Your keys, your models, your
+              complete audit trail.
             </p>
             <div className="flex justify-center flex-wrap gap-3">
               <Link
@@ -483,13 +483,8 @@ export default function LandingPage() {
               >
                 Try the Council ↗
               </Link>
-              <Link
-                href="https://github.com/skadri1601/Consilium"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-consilium btn-consilium-lg"
-              >
-                View on GitHub
+              <Link href="/pricing" className="btn-consilium btn-consilium-lg">
+                See pricing
               </Link>
             </div>
           </Reveal>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Check, X, Github, Calculator, Zap } from "lucide-react";
+import { Check, X, Calculator, Zap } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,13 +14,13 @@ import { MarketingHero } from "@/components/shared/marketing-hero";
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
   description:
-    "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
+    "Bring your own API keys and only pay the model providers. Consilium adds zero markup on provider costs. Compare Starter, Pro, and Enterprise plans.",
   path: "/pricing",
   keywords: [
     "consilium pricing",
     "ai council pricing",
     "byok",
-    "free ai debate",
+    "enterprise ai deliberation",
   ],
 });
 
@@ -146,8 +146,8 @@ const comparisonFeatures = [
   { feature: "SSO / SAML", free: false, pro: false, enterprise: true },
   {
     feature: "On-premise",
-    free: "Self-host only",
-    pro: "Self-host only",
+    free: "Shared",
+    pro: "Shared",
     enterprise: "Managed",
   },
   {
@@ -248,13 +248,13 @@ export default function PricingPage() {
           <>
             Simple. <em>Transparent.</em>
             <br />
-            Self-host for free.
+            Scale when ready.
           </>
         }
         description={
           <>
-            Start free. Scale when you need to. Self-host anytime. You pay the
-            LLM providers directly — Consilium adds zero markup.
+            Start on the free tier. Upgrade to Pro for higher limits and SLAs.
+            You pay the LLM providers directly — Consilium adds zero markup.
           </>
         }
       />
@@ -476,21 +476,17 @@ export default function PricingPage() {
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-2xl mx-auto rounded-2xl border border-white/[0.08] bg-bg-1 p-8 text-center">
-          <Github className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold mb-2">Self-Host for Free</h2>
+          <h2 className="text-xl font-bold mb-2">Need an enterprise plan?</h2>
           <p className="text-muted-foreground mb-6">
-            Consilium is MIT licensed. Deploy on your own infrastructure with
-            Docker Compose and keep full control of your data. You only pay for
-            LLM provider API calls — Consilium adds zero markup.
+            Single-tenant deployments, custom SLAs, SSO/SAML, dedicated support,
+            and volume pricing. Our team works with you to scope the right
+            deployment for your organization.
           </p>
           <Link
-            href="https://github.com/skadri1601/Consilium"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-11 items-center justify-center rounded-md bg-warm hover:bg-warm-bright px-8 text-sm font-medium text-white shadow-lg transition-all  hover:shadow-xl"
+            href="/contact"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-warm hover:bg-warm-bright px-8 text-sm font-medium text-bg-0 shadow-lg transition-all hover:shadow-xl"
           >
-            <Github className="mr-2 h-4 w-4" />
-            View Self-Hosting Guide
+            Talk to sales
           </Link>
         </div>
       </section>
