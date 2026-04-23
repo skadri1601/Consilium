@@ -224,14 +224,14 @@ describe("Marketing Pages", () => {
       // Tier names are repeated across feature/comparison tables, so use getAllByText.
       expect(screen.getAllByText("Free").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Pro").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("Enterprise").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Max").length).toBeGreaterThan(0);
     });
 
     it("renders prices", () => {
       render(<PricingPage />);
       expect(screen.getByText("$0")).toBeInTheDocument();
       expect(screen.getByText("$29")).toBeInTheDocument();
-      expect(screen.getByText("Custom")).toBeInTheDocument();
+      expect(screen.getByText("$99")).toBeInTheDocument();
     });
 
     it("has valid links", () => {
