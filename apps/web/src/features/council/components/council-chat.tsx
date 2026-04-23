@@ -37,6 +37,23 @@ interface StreamEvent {
   message?: string;
   consensus?: string;
   error?: string;
+  original_mode?: string;
+  resolved_mode?: string;
+  reason?: string;
+  complexity_score?: number;
+  estimated_cost?: number;
+  council_cost_baseline?: number;
+  num_models?: number;
+}
+
+interface RoutingDecision {
+  originalMode: string;
+  resolvedMode: string;
+  reason: string;
+  complexityScore?: number;
+  estimatedCost?: number;
+  councilCostBaseline?: number;
+  numModels?: number;
 }
 
 interface Persona {
@@ -69,6 +86,7 @@ export function CouncilChat() {
   const [agentProgress, setAgentProgress] = useState<Record<string, AgentProgress>>({});
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>("");
+  const [routingDecision, setRoutingDecision] = useState<RoutingDecision | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -170,6 +188,7 @@ export function CouncilChat() {
     setLoading(true);
     setStreaming(true);
     setGoldenPrompt(null);
+    setRoutingDecision(null);
 
     try {
       if (topic.length < 3) {
@@ -252,6 +271,19 @@ export function CouncilChat() {
         setCurrentRound(1);
         setRoundDescription(ROUND_DESCRIPTIONS[1] || "");
         setSynthesizing(false);
+        break;
+      }
+
+      case "routing:decided": {
+        setRoutingDecision({
+          originalMode: data.original_mode || "auto",
+          resolvedMode: data.resolved_mode || "council",
+          reason: data.reason || "",
+          complexityScore: data.complexity_score,
+          estimatedCost: data.estimated_cost,
+          councilCostBaseline: data.council_cost_baseline,
+          numModels: data.num_models,
+        });
         break;
       }
 
@@ -456,6 +488,64 @@ export function CouncilChat() {
           </Card>
 
           <AnimatePresence>
+            {routingDecision && (
+              <motion.div
+                key="routing-decision"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                <Card variant="elevated" className="overflow-hidden border-primary/20">
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5">
+                          <span className="text-sm font-semibold">
+                            Routed to <span className="capitalize">{routingDecision.resolvedMode}</span>
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            · {routingDecision.reason}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                          {routingDecision.complexityScore !== undefined && (
+                            <span>
+                              Complexity{" "}
+                              <span className="font-mono text-foreground">
+                                {routingDecision.complexityScore.toFixed(2)}
+                              </span>
+                            </span>
+                          )}
+                          {routingDecision.estimatedCost !== undefined && (
+                            <span>
+                              Est. cost{" "}
+                              <span className="font-mono text-foreground">
+                                ${routingDecision.estimatedCost.toFixed(4)}
+                              </span>
+                            </span>
+                          )}
+                          {routingDecision.resolvedMode === "quick" &&
+                            routingDecision.estimatedCost !== undefined &&
+                            routingDecision.councilCostBaseline !== undefined &&
+                            routingDecision.councilCostBaseline > routingDecision.estimatedCost && (
+                              <span className="text-emerald-600 dark:text-emerald-400">
+                                Saved ~$
+                                {(
+                                  routingDecision.councilCostBaseline -
+                                  routingDecision.estimatedCost
+                                ).toFixed(4)}{" "}
+                                vs Council
+                              </span>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
             {streaming && Object.keys(agentProgress).length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

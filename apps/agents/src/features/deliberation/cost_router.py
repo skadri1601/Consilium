@@ -66,10 +66,13 @@ def compute_complexity_score(features: dict) -> float:
     return max(0.0, min(1.0, score))
 
 
-def route(
+_ESTIMATED_TOKENS_PER_CALL = 1500
+
+
+def _decide(
     topic: str,
-    available_models: list[str] | None = None,
-    user_preference: str | None = None,
+    available_models: list[str] | None,
+    user_preference: str | None,
 ) -> RoutingDecision:
     if user_preference is not None and user_preference != "auto":
         return RoutingDecision(mode=user_preference, reason="user preference")
@@ -81,12 +84,43 @@ def route(
         score = 0.3
 
     if score < 0.3:
-        return RoutingDecision(mode="quick", models=1, reason="simple query")
-    elif score < 0.6:
-        return RoutingDecision(mode="council", models=3, reason="moderate complexity")
-    else:
-        num_models = 5 if score >= 0.8 else 3
-        return RoutingDecision(mode="council", models=num_models, reason="complex/high-stakes")
+        return RoutingDecision(
+            mode="quick",
+            models=1,
+            reason="simple query",
+            complexity_score=round(score, 2),
+            features=features,
+        )
+    if score < 0.6:
+        return RoutingDecision(
+            mode="council",
+            models=3,
+            reason="moderate complexity",
+            complexity_score=round(score, 2),
+            features=features,
+        )
+    num_models = 5 if score >= 0.8 else 3
+    return RoutingDecision(
+        mode="council",
+        models=num_models,
+        reason="complex/high-stakes",
+        complexity_score=round(score, 2),
+        features=features,
+    )
+
+
+def route(
+    topic: str,
+    available_models: list[str] | None = None,
+    user_preference: str | None = None,
+) -> RoutingDecision:
+    decision = _decide(topic, available_models, user_preference)
+    num_models = decision.models or (len(available_models) if available_models else 3)
+    chosen_cost = estimate_cost(decision.mode, num_models, _ESTIMATED_TOKENS_PER_CALL)
+    baseline_cost = estimate_cost("council", max(num_models, 3), _ESTIMATED_TOKENS_PER_CALL)
+    decision.estimated_cost = round(chosen_cost, 4)
+    decision.council_cost_baseline = round(baseline_cost, 4)
+    return decision
 
 
 def estimate_cost(mode: str, num_models: int, estimated_tokens: int) -> float:
