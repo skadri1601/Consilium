@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
@@ -25,7 +25,7 @@ export async function POST(
       const errorText = await response.text().catch(() => "");
       return NextResponse.json(
         { error: errorText || "Failed to retry debate" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -33,7 +33,7 @@ export async function POST(
   } catch {
     return NextResponse.json(
       { error: "Failed to retry debate" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

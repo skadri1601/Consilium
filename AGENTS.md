@@ -3,6 +3,7 @@
 ## Two Agent Systems
 
 ### 1. Bot/DevOps Agents (agents/)
+
 Operations automation running on DigitalOcean droplet.
 
 ```
@@ -22,6 +23,7 @@ agents/
 ```
 
 ### 2. Deliberation Engine (apps/agents/)
+
 Multi-model structured deliberation with 8 modes and 13 core modules.
 
 ```
@@ -56,18 +58,20 @@ apps/agents/src/
 ```
 
 ## 8 Deliberation Modes
-| Mode | Flow | Rounds |
-|------|------|--------|
-| quick | PROPOSAL → EVALUATION → OUTPUT | 1 |
-| council | PROPOSAL → CHALLENGE → REBUTTAL → EVALUATION → VOTING → AGGREGATION → CONVERGENCE → OUTPUT | 3 |
-| deep | Same as council, higher convergence threshold | 5 |
-| blind | Same as council + identity stripping | 3 |
-| redteam | PROPOSAL → ATTACK → DEFEND → JUDGE_ATTACK → OUTPUT | 4 |
-| jury | Same as council with panel judges | 3 |
-| market | PROPOSAL → BET → MARKET_UPDATE → CONVERGENCE → OUTPUT | 5 |
-| auto | Routes to appropriate mode via cost_router | varies |
+
+| Mode    | Flow                                                                                       | Rounds |
+| ------- | ------------------------------------------------------------------------------------------ | ------ |
+| quick   | PROPOSAL → EVALUATION → OUTPUT                                                             | 1      |
+| council | PROPOSAL → CHALLENGE → REBUTTAL → EVALUATION → VOTING → AGGREGATION → CONVERGENCE → OUTPUT | 3      |
+| deep    | Same as council, higher convergence threshold                                              | 5      |
+| blind   | Same as council + identity stripping                                                       | 3      |
+| redteam | PROPOSAL → ATTACK → DEFEND → JUDGE_ATTACK → OUTPUT                                         | 4      |
+| jury    | Same as council with panel judges                                                          | 3      |
+| market  | PROPOSAL → BET → MARKET_UPDATE → CONVERGENCE → OUTPUT                                      | 5      |
+| auto    | Routes to appropriate mode via cost_router                                                 | varies |
 
 ## Model Rules
+
 - Bot: haiku only, sonnet as fallback, opus BLOCKED
 - Debate: any model the user's API keys support
 - Judge: non-participant model required in blind mode

@@ -1,0 +1,41 @@
+# Build outputs
+**/dist
+**/.next
+**/build
+**/out
+**/coverage
+
+# Dependency directories
+**/node_modules
+**/.pnpm-store
+
+# Lockfiles and generated files
+**/pnpm-lock.yaml
+**/package-lock.json
+**/yarn.lock
+
+# Prisma generated client
+**/.prisma
+packages/database/node_modules
+
+# Python workspace — the agents project uses its own black+ruff formatting
+# and its pytest suite contains byte-stable snapshot fixtures. Excluding the
+# whole tree also keeps our `pnpm format` pass from tripping the
+# apps/agents/** path-filter and triggering a pytest run that has nothing to
+# do with formatting.
+apps/agents/**
+
+# Test fixtures and benchmark results (must remain byte-stable)
+**/fixtures/**/*.json
+**/__fixtures__/**/*.json
+**/__snapshots__/**
+
+# Python generated
+apps/agents/.venv
+apps/agents/poetry.lock
+apps/agents/**/*.egg-info
+
+# Environment files
+.env
+.env.*
+!.env.example

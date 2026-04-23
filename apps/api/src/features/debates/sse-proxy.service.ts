@@ -92,7 +92,9 @@ export class SseProxyService {
 
             buffer += decoder.decode(value, { stream: true });
             if (buffer.length > MAX_BUFFER_SIZE) {
-              this.logger.error("[SSE PROXY] Buffer exceeded 1MB limit, aborting");
+              this.logger.error(
+                "[SSE PROXY] Buffer exceeded 1MB limit, aborting",
+              );
               subscriber.error(new Error("SSE buffer overflow"));
               return;
             }

@@ -20,6 +20,7 @@ Get your token from Clerk after signing in. The token is automatically included 
 ## Interactive Documentation
 
 Swagger UI is available at:
+
 - **Development**: http://localhost:4000/api/docs
 - **Production**: https://api.myconsilium.xyz/api/docs
 
@@ -28,9 +29,11 @@ Swagger UI is available at:
 ### Health
 
 #### GET /health
+
 Check API health status.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -43,17 +46,21 @@ Check API health status.
 ```
 
 #### GET /health/ready
+
 Readiness check for container orchestration.
 
 #### GET /health/live
+
 Liveness check for container orchestration.
 
 ### Debates
 
 #### POST /debates
+
 Start a new debate session.
 
 **Request:**
+
 ```json
 {
   "topic": "Build a REST API with authentication using Node.js and PostgreSQL",
@@ -62,6 +69,7 @@ Start a new debate session.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "debate-123",
@@ -75,13 +83,16 @@ Start a new debate session.
 ```
 
 #### GET /debates
+
 List user's debate sessions.
 
 **Query Parameters:**
+
 - `limit` (number, default: 20): Number of results
 - `offset` (number, default: 0): Pagination offset
 
 **Response:**
+
 ```json
 [
   {
@@ -98,9 +109,11 @@ List user's debate sessions.
 ```
 
 #### GET /debates/:id
+
 Get specific debate session details.
 
 **Response:**
+
 ```json
 {
   "id": "debate-123",
@@ -130,12 +143,15 @@ Get specific debate session details.
 ```
 
 #### GET /debates/:id/stream
+
 Stream debate progress via Server-Sent Events (SSE).
 
 **Query Parameters:**
+
 - `token` (string): Clerk JWT token (for SSE authentication)
 
 **Event Types:**
+
 - `debate:start`: Debate started
 - `round:start`: New round started
 - `agent:start`: Agent started responding
@@ -146,6 +162,7 @@ Stream debate progress via Server-Sent Events (SSE).
 - `debate:error`: Error occurred
 
 **Example Event:**
+
 ```
 event: agent:chunk
 data: {"event":"agent:chunk","agentId":"gpt-4o-mini","chunk":"This is a chunk of text..."}
@@ -154,9 +171,11 @@ data: {"event":"agent:chunk","agentId":"gpt-4o-mini","chunk":"This is a chunk of
 ### API Keys
 
 #### GET /api-keys
+
 Get user's API keys (masked).
 
 **Response:**
+
 ```json
 {
   "openaiKey": "sk-...****",
@@ -166,9 +185,11 @@ Get user's API keys (masked).
 ```
 
 #### PUT /api-keys
+
 Update user's API keys.
 
 **Request:**
+
 ```json
 {
   "openaiKey": "sk-...",
@@ -178,6 +199,7 @@ Update user's API keys.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -186,9 +208,11 @@ Update user's API keys.
 ```
 
 #### POST /api-keys/test
+
 Test an API key.
 
 **Request:**
+
 ```json
 {
   "provider": "openai",
@@ -197,6 +221,7 @@ Test an API key.
 ```
 
 **Response:**
+
 ```json
 {
   "valid": true,
@@ -207,9 +232,11 @@ Test an API key.
 ### Users
 
 #### GET /users/me
+
 Get current user profile.
 
 **Response:**
+
 ```json
 {
   "id": "user-123",
@@ -222,9 +249,11 @@ Get current user profile.
 ```
 
 #### PUT /users/me
+
 Update current user profile.
 
 **Request:**
+
 ```json
 {
   "firstName": "Jane",
@@ -235,9 +264,11 @@ Update current user profile.
 ### Analytics
 
 #### GET /analytics
+
 Get analytics data.
 
 **Response:**
+
 ```json
 {
   "totalDebates": 42,
@@ -257,9 +288,11 @@ Get analytics data.
 ### Waitlist
 
 #### POST /waitlist
+
 Join the waitlist.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -268,6 +301,7 @@ Join the waitlist.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -303,11 +337,13 @@ All errors follow this format:
 ## Rate Limiting
 
 Rate limits are applied per user:
+
 - **Login**: 5 attempts per 15 minutes
 - **API**: 100 requests per minute
 - **Debate creation**: 10 per hour
 
 Rate limit headers:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -324,18 +360,19 @@ SSE endpoints require special handling:
 4. Reconnect on disconnect
 
 **JavaScript Example:**
+
 ```javascript
 const eventSource = new EventSource(
-  `${API_URL}/api/v1/debates/${debateId}/stream?token=${token}`
+  `${API_URL}/api/v1/debates/${debateId}/stream?token=${token}`,
 );
 
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log('Event:', data.event, data);
+  console.log("Event:", data.event, data);
 };
 
 eventSource.onerror = (error) => {
-  console.error('SSE error:', error);
+  console.error("SSE error:", error);
   eventSource.close();
 };
 ```
@@ -349,17 +386,17 @@ Import the [Postman Collection](./consilium-api.postman.json) for easy testing.
 ### TypeScript/JavaScript
 
 ```typescript
-import { ConsiliumClient } from '@myconsilium/sdk';
+import { ConsiliumClient } from "@myconsilium/sdk";
 
 const client = new ConsiliumClient({
-  apiUrl: 'https://api.myconsilium.xyz',
-  token: 'your-clerk-token'
+  apiUrl: "https://api.myconsilium.xyz",
+  token: "your-clerk-token",
 });
 
 // Start a debate
 const debate = await client.debates.create({
-  topic: 'Build a REST API...',
-  models: ['gpt-4o-mini', 'claude-3-5-haiku-latest']
+  topic: "Build a REST API...",
+  models: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
 });
 
 // Stream progress
@@ -378,6 +415,7 @@ Consilium receives webhooks from Clerk for user events:
 **Endpoint:** `POST /api/v1/webhooks/clerk`
 
 **Events:**
+
 - `user.created`
 - `user.updated`
 - `user.deleted`
@@ -389,7 +427,7 @@ Consilium receives webhooks from Clerk for user events:
 ## Support
 
 For API issues:
+
 - Check [Swagger UI](http://localhost:4000/api/docs) for interactive docs
 - Review error responses for details
 - Open an issue on [GitHub](https://github.com/yourusername/consilium)
-

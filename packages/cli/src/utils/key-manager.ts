@@ -1,38 +1,38 @@
-import { loadConfig, saveConfig } from './config';
+import { loadConfig, saveConfig } from "./config";
 
-export type Provider = 'openai' | 'anthropic' | 'google' | 'xai';
+export type Provider = "openai" | "anthropic" | "google" | "xai";
 
 export const PROVIDER_ENV_VARS: Record<Provider, string> = {
-  openai: 'OPENAI_API_KEY',
-  anthropic: 'ANTHROPIC_API_KEY',
-  google: 'GOOGLE_API_KEY',
-  xai: 'XAI_API_KEY',
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  google: "GOOGLE_API_KEY",
+  xai: "XAI_API_KEY",
 };
 
 export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
-  openai: 'OpenAI',
-  anthropic: 'Anthropic',
-  google: 'Google/Gemini',
-  xai: 'xAI/Grok',
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google/Gemini",
+  xai: "xAI/Grok",
 };
 
 const MODEL_PROVIDER_MAP: Record<string, Provider> = {
-  'gpt-4o': 'openai',
-  'gpt-4o-mini': 'openai',
-  'gpt-4': 'openai',
-  'o1': 'openai',
-  'o3': 'openai',
-  'claude-opus': 'anthropic',
-  'claude-sonnet': 'anthropic',
-  'claude-haiku': 'anthropic',
-  'gemini-pro': 'google',
-  'gemini-flash': 'google',
-  'gemini-2.5-pro': 'google',
-  'grok-2': 'xai',
-  'grok-3': 'xai',
+  "gpt-4o": "openai",
+  "gpt-4o-mini": "openai",
+  "gpt-4": "openai",
+  o1: "openai",
+  o3: "openai",
+  "claude-opus": "anthropic",
+  "claude-sonnet": "anthropic",
+  "claude-haiku": "anthropic",
+  "gemini-pro": "google",
+  "gemini-flash": "google",
+  "gemini-2.5-pro": "google",
+  "grok-2": "xai",
+  "grok-3": "xai",
 };
 
-const JUDGE_PRIORITY: Provider[] = ['anthropic', 'google', 'openai', 'xai'];
+const JUDGE_PRIORITY: Provider[] = ["anthropic", "google", "openai", "xai"];
 
 export class KeyManager {
   getKey(provider: Provider): string | undefined {
@@ -55,18 +55,34 @@ export class KeyManager {
     this.saveProviderKeys(keys);
   }
 
-  listKeys(): Array<{ provider: Provider; source: 'env' | 'config'; masked: string }> {
-    const result: Array<{ provider: Provider; source: 'env' | 'config'; masked: string }> = [];
-    const providers: Provider[] = ['openai', 'anthropic', 'google', 'xai'];
+  listKeys(): Array<{
+    provider: Provider;
+    source: "env" | "config";
+    masked: string;
+  }> {
+    const result: Array<{
+      provider: Provider;
+      source: "env" | "config";
+      masked: string;
+    }> = [];
+    const providers: Provider[] = ["openai", "anthropic", "google", "xai"];
     const configKeys = this.loadProviderKeys();
 
     for (const provider of providers) {
       const envVar = PROVIDER_ENV_VARS[provider];
       const envValue = process.env[envVar];
       if (envValue) {
-        result.push({ provider, source: 'env', masked: this.maskKey(envValue) });
+        result.push({
+          provider,
+          source: "env",
+          masked: this.maskKey(envValue),
+        });
       } else if (configKeys[provider]) {
-        result.push({ provider, source: 'config', masked: this.maskKey(configKeys[provider]) });
+        result.push({
+          provider,
+          source: "config",
+          masked: this.maskKey(configKeys[provider]),
+        });
       }
     }
 
@@ -78,7 +94,7 @@ export class KeyManager {
   }
 
   getAvailableProviders(): Provider[] {
-    const providers: Provider[] = ['openai', 'anthropic', 'google', 'xai'];
+    const providers: Provider[] = ["openai", "anthropic", "google", "xai"];
     return providers.filter((p) => this.hasKey(p));
   }
 
@@ -93,7 +109,7 @@ export class KeyManager {
 
   getJudgeProvider(debateModels: string[]): Provider | undefined {
     const debateProviders = new Set(
-      debateModels.map((m) => MODEL_PROVIDER_MAP[m]).filter(Boolean)
+      debateModels.map((m) => MODEL_PROVIDER_MAP[m]).filter(Boolean),
     );
 
     for (const candidate of JUDGE_PRIORITY) {
@@ -123,7 +139,7 @@ export class KeyManager {
   }
 
   private maskKey(key: string): string {
-    if (key.length <= 8) return '****';
-    return key.slice(0, 4) + '...' + key.slice(-4);
+    if (key.length <= 8) return "****";
+    return key.slice(0, 4) + "..." + key.slice(-4);
   }
 }

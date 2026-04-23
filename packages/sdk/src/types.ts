@@ -3,21 +3,21 @@
  * Prefer canonical literals: `redteam`, `blind`. Deprecated: `red-team`, `blind-eval`.
  */
 export type DeliberationMode =
-  | 'quick'
-  | 'council'
-  | 'deep'
-  | 'blind'
-  | 'redteam'
+  | "quick"
+  | "council"
+  | "deep"
+  | "blind"
+  | "redteam"
   /** @deprecated use `redteam` */
-  | 'red-team'
-  | 'jury'
-  | 'market'
-  | 'auto'
-  | 'prediction-market'
-  | 'adversarial'
-  | 'delphi'
+  | "red-team"
+  | "jury"
+  | "market"
+  | "auto"
+  | "prediction-market"
+  | "adversarial"
+  | "delphi"
   /** @deprecated use `blind` */
-  | 'blind-eval';
+  | "blind-eval";
 
 export interface DeliberateOptions {
   topic: string;

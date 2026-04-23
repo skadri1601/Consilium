@@ -6,6 +6,7 @@ import { ArrowRight, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "./blog-data";
+import { MarketingHero } from "@/components/shared/marketing-hero";
 
 const categories: Array<"All" | BlogCategory> = [
   "All",
@@ -16,10 +17,10 @@ const categories: Array<"All" | BlogCategory> = [
 ];
 
 const categoryColors: Record<BlogCategory, string> = {
-  Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  Research: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  Product: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Engineering: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  Benchmarks: "bg-agree/14 text-agree border-agree/30",
+  Research: "bg-warm/12 text-warm border-warm/20",
+  Product: "bg-warm/12 text-warm-bright border-warm/20",
+  Engineering: "bg-agree/14 text-agree border-agree/30",
 };
 
 function formatDate(dateStr: string) {
@@ -31,7 +32,9 @@ function formatDate(dateStr: string) {
 }
 
 export default function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>("All");
+  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>(
+    "All",
+  );
 
   const filtered =
     activeCategory === "All"
@@ -43,14 +46,20 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="container mx-auto px-4 py-32 md:py-40">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Blog</h1>
-          <p className="text-xl text-muted-foreground">
-            Latest updates, research, and benchmarks from Consilium
-          </p>
-        </div>
-      </section>
+      <MarketingHero
+        eyebrow="Blog"
+        title={
+          <>
+            Notes from the <em>council.</em>
+          </>
+        }
+        description={
+          <>
+            Benchmarks, engineering posts, and research write-ups on multi-agent
+            deliberation.
+          </>
+        }
+      />
 
       <section className="container mx-auto px-4 pb-24">
         <div className="flex flex-wrap gap-2 mb-12 justify-center">
@@ -62,7 +71,7 @@ export default function BlogPage() {
                 "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                 activeCategory === cat
                   ? "bg-white text-black"
-                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]"
+                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]",
               )}
             >
               {cat}
@@ -77,7 +86,9 @@ export default function BlogPage() {
           >
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1">
-                <Badge className={cn("mb-4", categoryColors[featured.category])}>
+                <Badge
+                  className={cn("mb-4", categoryColors[featured.category])}
+                >
                   {featured.category}
                 </Badge>
                 <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">

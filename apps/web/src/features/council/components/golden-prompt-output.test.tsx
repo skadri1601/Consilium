@@ -1,15 +1,15 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { SynthesisOutput } from '@/components/council/synthesis-output';
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { SynthesisOutput } from "@/components/council/synthesis-output";
 
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
 const mockClipboard = {
   writeText: mockWriteText,
 };
 
-if (typeof navigator !== 'undefined') {
+if (typeof navigator !== "undefined") {
   try {
-    Object.defineProperty(navigator, 'clipboard', {
+    Object.defineProperty(navigator, "clipboard", {
       value: mockClipboard,
       writable: true,
       configurable: true,
@@ -17,57 +17,56 @@ if (typeof navigator !== 'undefined') {
   } catch {
     try {
       delete (navigator as any).clipboard;
-      Object.defineProperty(navigator, 'clipboard', {
+      Object.defineProperty(navigator, "clipboard", {
         value: mockClipboard,
         writable: true,
         configurable: true,
       });
     } catch (error_) {
-      console.warn('Failed to mock navigator.clipboard:', error_);
+      console.warn("Failed to mock navigator.clipboard:", error_);
     }
   }
 }
 
-vi.mock('@/shared/components/ui/use-toast', () => ({
+vi.mock("@/shared/components/ui/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
 
-vi.mock('@/hooks/use-keyboard-shortcuts', () => ({
+vi.mock("@/hooks/use-keyboard-shortcuts", () => ({
   useKeyboardShortcuts: vi.fn(),
 }));
 
-describe('SynthesisOutput', () => {
-  const mockPrompt = 'This is a test golden prompt';
+describe("SynthesisOutput", () => {
+  const mockPrompt = "This is a test golden prompt";
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteText.mockClear();
     mockWriteText.mockResolvedValue(undefined);
-    if (typeof navigator !== 'undefined') {
+    if (typeof navigator !== "undefined") {
       try {
-        Object.defineProperty(navigator, 'clipboard', {
+        Object.defineProperty(navigator, "clipboard", {
           value: mockClipboard,
           writable: true,
           configurable: true,
         });
-      } catch {
-      }
+      } catch {}
     }
   });
 
-  it('should render the prompt', () => {
+  it("should render the prompt", () => {
     render(<SynthesisOutput prompt={mockPrompt} />);
     expect(screen.getByText(mockPrompt)).toBeInTheDocument();
   });
 
-  it('should display cost and models when provided', () => {
+  it("should display cost and models when provided", () => {
     render(
       <SynthesisOutput
         prompt={mockPrompt}
         cost={0.05}
-        modelsUsed={['gpt-4o-mini', 'claude-3-5-haiku']}
+        modelsUsed={["gpt-4o-mini", "claude-3-5-haiku"]}
       />,
     );
 
@@ -75,44 +74,53 @@ describe('SynthesisOutput', () => {
     expect(screen.getByText(/gpt-4o-mini/)).toBeInTheDocument();
   });
 
-  it('should copy to clipboard when copy button is clicked', async () => {
+  it("should copy to clipboard when copy button is clicked", async () => {
     mockWriteText.mockClear();
     mockWriteText.mockResolvedValue(undefined);
 
     render(<SynthesisOutput prompt={mockPrompt} />);
 
-    const copyButton = screen.getByRole('button', { name: /copy/i });
+    const copyButton = screen.getByRole("button", { name: /copy/i });
     fireEvent.click(copyButton);
 
-    await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalledWith(mockPrompt);
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(mockWriteText).toHaveBeenCalledWith(mockPrompt);
+      },
+      { timeout: 3000 },
+    );
   });
 
-  it('should export as .cursorrules', async () => {
+  it("should export as .cursorrules", async () => {
     const user = userEvent.setup();
     render(<SynthesisOutput prompt={mockPrompt} />);
 
     const mockAnchor = {
-      href: '',
-      download: '',
+      href: "",
+      download: "",
       click: vi.fn(),
     };
     const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
-      if (tagName === 'a') {
-        return mockAnchor as any;
-      }
-      return originalCreateElement(tagName);
-    });
-    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockAnchor as any);
-    const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockAnchor as any);
+    const createElementSpy = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName) => {
+        if (tagName === "a") {
+          return mockAnchor as any;
+        }
+        return originalCreateElement(tagName);
+      });
+    const appendChildSpy = vi
+      .spyOn(document.body, "appendChild")
+      .mockImplementation(() => mockAnchor as any);
+    const removeChildSpy = vi
+      .spyOn(document.body, "removeChild")
+      .mockImplementation(() => mockAnchor as any);
 
-    const exportButton = screen.getByRole('button', { name: /\.cursorrules/i });
+    const exportButton = screen.getByRole("button", { name: /\.cursorrules/i });
     await user.click(exportButton);
 
-    expect(createElementSpy).toHaveBeenCalledWith('a');
-    expect(mockAnchor.download).toBe('.cursorrules');
+    expect(createElementSpy).toHaveBeenCalledWith("a");
+    expect(mockAnchor.download).toBe(".cursorrules");
     expect(mockAnchor.click).toHaveBeenCalled();
 
     createElementSpy.mockRestore();

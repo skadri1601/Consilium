@@ -7,7 +7,6 @@ const isPublicRoute = createRouteMatcher([
   "/blog(.*)",
   "/docs(.*)",
   "/pricing(.*)",
-  "/community(.*)",
   "/contact(.*)",
   "/research(.*)",
   "/use-cases(.*)",
@@ -48,4 +47,3 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
-

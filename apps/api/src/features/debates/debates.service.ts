@@ -185,9 +185,7 @@ export class DebatesService {
       mode,
       debateSource,
       systemPrompt,
-      projectContext: dto.projectContext as
-        | Record<string, unknown>
-        | undefined,
+      projectContext: dto.projectContext as Record<string, unknown> | undefined,
       apiKeys,
     });
 

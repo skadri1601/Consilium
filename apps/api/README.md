@@ -4,18 +4,18 @@ NestJS 11 backend providing REST API, SSE streaming, and job queue orchestration
 
 ## Stack
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | NestJS 11 + Fastify |
-| Hosting | Render free tier (`render.yaml` blueprint) |
-| Auth | Clerk SDK |
-| Database | Prisma ORM + Neon PostgreSQL |
-| Queue | BullMQ (`debate-jobs`, 3 attempts, exponential backoff) |
-| Cache | ioredis + Upstash Redis |
-| Monitoring | Sentry + Terminus health checks |
-| Docs | Swagger at `/api/docs` |
-| Email | Resend |
-| Validation | class-validator + Zod |
+| Layer      | Technology                                              |
+| ---------- | ------------------------------------------------------- |
+| Runtime    | NestJS 11 + Fastify                                     |
+| Hosting    | Render free tier (`render.yaml` blueprint)              |
+| Auth       | Clerk SDK                                               |
+| Database   | Prisma ORM + Neon PostgreSQL                            |
+| Queue      | BullMQ (`debate-jobs`, 3 attempts, exponential backoff) |
+| Cache      | ioredis + Upstash Redis                                 |
+| Monitoring | Sentry + Terminus health checks                         |
+| Docs       | Swagger at `/api/docs`                                  |
+| Email      | Resend                                                  |
+| Validation | class-validator + Zod                                   |
 
 ## Getting Started
 
@@ -43,33 +43,33 @@ RESEND_API_KEY=re_...
 
 ## Feature Modules
 
-| Module | Description |
-|--------|-------------|
-| auth | Clerk authentication, guards, decorators |
-| agents | Agent configuration and management |
-| analytics | Usage metrics and reporting |
-| api-keys | BYOK key management |
-| conversations | Conversation history (v1 + v2) |
-| council | Multi-agent orchestration |
-| debates | Debate creation, streaming, cost estimation |
-| personas | Agent persona definitions |
-| users | User profiles and preferences |
-| waitlist | Early access waitlist |
-| webhooks | Webhook subscriptions and delivery |
+| Module        | Description                                 |
+| ------------- | ------------------------------------------- |
+| auth          | Clerk authentication, guards, decorators    |
+| agents        | Agent configuration and management          |
+| analytics     | Usage metrics and reporting                 |
+| api-keys      | BYOK key management                         |
+| conversations | Conversation history (v1 + v2)              |
+| council       | Multi-agent orchestration                   |
+| debates       | Debate creation, streaming, cost estimation |
+| personas      | Agent persona definitions                   |
+| users         | User profiles and preferences               |
+| waitlist      | Early access waitlist                       |
+| webhooks      | Webhook subscriptions and delivery          |
 
 ## Shared Modules
 
-| Module | Purpose |
-|--------|---------|
-| config | App configuration |
-| database | Prisma client provider |
-| decorators | Custom route/param decorators |
-| filters | Exception filters |
-| guards | Auth and rate-limit guards |
-| interceptors | Response transformation |
-| pipes | Validation pipes |
-| queue | BullMQ producer/consumer setup |
-| services | audit-logger, email, encryption, session |
+| Module       | Purpose                                  |
+| ------------ | ---------------------------------------- |
+| config       | App configuration                        |
+| database     | Prisma client provider                   |
+| decorators   | Custom route/param decorators            |
+| filters      | Exception filters                        |
+| guards       | Auth and rate-limit guards               |
+| interceptors | Response transformation                  |
+| pipes        | Validation pipes                         |
+| queue        | BullMQ producer/consumer setup           |
+| services     | audit-logger, email, encryption, session |
 
 ## Key Endpoints
 

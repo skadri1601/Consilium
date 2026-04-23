@@ -115,6 +115,7 @@ declare module "lucide-react" {
   export const Package: LucideIcon;
   export const Server: LucideIcon;
   export const ShieldAlert: LucideIcon;
+  export const ShieldCheck: LucideIcon;
   export const HeartPulse: LucideIcon;
   export const ClipboardList: LucideIcon;
   export const Gauge: LucideIcon;

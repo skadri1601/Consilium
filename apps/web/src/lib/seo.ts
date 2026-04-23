@@ -52,7 +52,9 @@ export function buildMetadata({
       siteName: SITE_NAME,
       title: resolvedTitle,
       description: resolvedDescription,
-      images: [{ url: resolvedImage, width: 1200, height: 630, alt: SITE_NAME }],
+      images: [
+        { url: resolvedImage, width: 1200, height: 630, alt: SITE_NAME },
+      ],
       ...(type === "article" && publishedTime ? { publishedTime } : {}),
       ...(type === "article" && modifiedTime ? { modifiedTime } : {}),
     },

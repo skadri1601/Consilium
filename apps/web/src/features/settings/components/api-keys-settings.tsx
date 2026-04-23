@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
@@ -59,7 +65,10 @@ export function ApiKeysSettings() {
       });
   }, []);
 
-  const testKey = async (provider: "openai" | "anthropic" | "google" | "groq" | "xai", key: string) => {
+  const testKey = async (
+    provider: "openai" | "anthropic" | "google" | "groq" | "xai",
+    key: string,
+  ) => {
     if (!key) {
       toast({
         title: "Error",
@@ -115,8 +124,8 @@ export function ApiKeysSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           Object.fromEntries(
-            Object.entries(keys).filter(([, value]) => value !== "")
-          )
+            Object.entries(keys).filter(([, value]) => value !== ""),
+          ),
         ),
       });
 
@@ -126,7 +135,13 @@ export function ApiKeysSettings() {
           description: "API keys saved successfully",
         });
         // Clear input fields
-        setKeys({ openaiKey: "", anthropicKey: "", googleKey: "", groqKey: "", xaiKey: "" });
+        setKeys({
+          openaiKey: "",
+          anthropicKey: "",
+          googleKey: "",
+          groqKey: "",
+          xaiKey: "",
+        });
         // Refresh masked keys
         const data = await fetch("/api/api-keys").then((res) => res.json());
         setMaskedKeys({
@@ -163,8 +178,9 @@ export function ApiKeysSettings() {
         <CardHeader>
           <CardTitle>API Keys</CardTitle>
           <CardDescription>
-            Add your API keys to use your own credits. Keys are encrypted and stored securely.
-            If you don&apos;t provide keys, the demo instance keys will be used (with rate limits).
+            Add your API keys to use your own credits. Keys are encrypted and
+            stored securely. If you don&apos;t provide keys, the demo instance
+            keys will be used (with rate limits).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -192,7 +208,9 @@ export function ApiKeysSettings() {
                 type="password"
                 placeholder="sk-..."
                 value={keys.openaiKey}
-                onChange={(e) => setKeys({ ...keys, openaiKey: e.target.value })}
+                onChange={(e) =>
+                  setKeys({ ...keys, openaiKey: e.target.value })
+                }
               />
               <Button
                 variant="outline"
@@ -236,7 +254,9 @@ export function ApiKeysSettings() {
                 type="password"
                 placeholder="sk-ant-..."
                 value={keys.anthropicKey}
-                onChange={(e) => setKeys({ ...keys, anthropicKey: e.target.value })}
+                onChange={(e) =>
+                  setKeys({ ...keys, anthropicKey: e.target.value })
+                }
               />
               <Button
                 variant="outline"
@@ -280,7 +300,9 @@ export function ApiKeysSettings() {
                 type="password"
                 placeholder="AIza..."
                 value={keys.googleKey}
-                onChange={(e) => setKeys({ ...keys, googleKey: e.target.value })}
+                onChange={(e) =>
+                  setKeys({ ...keys, googleKey: e.target.value })
+                }
               />
               <Button
                 variant="outline"
@@ -343,7 +365,8 @@ export function ApiKeysSettings() {
               </Button>
             </div>
             <p className="text-xs text-green-600 dark:text-green-400">
-              Groq models are free to use. No API key required for basic access. Add your own key for higher rate limits.
+              Groq models are free to use. No API key required for basic access.
+              Add your own key for higher rate limits.
             </p>
           </div>
 

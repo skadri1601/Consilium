@@ -1,11 +1,15 @@
-import { requestCodebasePermission } from './codebase-permissions';
-import { detectWorkspace } from './workspace-detector';
-import { extractEnvMetadata } from './env-extractor';
-import { collectGitContext, formatGitContextForPrompt } from './git-context';
-import { fetchTicket, formatTicketForPrompt } from './linear-client';
-import { scanProject, type ScanManifest, type ScannedFile } from './project-scanner';
-import { resolveProjectRoot } from './project-root';
-import { style } from './visual-system';
+import { requestCodebasePermission } from "./codebase-permissions";
+import { detectWorkspace } from "./workspace-detector";
+import { extractEnvMetadata } from "./env-extractor";
+import { collectGitContext, formatGitContextForPrompt } from "./git-context";
+import { fetchTicket, formatTicketForPrompt } from "./linear-client";
+import {
+  scanProject,
+  type ScanManifest,
+  type ScannedFile,
+} from "./project-scanner";
+import { resolveProjectRoot } from "./project-root";
+import { style } from "./visual-system";
 
 const st = style();
 
@@ -46,10 +50,12 @@ export async function loadWorkspaceDebateContext(
   const workspace = detectWorkspace(rootInfo.root);
   const scanResult = scanProject(rootInfo.root);
   const projectFiles = scanResult.files;
-  const files: Array<{ name: string; content: string }> = projectFiles.map((f) => ({
-    name: f.path,
-    content: f.content,
-  }));
+  const files: Array<{ name: string; content: string }> = projectFiles.map(
+    (f) => ({
+      name: f.path,
+      content: f.content,
+    }),
+  );
 
   const envMeta = extractEnvMetadata(rootInfo.root);
 
@@ -70,24 +76,32 @@ export async function loadWorkspaceDebateContext(
     projectContext.integrations = envMeta.integrations;
   }
 
-  let gitContextPrefix = '';
+  let gitContextPrefix = "";
   if (options.gitDiff) {
     const gitCtx = collectGitContext(rootInfo.root);
     if (gitCtx?.diff) {
       gitContextPrefix = formatGitContextForPrompt(gitCtx);
-      console.log(st.dim(`  Loaded git diff (branch: ${gitCtx.branch || 'unknown'})`));
+      console.log(
+        st.dim(`  Loaded git diff (branch: ${gitCtx.branch || "unknown"})`),
+      );
     }
   }
 
-  let ticketPrefix = '';
+  let ticketPrefix = "";
   if (options.ticket) {
     try {
       const ticket = await fetchTicket(options.ticket);
       if (ticket) {
         ticketPrefix = formatTicketForPrompt(ticket);
-        console.log(st.dim(`  Loaded ticket: ${ticket.identifier} — ${ticket.title}`));
+        console.log(
+          st.dim(`  Loaded ticket: ${ticket.identifier} — ${ticket.title}`),
+        );
       } else {
-        console.log(st.dim(`  Could not fetch ticket ${options.ticket} (check LINEAR_API_KEY)`));
+        console.log(
+          st.dim(
+            `  Could not fetch ticket ${options.ticket} (check LINEAR_API_KEY)`,
+          ),
+        );
       }
     } catch {
       console.log(st.dim(`  Could not fetch ticket ${options.ticket}`));
@@ -104,14 +118,18 @@ export async function loadWorkspaceDebateContext(
     );
     console.log(
       st.dim(
-        `  Skipped — secret:${scanResult.manifest.skipped.secret} binary:${scanResult.manifest.skipped.binary} payload-limit:${scanResult.manifest.skipped['payload-limit']} skip-rule:${scanResult.manifest.skipped['skip-rule']}`,
+        `  Skipped — secret:${scanResult.manifest.skipped.secret} binary:${scanResult.manifest.skipped.binary} payload-limit:${scanResult.manifest.skipped["payload-limit"]} skip-rule:${scanResult.manifest.skipped["skip-rule"]}`,
       ),
     );
   } else {
-    console.log(st.dim('  No readable context files loaded from project root.'));
+    console.log(
+      st.dim("  No readable context files loaded from project root."),
+    );
   }
   if (envMeta?.integrations.length) {
-    console.log(st.dim(`  Detected integrations: ${envMeta.integrations.join(', ')}`));
+    console.log(
+      st.dim(`  Detected integrations: ${envMeta.integrations.join(", ")}`),
+    );
   }
 
   return {

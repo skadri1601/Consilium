@@ -1,4 +1,12 @@
-export type DebateMode = 'quick' | 'council' | 'deep' | 'blind' | 'redteam' | 'jury' | 'market' | 'auto';
+export type DebateMode =
+  | "quick"
+  | "council"
+  | "deep"
+  | "blind"
+  | "redteam"
+  | "jury"
+  | "market"
+  | "auto";
 
 export interface DebateModeConfig {
   rounds: number;
@@ -23,57 +31,57 @@ export const DEBATE_MODES: Record<DebateMode, DebateModeConfig> = {
     rounds: 1,
     subAgents: false,
     estimatedCost: 0.01,
-    description: 'Single round, fastest response',
-    estimatedTime: '~15s',
+    description: "Single round, fastest response",
+    estimatedTime: "~15s",
   },
   council: {
     rounds: 3,
     subAgents: false,
     estimatedCost: 0.04,
-    description: 'Multi-round deliberation',
-    estimatedTime: '~45s',
+    description: "Multi-round deliberation",
+    estimatedTime: "~45s",
   },
   deep: {
     rounds: 3,
     subAgents: true,
     estimatedCost: 0.08,
-    description: 'Multi-round with sub-agent research',
-    estimatedTime: '~90s',
+    description: "Multi-round with sub-agent research",
+    estimatedTime: "~90s",
   },
   blind: {
     rounds: 3,
     subAgents: false,
     estimatedCost: 0.04,
-    description: 'Names hidden until scored',
-    estimatedTime: '~45s',
+    description: "Names hidden until scored",
+    estimatedTime: "~45s",
   },
   redteam: {
     rounds: 4,
     subAgents: true,
     estimatedCost: 0.1,
-    description: 'Adversarial red team assessment',
-    estimatedTime: '~120s',
+    description: "Adversarial red team assessment",
+    estimatedTime: "~120s",
   },
   jury: {
     rounds: 3,
     subAgents: false,
     estimatedCost: 0.05,
-    description: 'Panel deliberation with voting',
-    estimatedTime: '~60s',
+    description: "Panel deliberation with voting",
+    estimatedTime: "~60s",
   },
   market: {
     rounds: 5,
     subAgents: true,
     estimatedCost: 0.09,
-    description: 'Prediction market style confidence aggregation',
-    estimatedTime: '~90s',
+    description: "Prediction market style confidence aggregation",
+    estimatedTime: "~90s",
   },
   auto: {
     rounds: 3,
     subAgents: false,
     estimatedCost: 0.04,
-    description: 'Automatically selects best mode for topic',
-    estimatedTime: '~45s',
+    description: "Automatically selects best mode for topic",
+    estimatedTime: "~45s",
   },
 };
 
@@ -84,7 +92,7 @@ export function isValidMode(mode: string): mode is DebateMode {
 }
 
 export function getDefaultMode(): DebateMode {
-  return 'auto';
+  return "auto";
 }
 
 function baseMinutesForModeEstimate(config: DebateModeConfig): number {
@@ -93,14 +101,17 @@ function baseMinutesForModeEstimate(config: DebateModeConfig): number {
   return 0.75;
 }
 
-export function estimateCost(mode: DebateMode, modelCount: number): CostEstimate {
+export function estimateCost(
+  mode: DebateMode,
+  modelCount: number,
+): CostEstimate {
   const config = DEBATE_MODES[mode];
   const baseCostPerModel = config.estimatedCost / 3;
   const perRound = baseCostPerModel * modelCount;
   const judge = perRound * 0.5;
   const subAgents = config.subAgents ? perRound * modelCount * 0.3 : undefined;
 
-  const total = (perRound * config.rounds) + judge + (subAgents ?? 0);
+  const total = perRound * config.rounds + judge + (subAgents ?? 0);
 
   const timeMultiplier = modelCount / 3;
   const baseMinutes = baseMinutesForModeEstimate(config);
@@ -111,7 +122,9 @@ export function estimateCost(mode: DebateMode, modelCount: number): CostEstimate
     breakdown: {
       perRound: Math.round(perRound * 1000) / 1000,
       judge: Math.round(judge * 1000) / 1000,
-      ...(subAgents !== undefined && { subAgents: Math.round(subAgents * 1000) / 1000 }),
+      ...(subAgents !== undefined && {
+        subAgents: Math.round(subAgents * 1000) / 1000,
+      }),
     },
     estimatedTime: `~${minutes}s`,
   };
@@ -130,5 +143,5 @@ export function formatCostEstimate(estimate: CostEstimate): string {
 
   lines.push(`  Time:         ${estimate.estimatedTime}`);
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

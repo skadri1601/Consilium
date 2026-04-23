@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext, shouldBypassAuth, isFetchError } from "@/lib/api/auth-helpers";
+import {
+  getAuthContext,
+  shouldBypassAuth,
+  isFetchError,
+} from "@/lib/api/auth-helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
     if (!authContext.userId || !authContext.token) {
       if (shouldBypassAuth(authContext.error)) {
         return NextResponse.json(
-          { error: "Unauthorized", message: "Authentication is disabled in test mode" },
-          { status: 401 }
+          {
+            error: "Unauthorized",
+            message: "Authentication is disabled in test mode",
+          },
+          { status: 401 },
         );
       }
 
@@ -34,10 +41,14 @@ export async function PUT(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[PUT /api/personas/:id] Backend error:", response.status, errorText);
+      console.error(
+        "[PUT /api/personas/:id] Backend error:",
+        response.status,
+        errorText,
+      );
       return NextResponse.json(
         { error: "Failed to update persona" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -47,28 +58,31 @@ export async function PUT(
       console.warn("[PUT /api/personas/:id] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to update persona" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
     if (!authContext.userId || !authContext.token) {
       if (shouldBypassAuth(authContext.error)) {
         return NextResponse.json(
-          { error: "Unauthorized", message: "Authentication is disabled in test mode" },
-          { status: 401 }
+          {
+            error: "Unauthorized",
+            message: "Authentication is disabled in test mode",
+          },
+          { status: 401 },
         );
       }
 
@@ -85,10 +99,14 @@ export async function DELETE(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[DELETE /api/personas/:id] Backend error:", response.status, errorText);
+      console.error(
+        "[DELETE /api/personas/:id] Backend error:",
+        response.status,
+        errorText,
+      );
       return NextResponse.json(
         { error: "Failed to delete persona" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -98,13 +116,13 @@ export async function DELETE(
       console.warn("[DELETE /api/personas/:id] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to delete persona" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

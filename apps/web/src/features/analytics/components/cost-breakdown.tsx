@@ -1,109 +1,145 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { useCostByModel } from "../hooks/use-analytics";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"];
+const COLORS = [
+  "rgb(var(--warm))",
+  "rgb(var(--agree))",
+  "rgb(var(--warm-bright))",
+  "rgb(var(--dissent))",
+  "rgb(var(--ink-secondary))",
+  "rgb(var(--ink-tertiary))",
+];
+
+function prettifyName(name: string): string {
+  return name
+    .replace("gpt-", "GPT-")
+    .replace("claude-", "Claude ")
+    .replace("gemini-", "Gemini ");
+}
+
+function Shell({
+  children,
+  description,
+}: {
+  children: React.ReactNode;
+  description?: string;
+}) {
+  return (
+    <div className="surface-card p-5">
+      <div className="mb-4">
+        <div className="eyebrow">Breakdown</div>
+        <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+          Cost by Model
+        </h3>
+        {description && (
+          <p className="text-[12px] text-ink-tertiary mt-1">{description}</p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
 
 export function CostBreakdown() {
   const { costByModel, isLoading, error } = useCostByModel();
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Cost by Model</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-sm text-destructive">
+      <Shell>
+        <div className="h-[300px] flex items-center justify-center">
+          <p className="text-[13px] text-dissent">
             Error loading cost data: {error}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </Shell>
     );
   }
 
   if (isLoading || !costByModel) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Cost by Model</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">
-            Loading cost breakdown...
+      <Shell>
+        <div className="h-[300px] flex items-center justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+            Loading cost breakdown…
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </Shell>
     );
   }
 
-  // Transform the data from Record<string, number> to array format for Recharts
   const chartData = Object.entries(costByModel).map(([model, cost]) => ({
     name: model,
     value: cost,
   }));
 
-  // Calculate total cost for percentage calculations
   const totalCost = chartData.reduce((sum, item) => sum + item.value, 0);
 
-  // If no data, show empty state
   if (chartData.length === 0 || totalCost === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Cost by Model</CardTitle>
-          <CardDescription>Distribution of costs across models</CardDescription>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">
-            No cost data available yet
+      <Shell description="Distribution of costs across models">
+        <div className="h-[300px] flex items-center justify-center">
+          <p className="text-[13px] text-ink-tertiary">
+            No cost data available yet.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </Shell>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Cost by Model</CardTitle>
-        <CardDescription>
-          Distribution of costs across models (Total: ${totalCost.toFixed(4)})
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => {
-                const percentage = (percent * 100).toFixed(1);
-                const displayName = name.replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ');
-                return `${displayName} (${percentage}%)`;
-              }}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value: number) => [`$${value.toFixed(4)}`, 'Cost']}
-              labelFormatter={(label) => label.toString().replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ')}
-            />
-            <Legend
-              formatter={(value) => value.toString().replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ')}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <Shell
+      description={`Distribution of costs across models · Total: $${totalCost.toFixed(4)}`}
+    >
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ name, percent }) =>
+              `${prettifyName(name)} (${(percent * 100).toFixed(1)}%)`
+            }
+            outerRadius={80}
+            dataKey="value"
+            stroke="rgb(var(--bg-1))"
+          >
+            {chartData.map((entry, index) => (
+              <Cell
+                key={`cell-${entry.name}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "rgb(var(--bg-1))",
+              border: "1px solid rgb(255 255 255 / 0.08)",
+              borderRadius: "8px",
+              fontSize: "12px",
+              color: "rgb(var(--ink-primary))",
+            }}
+            formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+            labelFormatter={(label) => prettifyName(label.toString())}
+          />
+          <Legend
+            formatter={(value) => (
+              <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-secondary">
+                {prettifyName(value.toString())}
+              </span>
+            )}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </Shell>
   );
 }

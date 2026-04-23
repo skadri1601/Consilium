@@ -14,7 +14,7 @@ export function EmailCapture() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !email.includes("@")) {
       toast({
         title: "Invalid email",
@@ -48,7 +48,8 @@ export function EmailCapture() {
     } catch (error) {
       toast({
         title: "Something went wrong",
-        description: error instanceof Error ? error.message : "Please try again later",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -60,13 +61,18 @@ export function EmailCapture() {
     return (
       <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
         <CheckCircle2 className="h-5 w-5" />
-        <span className="font-medium">Thanks! We&apos;ll be in touch soon.</span>
+        <span className="font-medium">
+          Thanks! We&apos;ll be in touch soon.
+        </span>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+    >
       <Input
         type="email"
         placeholder="Enter your email"
@@ -90,4 +96,3 @@ export function EmailCapture() {
     </form>
   );
 }
-

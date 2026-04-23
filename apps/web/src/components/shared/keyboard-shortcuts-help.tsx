@@ -62,7 +62,9 @@ export function KeyboardShortcutsHelp() {
             const keys = isMac ? shortcut.mac : shortcut.windows;
             return (
               <div key={index} className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">{shortcut.description}</span>
+                <span className="text-sm text-muted-foreground">
+                  {shortcut.description}
+                </span>
                 <div className="flex items-center gap-1">
                   {keys.map((key, keyIndex) => (
                     <kbd
@@ -81,4 +83,3 @@ export function KeyboardShortcutsHelp() {
     </Dialog>
   );
 }
-

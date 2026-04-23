@@ -3,11 +3,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { AGENTS } from "@/shared/lib/constants";
 import { AgentCard } from "./agent-card";
+import { cn } from "@/shared/lib/utils";
 import type { AgentDef, AgentProvider } from "../types/agents.types";
 
-const PROVIDER_ORDER: AgentProvider[] = ["OpenAI", "Anthropic", "Google", "Groq", "XAI"];
+const PROVIDER_ORDER: AgentProvider[] = [
+  "OpenAI",
+  "Anthropic",
+  "Google",
+  "Groq",
+  "XAI",
+];
 
-function groupByProvider(agents: readonly AgentDef[]): Record<string, AgentDef[]> {
+function groupByProvider(
+  agents: readonly AgentDef[],
+): Record<string, AgentDef[]> {
   const groups: Record<string, AgentDef[]> = {};
   for (const agent of agents) {
     if (!groups[agent.provider]) {
@@ -75,8 +84,25 @@ export function AgentList() {
 
         return (
           <section key={provider}>
-            <h2 className="mb-4 text-lg font-semibold">{provider}</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="eyebrow">Provider</div>
+                <h2 className="font-display text-[24px] tracking-[-0.02em] text-ink-primary mt-1 font-light">
+                  {provider}
+                </h2>
+              </div>
+              <span
+                className={cn(
+                  "font-mono text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 rounded-full border",
+                  hasKey
+                    ? "bg-agree/14 text-agree border-agree/30"
+                    : "bg-bg-2 text-ink-tertiary border-white/[0.08]",
+                )}
+              >
+                {hasKey ? "Key configured" : "Key missing"}
+              </span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {agents.map((agent) => (
                 <AgentCard key={agent.id} agent={agent} hasApiKey={hasKey} />
               ))}

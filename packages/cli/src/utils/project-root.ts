@@ -1,5 +1,5 @@
-import path from 'node:path';
-import { execSync } from 'node:child_process';
+import path from "node:path";
+import { execSync } from "node:child_process";
 
 export interface ProjectRootInfo {
   cwd: string;
@@ -10,10 +10,10 @@ export interface ProjectRootInfo {
 
 function safeGitTopLevel(cwd: string): string | null {
   try {
-    const output = execSync('git rev-parse --show-toplevel', {
+    const output = execSync("git rev-parse --show-toplevel", {
       cwd,
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
     }).trim();
     return output ? path.resolve(output) : null;
   } catch {
@@ -32,4 +32,3 @@ export function resolveProjectRoot(cwd = process.cwd()): ProjectRootInfo {
     isSubdirectory: normalizedCwd !== root,
   };
 }
-

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { useCouncilStore } from "../store/council.store";
-import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
+import {
+  AGENTS,
+  MIN_AGENTS_PER_DEBATE,
+  MAX_AGENTS_PER_DEBATE,
+} from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
-import { CheckCircle2, Lock, AlertCircle } from "lucide-react";
+import { Check, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export function AgentSelector() {
@@ -28,7 +31,13 @@ export function AgentSelector() {
     fetch("/api/api-keys")
       .then((res) => {
         if (!res.ok) {
-          return { openaiKey: null, anthropicKey: null, googleKey: null, groqKey: null, xaiKey: null };
+          return {
+            openaiKey: null,
+            anthropicKey: null,
+            googleKey: null,
+            groqKey: null,
+            xaiKey: null,
+          };
         }
         return res.json();
       })
@@ -70,22 +79,20 @@ export function AgentSelector() {
   };
 
   return (
-    <Card className="w-full shrink-0" variant="default">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Select Agents</CardTitle>
-          {selectedAgents.length > 0 && (
-            <span
-              className="rounded-full bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5"
-              aria-label={`${selectedAgents.length} of ${MAX_AGENTS_PER_DEBATE} selected`}
-            >
-              {selectedAgents.length}/{MAX_AGENTS_PER_DEBATE}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="eyebrow">Council members</div>
+        {selectedAgents.length > 0 && (
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.08em] text-warm px-2 py-0.5 rounded-full bg-warm/12 border border-warm/30"
+            aria-label={`${selectedAgents.length} of ${MAX_AGENTS_PER_DEBATE} selected`}
+          >
+            {selectedAgents.length} / {MAX_AGENTS_PER_DEBATE}
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {AGENTS.map((agent) => {
           const hasApiKey = hasKey(agent);
           const isSelected = selectedAgents.includes(agent.id);
@@ -96,11 +103,6 @@ export function AgentSelector() {
           if (agent.free) statusLabel = "Free";
           else if (!hasApiKey) statusLabel = "API key required";
           else if (!isSelected && atLimit) statusLabel = "Agent limit reached";
-
-          let borderStyle = "border-transparent bg-muted/30";
-          if (isSelected) borderStyle = "border-primary bg-primary/10";
-          else if (agent.free && !isDisabled) borderStyle = "border-green-500/40 hover:bg-green-50 dark:hover:bg-green-950/20";
-          else if (!isDisabled) borderStyle = "border-border hover:bg-accent";
 
           return (
             <button
@@ -113,55 +115,81 @@ export function AgentSelector() {
               aria-label={`${agent.name} - ${statusLabel}`}
               aria-pressed={isSelected}
               className={cn(
-                "w-full rounded-lg border p-3 text-left transition-colors relative",
-                isDisabled && "opacity-50 cursor-not-allowed",
-                borderStyle
+                "relative w-full rounded-[10px] border p-3.5 text-left transition-all",
+                isSelected
+                  ? "border-warm/40 bg-warm/12"
+                  : "border-white/[0.08] bg-bg-1 hover:border-white/[0.18] hover:bg-bg-2",
+                isDisabled
+                  ? "opacity-40 cursor-not-allowed"
+                  : "cursor-pointer hover:-translate-y-[1px]",
               )}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+              {isSelected && (
+                <span className="absolute -top-px left-0 h-px w-full bg-warm" />
+              )}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-medium">{agent.name}</p>
+                    <p
+                      className={cn(
+                        "font-display text-[15px] tracking-[-0.01em] truncate",
+                        isSelected ? "text-warm italic" : "text-ink-primary",
+                      )}
+                    >
+                      {agent.name}
+                    </p>
                     {agent.free && (
-                      <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-[10px] font-semibold px-1.5 py-0.5 leading-none">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-agree bg-agree/14 border border-agree/30 rounded-full px-1.5 py-0.5 leading-none">
                         Free
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">{agent.provider}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mt-1">
+                    {agent.provider}
+                  </p>
                 </div>
-                {agent.free ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
-                ) : hasApiKey ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
+                {hasApiKey ? (
+                  <Check
+                    className={cn(
+                      "h-4 w-4 shrink-0",
+                      isSelected ? "text-warm" : "text-agree",
+                    )}
+                  />
                 ) : (
-                  <Lock className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+                  <Lock className="h-4 w-4 text-ink-muted shrink-0" />
                 )}
               </div>
               {!hasApiKey && !agent.free && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  <Link href="/settings" className="text-primary hover:underline">
-                    Configure API key
+                <p className="text-[11px] text-ink-tertiary mt-2">
+                  <Link
+                    href="/settings"
+                    className="text-warm hover:text-warm-bright transition-colors"
+                  >
+                    Configure API key →
                   </Link>
                 </p>
               )}
             </button>
           );
         })}
+      </div>
+
+      {selectedAgents.length < MIN_AGENTS_PER_DEBATE && (
+        <div className="mt-3 flex items-center gap-2 rounded-[10px] border border-white/[0.08] bg-bg-2 px-3 py-2.5 text-[12px] text-ink-tertiary">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-warm" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em]">
+            Select at least {MIN_AGENTS_PER_DEBATE} members to start
+          </span>
         </div>
-        {selectedAgents.length < MIN_AGENTS_PER_DEBATE && (
-          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            Select at least {MIN_AGENTS_PER_DEBATE} agents to start a debate
-          </div>
-        )}
-        {selectedAgents.length >= MAX_AGENTS_PER_DEBATE && (
-          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            Maximum {MAX_AGENTS_PER_DEBATE} agents per debate
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+      {selectedAgents.length >= MAX_AGENTS_PER_DEBATE && (
+        <div className="mt-3 flex items-center gap-2 rounded-[10px] border border-white/[0.08] bg-bg-2 px-3 py-2.5 text-[12px] text-ink-tertiary">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-warm" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em]">
+            Maximum {MAX_AGENTS_PER_DEBATE} members per deliberation
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

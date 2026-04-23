@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authContext = await getAuthContext();
@@ -14,17 +14,20 @@ export async function GET(
     }
 
     const { id } = await params;
-    const response = await fetch(`${API_URL}/api/v1/debates/${id}/conversation`, {
-      headers: {
-        Authorization: `Bearer ${authContext.token}`,
+    const response = await fetch(
+      `${API_URL}/api/v1/debates/${id}/conversation`,
+      {
+        headers: {
+          Authorization: `Bearer ${authContext.token}`,
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
       return NextResponse.json(
         { error: errorText || "Failed to fetch conversation" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -32,7 +35,7 @@ export async function GET(
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch conversation" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

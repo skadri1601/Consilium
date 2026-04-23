@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Fraunces, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -20,7 +21,22 @@ import "@/styles/globals.css";
 
 const inter = localFont({
   src: "../fonts/Inter.woff2",
-  variable: "--font-sans",
+  variable: "--font-body",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -88,7 +104,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0a0908",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
@@ -129,20 +145,22 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <TestModeClerkProvider>
-      <html lang="en" className="dark" suppressHydrationWarning>
-        <body className={`${inter.className} antialiased font-normal`}>
+      <html
+        lang="en"
+        className={`dark ${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}
+        suppressHydrationWarning
+      >
+        <body className="antialiased font-normal bg-bg-0 text-ink-primary">
           <Script
             id="ld-organization"
             type="application/ld+json"
             strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationJsonLd),
+            }}
           />
           <Script
             id="ld-software"
@@ -156,7 +174,12 @@ export default function RootLayout({
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
           />
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            forcedTheme="dark"
+          >
             <PostHogProvider>
               <ErrorBoundary>
                 <OnboardingProvider>
