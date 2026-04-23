@@ -41,12 +41,23 @@ async def _post_json(path: str, body: dict[str, Any]) -> dict[str, Any]:
         return r.json()
 
 
-async def _get_json(path: str) -> dict[str, Any]:
+async def _get_json(path: str) -> Any:
     import httpx
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         r = await client.get(f"{CONSILIUM_API_URL}{path}", headers=_headers())
         r.raise_for_status()
+        return r.json()
+
+
+async def _post_empty(path: str) -> dict[str, Any]:
+    import httpx
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(f"{CONSILIUM_API_URL}{path}", headers=_headers())
+        r.raise_for_status()
+        if r.status_code == 204 or not r.content:
+            return {"ok": True}
         return r.json()
 
 
@@ -93,13 +104,68 @@ TOOLS = [
                     "type": "object",
                     "description": "Optional structured context",
                 },
+                "files": {
+                    "type": "array",
+                    "description": "Optional file attachments to include as context",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "content": {"type": "string"},
+                        },
+                        "required": ["name", "content"],
+                    },
+                },
                 "codebase_access": {
                     "type": "boolean",
-                    "description": "Must be true to attach context",
+                    "description": "Must be true to attach context or files",
                     "default": False,
                 },
             },
             "required": ["topic"],
+        },
+    },
+    {
+        "name": "consilium_list_debates",
+        "description": (
+            "List the caller's recent debate sessions. Returns most recent first. "
+            "Use this from Claude Desktop / Cursor to pick a debate to follow up on."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results (1-100, default 20)",
+                    "default": 20,
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Pagination offset",
+                    "default": 0,
+                },
+                "search": {
+                    "type": "string",
+                    "description": "Filter by topic substring",
+                },
+            },
+        },
+    },
+    {
+        "name": "consilium_cancel_debate",
+        "description": "Cancel an in-progress debate or deliberation by id.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "debate_id": {"type": "string", "description": "Debate or deliberation id"},
+                "kind": {
+                    "type": "string",
+                    "description": "Which resource to cancel",
+                    "enum": ["debate", "deliberation"],
+                    "default": "debate",
+                },
+            },
+            "required": ["debate_id"],
         },
     },
     {
@@ -147,15 +213,60 @@ async def handle_deliberate(arguments: dict[str, Any]) -> str:
         "maxRounds": int(arguments.get("max_rounds", 5)),
         "debateSource": "mcp",
     }
+    codebase_access = bool(arguments.get("codebase_access"))
     ctx = arguments.get("context")
-    if ctx and arguments.get("codebase_access"):
+    if ctx and codebase_access:
         body["projectContext"] = ctx
+    files = arguments.get("files")
+    if files and codebase_access:
+        body.setdefault("context", {})
+        body["context"]["files"] = files
     created = await _post_json("/api/v1/deliberation", body)
     sid = created.get("id")
     if not sid:
         return json.dumps(created, indent=2, default=str)
     final = await _poll_deliberation(str(sid))
     return json.dumps(final, indent=2, default=str)
+
+
+async def handle_list_debates(arguments: dict[str, Any]) -> str:
+    limit = arguments.get("limit", 20)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        limit = 20
+    limit = max(1, min(limit, 100))
+
+    offset = arguments.get("offset", 0)
+    try:
+        offset = int(offset)
+    except (TypeError, ValueError):
+        offset = 0
+    offset = max(0, offset)
+
+    params = [f"limit={limit}", f"offset={offset}"]
+    search = arguments.get("search")
+    if search:
+        from urllib.parse import quote
+
+        params.append(f"search={quote(str(search))}")
+    path = f"/api/v1/debates?{'&'.join(params)}"
+    data = await _get_json(path)
+    if isinstance(data, dict) and "items" in data:
+        data = data["items"]
+    return json.dumps(data, indent=2, default=str)
+
+
+async def handle_cancel_debate(arguments: dict[str, Any]) -> str:
+    debate_id = str(arguments["debate_id"])
+    kind = arguments.get("kind", "debate")
+    path = (
+        f"/api/v1/deliberation/{debate_id}/cancel"
+        if kind == "deliberation"
+        else f"/api/v1/debates/{debate_id}/cancel"
+    )
+    result = await _post_empty(path)
+    return json.dumps({"cancelled": debate_id, "kind": kind, "result": result}, indent=2, default=str)
 
 
 async def handle_red_team(arguments: dict[str, Any]) -> str:
@@ -192,6 +303,8 @@ TOOL_HANDLERS = {
     "consilium_deliberate": handle_deliberate,
     "consilium_red_team": handle_red_team,
     "consilium_blind_eval": handle_blind_eval,
+    "consilium_list_debates": handle_list_debates,
+    "consilium_cancel_debate": handle_cancel_debate,
 }
 
 

@@ -124,6 +124,9 @@ scratch.*
 **/benchmark_results/
 **/.pytest_cache/
 
+!packages/python-sdk/tests/
+!packages/python-sdk/tests/**
+
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md
 /files/backend-README.md
