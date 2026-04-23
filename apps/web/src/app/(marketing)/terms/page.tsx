@@ -3,9 +3,15 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Terms of Service",
-  description: "Terms of Service for the Consilium AI deliberation platform — BYOK, acceptable use, IP, and dispute resolution.",
+  description:
+    "Terms of Service for the Consilium AI deliberation platform — BYOK, acceptable use, IP, and dispute resolution.",
   path: "/terms",
-  keywords: ["consilium terms", "terms of service", "ai platform terms", "byok terms"],
+  keywords: [
+    "consilium terms",
+    "terms of service",
+    "ai platform terms",
+    "byok terms",
+  ],
 });
 
 export default function TermsPage() {
@@ -13,32 +19,45 @@ export default function TermsPage() {
     <div className="min-h-screen">
       <section className="container mx-auto px-4 py-32 md:py-48">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
-          <p className="text-muted-foreground mb-12">Effective Date: April 9, 2026</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Terms of Service
+          </h1>
+          <p className="text-muted-foreground mb-12">
+            Effective Date: April 9, 2026
+          </p>
 
           <div className="prose prose-gray dark:prose-invert max-w-none">
-
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                1. Acceptance of Terms
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                By accessing, browsing, or using the Consilium platform, website, application programming interfaces
-                (&quot;APIs&quot;), or any related services (collectively, the &quot;Service&quot;), you (&quot;User,&quot;
-                &quot;you,&quot; or &quot;your&quot;) acknowledge that you have read, understood, and agree to be bound by
-                these Terms of Service (&quot;Terms&quot; or &quot;Agreement&quot;), as well as our Privacy Policy, which is
-                incorporated herein by reference. If you do not agree to all of these Terms, you must immediately cease all
-                use of the Service.
+                By accessing, browsing, or using the Consilium platform,
+                website, application programming interfaces (&quot;APIs&quot;),
+                or any related services (collectively, the &quot;Service&quot;),
+                you (&quot;User,&quot; &quot;you,&quot; or &quot;your&quot;)
+                acknowledge that you have read, understood, and agree to be
+                bound by these Terms of Service (&quot;Terms&quot; or
+                &quot;Agreement&quot;), as well as our Privacy Policy, which is
+                incorporated herein by reference. If you do not agree to all of
+                these Terms, you must immediately cease all use of the Service.
               </p>
               <p className="mb-4 text-muted-foreground">
-                You represent and warrant that you are at least sixteen (16) years of age. If you are accessing or using the
-                Service on behalf of a company, organization, or other legal entity, you represent and warrant that you have
-                the authority to bind that entity to these Terms, in which case &quot;you&quot; and &quot;your&quot; shall
-                refer to that entity. If you do not have such authority, or if you do not agree with these Terms, you may not
-                use the Service.
+                You represent and warrant that you are at least sixteen (16)
+                years of age. If you are accessing or using the Service on
+                behalf of a company, organization, or other legal entity, you
+                represent and warrant that you have the authority to bind that
+                entity to these Terms, in which case &quot;you&quot; and
+                &quot;your&quot; shall refer to that entity. If you do not have
+                such authority, or if you do not agree with these Terms, you may
+                not use the Service.
               </p>
               <p className="mb-4 text-muted-foreground">
-                We reserve the right to modify these Terms at any time. We will provide notice of material changes by posting
-                the updated Terms on the Service or by other reasonable means. Your continued use of the Service after such
-                changes constitutes acceptance of the modified Terms. It is your responsibility to review these Terms
+                We reserve the right to modify these Terms at any time. We will
+                provide notice of material changes by posting the updated Terms
+                on the Service or by other reasonable means. Your continued use
+                of the Service after such changes constitutes acceptance of the
+                modified Terms. It is your responsibility to review these Terms
                 periodically.
               </p>
             </section>
@@ -46,571 +65,879 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">2. Definitions</h2>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li><strong>&quot;Service&quot;</strong> means the Consilium platform, including the hosted SaaS version,
-                  self-hosted instances of the software, APIs, websites, documentation, and all related services operated by
-                  Consilium.</li>
-                <li><strong>&quot;User&quot;</strong> or <strong>&quot;you&quot;</strong> means any individual or entity that
-                  accesses or uses the Service.</li>
-                <li><strong>&quot;Content&quot;</strong> means any text, data, prompts, files, images, or other materials
-                  submitted to, generated by, or displayed through the Service.</li>
-                <li><strong>&quot;User Content&quot;</strong> means any Content submitted, uploaded, or provided by a User to
-                  the Service.</li>
-                <li><strong>&quot;Output&quot;</strong> means any Content generated by the Service, including AI-generated
-                  deliberation results, synthesized responses, and any other machine-generated material.</li>
-                <li><strong>&quot;API Keys&quot;</strong> means authentication credentials issued by third-party AI providers
-                  (such as Anthropic, OpenAI, Google, and others) that Users provide to the Service under the Bring Your Own
-                  Key (&quot;BYOK&quot;) model.</li>
-                <li><strong>&quot;Deliberation&quot;</strong> means the multi-agent AI debate, analysis, and synthesis process
-                  orchestrated by the Service.</li>
-                <li><strong>&quot;Consilium,&quot; &quot;we,&quot; &quot;us,&quot;</strong> or <strong>&quot;our&quot;</strong>
-                  {" "}means Consilium, its owner Saad Kadri, and any affiliated entities, successors, or assigns.</li>
-                <li><strong>&quot;Third-Party Services&quot;</strong> means any external services integrated with or accessed
-                  through the Service, including but not limited to AI model providers, authentication providers (Clerk),
-                  payment processors (Stripe), and hosting providers.</li>
+                <li>
+                  <strong>&quot;Service&quot;</strong> means the Consilium
+                  platform, including the hosted SaaS version, APIs, websites,
+                  documentation, and all related services operated by Consilium.
+                </li>
+                <li>
+                  <strong>&quot;User&quot;</strong> or{" "}
+                  <strong>&quot;you&quot;</strong> means any individual or
+                  entity that accesses or uses the Service.
+                </li>
+                <li>
+                  <strong>&quot;Content&quot;</strong> means any text, data,
+                  prompts, files, images, or other materials submitted to,
+                  generated by, or displayed through the Service.
+                </li>
+                <li>
+                  <strong>&quot;User Content&quot;</strong> means any Content
+                  submitted, uploaded, or provided by a User to the Service.
+                </li>
+                <li>
+                  <strong>&quot;Output&quot;</strong> means any Content
+                  generated by the Service, including AI-generated deliberation
+                  results, synthesized responses, and any other
+                  machine-generated material.
+                </li>
+                <li>
+                  <strong>&quot;API Keys&quot;</strong> means authentication
+                  credentials issued by third-party AI providers (such as
+                  Anthropic, OpenAI, Google, and others) that Users provide to
+                  the Service under the Bring Your Own Key (&quot;BYOK&quot;)
+                  model.
+                </li>
+                <li>
+                  <strong>&quot;Deliberation&quot;</strong> means the
+                  multi-agent AI debate, analysis, and synthesis process
+                  orchestrated by the Service.
+                </li>
+                <li>
+                  <strong>
+                    &quot;Consilium,&quot; &quot;we,&quot; &quot;us,&quot;
+                  </strong>{" "}
+                  or <strong>&quot;our&quot;</strong> means Consilium, its owner
+                  Saad Kadri, and any affiliated entities, successors, or
+                  assigns.
+                </li>
+                <li>
+                  <strong>&quot;Third-Party Services&quot;</strong> means any
+                  external services integrated with or accessed through the
+                  Service, including but not limited to AI model providers,
+                  authentication providers (Clerk), payment processors (Stripe),
+                  and hosting providers.
+                </li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. Description of Service</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                3. Description of Service
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                Consilium is an open-source AI deliberation platform that orchestrates multi-agent debates among artificial
-                intelligence models. The Service enables multiple AI agents to argue, critique, cross-examine, and synthesize
-                consensus on user-provided topics across multiple deliberation modes backed by peer-reviewed research.
+                Consilium is an AI deliberation platform that orchestrates
+                multi-agent debates among artificial intelligence models. The
+                Service enables multiple AI agents to argue, critique,
+                cross-examine, and synthesize consensus on user-provided topics
+                across multiple deliberation modes backed by peer-reviewed
+                research.
               </p>
               <p className="mb-4 text-muted-foreground">
-                The Service is available in two forms: (a) a hosted Software-as-a-Service (&quot;SaaS&quot;) version operated
-                by Consilium, and (b) a self-hosted version that Users may deploy on their own infrastructure under the MIT
-                open-source license. These Terms govern both forms of the Service, with certain provisions applying
-                specifically to one or the other as noted herein.
+                The Service is provided as a hosted Software-as-a-Service
+                (&quot;SaaS&quot;) offering operated by Consilium.
               </p>
               <p className="mb-4 text-muted-foreground">
-                The Service operates on a Bring Your Own Key (&quot;BYOK&quot;) model, meaning Users must supply their own
-                API keys from supported AI providers. Consilium does not provide AI model access directly and acts solely as
-                an orchestration layer.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">4. Account Registration</h2>
-              <p className="mb-4 text-muted-foreground">
-                To access certain features of the Service, you must create an account. You agree to: (a) provide accurate,
-                current, and complete information during registration; (b) maintain and promptly update your account
-                information to keep it accurate, current, and complete; (c) maintain the security and confidentiality of your
-                login credentials and not share your account with any other person; (d) immediately notify us of any
-                unauthorized use of your account or any other breach of security; and (e) accept all responsibility for all
-                activity that occurs under your account.
-              </p>
-              <p className="mb-4 text-muted-foreground">
-                Each account is for a single individual or entity. You may not create multiple accounts to circumvent
-                limitations, restrictions, or enforcement actions. We reserve the right to suspend or terminate accounts that
-                we reasonably believe violate these Terms or are being used fraudulently.
+                The Service operates on a Bring Your Own Key (&quot;BYOK&quot;)
+                model, meaning Users must supply their own API keys from
+                supported AI providers. Consilium does not provide AI model
+                access directly and acts solely as an orchestration layer.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">5. API Keys and Bring Your Own Key (BYOK)</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                4. Account Registration
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                The Service requires Users to provide their own API keys from third-party AI providers. By providing API Keys
-                to the Service, you acknowledge and agree that:
+                To access certain features of the Service, you must create an
+                account. You agree to: (a) provide accurate, current, and
+                complete information during registration; (b) maintain and
+                promptly update your account information to keep it accurate,
+                current, and complete; (c) maintain the security and
+                confidentiality of your login credentials and not share your
+                account with any other person; (d) immediately notify us of any
+                unauthorized use of your account or any other breach of
+                security; and (e) accept all responsibility for all activity
+                that occurs under your account.
+              </p>
+              <p className="mb-4 text-muted-foreground">
+                Each account is for a single individual or entity. You may not
+                create multiple accounts to circumvent limitations,
+                restrictions, or enforcement actions. We reserve the right to
+                suspend or terminate accounts that we reasonably believe violate
+                these Terms or are being used fraudulently.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">
+                5. API Keys and Bring Your Own Key (BYOK)
+              </h2>
+              <p className="mb-4 text-muted-foreground">
+                The Service requires Users to provide their own API keys from
+                third-party AI providers. By providing API Keys to the Service,
+                you acknowledge and agree that:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>You are solely responsible for obtaining, maintaining, and securing your API Keys.</li>
-                <li>You are solely responsible for all charges, fees, and costs incurred through the use of your API Keys,
-                  regardless of whether such usage was authorized by you or resulted from unauthorized access to your
-                  account.</li>
-                <li>You must comply with all terms of service, acceptable use policies, and usage restrictions imposed by your
-                  AI providers.</li>
-                <li>Consilium is not a party to any agreement between you and your AI providers and assumes no liability
-                  whatsoever for any disputes, charges, service interruptions, or issues arising from your use of third-party
-                  AI provider services.</li>
-                <li>You are responsible for ensuring that your API Key usage through the Service does not violate any rate
-                  limits, quotas, or restrictions imposed by your AI providers.</li>
-                <li>Consilium does not store your API Keys in plain text and employs reasonable security measures, but cannot
-                  guarantee absolute security against all possible breaches. You use the BYOK feature at your own risk.</li>
+                <li>
+                  You are solely responsible for obtaining, maintaining, and
+                  securing your API Keys.
+                </li>
+                <li>
+                  You are solely responsible for all charges, fees, and costs
+                  incurred through the use of your API Keys, regardless of
+                  whether such usage was authorized by you or resulted from
+                  unauthorized access to your account.
+                </li>
+                <li>
+                  You must comply with all terms of service, acceptable use
+                  policies, and usage restrictions imposed by your AI providers.
+                </li>
+                <li>
+                  Consilium is not a party to any agreement between you and your
+                  AI providers and assumes no liability whatsoever for any
+                  disputes, charges, service interruptions, or issues arising
+                  from your use of third-party AI provider services.
+                </li>
+                <li>
+                  You are responsible for ensuring that your API Key usage
+                  through the Service does not violate any rate limits, quotas,
+                  or restrictions imposed by your AI providers.
+                </li>
+                <li>
+                  Consilium does not store your API Keys in plain text and
+                  employs reasonable security measures, but cannot guarantee
+                  absolute security against all possible breaches. You use the
+                  BYOK feature at your own risk.
+                </li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. Acceptable Use Policy</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                6. Acceptable Use Policy
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                You agree to use the Service only for lawful purposes and in accordance with these Terms. You agree NOT to
-                use the Service to:
+                You agree to use the Service only for lawful purposes and in
+                accordance with these Terms. You agree NOT to use the Service
+                to:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>Generate, distribute, or facilitate the creation of illegal content, including but not limited to content
-                  that violates any applicable local, state, national, or international law or regulation.</li>
-                <li>Generate, solicit, or distribute child sexual abuse material (CSAM) or any content that sexually exploits
-                  or endangers minors in any way.</li>
-                <li>Engage in, promote, or facilitate harassment, bullying, threats, intimidation, or hate speech targeting
-                  any individual or group based on race, ethnicity, national origin, religion, sex, gender identity, sexual
-                  orientation, disability, or any other protected characteristic.</li>
-                <li>Create, distribute, or facilitate malware, ransomware, viruses, trojans, spyware, phishing schemes,
-                  social engineering attacks, spam, or any other malicious software or deceptive communications.</li>
-                <li>Attempt to gain unauthorized access to, interfere with, damage, or disrupt any parts of the Service, its
-                  servers, or any systems or networks connected to the Service, including through denial-of-service attacks,
-                  injection attacks, or any other method.</li>
-                <li>Reverse engineer, decompile, disassemble, or otherwise attempt to derive the source code of any
-                  proprietary component of the Service, except as expressly permitted by the MIT License for open-source
-                  components or as required by applicable law.</li>
-                <li>Use automated scripts, bots, scrapers, or other automated means to access the Service beyond published
-                  API limits or in a manner that degrades the Service for other Users.</li>
-                <li>Impersonate any person or entity, or falsely state or otherwise misrepresent your affiliation with a
-                  person or entity.</li>
-                <li>Use the Service in any manner that violates applicable export control laws and regulations, including but
-                  not limited to the U.S. International Traffic in Arms Regulations (ITAR), the Export Administration
-                  Regulations (EAR), or any sanctions programs administered by the U.S. Office of Foreign Assets Control
-                  (OFAC) or equivalent bodies in other jurisdictions.</li>
-                <li>Use the Service to generate content intended to deceive, defraud, or manipulate individuals or
-                  institutions, including deepfakes, synthetic media intended to mislead, or fraudulent documents.</li>
-                <li>Use the Service for high-risk applications where failure or inaccuracy could lead to death, personal
-                  injury, or significant property or environmental damage, unless you have implemented appropriate human
-                  oversight and safeguards independent of the Service.</li>
-                <li>Sublicense, resell, or redistribute access to the hosted Service without our prior written consent.</li>
+                <li>
+                  Generate, distribute, or facilitate the creation of illegal
+                  content, including but not limited to content that violates
+                  any applicable local, state, national, or international law or
+                  regulation.
+                </li>
+                <li>
+                  Generate, solicit, or distribute child sexual abuse material
+                  (CSAM) or any content that sexually exploits or endangers
+                  minors in any way.
+                </li>
+                <li>
+                  Engage in, promote, or facilitate harassment, bullying,
+                  threats, intimidation, or hate speech targeting any individual
+                  or group based on race, ethnicity, national origin, religion,
+                  sex, gender identity, sexual orientation, disability, or any
+                  other protected characteristic.
+                </li>
+                <li>
+                  Create, distribute, or facilitate malware, ransomware,
+                  viruses, trojans, spyware, phishing schemes, social
+                  engineering attacks, spam, or any other malicious software or
+                  deceptive communications.
+                </li>
+                <li>
+                  Attempt to gain unauthorized access to, interfere with,
+                  damage, or disrupt any parts of the Service, its servers, or
+                  any systems or networks connected to the Service, including
+                  through denial-of-service attacks, injection attacks, or any
+                  other method.
+                </li>
+                <li>
+                  Reverse engineer, decompile, disassemble, or otherwise attempt
+                  to derive the source code of any component of the Service,
+                  except as required by applicable law.
+                </li>
+                <li>
+                  Use automated scripts, bots, scrapers, or other automated
+                  means to access the Service beyond published API limits or in
+                  a manner that degrades the Service for other Users.
+                </li>
+                <li>
+                  Impersonate any person or entity, or falsely state or
+                  otherwise misrepresent your affiliation with a person or
+                  entity.
+                </li>
+                <li>
+                  Use the Service in any manner that violates applicable export
+                  control laws and regulations, including but not limited to the
+                  U.S. International Traffic in Arms Regulations (ITAR), the
+                  Export Administration Regulations (EAR), or any sanctions
+                  programs administered by the U.S. Office of Foreign Assets
+                  Control (OFAC) or equivalent bodies in other jurisdictions.
+                </li>
+                <li>
+                  Use the Service to generate content intended to deceive,
+                  defraud, or manipulate individuals or institutions, including
+                  deepfakes, synthetic media intended to mislead, or fraudulent
+                  documents.
+                </li>
+                <li>
+                  Use the Service for high-risk applications where failure or
+                  inaccuracy could lead to death, personal injury, or
+                  significant property or environmental damage, unless you have
+                  implemented appropriate human oversight and safeguards
+                  independent of the Service.
+                </li>
+                <li>
+                  Sublicense, resell, or redistribute access to the hosted
+                  Service without our prior written consent.
+                </li>
               </ul>
               <p className="mb-4 text-muted-foreground">
-                We reserve the right to investigate and take appropriate action against anyone who, in our sole discretion,
-                violates this Acceptable Use Policy, including without limitation, removing offending content, suspending or
-                terminating the account of such violators, and reporting such activity to law enforcement authorities.
+                We reserve the right to investigate and take appropriate action
+                against anyone who, in our sole discretion, violates this
+                Acceptable Use Policy, including without limitation, removing
+                offending content, suspending or terminating the account of such
+                violators, and reporting such activity to law enforcement
+                authorities.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. AI-Generated Content</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                7. AI-Generated Content
+              </h2>
               <p className="mb-4 text-muted-foreground font-semibold">
                 IMPORTANT — PLEASE READ CAREFULLY:
               </p>
               <p className="mb-4 text-muted-foreground">
-                The Service utilizes artificial intelligence models provided by third parties to generate Outputs. You
-                expressly acknowledge, understand, and agree that:
+                The Service utilizes artificial intelligence models provided by
+                third parties to generate Outputs. You expressly acknowledge,
+                understand, and agree that:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li><strong>Not Professional Advice:</strong> Outputs generated by the Service do NOT constitute and shall
-                  not be construed as professional advice of any kind, including but not limited to legal advice, medical
-                  advice, financial advice, tax advice, accounting advice, engineering advice, therapeutic or psychological
-                  advice, or any other form of professional counsel. You must consult qualified professionals before making
-                  any decisions based on Outputs.</li>
-                <li><strong>Errors and Hallucinations:</strong> AI models are known to produce outputs that contain factual
-                  errors, fabricated information (&quot;hallucinations&quot;), logical inconsistencies, biases, outdated
-                  information, and other inaccuracies. The multi-agent deliberation process may reduce but does NOT eliminate
-                  these issues.</li>
-                <li><strong>No Guarantee of Accuracy:</strong> We make absolutely no representation or warranty regarding the
-                  accuracy, completeness, reliability, timeliness, suitability, or fitness for any particular purpose of any
-                  Output. Outputs should never be relied upon as the sole basis for any decision or action.</li>
-                <li><strong>User Responsibility:</strong> You are solely and exclusively responsible for evaluating,
-                  verifying, and determining the appropriateness of any Output before using, relying upon, publishing,
-                  distributing, or acting upon it. You assume all risk associated with such use.</li>
-                <li><strong>No Endorsement:</strong> Consilium does not endorse, adopt, verify, or take responsibility for
-                  any Output generated through the Service. The inclusion of any statement, opinion, recommendation, or
-                  analysis in an Output does not represent the views, opinions, or endorsement of Consilium or its
-                  operators.</li>
-                <li><strong>Third-Party Model Dependence:</strong> The quality, availability, and behavior of Outputs depend
-                  entirely on third-party AI providers over which Consilium has no control. Changes to third-party models,
-                  APIs, or policies may affect Output quality at any time without notice.</li>
+                <li>
+                  <strong>Not Professional Advice:</strong> Outputs generated by
+                  the Service do NOT constitute and shall not be construed as
+                  professional advice of any kind, including but not limited to
+                  legal advice, medical advice, financial advice, tax advice,
+                  accounting advice, engineering advice, therapeutic or
+                  psychological advice, or any other form of professional
+                  counsel. You must consult qualified professionals before
+                  making any decisions based on Outputs.
+                </li>
+                <li>
+                  <strong>Errors and Hallucinations:</strong> AI models are
+                  known to produce outputs that contain factual errors,
+                  fabricated information (&quot;hallucinations&quot;), logical
+                  inconsistencies, biases, outdated information, and other
+                  inaccuracies. The multi-agent deliberation process may reduce
+                  but does NOT eliminate these issues.
+                </li>
+                <li>
+                  <strong>No Guarantee of Accuracy:</strong> We make absolutely
+                  no representation or warranty regarding the accuracy,
+                  completeness, reliability, timeliness, suitability, or fitness
+                  for any particular purpose of any Output. Outputs should never
+                  be relied upon as the sole basis for any decision or action.
+                </li>
+                <li>
+                  <strong>User Responsibility:</strong> You are solely and
+                  exclusively responsible for evaluating, verifying, and
+                  determining the appropriateness of any Output before using,
+                  relying upon, publishing, distributing, or acting upon it. You
+                  assume all risk associated with such use.
+                </li>
+                <li>
+                  <strong>No Endorsement:</strong> Consilium does not endorse,
+                  adopt, verify, or take responsibility for any Output generated
+                  through the Service. The inclusion of any statement, opinion,
+                  recommendation, or analysis in an Output does not represent
+                  the views, opinions, or endorsement of Consilium or its
+                  operators.
+                </li>
+                <li>
+                  <strong>Third-Party Model Dependence:</strong> The quality,
+                  availability, and behavior of Outputs depend entirely on
+                  third-party AI providers over which Consilium has no control.
+                  Changes to third-party models, APIs, or policies may affect
+                  Output quality at any time without notice.
+                </li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Intellectual Property</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                8. Intellectual Property
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                <strong>Open-Source Software:</strong> The Consilium software is released under the MIT License. Subject to
-                the terms of that license, you may use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-                copies of the software. The MIT License applies solely to the software code and does not grant any rights to
-                trademarks, service marks, or trade dress.
+                <strong>Consilium Platform:</strong> All software, designs,
+                trademarks, service marks, trade dress, logos, and other
+                intellectual property associated with the Consilium platform are
+                owned by Consilium and its licensors. No rights are granted
+                except as expressly set forth in these Terms.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>User Content:</strong> You retain all ownership rights in your User Content. By submitting User
-                Content to the Service, you grant Consilium a worldwide, non-exclusive, royalty-free, sublicensable, and
-                transferable license to use, reproduce, process, adapt, and transmit your User Content solely as necessary to
-                provide, maintain, and improve the Service. This license terminates when you delete your User Content or your
-                account, except to the extent that the Content has been shared with other Users or third parties and they have
-                not deleted it, or as required by law.
+                <strong>User Content:</strong> You retain all ownership rights
+                in your User Content. By submitting User Content to the Service,
+                you grant Consilium a worldwide, non-exclusive, royalty-free,
+                sublicensable, and transferable license to use, reproduce,
+                process, adapt, and transmit your User Content solely as
+                necessary to provide, maintain, and improve the Service. This
+                license terminates when you delete your User Content or your
+                account, except to the extent that the Content has been shared
+                with other Users or third parties and they have not deleted it,
+                or as required by law.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>AI-Generated Output:</strong> Ownership of AI-generated Output is subject to applicable law in your
-                jurisdiction and the terms of the underlying AI providers. Under current law in many jurisdictions,
-                AI-generated content may not be eligible for copyright protection. Consilium makes no representation regarding
-                your ownership rights in any Output. You are solely responsible for determining the intellectual property
-                status of any Output you use.
+                <strong>AI-Generated Output:</strong> Ownership of AI-generated
+                Output is subject to applicable law in your jurisdiction and the
+                terms of the underlying AI providers. Under current law in many
+                jurisdictions, AI-generated content may not be eligible for
+                copyright protection. Consilium makes no representation
+                regarding your ownership rights in any Output. You are solely
+                responsible for determining the intellectual property status of
+                any Output you use.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>Trademarks:</strong> The Consilium name, logo, and all related names, logos, product and service
-                names, designs, and slogans are trademarks of Consilium or its affiliates. You may not use such marks without
-                our prior written permission. All other names, logos, product and service names, designs, and slogans on the
-                Service are the trademarks of their respective owners.
+                <strong>Trademarks:</strong> The Consilium name, logo, and all
+                related names, logos, product and service names, designs, and
+                slogans are trademarks of Consilium or its affiliates. You may
+                not use such marks without our prior written permission. All
+                other names, logos, product and service names, designs, and
+                slogans on the Service are the trademarks of their respective
+                owners.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">9. Payment Terms</h2>
               <p className="mb-4 text-muted-foreground">
-                Certain features of the Service may require payment of fees. All payments are processed through Stripe, a
-                third-party payment processor. By providing payment information, you agree to Stripe&apos;s terms of service
-                and privacy policy.
+                Certain features of the Service may require payment of fees. All
+                payments are processed through Stripe, a third-party payment
+                processor. By providing payment information, you agree to
+                Stripe&apos;s terms of service and privacy policy.
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>Subscription fees are billed in advance on a recurring basis (monthly or annually, depending on the plan
-                  selected).</li>
-                <li>All fees are non-refundable once the associated service has been consumed or the billing period has begun,
-                  except as required by applicable law.</li>
-                <li>We reserve the right to change our pricing at any time. We will provide at least thirty (30) days&apos;
-                  notice of any price increase. Your continued use of the Service after the price change takes effect
-                  constitutes your agreement to pay the updated amount.</li>
-                <li>You are responsible for all applicable taxes associated with your use of the Service.</li>
-                <li>Failure to make timely payment may result in suspension or termination of your access to paid features.
+                <li>
+                  Subscription fees are billed in advance on a recurring basis
+                  (monthly or annually, depending on the plan selected).
                 </li>
-                <li>Payment-related fees charged by Stripe (chargebacks, failed payments, etc.) are your responsibility.</li>
+                <li>
+                  All fees are non-refundable once the associated service has
+                  been consumed or the billing period has begun, except as
+                  required by applicable law.
+                </li>
+                <li>
+                  We reserve the right to change our pricing at any time. We
+                  will provide at least thirty (30) days&apos; notice of any
+                  price increase. Your continued use of the Service after the
+                  price change takes effect constitutes your agreement to pay
+                  the updated amount.
+                </li>
+                <li>
+                  You are responsible for all applicable taxes associated with
+                  your use of the Service.
+                </li>
+                <li>
+                  Failure to make timely payment may result in suspension or
+                  termination of your access to paid features.
+                </li>
+                <li>
+                  Payment-related fees charged by Stripe (chargebacks, failed
+                  payments, etc.) are your responsibility.
+                </li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">10. Disclaimer of Warranties</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                10. Disclaimer of Warranties
+              </h2>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW IN EACH AND EVERY JURISDICTION, THE SERVICE, INCLUDING ALL
-                CONTENT, OUTPUTS, SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION MADE AVAILABLE ON OR ACCESSED THROUGH THE
-                SERVICE, IS PROVIDED ON AN &quot;AS IS,&quot; &quot;AS AVAILABLE,&quot; AND &quot;WITH ALL FAULTS&quot; BASIS.
-                CONSILIUM, ITS OWNER SAAD KADRI, AND THEIR RESPECTIVE OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, AFFILIATES,
-                SUCCESSORS, AND ASSIGNS (COLLECTIVELY, THE &quot;CONSILIUM PARTIES&quot;) HEREBY DISCLAIM ALL WARRANTIES OF
-                ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO:
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW IN EACH AND
+                EVERY JURISDICTION, THE SERVICE, INCLUDING ALL CONTENT, OUTPUTS,
+                SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION MADE AVAILABLE
+                ON OR ACCESSED THROUGH THE SERVICE, IS PROVIDED ON AN &quot;AS
+                IS,&quot; &quot;AS AVAILABLE,&quot; AND &quot;WITH ALL
+                FAULTS&quot; BASIS. CONSILIUM, ITS OWNER SAAD KADRI, AND THEIR
+                RESPECTIVE OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, AFFILIATES,
+                SUCCESSORS, AND ASSIGNS (COLLECTIVELY, THE &quot;CONSILIUM
+                PARTIES&quot;) HEREBY DISCLAIM ALL WARRANTIES OF ANY KIND,
+                WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT
+                NOT LIMITED TO:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground font-bold uppercase">
-                <li>ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
-                  NON-INFRINGEMENT;</li>
-                <li>ANY WARRANTIES ARISING OUT OF COURSE OF DEALING, USAGE, OR TRADE PRACTICE;</li>
-                <li>ANY WARRANTIES REGARDING THE ACCURACY, RELIABILITY, COMPLETENESS, CORRECTNESS, OR TIMELINESS OF ANY
-                  OUTPUT, CONTENT, OR INFORMATION PROVIDED THROUGH THE SERVICE;</li>
-                <li>ANY WARRANTIES THAT THE SERVICE WILL BE UNINTERRUPTED, TIMELY, SECURE, ERROR-FREE, OR FREE OF VIRUSES OR
-                  OTHER HARMFUL COMPONENTS;</li>
-                <li>ANY WARRANTIES REGARDING THE RESULTS THAT MAY BE OBTAINED FROM THE USE OF THE SERVICE;</li>
-                <li>ANY WARRANTIES REGARDING THE ACCURACY OR RELIABILITY OF ANY INFORMATION OBTAINED THROUGH THE SERVICE;</li>
-                <li>ANY WARRANTIES REGARDING THIRD-PARTY SERVICES, INCLUDING BUT NOT LIMITED TO AI MODEL PROVIDERS (ANTHROPIC,
-                  OPENAI, GOOGLE, AND OTHERS), AUTHENTICATION SERVICES (CLERK), PAYMENT PROCESSORS (STRIPE), HOSTING
-                  PROVIDERS, AND ANY OTHER THIRD-PARTY INTEGRATIONS;</li>
-                <li>ANY WARRANTIES THAT DEFECTS IN THE SERVICE WILL BE CORRECTED.</li>
+                <li>
+                  ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+                  PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT;
+                </li>
+                <li>
+                  ANY WARRANTIES ARISING OUT OF COURSE OF DEALING, USAGE, OR
+                  TRADE PRACTICE;
+                </li>
+                <li>
+                  ANY WARRANTIES REGARDING THE ACCURACY, RELIABILITY,
+                  COMPLETENESS, CORRECTNESS, OR TIMELINESS OF ANY OUTPUT,
+                  CONTENT, OR INFORMATION PROVIDED THROUGH THE SERVICE;
+                </li>
+                <li>
+                  ANY WARRANTIES THAT THE SERVICE WILL BE UNINTERRUPTED, TIMELY,
+                  SECURE, ERROR-FREE, OR FREE OF VIRUSES OR OTHER HARMFUL
+                  COMPONENTS;
+                </li>
+                <li>
+                  ANY WARRANTIES REGARDING THE RESULTS THAT MAY BE OBTAINED FROM
+                  THE USE OF THE SERVICE;
+                </li>
+                <li>
+                  ANY WARRANTIES REGARDING THE ACCURACY OR RELIABILITY OF ANY
+                  INFORMATION OBTAINED THROUGH THE SERVICE;
+                </li>
+                <li>
+                  ANY WARRANTIES REGARDING THIRD-PARTY SERVICES, INCLUDING BUT
+                  NOT LIMITED TO AI MODEL PROVIDERS (ANTHROPIC, OPENAI, GOOGLE,
+                  AND OTHERS), AUTHENTICATION SERVICES (CLERK), PAYMENT
+                  PROCESSORS (STRIPE), HOSTING PROVIDERS, AND ANY OTHER
+                  THIRD-PARTY INTEGRATIONS;
+                </li>
+                <li>
+                  ANY WARRANTIES THAT DEFECTS IN THE SERVICE WILL BE CORRECTED.
+                </li>
               </ul>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                NO ADVICE OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED FROM CONSILIUM OR THROUGH THE SERVICE SHALL
-                CREATE ANY WARRANTY NOT EXPRESSLY STATED IN THESE TERMS. YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT YOUR USE OF
-                THE SERVICE IS AT YOUR SOLE RISK. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO
-                SOME OR ALL OF THE ABOVE EXCLUSIONS MAY NOT APPLY TO YOU. IN SUCH JURISDICTIONS, THE CONSILIUM
-                PARTIES&apos; WARRANTIES ARE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
+                NO ADVICE OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED FROM
+                CONSILIUM OR THROUGH THE SERVICE SHALL CREATE ANY WARRANTY NOT
+                EXPRESSLY STATED IN THESE TERMS. YOU EXPRESSLY ACKNOWLEDGE AND
+                AGREE THAT YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. SOME
+                JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES,
+                SO SOME OR ALL OF THE ABOVE EXCLUSIONS MAY NOT APPLY TO YOU. IN
+                SUCH JURISDICTIONS, THE CONSILIUM PARTIES&apos; WARRANTIES ARE
+                LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">11. Limitation of Liability</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                11. Limitation of Liability
+              </h2>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE CONSILIUM PARTIES BE LIABLE TO YOU
-                OR ANY THIRD PARTY FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES,
-                INCLUDING BUT NOT LIMITED TO DAMAGES FOR LOSS OF PROFITS, LOSS OF REVENUE, LOSS OF DATA, LOSS OF GOODWILL,
-                BUSINESS INTERRUPTION, COMPUTER FAILURE OR MALFUNCTION, COST OF PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
-                OR ANY OTHER INTANGIBLE LOSSES, ARISING OUT OF OR IN CONNECTION WITH:
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT
+                SHALL THE CONSILIUM PARTIES BE LIABLE TO YOU OR ANY THIRD PARTY
+                FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY,
+                OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO DAMAGES FOR
+                LOSS OF PROFITS, LOSS OF REVENUE, LOSS OF DATA, LOSS OF
+                GOODWILL, BUSINESS INTERRUPTION, COMPUTER FAILURE OR
+                MALFUNCTION, COST OF PROCUREMENT OF SUBSTITUTE GOODS OR
+                SERVICES, OR ANY OTHER INTANGIBLE LOSSES, ARISING OUT OF OR IN
+                CONNECTION WITH:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground font-bold uppercase">
                 <li>YOUR USE OF OR INABILITY TO USE THE SERVICE;</li>
-                <li>ANY OUTPUT, CONTENT, OR INFORMATION OBTAINED FROM OR THROUGH THE SERVICE;</li>
-                <li>ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON OR RELATED TO THE SERVICE;</li>
-                <li>UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS, DATA, OR CONTENT;</li>
-                <li>ANY ERRORS, INACCURACIES, HALLUCINATIONS, OR OMISSIONS IN ANY OUTPUT;</li>
-                <li>YOUR RELIANCE ON ANY OUTPUT FOR ANY PURPOSE, INCLUDING BUT NOT LIMITED TO PROFESSIONAL, LEGAL, MEDICAL,
-                  FINANCIAL, OR BUSINESS DECISIONS;</li>
-                <li>CHARGES INCURRED THROUGH YOUR API KEYS, WHETHER AUTHORIZED OR UNAUTHORIZED;</li>
-                <li>ANY ACTIONS TAKEN OR NOT TAKEN BASED ON OUTPUTS FROM THE SERVICE;</li>
-                <li>FAILURES, INTERRUPTIONS, OR CHANGES IN THIRD-PARTY SERVICES;</li>
+                <li>
+                  ANY OUTPUT, CONTENT, OR INFORMATION OBTAINED FROM OR THROUGH
+                  THE SERVICE;
+                </li>
+                <li>
+                  ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON OR RELATED TO THE
+                  SERVICE;
+                </li>
+                <li>
+                  UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS,
+                  DATA, OR CONTENT;
+                </li>
+                <li>
+                  ANY ERRORS, INACCURACIES, HALLUCINATIONS, OR OMISSIONS IN ANY
+                  OUTPUT;
+                </li>
+                <li>
+                  YOUR RELIANCE ON ANY OUTPUT FOR ANY PURPOSE, INCLUDING BUT NOT
+                  LIMITED TO PROFESSIONAL, LEGAL, MEDICAL, FINANCIAL, OR
+                  BUSINESS DECISIONS;
+                </li>
+                <li>
+                  CHARGES INCURRED THROUGH YOUR API KEYS, WHETHER AUTHORIZED OR
+                  UNAUTHORIZED;
+                </li>
+                <li>
+                  ANY ACTIONS TAKEN OR NOT TAKEN BASED ON OUTPUTS FROM THE
+                  SERVICE;
+                </li>
+                <li>
+                  FAILURES, INTERRUPTIONS, OR CHANGES IN THIRD-PARTY SERVICES;
+                </li>
                 <li>ANY OTHER MATTER RELATING TO THE SERVICE;</li>
               </ul>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                REGARDLESS OF WHETHER SUCH DAMAGES ARE BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT
-                LIABILITY, OR ANY OTHER LEGAL THEORY, AND REGARDLESS OF WHETHER THE CONSILIUM PARTIES HAVE BEEN ADVISED OF
-                THE POSSIBILITY OF SUCH DAMAGES.
+                REGARDLESS OF WHETHER SUCH DAMAGES ARE BASED ON WARRANTY,
+                CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, OR ANY
+                OTHER LEGAL THEORY, AND REGARDLESS OF WHETHER THE CONSILIUM
+                PARTIES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
               </p>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE TOTAL AGGREGATE LIABILITY OF THE CONSILIUM PARTIES FOR
-                ALL CLAIMS ARISING OUT OF OR RELATING TO THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE GREATER OF: (A) THE
-                TOTAL AMOUNT YOU HAVE PAID TO CONSILIUM IN THE TWELVE (12) MONTHS IMMEDIATELY PRECEDING THE EVENT GIVING RISE
-                TO THE CLAIM; OR (B) ONE HUNDRED UNITED STATES DOLLARS (USD $100.00).
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE TOTAL
+                AGGREGATE LIABILITY OF THE CONSILIUM PARTIES FOR ALL CLAIMS
+                ARISING OUT OF OR RELATING TO THESE TERMS OR THE SERVICE SHALL
+                NOT EXCEED THE GREATER OF: (A) THE TOTAL AMOUNT YOU HAVE PAID TO
+                CONSILIUM IN THE TWELVE (12) MONTHS IMMEDIATELY PRECEDING THE
+                EVENT GIVING RISE TO THE CLAIM; OR (B) ONE HUNDRED UNITED STATES
+                DOLLARS (USD $100.00).
               </p>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                THE LIMITATIONS IN THIS SECTION APPLY EVEN IF ANY LIMITED REMEDY FAILS OF ITS ESSENTIAL PURPOSE. SOME
-                JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO SOME OR ALL
-                OF THE ABOVE LIMITATIONS OR EXCLUSIONS MAY NOT APPLY TO YOU. IN SUCH JURISDICTIONS, THE CONSILIUM
-                PARTIES&apos; LIABILITY SHALL BE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
+                THE LIMITATIONS IN THIS SECTION APPLY EVEN IF ANY LIMITED REMEDY
+                FAILS OF ITS ESSENTIAL PURPOSE. SOME JURISDICTIONS DO NOT ALLOW
+                THE EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL
+                DAMAGES, SO SOME OR ALL OF THE ABOVE LIMITATIONS OR EXCLUSIONS
+                MAY NOT APPLY TO YOU. IN SUCH JURISDICTIONS, THE CONSILIUM
+                PARTIES&apos; LIABILITY SHALL BE LIMITED TO THE MAXIMUM EXTENT
+                PERMITTED BY LAW.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">12. Indemnification</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                12. Indemnification
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                To the fullest extent permitted by applicable law, you agree to indemnify, defend, and hold harmless the
-                Consilium Parties from and against any and all claims, demands, actions, suits, proceedings, liabilities,
-                damages, losses, costs, and expenses (including but not limited to reasonable attorneys&apos; fees, court
-                costs, and expert witness fees) arising out of or in connection with:
+                To the fullest extent permitted by applicable law, you agree to
+                indemnify, defend, and hold harmless the Consilium Parties from
+                and against any and all claims, demands, actions, suits,
+                proceedings, liabilities, damages, losses, costs, and expenses
+                (including but not limited to reasonable attorneys&apos; fees,
+                court costs, and expert witness fees) arising out of or in
+                connection with:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>Your User Content, including any claims that your User Content infringes, misappropriates, or otherwise
-                  violates the intellectual property rights, privacy rights, or other rights of any third party.</li>
-                <li>Your use of any Output generated by the Service, including any claims arising from your publication,
-                  distribution, reliance upon, or application of such Output.</li>
-                <li>Your violation of these Terms or any applicable law, regulation, or third-party right.</li>
-                <li>Your use of your API Keys through the Service, including any claims from AI providers or other third
-                  parties related to your API Key usage, charges incurred, or violations of provider terms.</li>
-                <li>Any claims arising from your deployment, operation, or use of self-hosted instances of the Consilium
-                  software, including but not limited to claims related to data breaches, privacy violations, regulatory
-                  non-compliance, or harm to third parties.</li>
+                <li>
+                  Your User Content, including any claims that your User Content
+                  infringes, misappropriates, or otherwise violates the
+                  intellectual property rights, privacy rights, or other rights
+                  of any third party.
+                </li>
+                <li>
+                  Your use of any Output generated by the Service, including any
+                  claims arising from your publication, distribution, reliance
+                  upon, or application of such Output.
+                </li>
+                <li>
+                  Your violation of these Terms or any applicable law,
+                  regulation, or third-party right.
+                </li>
+                <li>
+                  Your use of your API Keys through the Service, including any
+                  claims from AI providers or other third parties related to
+                  your API Key usage, charges incurred, or violations of
+                  provider terms.
+                </li>
                 <li>Your negligent or wrongful conduct.</li>
-                <li>Any dispute between you and any third party, including other Users.</li>
+                <li>
+                  Any dispute between you and any third party, including other
+                  Users.
+                </li>
               </ul>
               <p className="mb-4 text-muted-foreground">
-                Consilium reserves the right, at your expense, to assume the exclusive defense and control of any matter
-                subject to indemnification by you, and you agree to cooperate with our defense of any such claim. You will not
-                settle any such claim without our prior written consent.
+                Consilium reserves the right, at your expense, to assume the
+                exclusive defense and control of any matter subject to
+                indemnification by you, and you agree to cooperate with our
+                defense of any such claim. You will not settle any such claim
+                without our prior written consent.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">13. Self-Hosted Instances</h2>
+              <h2 className="text-2xl font-semibold mb-4">13. Termination</h2>
               <p className="mb-4 text-muted-foreground">
-                The Consilium software is available under the MIT License for self-hosting. If you deploy, operate, or use a
-                self-hosted instance of Consilium, you acknowledge and agree that:
-              </p>
-              <ul className="list-disc pl-6 mb-4 space-y-2 text-muted-foreground">
-                <li>The software is provided under the MIT License &quot;AS IS,&quot; without warranty of any kind. All
-                  disclaimers of warranty and limitations of liability set forth in these Terms apply fully and without
-                  modification to self-hosted instances.</li>
-                <li>You are solely and exclusively responsible for the security, configuration, maintenance, availability,
-                  backup, and data handling of your self-hosted instance.</li>
-                <li>You are solely responsible for compliance with all applicable laws, regulations, and industry standards
-                  (including but not limited to GDPR, CCPA/CPRA, HIPAA, and any other data protection or privacy laws) in
-                  connection with your self-hosted instance.</li>
-                <li>Consilium has no access to, control over, or liability for any data processed through, stored on, or
-                  transmitted by your self-hosted instance.</li>
-                <li>Consilium has no obligation to provide support, updates, patches, bug fixes, or security updates for
-                  self-hosted instances unless separately agreed in writing.</li>
-                <li>You are responsible for ensuring that your self-hosted instance does not infringe upon the rights of any
-                  third party.</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">14. Termination</h2>
-              <p className="mb-4 text-muted-foreground">
-                We may suspend or terminate your access to the Service, in whole or in part, at our sole discretion, at any
-                time, for any reason or no reason, with or without notice. Without limiting the foregoing, we may terminate
-                your access immediately and without prior notice if we believe, in our sole discretion, that you have violated
-                these Terms, engaged in conduct that is harmful to other Users or to Consilium, or for any other reason we
-                deem appropriate.
+                We may suspend or terminate your access to the Service, in whole
+                or in part, at our sole discretion, at any time, for any reason
+                or no reason, with or without notice. Without limiting the
+                foregoing, we may terminate your access immediately and without
+                prior notice if we believe, in our sole discretion, that you
+                have violated these Terms, engaged in conduct that is harmful to
+                other Users or to Consilium, or for any other reason we deem
+                appropriate.
               </p>
               <p className="mb-4 text-muted-foreground">
-                You may terminate your account at any time by deleting your account through the Service or by contacting us.
-                Upon termination, your right to use the Service will immediately cease.
+                You may terminate your account at any time by deleting your
+                account through the Service or by contacting us. Upon
+                termination, your right to use the Service will immediately
+                cease.
               </p>
               <p className="mb-4 text-muted-foreground">
-                The following sections shall survive termination of these Terms: Definitions, AI-Generated Content,
-                Intellectual Property, Disclaimer of Warranties, Limitation of Liability, Indemnification, Self-Hosted
-                Instances, Governing Law and Dispute Resolution, Export Controls, and any other provisions that by their
-                nature should survive termination.
+                The following sections shall survive termination of these Terms:
+                Definitions, AI-Generated Content, Intellectual Property,
+                Disclaimer of Warranties, Limitation of Liability,
+                Indemnification, Self-Hosted Instances, Governing Law and
+                Dispute Resolution, Export Controls, and any other provisions
+                that by their nature should survive termination.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">15. Governing Law and Dispute Resolution</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                14. Governing Law and Dispute Resolution
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                <strong>Governing Law:</strong> These Terms shall be governed by and construed in accordance with the laws of
-                the State of California, United States of America, without regard to its conflict of laws principles.
+                <strong>Governing Law:</strong> These Terms shall be governed by
+                and construed in accordance with the laws of the State of
+                California, United States of America, without regard to its
+                conflict of laws principles.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>Mandatory Binding Arbitration:</strong> Any dispute, claim, or controversy arising out of or relating
-                to these Terms or the Service (&quot;Dispute&quot;) shall be resolved exclusively through final and binding
-                arbitration administered by the American Arbitration Association (&quot;AAA&quot;) under its Consumer
-                Arbitration Rules or Commercial Arbitration Rules, as applicable. The arbitration shall be conducted in
-                English in San Francisco County, California, or, at your election, by telephone or videoconference. The
-                arbitrator&apos;s decision shall be final and binding, and judgment on the award rendered by the
-                arbitrator(s) may be entered in any court having jurisdiction thereof.
+                <strong>Mandatory Binding Arbitration:</strong> Any dispute,
+                claim, or controversy arising out of or relating to these Terms
+                or the Service (&quot;Dispute&quot;) shall be resolved
+                exclusively through final and binding arbitration administered
+                by the American Arbitration Association (&quot;AAA&quot;) under
+                its Consumer Arbitration Rules or Commercial Arbitration Rules,
+                as applicable. The arbitration shall be conducted in English in
+                San Francisco County, California, or, at your election, by
+                telephone or videoconference. The arbitrator&apos;s decision
+                shall be final and binding, and judgment on the award rendered
+                by the arbitrator(s) may be entered in any court having
+                jurisdiction thereof.
               </p>
               <p className="mb-4 text-muted-foreground font-bold uppercase">
-                CLASS ACTION WAIVER: TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, YOU AND CONSILIUM EACH AGREE THAT ANY
-                DISPUTE RESOLUTION PROCEEDINGS WILL BE CONDUCTED ONLY ON AN INDIVIDUAL BASIS AND NOT IN A CLASS, CONSOLIDATED,
-                OR REPRESENTATIVE ACTION. IF FOR ANY REASON A CLAIM PROCEEDS IN COURT RATHER THAN ARBITRATION, YOU AND
-                CONSILIUM EACH WAIVE ANY RIGHT TO A JURY TRIAL.
+                CLASS ACTION WAIVER: TO THE MAXIMUM EXTENT PERMITTED BY
+                APPLICABLE LAW, YOU AND CONSILIUM EACH AGREE THAT ANY DISPUTE
+                RESOLUTION PROCEEDINGS WILL BE CONDUCTED ONLY ON AN INDIVIDUAL
+                BASIS AND NOT IN A CLASS, CONSOLIDATED, OR REPRESENTATIVE
+                ACTION. IF FOR ANY REASON A CLAIM PROCEEDS IN COURT RATHER THAN
+                ARBITRATION, YOU AND CONSILIUM EACH WAIVE ANY RIGHT TO A JURY
+                TRIAL.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>Small Claims Exception:</strong> Notwithstanding the foregoing, either party may bring an individual
-                action in small claims court for disputes within the jurisdiction of such court.
+                <strong>Small Claims Exception:</strong> Notwithstanding the
+                foregoing, either party may bring an individual action in small
+                claims court for disputes within the jurisdiction of such court.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>Venue:</strong> For any matters not subject to arbitration, the exclusive jurisdiction and venue shall
-                be the state and federal courts located in San Francisco County, California, and you consent to the personal
-                jurisdiction of such courts.
+                <strong>Venue:</strong> For any matters not subject to
+                arbitration, the exclusive jurisdiction and venue shall be the
+                state and federal courts located in San Francisco County,
+                California, and you consent to the personal jurisdiction of such
+                courts.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>EU/EEA Residents:</strong> Nothing in these Terms shall deprive you of the protection afforded by
-                mandatory provisions of consumer protection law in your country of residence under Regulation (EC) No
-                593/2008 (Rome I). You retain the right to bring proceedings in the courts of your country of residence. If
-                you are a consumer in the EU/EEA, you may also lodge a complaint with the competent supervisory authority in
-                your member state.
+                <strong>EU/EEA Residents:</strong> Nothing in these Terms shall
+                deprive you of the protection afforded by mandatory provisions
+                of consumer protection law in your country of residence under
+                Regulation (EC) No 593/2008 (Rome I). You retain the right to
+                bring proceedings in the courts of your country of residence. If
+                you are a consumer in the EU/EEA, you may also lodge a complaint
+                with the competent supervisory authority in your member state.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>India:</strong> For Users residing in India, the arbitration provisions herein shall be subject to the
-                Indian Arbitration and Conciliation Act, 1996 (as amended), to the extent required by mandatory Indian law.
-                Nothing in these Terms shall restrict your rights under the Consumer Protection Act, 2019, or the Information
-                Technology Act, 2000, to the extent such rights are non-waivable.
+                <strong>India:</strong> For Users residing in India, the
+                arbitration provisions herein shall be subject to the Indian
+                Arbitration and Conciliation Act, 1996 (as amended), to the
+                extent required by mandatory Indian law. Nothing in these Terms
+                shall restrict your rights under the Consumer Protection Act,
+                2019, or the Information Technology Act, 2000, to the extent
+                such rights are non-waivable.
               </p>
               <p className="mb-4 text-muted-foreground">
-                <strong>People&apos;s Republic of China:</strong> For Users residing in the People&apos;s Republic of China
-                (excluding Hong Kong SAR, Macau SAR, and Taiwan), these Terms are subject to mandatory consumer protection
-                laws of the PRC, including the Consumer Rights Protection Law and the E-Commerce Law, to the extent such
-                provisions cannot be waived by agreement.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">16. Export Controls</h2>
-              <p className="mb-4 text-muted-foreground">
-                You represent and warrant that you are not located in, under the control of, or a national or resident of any
-                country to which the United States has embargoed goods or services, and that you are not on the U.S. Treasury
-                Department&apos;s Specially Designated Nationals list, the U.S. Commerce Department&apos;s Denied Persons
-                List, Unverified List, or Entity List, or any similar restricted party lists maintained by other applicable
-                jurisdictions. You agree to comply with all applicable export control and sanctions laws and regulations,
-                including the U.S. Export Administration Regulations (EAR), International Traffic in Arms Regulations (ITAR),
-                and programs administered by the Office of Foreign Assets Control (OFAC).
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">17. Force Majeure</h2>
-              <p className="mb-4 text-muted-foreground">
-                Consilium shall not be liable for any delay or failure to perform any obligation under these Terms where the
-                delay or failure results from any cause beyond our reasonable control, including but not limited to acts of
-                God, natural disasters, epidemics, pandemics, fire, flood, earthquake, war, terrorism, riots, civil
-                unrest, government actions, embargoes, sanctions, labor disputes, strikes, power failures, internet or
-                telecommunications failures, cyberattacks, failures of third-party service providers (including AI model
-                providers, cloud hosting services, and payment processors), or any other event beyond our reasonable control.
+                <strong>People&apos;s Republic of China:</strong> For Users
+                residing in the People&apos;s Republic of China (excluding Hong
+                Kong SAR, Macau SAR, and Taiwan), these Terms are subject to
+                mandatory consumer protection laws of the PRC, including the
+                Consumer Rights Protection Law and the E-Commerce Law, to the
+                extent such provisions cannot be waived by agreement.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">18. Severability</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                15. Export Controls
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                If any provision of these Terms is held to be invalid, illegal, or unenforceable by a court of competent
-                jurisdiction, such invalidity, illegality, or unenforceability shall not affect any other provision of these
-                Terms. The remaining provisions shall continue in full force and effect. The invalid or unenforceable
-                provision shall be modified to the minimum extent necessary to make it valid, legal, and enforceable while
-                preserving its original intent to the maximum extent possible.
+                You represent and warrant that you are not located in, under the
+                control of, or a national or resident of any country to which
+                the United States has embargoed goods or services, and that you
+                are not on the U.S. Treasury Department&apos;s Specially
+                Designated Nationals list, the U.S. Commerce Department&apos;s
+                Denied Persons List, Unverified List, or Entity List, or any
+                similar restricted party lists maintained by other applicable
+                jurisdictions. You agree to comply with all applicable export
+                control and sanctions laws and regulations, including the U.S.
+                Export Administration Regulations (EAR), International Traffic
+                in Arms Regulations (ITAR), and programs administered by the
+                Office of Foreign Assets Control (OFAC).
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">19. Entire Agreement</h2>
+              <h2 className="text-2xl font-semibold mb-4">16. Force Majeure</h2>
               <p className="mb-4 text-muted-foreground">
-                These Terms, together with the Privacy Policy and any other legal notices or agreements published by
-                Consilium on the Service, constitute the entire agreement between you and Consilium concerning the Service and
-                supersede all prior or contemporaneous communications, proposals, agreements, and understandings, whether
-                oral or written, between you and Consilium with respect to the Service.
+                Consilium shall not be liable for any delay or failure to
+                perform any obligation under these Terms where the delay or
+                failure results from any cause beyond our reasonable control,
+                including but not limited to acts of God, natural disasters,
+                epidemics, pandemics, fire, flood, earthquake, war, terrorism,
+                riots, civil unrest, government actions, embargoes, sanctions,
+                labor disputes, strikes, power failures, internet or
+                telecommunications failures, cyberattacks, failures of
+                third-party service providers (including AI model providers,
+                cloud hosting services, and payment processors), or any other
+                event beyond our reasonable control.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">20. Assignment</h2>
+              <h2 className="text-2xl font-semibold mb-4">17. Severability</h2>
               <p className="mb-4 text-muted-foreground">
-                Consilium may assign, transfer, or delegate any of its rights and obligations under these Terms without your
-                consent, including in connection with a merger, acquisition, sale of assets, reorganization, or by operation
-                of law. You may not assign, transfer, or delegate any of your rights or obligations under these Terms without
-                our prior written consent. Any attempted assignment in violation of this section shall be null and void.
+                If any provision of these Terms is held to be invalid, illegal,
+                or unenforceable by a court of competent jurisdiction, such
+                invalidity, illegality, or unenforceability shall not affect any
+                other provision of these Terms. The remaining provisions shall
+                continue in full force and effect. The invalid or unenforceable
+                provision shall be modified to the minimum extent necessary to
+                make it valid, legal, and enforceable while preserving its
+                original intent to the maximum extent possible.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">21. No Waiver</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                18. Entire Agreement
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                No failure or delay by Consilium in exercising any right, power, or privilege under these Terms shall operate
-                as a waiver thereof, nor shall any single or partial exercise of any right, power, or privilege preclude any
-                other or further exercise thereof or the exercise of any other right, power, or privilege. The rights and
-                remedies provided herein are cumulative and not exclusive of any rights or remedies provided by law.
+                These Terms, together with the Privacy Policy and any other
+                legal notices or agreements published by Consilium on the
+                Service, constitute the entire agreement between you and
+                Consilium concerning the Service and supersede all prior or
+                contemporaneous communications, proposals, agreements, and
+                understandings, whether oral or written, between you and
+                Consilium with respect to the Service.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">22. Third-Party Beneficiaries</h2>
+              <h2 className="text-2xl font-semibold mb-4">19. Assignment</h2>
               <p className="mb-4 text-muted-foreground">
-                These Terms do not confer any rights or remedies upon any person or entity other than you and Consilium,
-                except that the Consilium Parties (as defined in Section 10) are intended third-party beneficiaries of the
-                disclaimer, limitation of liability, and indemnification provisions herein.
+                Consilium may assign, transfer, or delegate any of its rights
+                and obligations under these Terms without your consent,
+                including in connection with a merger, acquisition, sale of
+                assets, reorganization, or by operation of law. You may not
+                assign, transfer, or delegate any of your rights or obligations
+                under these Terms without our prior written consent. Any
+                attempted assignment in violation of this section shall be null
+                and void.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">23. Notices</h2>
+              <h2 className="text-2xl font-semibold mb-4">20. No Waiver</h2>
               <p className="mb-4 text-muted-foreground">
-                We may provide notices to you by: (a) posting a notice on the Service; (b) sending a message to the email
-                address associated with your account; or (c) any other means we reasonably determine will reach you. You are
-                responsible for keeping your contact information current. Notice shall be deemed given: (i) if posted on the
-                Service, upon posting; (ii) if sent by email, twenty-four (24) hours after the email is sent; or (iii) if
-                sent by other means, upon receipt.
+                No failure or delay by Consilium in exercising any right, power,
+                or privilege under these Terms shall operate as a waiver
+                thereof, nor shall any single or partial exercise of any right,
+                power, or privilege preclude any other or further exercise
+                thereof or the exercise of any other right, power, or privilege.
+                The rights and remedies provided herein are cumulative and not
+                exclusive of any rights or remedies provided by law.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">24. California Residents</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                21. Third-Party Beneficiaries
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                If you are a California resident, you are entitled to specific rights under the California Consumer Privacy
-                Act of 2018 (CCPA) as amended by the California Privacy Rights Act of 2020 (CPRA), including the right to
-                know what personal information is collected, the right to delete personal information, the right to opt out
-                of the sale or sharing of personal information, and the right to non-discrimination for exercising your
-                rights. For details on how we collect, use, and share your personal information, and how to exercise your
-                rights, please refer to our Privacy Policy.
-              </p>
-              <p className="mb-4 text-muted-foreground">
-                Under California Civil Code Section 1789.3, California users are entitled to the following specific consumer
-                rights notice: The Complaint Assistance Unit of the Division of Consumer Services of the California Department
-                of Consumer Affairs may be contacted in writing at 1625 North Market Blvd., Suite N 112, Sacramento, CA
-                95834, or by telephone at (800) 952-5210.
+                These Terms do not confer any rights or remedies upon any person
+                or entity other than you and Consilium, except that the
+                Consilium Parties (as defined in Section 10) are intended
+                third-party beneficiaries of the disclaimer, limitation of
+                liability, and indemnification provisions herein.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">25. EU/EEA Residents</h2>
+              <h2 className="text-2xl font-semibold mb-4">22. Notices</h2>
               <p className="mb-4 text-muted-foreground">
-                If you are located in the European Union or European Economic Area, you have rights under the General Data
-                Protection Regulation (GDPR), including the right of access, right to rectification, right to erasure
-                (&quot;right to be forgotten&quot;), right to restriction of processing, right to data portability, and right
-                to object to processing. You also have the right to lodge a complaint with a supervisory authority in the
-                member state of your habitual residence, place of work, or place of the alleged infringement. For details on
-                how to exercise these rights, please refer to our Privacy Policy.
-              </p>
-              <p className="mb-4 text-muted-foreground">
-                Nothing in these Terms is intended to limit any rights you may have under mandatory consumer protection
-                legislation applicable in your country of residence that cannot be waived by agreement.
+                We may provide notices to you by: (a) posting a notice on the
+                Service; (b) sending a message to the email address associated
+                with your account; or (c) any other means we reasonably
+                determine will reach you. You are responsible for keeping your
+                contact information current. Notice shall be deemed given: (i)
+                if posted on the Service, upon posting; (ii) if sent by email,
+                twenty-four (24) hours after the email is sent; or (iii) if sent
+                by other means, upon receipt.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">26. Contact Information</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                23. California Residents
+              </h2>
               <p className="mb-4 text-muted-foreground">
-                For questions, concerns, or notices regarding these Terms, please contact us at:
+                If you are a California resident, you are entitled to specific
+                rights under the California Consumer Privacy Act of 2018 (CCPA)
+                as amended by the California Privacy Rights Act of 2020 (CPRA),
+                including the right to know what personal information is
+                collected, the right to delete personal information, the right
+                to opt out of the sale or sharing of personal information, and
+                the right to non-discrimination for exercising your rights. For
+                details on how we collect, use, and share your personal
+                information, and how to exercise your rights, please refer to
+                our Privacy Policy.
               </p>
               <p className="mb-4 text-muted-foreground">
-                Consilium<br />
-                Attn: Saad Kadri<br />
+                Under California Civil Code Section 1789.3, California users are
+                entitled to the following specific consumer rights notice: The
+                Complaint Assistance Unit of the Division of Consumer Services
+                of the California Department of Consumer Affairs may be
+                contacted in writing at 1625 North Market Blvd., Suite N 112,
+                Sacramento, CA 95834, or by telephone at (800) 952-5210.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">
+                24. EU/EEA Residents
+              </h2>
+              <p className="mb-4 text-muted-foreground">
+                If you are located in the European Union or European Economic
+                Area, you have rights under the General Data Protection
+                Regulation (GDPR), including the right of access, right to
+                rectification, right to erasure (&quot;right to be
+                forgotten&quot;), right to restriction of processing, right to
+                data portability, and right to object to processing. You also
+                have the right to lodge a complaint with a supervisory authority
+                in the member state of your habitual residence, place of work,
+                or place of the alleged infringement. For details on how to
+                exercise these rights, please refer to our Privacy Policy.
+              </p>
+              <p className="mb-4 text-muted-foreground">
+                Nothing in these Terms is intended to limit any rights you may
+                have under mandatory consumer protection legislation applicable
+                in your country of residence that cannot be waived by agreement.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">
+                25. Contact Information
+              </h2>
+              <p className="mb-4 text-muted-foreground">
+                For questions, concerns, or notices regarding these Terms,
+                please contact us at:
+              </p>
+              <p className="mb-4 text-muted-foreground">
+                Consilium
+                <br />
+                Attn: Saad Kadri
+                <br />
                 Email:{" "}
                 <a
                   href="mailto:saad@myconsilium.xyz"
                   className="text-primary hover:underline"
                 >
-                 saad@myconsilium.xyz
+                  saad@myconsilium.xyz
                 </a>
               </p>
-              <p className="mb-4 text-muted-foreground">
-                For open-source related inquiries, you may also open an issue on our{" "}
-                <a
-                  href="https://github.com/skadri1601/"
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub repository
-                </a>.
-              </p>
             </section>
-
           </div>
         </div>
       </section>

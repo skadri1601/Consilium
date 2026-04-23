@@ -3,7 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { buttonVariants } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import {
   Zap,
@@ -17,7 +22,6 @@ import {
   ExternalLink,
   Code,
   FileText,
-  Settings,
   Key,
   CheckCircle2,
   X,
@@ -33,37 +37,43 @@ const steps = [
     id: "propose",
     icon: <MessageSquare className="h-6 w-6" />,
     title: "Propose",
-    description: "Each model independently analyzes the problem and presents its initial position.",
+    description:
+      "Each model independently analyzes the problem and presents its initial position.",
   },
   {
     id: "challenge",
     icon: <AlertTriangle className="h-6 w-6" />,
     title: "Challenge",
-    description: "Models cross-examine each other, probing assumptions and identifying weaknesses.",
+    description:
+      "Models cross-examine each other, probing assumptions and identifying weaknesses.",
   },
   {
     id: "rebut",
     icon: <History className="h-6 w-6" />,
     title: "Rebut",
-    description: "Models refine their positions based on challenges, strengthening or revising arguments.",
+    description:
+      "Models refine their positions based on challenges, strengthening or revising arguments.",
   },
   {
     id: "evaluate",
     icon: <Search className="h-6 w-6" />,
     title: "Evaluate",
-    description: "A judge model assesses argument quality, evidence strength, and logical consistency.",
+    description:
+      "A judge model assesses argument quality, evidence strength, and logical consistency.",
   },
   {
     id: "vote",
     icon: <Send className="h-6 w-6" />,
     title: "Vote",
-    description: "Models cast confidence-weighted votes on the strongest positions.",
+    description:
+      "Models cast confidence-weighted votes on the strongest positions.",
   },
   {
     id: "synthesize",
     icon: <Sparkles className="h-6 w-6" />,
     title: "Synthesize",
-    description: "A final synthesis integrates the best arguments into a single, rigorous answer.",
+    description:
+      "A final synthesis integrates the best arguments into a single, rigorous answer.",
   },
 ];
 
@@ -72,69 +82,105 @@ const modes = [
     key: "quick",
     icon: <Zap className="h-5 w-5" />,
     title: "Quick",
-    description: "Single round, fastest response. Best for simple questions needing a fast sanity check.",
+    description:
+      "Single round, fastest response. Best for simple questions needing a fast sanity check.",
     time: "~15s",
   },
   {
     key: "council",
     icon: <Users className="h-5 w-5" />,
     title: "Council",
-    description: "Multi-round deliberation between models. The default mode for most decisions.",
+    description:
+      "Multi-round deliberation between models. The default mode for most decisions.",
     time: "~45s",
   },
   {
     key: "deep",
     icon: <FileText className="h-5 w-5" />,
     title: "Deep",
-    description: "Extended deliberation with sub-agent research for complex, high-stakes questions.",
+    description:
+      "Extended deliberation with sub-agent research for complex, high-stakes questions.",
     time: "~90s",
   },
   {
     key: "blind",
     icon: <Eye className="h-5 w-5" />,
     title: "Blind",
-    description: "Model names hidden until scored. Eliminates brand bias from evaluation.",
+    description:
+      "Model names hidden until scored. Eliminates brand bias from evaluation.",
     time: "~45s",
   },
   {
     key: "redteam",
     icon: <Target className="h-5 w-5" />,
     title: "Red Team",
-    description: "Adversarial assessment where models actively try to break each other's arguments.",
+    description:
+      "Adversarial assessment where models actively try to break each other's arguments.",
     time: "~120s",
   },
   {
     key: "jury",
     icon: <Shield className="h-5 w-5" />,
     title: "Jury",
-    description: "Panel deliberation with structured voting. Models must reach consensus or declare dissent.",
+    description:
+      "Panel deliberation with structured voting. Models must reach consensus or declare dissent.",
     time: "~60s",
   },
   {
     key: "market",
     icon: <BarChart3 className="h-5 w-5" />,
     title: "Market",
-    description: "Prediction market style confidence aggregation. Models stake credibility on positions.",
+    description:
+      "Prediction market style confidence aggregation. Models stake credibility on positions.",
     time: "~90s",
   },
   {
     key: "auto",
     icon: <Sparkles className="h-5 w-5" />,
     title: "Auto",
-    description: "Automatically selects the best deliberation mode based on topic complexity.",
+    description:
+      "Automatically selects the best deliberation mode based on topic complexity.",
     time: "~45s",
   },
 ];
 
 const comparisonRows = [
-  { feature: "Multiple model perspectives", deliberation: true, orchestration: true },
-  { feature: "Models challenge each other", deliberation: true, orchestration: false },
-  { feature: "Structured argumentation", deliberation: true, orchestration: false },
+  {
+    feature: "Multiple model perspectives",
+    deliberation: true,
+    orchestration: true,
+  },
+  {
+    feature: "Models challenge each other",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Structured argumentation",
+    deliberation: true,
+    orchestration: false,
+  },
   { feature: "Dissent tracking", deliberation: true, orchestration: false },
-  { feature: "Confidence-weighted voting", deliberation: true, orchestration: false },
-  { feature: "Adversarial red-teaming", deliberation: true, orchestration: false },
-  { feature: "Blind evaluation mode", deliberation: true, orchestration: false },
-  { feature: "Audit trail of reasoning", deliberation: true, orchestration: false },
+  {
+    feature: "Confidence-weighted voting",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Adversarial red-teaming",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Blind evaluation mode",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Audit trail of reasoning",
+    deliberation: true,
+    orchestration: false,
+  },
 ];
 
 const pythonCode = `from consilium import Consilium
@@ -184,25 +230,30 @@ const papers = [
     title: "Debating with More Persuasive LLMs Leads to More Truthful Answers",
     authors: "Akbir Khan et al.",
     venue: "ICML 2024",
-    insight: "AI debate produces more truthful answers than single-model prompting, even when one debater argues for the wrong answer.",
+    insight:
+      "AI debate produces more truthful answers than single-model prompting, even when one debater argues for the wrong answer.",
   },
   {
     title: "Improving Factuality and Reasoning via Multiagent Debate",
     authors: "Yilun Du et al.",
     venue: "ICML 2024",
-    insight: "Multi-agent debate significantly improves factual accuracy and mathematical reasoning across multiple benchmarks.",
+    insight:
+      "Multi-agent debate significantly improves factual accuracy and mathematical reasoning across multiple benchmarks.",
   },
   {
-    title: "LLM Discussion: Enhancing the Creativity of LLMs via Discussion Framework",
+    title:
+      "LLM Discussion: Enhancing the Creativity of LLMs via Discussion Framework",
     authors: "Li et al.",
     venue: "AAAI 2024",
-    insight: "Structured discussion between LLMs produces more creative and diverse outputs than individual generation.",
+    insight:
+      "Structured discussion between LLMs produces more creative and diverse outputs than individual generation.",
   },
   {
     title: "Scalable AI Safety via Doubly-Efficient Debate",
     authors: "Irving et al.",
     venue: "AI Safety Research",
-    insight: "Debate between AI systems provides a scalable mechanism for aligning AI behavior with human values.",
+    insight:
+      "Debate between AI systems provides a scalable mechanism for aligning AI behavior with human values.",
   },
 ];
 
@@ -235,10 +286,24 @@ export default function LandingPage() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
         <button
-          onClick={() => document.getElementById("hero-content")?.scrollIntoView({ behavior: "smooth" })}
+          onClick={() =>
+            document
+              .getElementById("hero-content")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
           className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer z-10"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 hover:opacity-100 transition-opacity">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="opacity-60 hover:opacity-100 transition-opacity"
+          >
             <path d="M12 5v14M5 12l7 7 7-7" />
           </svg>
         </button>
@@ -246,24 +311,17 @@ export default function LandingPage() {
 
       <section id="hero-content" className="space-y-6 py-24 md:py-32 lg:py-40">
         <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
-          <Link
-            href="https://github.com/skadri1601/Consilium"
-            className="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
-            target="_blank"
-          >
-            Open source under MIT license
-          </Link>
           <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
             Structured Deliberation Between AI Models
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Not another orchestration tool. Consilium makes AI models argue, challenge, and
-            synthesize — producing answers with tracked confidence, dissent, and audit trails.
+            Not another orchestration tool. Consilium makes AI models argue,
+            challenge, and synthesize — producing answers with tracked
+            confidence, dissent, and audit trails.
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
             <Link
-              href="https://github.com/skadri1601/Consilium"
-              target="_blank"
+              href="/sign-up"
               className={cn(buttonVariants({ size: "lg" }))}
             >
               Get Started
@@ -280,16 +338,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="how-it-works" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section
+        id="how-it-works"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">How It Works</h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            A structured 6-phase deliberation process inspired by academic debate and jury systems.
+            A structured 6-phase deliberation process inspired by academic
+            debate and jury systems.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
           {steps.map((step, i) => (
-            <div key={step.id} className="relative overflow-hidden rounded-lg border bg-background p-2">
+            <div
+              key={step.id}
+              className="relative overflow-hidden rounded-lg border bg-background p-2"
+            >
               <div className="flex h-[180px] flex-col rounded-md p-6 gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
@@ -299,7 +364,9 @@ export default function LandingPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-bold">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -307,9 +374,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="modes" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section
+        id="modes"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">8 Deliberation Modes</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            8 Deliberation Modes
+          </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
             Choose the right deliberation strategy for your use case.
           </p>
@@ -323,24 +395,32 @@ export default function LandingPage() {
                     {mode.icon}
                     <CardTitle className="text-base">{mode.title}</CardTitle>
                   </div>
-                  <span className="text-xs text-muted-foreground">{mode.time}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {mode.time}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{mode.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {mode.description}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section id="features" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section
+        id="features"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Why Deliberation {'>'} Orchestration
+            Why Deliberation {">"} Orchestration
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Orchestration runs models in parallel and picks the best. Deliberation makes them argue until the truth emerges.
+            Orchestration runs models in parallel and picks the best.
+            Deliberation makes them argue until the truth emerges.
           </p>
         </div>
         <div className="mx-auto max-w-3xl overflow-x-auto">
@@ -348,8 +428,12 @@ export default function LandingPage() {
             <thead>
               <tr className="border-b">
                 <th className="text-left py-3 px-4 font-medium">Capability</th>
-                <th className="text-center py-3 px-4 font-medium">Deliberation</th>
-                <th className="text-center py-3 px-4 font-medium text-muted-foreground">Orchestration</th>
+                <th className="text-center py-3 px-4 font-medium">
+                  Deliberation
+                </th>
+                <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                  Orchestration
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -394,7 +478,7 @@ export default function LandingPage() {
                   "px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
                   activeTab === tab
                     ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab}
@@ -407,11 +491,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="integrations" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section
+        id="integrations"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Supported Providers</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Supported Providers
+          </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Bring your own API keys. Consilium works with all major LLM providers.
+            Bring your own API keys. Consilium works with all major LLM
+            providers.
           </p>
         </div>
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-8">
@@ -439,18 +529,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="research" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section
+        id="research"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Research Backed</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Research Backed
+          </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Consilium&apos;s deliberation approach is grounded in peer-reviewed research.
+            Consilium&apos;s deliberation approach is grounded in peer-reviewed
+            research.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl">
           {papers.map((paper) => (
             <Card key={paper.title} variant="default" className="h-full">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base leading-snug">{paper.title}</CardTitle>
+                <CardTitle className="text-base leading-snug">
+                  {paper.title}
+                </CardTitle>
                 <p className="text-xs text-muted-foreground">
                   {paper.authors} — {paper.venue}
                 </p>
@@ -463,20 +561,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="open-source" className="container space-y-6 py-8 md:py-12 lg:py-24">
+      <section id="byok" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">Open Source</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Your keys. Your control.
+          </h2>
           <p className="text-muted-foreground sm:text-lg">
-            Run it your way. No vendor lock-in.
+            Bring your own provider keys and pay only for what you use.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
               <Shield className="h-4 w-4" />
-              MIT License
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Settings className="h-4 w-4" />
-              Self-Hostable
+              End-to-end encryption
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
               <Key className="h-4 w-4" />
@@ -484,22 +580,21 @@ export default function LandingPage() {
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
               <Code className="h-4 w-4" />
-              Fork & Extend
+              CLI + SDK
             </span>
           </div>
           <div className="flex gap-4 pt-4">
             <Link
-              href="https://github.com/skadri1601/Consilium"
-              target="_blank"
+              href="/sign-up"
               className={cn(buttonVariants({ size: "lg" }))}
             >
-              View on GitHub
+              Start free
             </Link>
             <Link
-              href="/sign-up"
+              href="/pricing"
               className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
             >
-              Try Hosted Version
+              See pricing
             </Link>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Check, X, Github, Calculator, Zap } from "lucide-react";
+import { Check, X, Calculator, Zap } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,9 +13,14 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
   description:
-    "Bring your own API keys and only pay the model providers. Consilium is free, open-source, and self-hostable. Compare Free, Pro, and Max plans.",
+    "Bring your own API keys and only pay the model providers. Compare Free, Pro, and Max plans.",
   path: "/pricing",
-  keywords: ["consilium pricing", "ai council pricing", "byok", "free ai debate"],
+  keywords: [
+    "consilium pricing",
+    "ai council pricing",
+    "byok",
+    "free ai debate",
+  ],
 });
 
 const tiers = [
@@ -101,12 +106,37 @@ const tiers = [
 ];
 
 const comparisonFeatures = [
-  { feature: "Weekly compute", free: "50K weighted tokens", pro: "500K weighted tokens", max: "2M weighted tokens" },
-  { feature: "Debates", free: "5/week, 20/month", pro: "Unlimited", max: "Unlimited" },
+  {
+    feature: "Weekly compute",
+    free: "50K weighted tokens",
+    pro: "500K weighted tokens",
+    max: "2M weighted tokens",
+  },
+  {
+    feature: "Debates",
+    free: "5/week, 20/month",
+    pro: "Unlimited",
+    max: "Unlimited",
+  },
   { feature: "Models per debate", free: "2", pro: "5+", max: "Unlimited" },
-  { feature: "Deliberation modes", free: "3 basic", pro: "All 8", max: "All 8 + early access" },
-  { feature: "Templates", free: "3 starter", pro: "All 8 + custom", max: "All + share publicly" },
-  { feature: "CLI", free: "Basic", pro: "Full + codebase context", max: "Full + parallel/batch" },
+  {
+    feature: "Deliberation modes",
+    free: "3 basic",
+    pro: "All 8",
+    max: "All 8 + early access",
+  },
+  {
+    feature: "Templates",
+    free: "3 starter",
+    pro: "All 8 + custom",
+    max: "All + share publicly",
+  },
+  {
+    feature: "CLI",
+    free: "Basic",
+    pro: "Full + codebase context",
+    max: "Full + parallel/batch",
+  },
   { feature: "MCP", free: false, pro: true, max: "Full + streaming" },
   { feature: "SDK access", free: false, pro: true, max: true },
   { feature: "REST API", free: false, pro: false, max: true },
@@ -114,16 +144,36 @@ const comparisonFeatures = [
   { feature: "Wallet top-up", free: true, pro: true, max: true },
   { feature: "On-demand charging", free: true, pro: true, max: true },
   { feature: "Streaming", free: true, pro: true, max: true },
-  { feature: "Audit trail", free: "Basic", pro: "Full", max: "Full + searchable" },
-  { feature: "Analytics", free: "Basic", pro: "Advanced", max: "Advanced + replay" },
-  { feature: "History", free: "30 days", pro: "Unlimited + search", max: "Unlimited + API" },
+  {
+    feature: "Audit trail",
+    free: "Basic",
+    pro: "Full",
+    max: "Full + searchable",
+  },
+  {
+    feature: "Analytics",
+    free: "Basic",
+    pro: "Advanced",
+    max: "Advanced + replay",
+  },
+  {
+    feature: "History",
+    free: "30 days",
+    pro: "Unlimited + search",
+    max: "Unlimited + API",
+  },
   { feature: "Conformal safety gate", free: false, pro: false, max: true },
   { feature: "Progressive deepening", free: false, pro: false, max: true },
   { feature: "Debate collapse detection", free: false, pro: false, max: true },
   { feature: "Disagreement map", free: false, pro: false, max: true },
   { feature: "Argument graph", free: false, pro: false, max: true },
   { feature: "Persistent memory", free: false, pro: false, max: true },
-  { feature: "Support", free: "Community", pro: "Priority email", max: "Founder access" },
+  {
+    feature: "Support",
+    free: "Community",
+    pro: "Priority email",
+    max: "Founder access",
+  },
   { feature: "SLA", free: "None", pro: "99.9%", max: "99.9%" },
 ];
 
@@ -219,7 +269,7 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-muted-foreground">
-            Start free. Scale when you need to. Self-host anytime.
+            Start free. Scale when you need to.
           </p>
         </div>
       </section>
@@ -283,7 +333,10 @@ export default function PricingPage() {
                 )}
                 <ul className="mt-8 space-y-3">
                   {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm">
+                    <li
+                      key={feature}
+                      className="flex items-start gap-3 text-sm"
+                    >
                       <Check className="h-4 w-4 mt-0.5 shrink-0 text-indigo-400" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
@@ -304,10 +357,10 @@ export default function PricingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-800 bg-neutral-900/80">
-                  <th className="text-left px-6 py-4 font-semibold">
-                    Feature
+                  <th className="text-left px-6 py-4 font-semibold">Feature</th>
+                  <th className="text-center px-6 py-4 font-semibold">
+                    Free + BYOK
                   </th>
-                  <th className="text-center px-6 py-4 font-semibold">Free + BYOK</th>
                   <th className="text-center px-6 py-4 font-semibold text-indigo-400">
                     Pro
                   </th>
@@ -391,7 +444,7 @@ export default function PricingPage() {
                         {model.output}
                       </td>
                     </tr>
-                  ))
+                  )),
                 )}
               </tbody>
             </table>
@@ -458,21 +511,17 @@ export default function PricingPage() {
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-2xl mx-auto rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-          <Github className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold mb-2">Self-Host for Free</h2>
+          <h2 className="text-xl font-bold mb-2">Need a custom arrangement?</h2>
           <p className="text-muted-foreground mb-6">
-            Consilium is MIT licensed. Deploy on your own infrastructure with
-            Docker Compose and keep full control of your data. You only pay for
-            LLM provider API calls — Consilium adds zero markup.
+            Volume pricing, specific compliance requirements, or a private
+            deployment — talk to us. We work with teams individually until
+            Consilium has the traction for a formal Enterprise tier.
           </p>
           <Link
-            href="https://github.com/skadri1601/Consilium"
-            target="_blank"
-            rel="noreferrer"
+            href="/contact"
             className="inline-flex h-11 items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
           >
-            <Github className="mr-2 h-4 w-4" />
-            View Self-Hosting Guide
+            Talk to us
           </Link>
         </div>
       </section>

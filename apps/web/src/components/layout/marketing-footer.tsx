@@ -18,19 +18,15 @@ const footerLinks = {
     { label: "API Reference", href: "/docs/api" },
     { label: "CLI", href: "/docs/cli" },
     { label: "SDKs", href: "/#sdk" },
-    { label: "Releases", href: "https://github.com/skadri1601/Consilium/releases" },
+    {
+      label: "Releases",
+      href: "https://github.com/skadri1601/Consilium/releases",
+    },
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
     { label: "Research", href: "/research" },
-    { label: "Community", href: "/community" },
     { label: "Use Cases", href: "/use-cases" },
-  ],
-  "Open Source": [
-    { label: "GitHub", href: "https://github.com/skadri1601/Consilium" },
-    { label: "Contributing", href: "https://github.com/skadri1601/Consilium/blob/main/CONTRIBUTING.md" },
-    { label: "License (MIT)", href: "https://github.com/skadri1601/Consilium/blob/main/LICENSE" },
-    { label: "Changelog", href: "https://github.com/skadri1601/Consilium/releases" },
   ],
   Company: [
     { label: "About", href: "/about" },
@@ -88,8 +84,14 @@ export function MarketingFooter(props: MarketingFooterProps) {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        target={link.href.startsWith("http") ? "_blank" : undefined}
-                        rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                        target={
+                          link.href.startsWith("http") ? "_blank" : undefined
+                        }
+                        rel={
+                          link.href.startsWith("http")
+                            ? "noreferrer"
+                            : undefined
+                        }
                         className="text-sm text-neutral-400 transition-colors hover:text-white"
                       >
                         {link.label}
