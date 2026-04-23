@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 RUN npm install -g pnpm
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages ./packages
 COPY apps ./apps
 
