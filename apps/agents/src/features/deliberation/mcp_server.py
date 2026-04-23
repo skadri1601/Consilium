@@ -117,10 +117,7 @@ async def handle_deliberate(arguments: dict) -> str:
     models = arguments.get("models") or DEFAULT_MODELS
     max_rounds = arguments.get("max_rounds", 3)
 
-    if mode_str == "auto":
-        mode = DeliberationMode.COUNCIL
-    else:
-        mode = DeliberationMode(mode_str)
+    mode = DeliberationMode(mode_str)
 
     project_context = None
     context = arguments.get("context")

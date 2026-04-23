@@ -9,24 +9,22 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Label } from "@/shared/components/ui/label";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
+import { DebateModeSelector } from "@/features/council/components/debate-mode-selector";
+import type { CouncilMode } from "@/features/council/types/council.types";
 
 export function PreferencesSettings() {
   const { preferences, updatePreferences, isLoaded } = useUserPreferences();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  const [selectedMode, setSelectedMode] = useState<"quick" | "council" | "deep" | "blind">(
-    "council"
-  );
+  const [selectedMode, setSelectedMode] = useState<CouncilMode>("council");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const { toast } = useToast();
 
-  // Sync local state when Clerk data loads
   useEffect(() => {
     if (isLoaded) {
       setSelectedAgents(preferences.defaultAgents);
@@ -48,7 +46,7 @@ export function PreferencesSettings() {
     });
   };
 
-  const handleModeChange = (mode: "quick" | "council" | "deep" | "blind") => {
+  const handleModeChange = (mode: CouncilMode) => {
     setSelectedMode(mode);
     setDirty(true);
   };
@@ -105,7 +103,6 @@ export function PreferencesSettings() {
         </p>
       </div>
 
-      {/* Default Agents */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Default Agents</CardTitle>
@@ -164,7 +161,6 @@ export function PreferencesSettings() {
         </CardContent>
       </Card>
 
-      {/* Default Council Mode */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Default Council Mode</CardTitle>
@@ -173,72 +169,10 @@ export function PreferencesSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => handleModeChange("council")}
-              className={cn(
-                "w-full rounded-lg border p-4 text-left transition-colors",
-                selectedMode === "council"
-                  ? "border-primary bg-primary/10"
-                  : "border-border hover:bg-accent"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "h-4 w-4 rounded-full border-2 flex items-center justify-center",
-                    selectedMode === "council"
-                      ? "border-primary"
-                      : "border-muted-foreground"
-                  )}
-                >
-                  {selectedMode === "council" && (
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                  )}
-                </div>
-                <div>
-                  <Label className="font-medium cursor-pointer">Visible</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Agents can see each other&apos;s responses during the debate
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleModeChange("blind")}
-              className={cn(
-                "w-full rounded-lg border p-4 text-left transition-colors",
-                selectedMode === "blind"
-                  ? "border-primary bg-primary/10"
-                  : "border-border hover:bg-accent"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "h-4 w-4 rounded-full border-2 flex items-center justify-center",
-                    selectedMode === "blind"
-                      ? "border-primary"
-                      : "border-muted-foreground"
-                  )}
-                >
-                  {selectedMode === "blind" && (
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                  )}
-                </div>
-                <div>
-                  <Label className="font-medium cursor-pointer">Blind</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Agents respond independently without seeing other
-                    responses
-                  </p>
-                </div>
-              </div>
-            </button>
-          </div>
+          <DebateModeSelector
+            selectedMode={selectedMode}
+            onModeChange={handleModeChange}
+          />
         </CardContent>
       </Card>
 

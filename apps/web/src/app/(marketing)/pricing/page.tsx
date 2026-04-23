@@ -20,22 +20,25 @@ export const metadata: Metadata = buildMetadata({
 
 const tiers = [
   {
-    name: "Free",
+    name: "Free + BYOK",
     price: "$0",
-    period: "/mo",
-    description: "Perfect for trying out AI deliberation",
+    period: "/forever",
+    description: "Bring your own API keys — pay only providers",
+    comingSoon: false,
     features: [
-      "50 deliberations per month",
-      "3 models per debate",
-      "All 8 deliberation modes",
-      "All 6 vertical templates",
+      "5 debates/week, 20/month",
+      "2 models per debate",
+      "3 basic deliberation modes",
+      "3 starter templates",
       "Streaming support",
       "Basic audit trail",
-      "Basic analytics",
+      "Basic analytics (30-day history)",
       "Community support",
-      "Export to Markdown",
+      "Markdown export",
+      "All models via BYOK",
+      "Wallet top-up available",
     ],
-    cta: "Get Started",
+    cta: "Get Started Free",
     href: "/sign-up",
     highlighted: false,
   },
@@ -43,113 +46,85 @@ const tiers = [
     name: "Pro",
     price: "$29",
     period: "/mo",
-    description: "For developers and teams shipping with AI",
+    yearlyPrice: "$290/yr",
+    description: "For developers who use multi-model debate daily",
+    comingSoon: true,
     features: [
       "Unlimited deliberations",
       "5+ models per debate",
       "All 8 deliberation modes",
-      "All 6 vertical templates",
-      "Streaming support",
-      "Full audit trail",
-      "Advanced analytics",
-      "Priority support",
-      "Full API access",
-      "CLI access",
+      "All 8 templates + custom creation",
+      "500K weighted tokens/week included",
+      "Full CLI with codebase context",
+      "MCP integration",
       "SDK access (TypeScript & Python)",
-      "Custom export formats",
+      "Full audit trail",
+      "Advanced analytics + diversity scores",
+      "Unlimited history + full-text search",
+      "Weekly email digest",
+      "Priority email support",
+      "JSON + Markdown export",
       "99.9% SLA",
     ],
-    cta: "Start Free Trial",
-    href: "/sign-up",
+    cta: "Coming Soon",
+    href: "#",
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "For organizations with advanced needs",
+    name: "Max",
+    price: "$99",
+    period: "/mo",
+    yearlyPrice: "$990/yr",
+    description: "Verified deliberation with research-backed trust features",
+    comingSoon: true,
     features: [
-      "Unlimited deliberations",
+      "Everything in Pro",
+      "2M weighted tokens/week included",
       "Unlimited models per debate",
-      "All 8 modes + custom modes",
-      "All 6 templates + custom templates",
-      "Streaming support",
-      "Full audit trail + export",
-      "Advanced + custom analytics",
-      "Dedicated support",
-      "Full API access",
-      "CLI access",
-      "SDK access (TypeScript & Python)",
-      "SSO / SAML",
-      "On-premise managed deployment",
-      "99.99% SLA",
+      "Parallel & batch CLI mode",
+      "REST API access for automation",
+      "Conformal safety gate (81.9% wrong consensus caught)",
+      "Progressive deepening (80-92% token savings)",
+      "Debate collapse detection",
+      "Disagreement map visualization",
+      "Argument graph (interactive)",
+      "Persistent project memory",
+      "Decision audit trail (searchable)",
+      "Daily + weekly digest options",
+      "Direct founder support",
+      "PDF + JSON + Markdown export",
     ],
-    cta: "Contact Us",
-    href: "/contact",
+    cta: "Coming Soon",
+    href: "#",
     highlighted: false,
   },
 ];
 
 const comparisonFeatures = [
-  {
-    feature: "Deliberations / month",
-    free: "50",
-    pro: "Unlimited",
-    enterprise: "Unlimited",
-  },
-  {
-    feature: "Models per debate",
-    free: "3",
-    pro: "5+",
-    enterprise: "Unlimited",
-  },
-  {
-    feature: "Deliberation modes",
-    free: "All 8",
-    pro: "All 8",
-    enterprise: "All 8 + custom",
-  },
-  {
-    feature: "Vertical templates",
-    free: "All 6",
-    pro: "All 6",
-    enterprise: "All 6 + custom",
-  },
-  { feature: "API access", free: "Limited", pro: true, enterprise: true },
-  { feature: "CLI access", free: false, pro: true, enterprise: true },
-  { feature: "SDK access", free: false, pro: true, enterprise: true },
-  { feature: "Streaming", free: true, pro: true, enterprise: true },
-  {
-    feature: "Audit trail",
-    free: "Basic",
-    pro: "Full",
-    enterprise: "Full + export",
-  },
-  {
-    feature: "Analytics",
-    free: "Basic",
-    pro: "Advanced",
-    enterprise: "Advanced + custom",
-  },
-  {
-    feature: "Support",
-    free: "Community",
-    pro: "Priority",
-    enterprise: "Dedicated",
-  },
-  { feature: "SSO / SAML", free: false, pro: false, enterprise: true },
-  {
-    feature: "On-premise",
-    free: "Self-host only",
-    pro: "Self-host only",
-    enterprise: "Managed",
-  },
-  {
-    feature: "SLA",
-    free: "None",
-    pro: "99.9%",
-    enterprise: "99.99%",
-  },
+  { feature: "Weekly compute", free: "50K weighted tokens", pro: "500K weighted tokens", max: "2M weighted tokens" },
+  { feature: "Debates", free: "5/week, 20/month", pro: "Unlimited", max: "Unlimited" },
+  { feature: "Models per debate", free: "2", pro: "5+", max: "Unlimited" },
+  { feature: "Deliberation modes", free: "3 basic", pro: "All 8", max: "All 8 + early access" },
+  { feature: "Templates", free: "3 starter", pro: "All 8 + custom", max: "All + share publicly" },
+  { feature: "CLI", free: "Basic", pro: "Full + codebase context", max: "Full + parallel/batch" },
+  { feature: "MCP", free: false, pro: true, max: "Full + streaming" },
+  { feature: "SDK access", free: false, pro: true, max: true },
+  { feature: "REST API", free: false, pro: false, max: true },
+  { feature: "BYOK (own API keys)", free: true, pro: true, max: true },
+  { feature: "Wallet top-up", free: true, pro: true, max: true },
+  { feature: "On-demand charging", free: true, pro: true, max: true },
+  { feature: "Streaming", free: true, pro: true, max: true },
+  { feature: "Audit trail", free: "Basic", pro: "Full", max: "Full + searchable" },
+  { feature: "Analytics", free: "Basic", pro: "Advanced", max: "Advanced + replay" },
+  { feature: "History", free: "30 days", pro: "Unlimited + search", max: "Unlimited + API" },
+  { feature: "Conformal safety gate", free: false, pro: false, max: true },
+  { feature: "Progressive deepening", free: false, pro: false, max: true },
+  { feature: "Debate collapse detection", free: false, pro: false, max: true },
+  { feature: "Disagreement map", free: false, pro: false, max: true },
+  { feature: "Argument graph", free: false, pro: false, max: true },
+  { feature: "Persistent memory", free: false, pro: false, max: true },
+  { feature: "Support", free: "Community", pro: "Priority email", max: "Founder access" },
+  { feature: "SLA", free: "None", pro: "99.9%", max: "99.9%" },
 ];
 
 const modelPricing = [
@@ -267,27 +242,45 @@ export default function PricingPage() {
                   </span>
                 </div>
               )}
+              {tier.comingSoon && (
+                <div className="absolute top-3 right-3">
+                  <span className="rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold text-amber-400 uppercase tracking-wider">
+                    Coming Soon
+                  </span>
+                </div>
+              )}
               <CardHeader className="text-center">
                 <CardTitle className="text-lg">{tier.name}</CardTitle>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">{tier.price}</span>
                   <span className="text-muted-foreground">{tier.period}</span>
                 </div>
+                {"yearlyPrice" in tier && tier.yearlyPrice && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    or {tier.yearlyPrice} (2 months free)
+                  </p>
+                )}
                 <CardDescription className="mt-2">
                   {tier.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link
-                  href={tier.href}
-                  className={
-                    tier.highlighted
-                      ? "flex h-11 w-full items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
-                      : "flex h-11 w-full items-center justify-center rounded-md border border-input bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                  }
-                >
-                  {tier.cta}
-                </Link>
+                {tier.comingSoon ? (
+                  <span className="flex h-11 w-full items-center justify-center rounded-md border border-neutral-700 bg-neutral-800/50 text-sm font-medium text-neutral-400 cursor-not-allowed">
+                    Coming Soon
+                  </span>
+                ) : (
+                  <Link
+                    href={tier.href}
+                    className={
+                      tier.highlighted
+                        ? "flex h-11 w-full items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
+                        : "flex h-11 w-full items-center justify-center rounded-md border border-input bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    }
+                  >
+                    {tier.cta}
+                  </Link>
+                )}
                 <ul className="mt-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
@@ -314,12 +307,12 @@ export default function PricingPage() {
                   <th className="text-left px-6 py-4 font-semibold">
                     Feature
                   </th>
-                  <th className="text-center px-6 py-4 font-semibold">Free</th>
+                  <th className="text-center px-6 py-4 font-semibold">Free + BYOK</th>
                   <th className="text-center px-6 py-4 font-semibold text-indigo-400">
                     Pro
                   </th>
-                  <th className="text-center px-6 py-4 font-semibold">
-                    Enterprise
+                  <th className="text-center px-6 py-4 font-semibold text-purple-400">
+                    Max
                   </th>
                 </tr>
               </thead>
@@ -339,7 +332,7 @@ export default function PricingPage() {
                       <CellValue value={row.pro} />
                     </td>
                     <td className="px-6 py-3 text-center text-muted-foreground">
-                      <CellValue value={row.enterprise} />
+                      <CellValue value={row.max} />
                     </td>
                   </tr>
                 ))}

@@ -1,40 +1,30 @@
 "use client";
 
-import { Zap, Users, Brain, EyeOff } from "lucide-react";
+import { Zap, Users, Brain, EyeOff, Shield, Scale, TrendingUp, Sparkles } from "lucide-react";
+import type { CouncilMode, DebateModeConfig } from "../types/council.types";
+import { DEBATE_MODES } from "../types/council.types";
 
-type DebateMode = "quick" | "council" | "deep" | "blind";
-
-interface DebateModeConfig {
-  rounds: number;
-  subAgents: boolean;
-  description: string;
-  estimatedTime: string;
-}
-
-const DEBATE_MODES: Record<DebateMode, DebateModeConfig> = {
-  quick: { rounds: 1, subAgents: false, description: "Single round, fastest response", estimatedTime: "~15s" },
-  council: { rounds: 3, subAgents: false, description: "Multi-round deliberation", estimatedTime: "~45s" },
-  deep: { rounds: 3, subAgents: true, description: "Multi-round with sub-agent research", estimatedTime: "~90s" },
-  blind: { rounds: 3, subAgents: false, description: "Names hidden until scored", estimatedTime: "~45s" },
-};
-
-const MODE_ICONS = {
+const MODE_ICONS: Record<CouncilMode, typeof Zap> = {
   quick: Zap,
   council: Users,
   deep: Brain,
   blind: EyeOff,
-} as const;
+  redteam: Shield,
+  jury: Scale,
+  market: TrendingUp,
+  auto: Sparkles,
+};
 
 interface DebateModeSelectorProps {
-  selectedMode: DebateMode;
-  onModeChange: (mode: DebateMode) => void;
+  selectedMode: CouncilMode;
+  onModeChange: (mode: CouncilMode) => void;
   disabled?: boolean;
 }
 
 export function DebateModeSelector({ selectedMode, onModeChange, disabled }: DebateModeSelectorProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-      {(Object.entries(DEBATE_MODES) as [DebateMode, DebateModeConfig][]).map(([mode, config]) => {
+      {(Object.entries(DEBATE_MODES) as [CouncilMode, DebateModeConfig][]).map(([mode, config]) => {
         const Icon = MODE_ICONS[mode];
         const isSelected = selectedMode === mode;
         return (

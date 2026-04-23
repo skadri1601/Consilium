@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { generateId } from "./id-generator";
+import { generateId } from "./id";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -71,7 +71,7 @@ export function log(
   rotateOldLogs();
 
   const entry: LogEntry = {
-    id: generateId("log"),
+    id: generateId("log-entry"),
     ts: new Date().toISOString(),
     level,
     event,

@@ -18,13 +18,8 @@ export async function GET() {
 
     if (!response.ok) {
       if (response.status === 503 || response.status >= 500) {
-        console.warn(`Backend unavailable (${response.status}), returning empty keys`);
-        return NextResponse.json({
-          openaiKey: null,
-          anthropicKey: null,
-          googleKey: null,
-          groqKey: null,
-        });
+        console.warn(`Backend unavailable (${response.status}).`);
+        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
       }
       const errorText = await response.text();
       console.error(`API Error (${response.status}):`, errorText);
@@ -42,21 +37,14 @@ export async function GET() {
     return NextResponse.json(await response.json());
   } catch (error) {
     if (isFetchError(error)) {
-      console.warn("Backend API not reachable, returning empty keys");
-      return NextResponse.json({
-        openaiKey: null,
-        anthropicKey: null,
-        googleKey: null,
-        groqKey: null,
-      });
+      console.warn("Backend API not reachable.");
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
     }
     console.error("Error fetching API keys:", error);
-    return NextResponse.json({
-      openaiKey: null,
-      anthropicKey: null,
-      googleKey: null,
-      groqKey: null,
-    });
+    return NextResponse.json(
+      { error: "Failed to fetch API keys" },
+      { status: 500 }
+    );
   }
 }
 

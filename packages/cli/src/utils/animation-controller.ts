@@ -43,23 +43,6 @@ export function updateLine(content: string): void {
 }
 
 /**
- * Force immediate render and stop any pending debounced update.
- * Call when switching from live updates to final static output.
- */
-export function clearAndPersist(finalContent: string): void {
-  if (rafId !== null) {
-    clearImmediate(rafId);
-    rafId = null;
-  }
-  pendingContent = null;
-  if (terminal.isTTY && !terminal.usePlain) {
-    logUpdate.clear();
-  }
-  process.stdout.write(finalContent + '\n');
-  lastRender = Date.now();
-}
-
-/**
  * Stop live updates and clear the update area (e.g. before printing more lines).
  */
 export function stopUpdates(): void {

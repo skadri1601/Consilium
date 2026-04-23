@@ -3,9 +3,11 @@
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useMemo } from "react";
 
+import type { CouncilMode } from "@/features/council/types/council.types";
+
 export interface UserPreferences {
   defaultAgents: string[];
-  defaultMode: "quick" | "council" | "deep" | "blind";
+  defaultMode: CouncilMode;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -30,12 +32,14 @@ export function useUserPreferences() {
     const meta = user.unsafeMetadata as Record<string, unknown>;
 
     const rawMode = meta.defaultMode as string | undefined;
-    const resolvedMode =
+    const VALID_MODES = new Set(["quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"]);
+    const resolvedMode = (
       rawMode === "visible"
         ? "council"
-        : rawMode === "quick" || rawMode === "council" || rawMode === "deep" || rawMode === "blind"
+        : rawMode && VALID_MODES.has(rawMode)
           ? rawMode
-          : DEFAULT_PREFERENCES.defaultMode;
+          : DEFAULT_PREFERENCES.defaultMode
+    ) as CouncilMode;
 
     return {
       defaultAgents:

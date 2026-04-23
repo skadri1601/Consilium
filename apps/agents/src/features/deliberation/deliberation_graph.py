@@ -94,6 +94,12 @@ except ImportError:
     _HAS_TRUTH_MARKET = False
 
 try:
+    from src.features.deliberation.cost_router import route as _route_auto
+    _HAS_ROUTER = True
+except ImportError:
+    _HAS_ROUTER = False
+
+try:
     from src.core.agent_factory import AgentFactory
     _HAS_AGENT_FACTORY = True
 except ImportError:
@@ -198,6 +204,7 @@ MAX_ROUNDS_BY_MODE: dict[str, int] = {
     DeliberationMode.REDTEAM: 1,
     DeliberationMode.JURY: 3,
     DeliberationMode.MARKET: 5,
+    DeliberationMode.AUTO: 3,
 }
 
 
@@ -500,7 +507,19 @@ class DeliberationEngine:
         self._track_cost(model_id, est_cost, est_in, est_out)
         return response, latency_ms
 
+    def _resolve_auto_mode(self, topic: str) -> None:
+        if _HAS_ROUTER:
+            decision = _route_auto(topic, available_models=self.models)
+            resolved = DeliberationMode(decision.mode)
+        else:
+            resolved = DeliberationMode.COUNCIL
+        self.mode = resolved
+        self.max_rounds = MAX_ROUNDS_BY_MODE.get(resolved, 3)
+        _logger.info("AUTO resolved to %s (max_rounds=%d)", resolved, self.max_rounds)
+
     async def run(self, topic: str) -> DeliberationState:
+        if self.mode == DeliberationMode.AUTO:
+            self._resolve_auto_mode(topic)
         self.state = self._init_state(topic)
         self._proposals_history = []
         self._votes_history = []

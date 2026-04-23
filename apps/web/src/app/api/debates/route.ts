@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       if (response.status >= 500) {
-        console.warn(`[GET /api/debates] Backend returned ${response.status}, returning empty list (graceful degradation).`);
-        return NextResponse.json([]);
+        console.warn(`[GET /api/debates] Backend returned ${response.status}.`);
+        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
       }
 
       let errorMessage = "Failed to fetch debates";
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(await response.json());
   } catch (error) {
       if (isFetchError(error)) {
-      console.warn("[GET /api/debates] Backend not reachable (fetch error), returning empty list.");
-      return NextResponse.json([]);
+      console.warn("[GET /api/debates] Backend not reachable (fetch error).");
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
     }
 
     const errorMessage =

@@ -23,11 +23,3 @@ export function Loading({ size = "md", className }: LoadingProps) {
     </div>
   );
 }
-
-export function LoadingPage() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <Loading size="lg" />
-    </div>
-  );
-}

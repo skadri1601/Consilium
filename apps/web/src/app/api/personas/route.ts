@@ -22,8 +22,8 @@ export async function GET() {
 
     if (!response.ok) {
       if (response.status >= 500) {
-        console.warn("[GET /api/personas] Backend unavailable, returning empty list.");
-        return NextResponse.json([]);
+        console.warn("[GET /api/personas] Backend unavailable.");
+        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
       }
 
       const errorText = await response.text();
@@ -37,8 +37,8 @@ export async function GET() {
     return NextResponse.json(await response.json());
   } catch (error) {
     if (isFetchError(error)) {
-      console.warn("[GET /api/personas] Backend not reachable, returning empty list.");
-      return NextResponse.json([]);
+      console.warn("[GET /api/personas] Backend not reachable.");
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
     }
 
     const errorMessage =

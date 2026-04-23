@@ -31,17 +31,8 @@ export async function GET() {
 
     if (!response.ok) {
       if (response.status >= 500) {
-        console.warn("[GET /api/analytics] Backend unavailable, returning empty stats.");
-        return NextResponse.json({
-          totalDebates: 0,
-          totalCost: 0,
-          debatesThisMonth: 0,
-          costThisMonth: 0,
-          debatesByDay: [],
-          modelUsage: [],
-          debatesBySource: [],
-          cliDebateCount: 0,
-        });
+        console.warn("[GET /api/analytics] Backend unavailable.");
+        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
       }
 
       const errorText = await response.text();
@@ -55,17 +46,8 @@ export async function GET() {
     return NextResponse.json(await response.json());
   } catch (error) {
     if (isFetchError(error)) {
-      console.warn("[GET /api/analytics] Backend not reachable, returning empty stats.");
-      return NextResponse.json({
-        totalDebates: 0,
-        totalCost: 0,
-        debatesThisMonth: 0,
-        costThisMonth: 0,
-        debatesByDay: [],
-        modelUsage: [],
-        debatesBySource: [],
-        cliDebateCount: 0,
-      });
+      console.warn("[GET /api/analytics] Backend not reachable.");
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
     }
 
     const errorMessage =
