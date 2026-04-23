@@ -53,6 +53,17 @@ export interface DebateEvent {
   debateId?: string;
 }
 
+export interface DebateSummary {
+  id: string;
+  topic?: string;
+  mode?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  models?: string[];
+  conversationId?: string | null;
+}
+
 export class ConsiliumClient {
   private readonly apiUrl: string;
   private readonly apiKey?: string;
@@ -538,6 +549,50 @@ export class ConsiliumClient {
         reject(new Error(`Benchmark stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
       }, this.streamTimeout);
     });
+  }
+
+  async listDebates(opts: { limit?: number; offset?: number; search?: string } = {}): Promise<DebateSummary[]> {
+    const headers: Record<string, string> = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const params = new URLSearchParams();
+    if (opts.limit !== undefined) params.set('limit', String(opts.limit));
+    if (opts.offset !== undefined) params.set('offset', String(opts.offset));
+    if (opts.search) params.set('search', opts.search);
+    const qs = params.toString();
+    const url = `${this.apiUrl}/api/v1/debates${qs ? `?${qs}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    if (Array.isArray(data)) return data as DebateSummary[];
+    if (Array.isArray((data as { items?: unknown[] }).items)) return (data as { items: DebateSummary[] }).items;
+    return [];
+  }
+
+  async cancelDeliberation(deliberationId: string): Promise<void> {
+    const headers: Record<string, string> = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(`${this.apiUrl}/api/v1/deliberation/${deliberationId}/cancel`, {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Cancel failed: HTTP ${response.status}`);
+    }
   }
 
   async createRedTeam(content: string, options: Partial<RedTeamOptions> = {}): Promise<{ id: string }> {
