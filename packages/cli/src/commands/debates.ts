@@ -1,6 +1,7 @@
-import { ConsiliumClient, DebateSummary } from "../api/client.js";
+import { ConsiliumClient, DebateSummary, DebateEvent, DeliberationEvent } from "../api/client.js";
 import { style } from "../utils/visual-system.js";
 import { requireAuth } from "../utils/require-auth.js";
+import { isValidMode, getDefaultMode } from "../utils/debate-modes.js";
 
 const st = style();
 
@@ -89,6 +90,89 @@ export async function cancelDebateCommand(
     console.log(st.success(`Cancelled ${debateId}`));
   } catch (err) {
     console.error(st.error(`Cancel failed: ${(err as Error).message}`));
+    process.exitCode = 1;
+  }
+}
+
+export interface StartDebateOptions {
+  models?: string[];
+  mode?: string;
+  json?: boolean;
+}
+
+const DEFAULT_START_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
+
+export async function startDebateCommand(
+  topic: string,
+  options: StartDebateOptions,
+): Promise<void> {
+  await requireAuth();
+
+  const mode =
+    options.mode && isValidMode(options.mode) ? options.mode : getDefaultMode();
+  const models = options.models?.length ? options.models : DEFAULT_START_MODELS;
+  const client = new ConsiliumClient();
+
+  try {
+    const { id } = await client.createDebate({
+      topic,
+      mode: mode as never,
+      models,
+      debateSource: "cli",
+    });
+    if (options.json) {
+      console.log(JSON.stringify({ id, mode, models }));
+    } else {
+      console.log(st.success(`Debate queued: ${id}`));
+      console.log(st.dim(`  Attach later with: consilium debates stream ${id}`));
+    }
+  } catch (err) {
+    console.error(st.error(`Start failed: ${(err as Error).message}`));
+    process.exitCode = 1;
+  }
+}
+
+export interface StreamDebateOptions {
+  deliberation?: boolean;
+}
+
+export async function streamDebateCommand(
+  debateId: string,
+  options: StreamDebateOptions = {},
+): Promise<void> {
+  await requireAuth();
+  const client = new ConsiliumClient();
+
+  const onDebateEvent = (event: DebateEvent) => {
+    const prefix = event.agent ? `[${event.agent}] ` : "";
+    if (event.text) {
+      process.stdout.write(prefix + event.text);
+    } else if (event.type) {
+      console.log(st.dim(`${prefix}${event.type}`));
+    }
+  };
+
+  const onDeliberationEvent = (event: DeliberationEvent) => {
+    const prefix = event.agent ? `[${event.agent}] ` : "";
+    if (event.text) {
+      process.stdout.write(prefix + event.text);
+    } else if (event.phase) {
+      console.log(st.dim(`${prefix}phase=${event.phase}`));
+    } else if (event.type) {
+      console.log(st.dim(`${prefix}${event.type}`));
+    }
+  };
+
+  try {
+    if (options.deliberation) {
+      await client.streamDeliberation(debateId, onDeliberationEvent);
+    } else {
+      await client.streamDebate(debateId, onDebateEvent);
+    }
+    console.log("");
+    console.log(st.success("Stream completed."));
+  } catch (err) {
+    console.error(st.error(`Stream failed: ${(err as Error).message}`));
     process.exitCode = 1;
   }
 }

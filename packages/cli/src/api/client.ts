@@ -64,11 +64,18 @@ export interface DebateSummary {
   conversationId?: string | null;
 }
 
+const RECONNECT_BACKOFFS_MS = [1000, 2000, 4000];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class ConsiliumClient {
   private readonly apiUrl: string;
   private readonly apiKey?: string;
   private readonly debug: boolean;
   private readonly streamTimeout: number;
+  private readonly maxReconnectAttempts: number;
 
   constructor() {
     const config = loadConfig();
@@ -79,6 +86,8 @@ export class ConsiliumClient {
       process.env.CONSILIUM_DEBUG === '1' ||
       process.env.CONSILIUM_DEBUG === 'true';
     this.streamTimeout = Number.parseInt(process.env.CONSILIUM_STREAM_TIMEOUT || '300000', 10);
+    const parsedRetries = Number.parseInt(process.env.CONSILIUM_STREAM_RETRIES || '3', 10);
+    this.maxReconnectAttempts = Number.isNaN(parsedRetries) || parsedRetries < 0 ? 3 : parsedRetries;
   }
 
   private log(message: string, data?: any) {
@@ -122,6 +131,85 @@ export class ConsiliumClient {
 
   private getApiKey(): string | undefined {
     return this.apiKey;
+  }
+
+  private async runStreamWithReconnect(
+    streamUrl: string,
+    handleMessage: (data: any) => { terminal?: boolean; error?: string },
+    contextLabel: string,
+  ): Promise<void> {
+    const init: { headers?: Record<string, string> } = {};
+    const apiKey = this.getApiKey();
+    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
+
+    let attempt = 0;
+    let terminalSeen = false;
+    let lastError: Error | null = null;
+
+    while (!terminalSeen && attempt <= this.maxReconnectAttempts) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const eventSource = new EventSource(streamUrl, init);
+          let connectionEstablished = false;
+          let eventCount = 0;
+          const timer = setTimeout(() => {
+            eventSource.close();
+            reject(new Error(`Stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
+          }, this.streamTimeout);
+
+          eventSource.onmessage = (event: any) => {
+            try {
+              if (!connectionEstablished) {
+                this.log(`${contextLabel} SSE connection established`);
+                connectionEstablished = true;
+              }
+              const data = JSON.parse(event.data);
+              eventCount++;
+              const outcome = handleMessage(data);
+              if (outcome.error) {
+                clearTimeout(timer);
+                eventSource.close();
+                terminalSeen = true;
+                reject(new Error(outcome.error));
+                return;
+              }
+              if (outcome.terminal) {
+                clearTimeout(timer);
+                eventSource.close();
+                terminalSeen = true;
+                resolve();
+              }
+            } catch (err: any) {
+              this.logError(`${contextLabel} parse error`, err);
+            }
+          };
+
+          eventSource.onerror = (err: any) => {
+            clearTimeout(timer);
+            eventSource.close();
+            const msg = connectionEstablished
+              ? `${contextLabel} stream dropped after ${eventCount} events`
+              : `${contextLabel} stream failed to connect`;
+            this.logError(msg, err);
+            reject(new Error(msg));
+          };
+        });
+      } catch (err: any) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (terminalSeen) {
+          return;
+        }
+        if (attempt >= this.maxReconnectAttempts) {
+          throw lastError;
+        }
+        const delay = RECONNECT_BACKOFFS_MS[Math.min(attempt, RECONNECT_BACKOFFS_MS.length - 1)] ?? 4000;
+        this.log(`${contextLabel} reconnect attempt ${attempt + 1}/${this.maxReconnectAttempts} in ${delay}ms`);
+        await sleep(delay);
+        attempt++;
+        continue;
+      }
+      return;
+    }
   }
 
   async createDebate(options: DebateOptions): Promise<{ id: string }> {
@@ -195,82 +283,25 @@ export class ConsiliumClient {
     const streamUrl = `${this.apiUrl}/api/v1/debates/${debateId}/stream`;
     this.log(`Opening SSE stream: ${streamUrl}`);
 
-    const init: { headers?: Record<string, string> } = {};
-    const apiKey = this.getApiKey();
-    if (apiKey) {
-      init.headers = { Authorization: `Bearer ${apiKey}` };
-    }
-
-    return new Promise((resolve, reject) => {
-      const eventSource = new EventSource(streamUrl, init);
-      let eventCount = 0;
-      let connectionEstablished = false;
-
-      eventSource.onmessage = (event: any) => {
-        try {
-          if (!connectionEstablished) {
-            this.log('SSE connection established');
-            connectionEstablished = true;
-          }
-
-          const data = JSON.parse(event.data);
-          const eventType = data.event ?? 'message';
-          eventCount++;
-          this.log(`Received event #${eventCount}: ${eventType}`);
-
-          const debateEvent: DebateEvent = {
-            type: eventType as DebateEvent['type'],
-            agent: data.agent ?? data.agent_id,
-            text: data.chunk ?? data.consensus ?? data.golden_prompt ?? data.goldenPrompt ?? data.response ?? data.content,
-            error: data.error,
-            debateId: data.debate_id ?? data.debateId,
-          };
-
-          onEvent(debateEvent);
-
-          if (eventType === 'done') {
-            this.log(`Stream completed after ${eventCount} events`);
-            eventSource.close();
-            resolve();
-          }
-
-          if (eventType === 'error') {
-            this.logError('Received error event from server', data);
-            eventSource.close();
-            reject(new Error(data.error || 'Server error'));
-          }
-
-          if (eventType === 'debate:cancelled') {
-            this.log('Debate cancelled');
-            eventSource.close();
-            resolve();
-          }
-        } catch (error: any) {
-          this.logError('Failed to parse event data', error);
-        }
+    return this.runStreamWithReconnect(streamUrl, (data) => {
+      const eventType = data.event ?? 'message';
+      const debateEvent: DebateEvent = {
+        type: eventType as DebateEvent['type'],
+        agent: data.agent ?? data.agent_id,
+        text: data.chunk ?? data.consensus ?? data.golden_prompt ?? data.goldenPrompt ?? data.response ?? data.content,
+        error: data.error,
+        debateId: data.debate_id ?? data.debateId,
       };
+      onEvent(debateEvent);
 
-      eventSource.onerror = (error: any) => {
-        this.logError('SSE connection error', error);
-
-        if (!connectionEstablished) {
-          console.error(`\nCannot connect to API at ${this.apiUrl}. Is the server running?`);
-        } else if (eventCount === 0) {
-          console.error('\nStream closed without receiving events. The debate may not exist.');
-        } else {
-          this.log(`Stream closed after ${eventCount} events`);
-        }
-
-        eventSource.close();
-        reject(new Error('Stream connection failed'));
-      };
-
-      setTimeout(() => {
-        this.log('Stream timeout - closing connection');
-        eventSource.close();
-        reject(new Error(`Stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
-      }, this.streamTimeout);
-    });
+      if (eventType === 'done' || eventType === 'debate:cancelled') {
+        return { terminal: true };
+      }
+      if (eventType === 'error') {
+        return { error: data.error || 'Server error' };
+      }
+      return {};
+    }, 'Debate');
   }
 
   async cancelDebate(debateId: string): Promise<void> {
@@ -414,69 +445,31 @@ export class ConsiliumClient {
     const streamUrl = `${this.apiUrl}/api/v1/deliberation/${id}/stream`;
     this.log(`Opening deliberation stream: ${streamUrl}`);
 
-    const init: { headers?: Record<string, string> } = {};
-    const apiKey = this.getApiKey();
-    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
-
-    return new Promise((resolve, reject) => {
-      const eventSource = new EventSource(streamUrl, init);
-      let eventCount = 0;
-      let connectionEstablished = false;
-
-      eventSource.onmessage = (event: any) => {
-        try {
-          if (!connectionEstablished) {
-            this.log('Deliberation SSE connection established');
-            connectionEstablished = true;
-          }
-
-          const data = JSON.parse(event.data);
-          const eventType = data.event ?? 'message';
-          eventCount++;
-          this.log(`Deliberation event #${eventCount}: ${eventType}`);
-
-          const deliberationEvent: DeliberationEvent = {
-            type: eventType as DeliberationEvent['type'],
-            phase: data.phase,
-            agent: data.agent ?? data.agent_id,
-            text: data.chunk ?? data.text ?? data.content ?? data.response,
-            error: data.error,
-            deliberationId: data.deliberation_id ?? data.deliberationId,
-            progress: data.progress,
-            convergence: data.convergence,
-            dissent: data.dissent,
-            vote: data.vote,
-            cost: data.cost,
-          };
-
-          onEvent(deliberationEvent);
-
-          if (eventType === 'done' || eventType === 'deliberation_complete') {
-            this.log(`Deliberation stream completed after ${eventCount} events`);
-            eventSource.close();
-            resolve();
-          }
-
-          if (eventType === 'error') {
-            eventSource.close();
-            reject(new Error(data.error || 'Deliberation error'));
-          }
-        } catch (error: any) {
-          this.logError('Failed to parse deliberation event', error);
-        }
+    return this.runStreamWithReconnect(streamUrl, (data) => {
+      const eventType = data.event ?? 'message';
+      const deliberationEvent: DeliberationEvent = {
+        type: eventType as DeliberationEvent['type'],
+        phase: data.phase,
+        agent: data.agent ?? data.agent_id,
+        text: data.chunk ?? data.text ?? data.content ?? data.response,
+        error: data.error,
+        deliberationId: data.deliberation_id ?? data.deliberationId,
+        progress: data.progress,
+        convergence: data.convergence,
+        dissent: data.dissent,
+        vote: data.vote,
+        cost: data.cost,
       };
+      onEvent(deliberationEvent);
 
-      eventSource.onerror = (error: any) => {
-        this.logError('Deliberation SSE error', error);
-        eventSource.close();
-        reject(new Error('Deliberation stream failed'));
-      };
-
-      setTimeout(() => {
-        eventSource.close();
-        reject(new Error(`Deliberation stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
-      }, this.streamTimeout);
-    });
+      if (eventType === 'done' || eventType === 'deliberation_complete') {
+        return { terminal: true };
+      }
+      if (eventType === 'error') {
+        return { error: data.error || 'Deliberation error' };
+      }
+      return {};
+    }, 'Deliberation');
   }
 
   async streamBenchmark(

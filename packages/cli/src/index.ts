@@ -24,7 +24,12 @@ import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
-import { listDebatesCommand, cancelDebateCommand } from "./commands/debates.js";
+import {
+  listDebatesCommand,
+  cancelDebateCommand,
+  startDebateCommand,
+  streamDebateCommand,
+} from "./commands/debates.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
 
@@ -211,6 +216,25 @@ async function main(): Promise<void> {
     .argument("<debateId>", "Debate ID (e.g., dbt_01HY3K...)")
     .option("--deliberation", "Cancel a deliberation session instead of a classic debate")
     .action(cancelDebateCommand);
+
+  debates
+    .command("start")
+    .description("Create a debate without streaming (fire-and-forget)")
+    .argument("<topic>", "Topic to debate")
+    .option("-m, --models <models...>", "Models to use")
+    .option(
+      "--mode <mode>",
+      "Debate mode: quick, council, deep, blind, redteam, jury, market, auto (default: auto)",
+    )
+    .option("--json", "Output result as JSON")
+    .action(startDebateCommand);
+
+  debates
+    .command("stream")
+    .description("Attach to a running debate's SSE stream")
+    .argument("<debateId>", "Debate or deliberation ID")
+    .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
+    .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);

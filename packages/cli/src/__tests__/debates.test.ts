@@ -1,9 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockListDebates, mockCancelDebate, mockCancelDeliberation } = vi.hoisted(() => ({
+const {
+  mockListDebates,
+  mockCancelDebate,
+  mockCancelDeliberation,
+  mockCreateDebate,
+  mockStreamDebate,
+  mockStreamDeliberation,
+} = vi.hoisted(() => ({
   mockListDebates: vi.fn(),
   mockCancelDebate: vi.fn(),
   mockCancelDeliberation: vi.fn(),
+  mockCreateDebate: vi.fn(),
+  mockStreamDebate: vi.fn(),
+  mockStreamDeliberation: vi.fn(),
 }));
 
 vi.mock('../api/client', () => ({
@@ -11,6 +21,9 @@ vi.mock('../api/client', () => ({
     listDebates: mockListDebates,
     cancelDebate: mockCancelDebate,
     cancelDeliberation: mockCancelDeliberation,
+    createDebate: mockCreateDebate,
+    streamDebate: mockStreamDebate,
+    streamDeliberation: mockStreamDeliberation,
   })),
 }));
 
@@ -29,7 +42,12 @@ vi.mock('../utils/visual-system', () => ({
   }),
 }));
 
-import { listDebatesCommand, cancelDebateCommand } from '../commands/debates';
+import {
+  listDebatesCommand,
+  cancelDebateCommand,
+  startDebateCommand,
+  streamDebateCommand,
+} from '../commands/debates';
 
 describe('listDebatesCommand', () => {
   beforeEach(() => {
@@ -101,6 +119,74 @@ describe('cancelDebateCommand', () => {
     mockCancelDebate.mockRejectedValue(new Error('nope'));
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await cancelDebateCommand('dbt_1', {});
+    expect(process.exitCode).toBe(1);
+  });
+});
+
+describe('startDebateCommand', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it('creates a debate and prints ID in human mode', async () => {
+    mockCreateDebate.mockResolvedValue({ id: 'dbt_abc' });
+    const logs: string[] = [];
+    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+    await startDebateCommand('hello', {});
+    expect(mockCreateDebate).toHaveBeenCalled();
+    expect(logs.join('\n')).toContain('dbt_abc');
+    expect(logs.join('\n')).toContain('consilium debates stream dbt_abc');
+  });
+
+  it('emits JSON when --json', async () => {
+    mockCreateDebate.mockResolvedValue({ id: 'dbt_xyz' });
+    const logs: string[] = [];
+    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+    await startDebateCommand('topic', { json: true, mode: 'quick', models: ['a', 'b'] });
+    const parsed = JSON.parse(logs.join('\n'));
+    expect(parsed).toEqual({ id: 'dbt_xyz', mode: 'quick', models: ['a', 'b'] });
+  });
+
+  it('falls back to default mode when given an invalid one', async () => {
+    mockCreateDebate.mockResolvedValue({ id: 'dbt_1' });
+    await startDebateCommand('t', { mode: 'bogus' });
+    const call = mockCreateDebate.mock.calls[0]?.[0];
+    expect(call?.mode).toBe('auto');
+  });
+
+  it('sets exit code when creation fails', async () => {
+    mockCreateDebate.mockRejectedValue(new Error('kaboom'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await startDebateCommand('t', {});
+    expect(process.exitCode).toBe(1);
+  });
+});
+
+describe('streamDebateCommand', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it('calls streamDebate by default', async () => {
+    mockStreamDebate.mockResolvedValue(undefined);
+    await streamDebateCommand('dbt_1', {});
+    expect(mockStreamDebate).toHaveBeenCalledWith('dbt_1', expect.any(Function));
+    expect(mockStreamDeliberation).not.toHaveBeenCalled();
+  });
+
+  it('routes to streamDeliberation when flag set', async () => {
+    mockStreamDeliberation.mockResolvedValue(undefined);
+    await streamDebateCommand('dlb_1', { deliberation: true });
+    expect(mockStreamDeliberation).toHaveBeenCalledWith('dlb_1', expect.any(Function));
+    expect(mockStreamDebate).not.toHaveBeenCalled();
+  });
+
+  it('sets exit code when stream fails', async () => {
+    mockStreamDebate.mockRejectedValue(new Error('dropped'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await streamDebateCommand('dbt_1', {});
     expect(process.exitCode).toBe(1);
   });
 });
