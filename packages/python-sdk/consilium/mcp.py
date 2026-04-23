@@ -4,7 +4,7 @@ import asyncio
 import json
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 CONSILIUM_API_URL = os.environ.get(
     "CONSILIUM_API_URL", "https://api.myconsilium.xyz"
@@ -71,6 +71,74 @@ async def _poll_deliberation(session_id: str, timeout_s: float = 900.0) -> dict[
             return data
         await asyncio.sleep(2)
     raise TimeoutError("Timed out waiting for deliberation to finish")
+
+
+def _parse_sse_event(raw_block: str) -> Optional[dict[str, Any]]:
+    data_lines = []
+    event_name = None
+    for line in raw_block.splitlines():
+        if line.startswith("data:"):
+            data_lines.append(line[5:].lstrip())
+        elif line.startswith("event:"):
+            event_name = line[6:].strip()
+    if not data_lines:
+        return None
+    raw = "\n".join(data_lines)
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"event": event_name or "message", "raw": raw}
+    if isinstance(parsed, dict) and event_name and "event" not in parsed:
+        parsed["event"] = event_name
+    return parsed
+
+
+_TERMINAL_EVENTS = frozenset({"done", "deliberation_complete", "error"})
+
+
+async def _stream_deliberation(
+    session_id: str,
+    on_event: Optional[Any] = None,
+    timeout_s: float = 900.0,
+) -> dict[str, Any]:
+    import httpx
+
+    url = f"{CONSILIUM_API_URL}/api/v1/deliberation/{session_id}/stream"
+    headers = {**_headers(), "Accept": "text/event-stream"}
+
+    final_event: Optional[dict[str, Any]] = None
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_s, read=timeout_s)) as client:
+            async with client.stream("GET", url, headers=headers) as response:
+                response.raise_for_status()
+                buffer = ""
+                async for chunk in response.aiter_text():
+                    buffer += chunk
+                    while "\n\n" in buffer:
+                        raw_block, buffer = buffer.split("\n\n", 1)
+                        event = _parse_sse_event(raw_block)
+                        if event is None:
+                            continue
+                        if on_event is not None:
+                            maybe = on_event(event)
+                            if asyncio.iscoroutine(maybe):
+                                await maybe
+                        event_type = event.get("event")
+                        if event_type in _TERMINAL_EVENTS:
+                            final_event = event
+                            break
+                    if final_event is not None:
+                        break
+    except httpx.HTTPError:
+        return await _poll_deliberation(session_id, timeout_s=timeout_s)
+
+    if final_event is None:
+        return await _poll_deliberation(session_id, timeout_s=30.0)
+
+    final_snapshot = await _get_json(f"/api/v1/deliberation/{session_id}")
+    if isinstance(final_snapshot, dict):
+        return final_snapshot
+    return final_event
 
 
 TOOLS = [
@@ -202,7 +270,7 @@ TOOLS = [
 ]
 
 
-async def handle_deliberate(arguments: dict[str, Any]) -> str:
+async def handle_deliberate(arguments: dict[str, Any], progress_sink: Optional[Any] = None) -> str:
     mode = arguments.get("mode", "council")
     if mode not in ALLOWED_MODES:
         mode = "council"
@@ -225,7 +293,8 @@ async def handle_deliberate(arguments: dict[str, Any]) -> str:
     sid = created.get("id")
     if not sid:
         return json.dumps(created, indent=2, default=str)
-    final = await _poll_deliberation(str(sid))
+
+    final = await _stream_deliberation(str(sid), on_event=progress_sink)
     return json.dumps(final, indent=2, default=str)
 
 
@@ -325,13 +394,39 @@ try:
             for t in TOOLS
         ]
 
+    def _make_progress_sink() -> Optional[Any]:
+        try:
+            ctx = _server.request_context
+        except LookupError:
+            return None
+        meta = getattr(ctx, "meta", None) or {}
+        token = meta.get("progressToken") if isinstance(meta, dict) else None
+        if token is None:
+            return None
+        session = getattr(ctx, "session", None)
+        send = getattr(session, "send_progress_notification", None)
+        if send is None:
+            return None
+
+        async def _sink(event: dict[str, Any]) -> None:
+            try:
+                message = event.get("event") or "progress"
+                await send(progress_token=token, progress=0, total=None, message=message)
+            except Exception:
+                pass
+
+        return _sink
+
     @_server.call_tool()
     async def _call_tool(name: str, arguments: dict) -> list[TextContent]:
         handler = TOOL_HANDLERS.get(name)
         if not handler:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
         try:
-            result = await handler(arguments)
+            if name == "consilium_deliberate":
+                result = await handler(arguments, progress_sink=_make_progress_sink())
+            else:
+                result = await handler(arguments)
             return [TextContent(type="text", text=result)]
         except Exception as e:
             return [TextContent(type="text", text=f"Error: {e}")]

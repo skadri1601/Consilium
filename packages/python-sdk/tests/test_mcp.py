@@ -56,10 +56,10 @@ class TestHandleDeliberate:
             captured["body"] = body
             return {"id": "sess_1"}
 
-        async def fake_poll(sid: str):
+        async def fake_stream(sid: str, on_event=None):
             return {"id": sid, "status": "completed"}
 
-        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_poll_deliberation", fake_poll):
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
             _run(mcp.handle_deliberate({"topic": "hi", "mode": "invalid_mode"}))
 
         assert captured["body"]["mode"] == "council"
@@ -71,15 +71,15 @@ class TestHandleDeliberate:
             captured["body"] = body
             return {"id": "sess_x"}
 
-        async def fake_poll(sid: str):
+        async def fake_stream(sid: str, on_event=None):
             return {"id": sid}
 
         files = [{"name": "a.py", "content": "print(1)"}]
-        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_poll_deliberation", fake_poll):
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
             _run(mcp.handle_deliberate({"topic": "hi", "files": files, "codebase_access": False}))
         assert "context" not in captured["body"]
 
-        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_poll_deliberation", fake_poll):
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
             _run(mcp.handle_deliberate({"topic": "hi", "files": files, "codebase_access": True}))
         assert captured["body"]["context"]["files"] == files
 
@@ -90,12 +90,53 @@ class TestHandleDeliberate:
             captured["body"] = body
             return {"id": "sess_1"}
 
-        async def fake_poll(sid: str):
+        async def fake_stream(sid: str, on_event=None):
             return {"id": sid}
 
-        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_poll_deliberation", fake_poll):
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
             _run(mcp.handle_deliberate({"topic": "x"}))
         assert captured["body"]["debateSource"] == "mcp"
+
+    def test_progress_sink_forwarded_to_stream(self):
+        captured: dict[str, Any] = {}
+
+        async def fake_post(path: str, body: dict):
+            return {"id": "sess_1"}
+
+        async def fake_stream(sid: str, on_event=None):
+            captured["on_event"] = on_event
+            return {"id": sid}
+
+        async def sink(event):
+            pass
+
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
+            _run(mcp.handle_deliberate({"topic": "x"}, progress_sink=sink))
+        assert captured["on_event"] is sink
+
+
+class TestSSEParser:
+    def test_parses_data_and_event_name(self):
+        block = 'event: phase_change\ndata: {"phase": "analysis"}'
+        parsed = mcp._parse_sse_event(block)
+        assert parsed == {"phase": "analysis", "event": "phase_change"}
+
+    def test_preserves_existing_event_field(self):
+        block = 'event: phase_change\ndata: {"event": "model_progress", "agent": "gpt-4"}'
+        parsed = mcp._parse_sse_event(block)
+        assert parsed["event"] == "model_progress"
+
+    def test_joins_multi_line_data(self):
+        block = 'data: {"a":\ndata: 1}'
+        parsed = mcp._parse_sse_event(block)
+        assert parsed == {"a": 1}
+
+    def test_returns_none_on_empty_block(self):
+        assert mcp._parse_sse_event(":keepalive") is None
+
+    def test_falls_back_to_raw_on_invalid_json(self):
+        parsed = mcp._parse_sse_event("event: ping\ndata: not-json")
+        assert parsed == {"event": "ping", "raw": "not-json"}
 
 
 class TestHandleListDebates:
