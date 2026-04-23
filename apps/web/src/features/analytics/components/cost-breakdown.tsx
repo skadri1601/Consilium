@@ -38,7 +38,7 @@ function Shell({
       <div className="mb-4">
         <div className="eyebrow">Breakdown</div>
         <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
-          Cost by model
+          Cost by Model
         </h3>
         {description && (
           <p className="text-[12px] text-ink-tertiary mt-1">{description}</p>
@@ -96,7 +96,9 @@ export function CostBreakdown() {
   }
 
   return (
-    <Shell description={`Total spend: $${totalCost.toFixed(4)}`}>
+    <Shell
+      description={`Distribution of costs across models · Total: $${totalCost.toFixed(4)}`}
+    >
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie

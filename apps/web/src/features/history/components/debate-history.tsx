@@ -376,7 +376,7 @@ export function DebateHistory() {
               onClick={() => setDateFilter("today")}
             />
             <FilterPill
-              label="Week"
+              label="This Week"
               active={dateFilter === "week"}
               onClick={() => setDateFilter("week")}
             />
@@ -465,7 +465,7 @@ export function DebateHistory() {
                   </span>
                 </span>
                 {debate.goldenPrompt && (
-                  <span className="text-agree">Synthesis ready</span>
+                  <span className="text-agree">Synthesis</span>
                 )}
               </div>
             </div>

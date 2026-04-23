@@ -57,7 +57,7 @@ function Shell({
         <div>
           <div className="eyebrow">Trend</div>
           <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
-            Usage over time
+            Usage Over Time
           </h3>
           {description && (
             <p className="text-[12px] text-ink-tertiary mt-1">{description}</p>
