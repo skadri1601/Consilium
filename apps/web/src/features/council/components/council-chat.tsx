@@ -3,13 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Loader2, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/shared/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useCouncilStore } from "../store/council.store";
 import { AgentSelector } from "./agent-selector";
@@ -21,10 +14,7 @@ import { useAuth } from "@/features/auth";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS, FREE_MODEL_IDS } from "@/shared/lib/constants";
-import {
-  getProviderStyles,
-  getAgentDisplayName,
-} from "../utils/council-helpers";
+import { getAgentDisplayName } from "../utils/council-helpers";
 
 interface AgentProgress {
   agentId: string;
@@ -415,7 +405,7 @@ export function CouncilChat() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <AgentSelector />
 
       <DebateModeSelector
@@ -425,299 +415,286 @@ export function CouncilChat() {
       />
 
       {usingFreeModels && (
-        <div className="rounded-lg border border-green-500/30 bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400 flex items-center justify-between">
+        <div className="rounded-[10px] border border-agree/30 bg-agree/14 px-4 py-3 text-[13px] text-agree flex items-center justify-between">
           <span>
-            Using free models. Add API keys in Settings for more options.
+            Using free Groq models. Add API keys in Settings for more options.
           </span>
           <a
             href="/settings"
-            className="font-medium underline hover:no-underline"
+            className="font-mono text-[11px] uppercase tracking-[0.06em] hover:text-ink-primary transition-colors"
           >
-            Settings
+            Settings →
           </a>
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
-        <div className="flex-1 flex flex-col gap-4 min-w-0">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Start a Debate</CardTitle>
-                <FeatureTooltip content="Describe what you want to build. The council will debate and produce a synthesized recommendation.">
-                  <span className="text-xs text-muted-foreground">
-                    What is this?
-                  </span>
-                </FeatureTooltip>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                {personas.length > 0 && (
-                  <select
-                    value={selectedPersonaId}
-                    onChange={(e) => setSelectedPersonaId(e.target.value)}
-                    disabled={isLoading}
-                    aria-label="Select a persona"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="">No persona (standard mode)</option>
-                    {personas.map((persona) => (
-                      <option key={persona.id} value={persona.id}>
-                        {persona.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <Textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe what you want to build. Be specific about features, tech stack, and requirements... (Cmd/Ctrl+K to focus)"
-                  disabled={isLoading || selectedAgents.length < 2}
-                  className="min-h-[100px] resize-none"
-                  suppressHydrationWarning
-                  aria-label="Debate topic input"
-                  aria-describedby="debate-input-help"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      handleSubmit(e);
-                    }
-                  }}
-                />
-                <span id="debate-input-help" className="sr-only">
-                  Describe what you want to build. The council will debate and
-                  produce a synthesized recommendation.
-                </span>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col text-xs text-muted-foreground min-w-0">
-                    <span>
-                      {selectedAgentsLabel}
-                      {input.length > 0 && ` | ${input.length} chars`}
-                    </span>
-                    <span>Supports: {SUPPORTED_PROVIDERS.join(", ")}</span>
+      <div className="surface-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="eyebrow mb-2">Start a deliberation</div>
+            <h2 className="font-display font-light text-[22px] tracking-[-0.01em] text-ink-primary">
+              Pose your question.
+            </h2>
+          </div>
+          <FeatureTooltip content="Describe what you want the council to debate. The selected models will propose, challenge, and synthesize a verdict.">
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary cursor-help">
+              What is this?
+            </span>
+          </FeatureTooltip>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          {personas.length > 0 && (
+            <select
+              value={selectedPersonaId}
+              onChange={(e) => setSelectedPersonaId(e.target.value)}
+              disabled={isLoading}
+              aria-label="Select a persona"
+              className="w-full rounded-[8px] border border-white/[0.08] bg-bg-2 px-3 py-2 text-[13px] text-ink-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm/40 focus-visible:border-warm/30"
+            >
+              <option value="">No persona (standard mode)</option>
+              {personas.map((persona) => (
+                <option key={persona.id} value={persona.id}>
+                  {persona.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Describe what you want to build. Be specific about features, tech stack, and requirements… (Cmd/Ctrl+K to focus)"
+            disabled={isLoading || selectedAgents.length < 2}
+            className="min-h-[120px] resize-none rounded-[10px] border-white/[0.08] bg-bg-2 text-[14px] text-ink-primary placeholder:text-ink-muted focus-visible:ring-warm/40 focus-visible:border-warm/30"
+            suppressHydrationWarning
+            aria-label="Debate topic input"
+            aria-describedby="debate-input-help"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                handleSubmit(e);
+              }
+            }}
+          />
+          <span id="debate-input-help" className="sr-only">
+            Describe what you want to build. The council will debate and produce
+            a synthesized recommendation.
+          </span>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex flex-col font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary min-w-0 gap-1">
+              <span>
+                {selectedAgentsLabel}
+                {input.length > 0 && ` · ${input.length} chars`}
+              </span>
+              <span>Providers: {SUPPORTED_PROVIDERS.join(" · ")}</span>
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim() || selectedAgents.length < 2}
+              className="btn-consilium btn-consilium-primary btn-consilium-lg min-w-[160px] justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Start debate with selected agents"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Deliberating…
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="h-4 w-4" />
+                  Start deliberation
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <AnimatePresence>
+        {streaming && Object.keys(agentProgress).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3 }}
+            className="surface-card overflow-hidden"
+          >
+            <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="block h-1.5 w-1.5 rounded-full bg-warm animate-warm-pulse" />
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-warm">
+                    Round {currentRound} · In progress
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={
-                      isLoading || !input.trim() || selectedAgents.length < 2
-                    }
-                    className="min-w-[120px]"
-                    aria-label="Start debate with selected agents"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Debating...
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Start Debate
-                      </>
-                    )}
-                  </Button>
+                  <div className="font-display text-[16px] tracking-[-0.01em] text-ink-primary italic">
+                    {roundDescription || "Deliberating"}
+                  </div>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+                {
+                  Object.values(agentProgress).filter(
+                    (a) => a.status === "complete",
+                  ).length
+                }{" "}
+                / {Object.keys(agentProgress).length} complete
+              </span>
+            </div>
 
-          <AnimatePresence>
-            {streaming && Object.keys(agentProgress).length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card variant="elevated" className="overflow-hidden">
-                  <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-primary/10">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        Round {currentRound}
-                        {roundDescription && `: ${roundDescription}`}
-                      </CardTitle>
-                      <span className="text-xs text-muted-foreground">
-                        {
-                          Object.values(agentProgress).filter(
-                            (a) => a.status === "complete",
-                          ).length
-                        }{" "}
-                        / {Object.keys(agentProgress).length} complete
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <AnimatePresence mode="popLayout">
-                        {Object.values(agentProgress).map((agent, index) => (
-                          <motion.div
-                            key={agent.agentId}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.1, duration: 0.2 }}
-                            role="status"
-                            aria-live="polite"
-                            aria-label={`${getAgentDisplayName(agent.agentId)} - ${agent.status}`}
-                            className={cn(
-                              "relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-300",
-                              getProviderStyles(agent.agentId, agent.status),
-                              agent.status === "thinking" && "shadow-md",
-                              agent.status === "complete" && "shadow-sm",
-                            )}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={cn(
-                                    "h-2 w-2 rounded-full shrink-0",
-                                    agent.status === "thinking" &&
-                                      "bg-primary animate-pulse",
-                                    agent.status === "complete" &&
-                                      "bg-green-500",
-                                    agent.status === "pending" && "bg-gray-300",
-                                  )}
-                                />
-                                <span className="font-semibold text-sm truncate">
-                                  {getAgentDisplayName(agent.agentId)}
-                                </span>
-                              </div>
-                              {agent.status === "thinking" && (
-                                <div className="flex gap-0.5" aria-hidden>
-                                  <div
-                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
-                                    style={{ animationDelay: "0ms" }}
-                                  />
-                                  <div
-                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
-                                    style={{ animationDelay: "150ms" }}
-                                  />
-                                  <div
-                                    className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
-                                    style={{ animationDelay: "300ms" }}
-                                  />
-                                </div>
-                              )}
-                              {agent.status === "complete" && (
-                                <motion.span
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="text-green-600 dark:text-green-400 text-sm font-semibold"
-                                >
-                                  ✓
-                                </motion.span>
-                              )}
-                              {agent.status === "pending" && (
-                                <span className="text-xs text-muted-foreground">
-                                  Waiting
-                                </span>
-                              )}
-                            </div>
-
-                            {agent.content && (
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.3 }}
-                                className="text-xs text-muted-foreground line-clamp-4 leading-relaxed"
-                              >
-                                {agent.content.slice(0, 200)}
-                                {agent.content.length > 200 && "..."}
-                              </motion.div>
-                            )}
-
-                            {agent.status === "thinking" && !agent.content && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                <span>Analyzing...</span>
-                              </div>
-                            )}
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
-                    {synthesizing && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-4 flex items-center gap-3 rounded-lg border border-amber-400/30 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20 dark:to-transparent p-3"
-                      >
-                        <Loader2 className="h-4 w-4 animate-spin text-amber-600 dark:text-amber-400" />
-                        <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                          Judge synthesizing golden prompt...
-                        </span>
-                      </motion.div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {messages.length > 0 && (
-            <Card>
-              <CardContent className="pt-4">
-                <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
+            <div className="p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <AnimatePresence mode="popLayout">
+                  {Object.values(agentProgress).map((agent, index) => (
+                    <motion.div
+                      key={agent.agentId}
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.08, duration: 0.2 }}
+                      role="status"
+                      aria-live="polite"
+                      aria-label={`${getAgentDisplayName(agent.agentId)} - ${agent.status}`}
                       className={cn(
-                        "flex",
-                        message.role === "user"
-                          ? "justify-end"
-                          : "justify-start",
+                        "relative overflow-hidden rounded-[10px] border p-4 transition-all duration-300",
+                        agent.status === "thinking" &&
+                          "border-warm/40 bg-warm/8",
+                        agent.status === "complete" &&
+                          "border-agree/30 bg-agree/8",
+                        agent.status === "pending" &&
+                          "border-white/[0.08] bg-bg-2",
                       )}
                     >
-                      <div
-                        className={cn(
-                          "max-w-[85%] rounded-lg px-4 py-2 text-sm",
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted",
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={cn(
+                              "h-1.5 w-1.5 rounded-full shrink-0",
+                              agent.status === "thinking" &&
+                                "bg-warm animate-warm-pulse",
+                              agent.status === "complete" && "bg-agree",
+                              agent.status === "pending" && "bg-ink-muted",
+                            )}
+                          />
+                          <span className="font-display text-[15px] font-normal tracking-[-0.01em] text-ink-primary truncate">
+                            {getAgentDisplayName(agent.agentId)}
+                          </span>
+                        </div>
+                        {agent.status === "thinking" && (
+                          <span
+                            className="font-mono text-[10px] uppercase tracking-[0.06em] text-warm"
+                            aria-hidden
+                          >
+                            thinking
+                          </span>
                         )}
-                      >
-                        {message.content}
+                        {agent.status === "complete" && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="font-mono text-[10px] uppercase tracking-[0.06em] text-agree"
+                          >
+                            ✓ done
+                          </motion.span>
+                        )}
+                        {agent.status === "pending" && (
+                          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-muted">
+                            queued
+                          </span>
+                        )}
                       </div>
-                    </div>
+
+                      {agent.content && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-[13px] text-ink-secondary leading-[1.55] line-clamp-4"
+                        >
+                          {agent.content.slice(0, 240)}
+                          {agent.content.length > 240 && "…"}
+                        </motion.div>
+                      )}
+
+                      {agent.status === "thinking" && !agent.content && (
+                        <div className="flex items-center gap-2 font-mono text-[11px] text-ink-tertiary">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Analyzing…</span>
+                        </div>
+                      )}
+                    </motion.div>
                   ))}
-                  <div ref={messagesEndRef} />
+                </AnimatePresence>
+              </div>
+
+              {synthesizing && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 flex items-center gap-3 rounded-[10px] border border-warm/30 bg-warm/10 px-4 py-3"
+                >
+                  <Loader2 className="h-4 w-4 animate-spin text-warm" />
+                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-warm">
+                    Judge synthesizing verdict…
+                  </span>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {messages.length > 0 && (
+        <div className="surface-card p-5">
+          <div className="flex flex-col gap-2.5 max-h-[320px] overflow-y-auto">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex",
+                  message.role === "user" ? "justify-end" : "justify-start",
+                )}
+              >
+                <div
+                  className={cn(
+                    "max-w-[85%] rounded-[10px] px-4 py-2.5 text-[13px] leading-[1.55]",
+                    message.role === "user"
+                      ? "bg-warm/14 text-ink-primary border border-warm/30"
+                      : "bg-bg-2 text-ink-secondary border border-white/[0.08]",
+                  )}
+                >
+                  {message.content}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {goldenPrompt && (
-            <SynthesisOutput
-              prompt={goldenPrompt}
-              cost={debateCost || undefined}
-              modelsUsed={modelsUsed}
-            />
-          )}
-
-          {!streaming && !goldenPrompt && messages.length === 0 && (
-            <Card
-              className="border-dashed"
-              role="region"
-              aria-label="Empty state"
-            >
-              <CardContent className="py-12 text-center">
-                <MessageSquare
-                  className="h-12 w-12 mx-auto mb-4 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <h3 className="text-lg font-medium mb-2">
-                  Start your first debate
-                </h3>
-                <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                  Select agents, describe what you want to build, and get a
-                  synthesized recommendation from the council.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
-      </div>
+      )}
+
+      {goldenPrompt && (
+        <SynthesisOutput
+          prompt={goldenPrompt}
+          cost={debateCost || undefined}
+          modelsUsed={modelsUsed}
+        />
+      )}
+
+      {!streaming && !goldenPrompt && messages.length === 0 && (
+        <div
+          className="surface-card border-dashed p-12 text-center"
+          role="region"
+          aria-label="Empty state"
+        >
+          <div className="idle-icon mx-auto mb-5" aria-hidden />
+          <div className="eyebrow justify-center mb-3">Idle</div>
+          <h3 className="font-display font-light text-[22px] tracking-[-0.02em] text-ink-primary mb-2">
+            Awaiting a topic.
+          </h3>
+          <p className="text-[13px] text-ink-secondary max-w-[420px] mx-auto leading-[1.55]">
+            Select two or more models, pose a question, and the council will
+            propose, challenge, and synthesize a verdict.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Tabs,
   TabsList,
@@ -31,45 +29,6 @@ interface SplitPaneComparisonProps {
   phases: PhaseData[];
   defaultPhase?: Phase;
 }
-
-const PROVIDER_COLORS: Record<
-  string,
-  { bg: string; text: string; border: string }
-> = {
-  openai: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-    border: "border-emerald-500/30",
-  },
-  anthropic: {
-    bg: "bg-orange-500/10",
-    text: "text-orange-700 dark:text-orange-400",
-    border: "border-orange-500/30",
-  },
-  google: {
-    bg: "bg-blue-500/10",
-    text: "text-blue-700 dark:text-blue-400",
-    border: "border-blue-500/30",
-  },
-  groq: {
-    bg: "bg-purple-500/10",
-    text: "text-purple-700 dark:text-purple-400",
-    border: "border-purple-500/30",
-  },
-  xai: {
-    bg: "bg-rose-500/10",
-    text: "text-rose-700 dark:text-rose-400",
-    border: "border-rose-500/30",
-  },
-};
-
-const PROVIDER_DOT_COLORS: Record<string, string> = {
-  openai: "bg-emerald-500",
-  anthropic: "bg-orange-500",
-  google: "bg-blue-500",
-  groq: "bg-purple-500",
-  xai: "bg-rose-500",
-};
 
 function normalizeText(text: string): string {
   return text
@@ -134,15 +93,14 @@ function AnnotatedText({
   annotations,
 }: Readonly<{ annotations: SentenceAnnotation[] }>) {
   return (
-    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+    <div className="text-[13px] leading-[1.7] whitespace-pre-wrap text-ink-secondary">
       {annotations.map((a, i) => (
         <span
           key={`${a.agreement}-${a.text.slice(0, 48)}-${i}`}
           className={cn(
             "rounded-sm px-0.5",
-            a.agreement === "agree" &&
-              "bg-emerald-500/15 dark:bg-emerald-500/20",
-            a.agreement === "disagree" && "bg-red-500/15 dark:bg-red-500/20",
+            a.agreement === "agree" && "bg-agree/14 text-ink-primary",
+            a.agreement === "disagree" && "bg-dissent/14 text-ink-primary",
           )}
         >
           {a.text}{" "}
@@ -161,56 +119,44 @@ function ModelPane({
   annotations: SentenceAnnotation[];
   modelCount: number;
 }>) {
-  const providerKey = output.provider.toLowerCase();
-  const colors = PROVIDER_COLORS[providerKey] ?? PROVIDER_COLORS.openai;
-  const dotColor = PROVIDER_DOT_COLORS[providerKey] ?? "bg-gray-500";
-
   return (
-    <Card
+    <div
       className={cn(
-        "flex flex-col h-full",
+        "surface-card flex flex-col h-full p-0",
         modelCount <= 2 && "min-w-0 flex-1",
         modelCount === 3 && "min-w-0 flex-1",
         modelCount >= 4 && "min-w-0 flex-1",
       )}
     >
-      <CardHeader className="pb-3 pt-4 px-4">
+      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
         <div className="flex items-center gap-2">
-          <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", dotColor)} />
-          <span className="text-sm font-semibold truncate">
+          <div className="h-2 w-2 rounded-full bg-warm shrink-0" />
+          <span className="font-display text-[14px] tracking-[-0.01em] text-ink-primary truncate">
             {output.modelName}
           </span>
-          <Badge
-            variant="outline"
-            className={cn(
-              "ml-auto shrink-0 text-[10px] px-1.5 py-0",
-              colors.bg,
-              colors.text,
-              colors.border,
-            )}
-          >
+          <span className="ml-auto shrink-0 font-mono text-[9px] uppercase tracking-[0.08em] text-ink-tertiary border border-white/[0.08] rounded-full px-2 py-0.5">
             {output.provider}
-          </Badge>
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 px-4 pb-4">
+      </div>
+      <div className="flex-1 px-4 pb-4 pt-3">
         <ScrollArea className="h-full max-h-[60vh]">
           <AnnotatedText annotations={annotations} />
         </ScrollArea>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function AgreementLegend() {
   return (
-    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+    <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
       <div className="flex items-center gap-1.5">
-        <div className="h-3 w-3 rounded-sm bg-emerald-500/20 border border-emerald-500/30" />
+        <div className="h-3 w-3 rounded-sm bg-agree/20 border border-agree/30" />
         <span>Agreement</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <div className="h-3 w-3 rounded-sm bg-red-500/20 border border-red-500/30" />
+        <div className="h-3 w-3 rounded-sm bg-dissent/20 border border-dissent/30" />
         <span>Disagreement</span>
       </div>
     </div>
@@ -243,7 +189,7 @@ export function SplitPaneComparison({
 
   if (phases.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground p-4">
+      <div className="surface-card p-6 text-[13px] text-ink-tertiary text-center">
         No phase data available for comparison.
       </div>
     );

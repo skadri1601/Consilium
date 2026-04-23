@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
-import { Button } from "@/shared/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -33,6 +25,7 @@ import {
   ArchiveRestore,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/shared/lib/utils";
 
 interface Debate {
   id: string;
@@ -104,31 +97,35 @@ function DebateCardMenu({
             onKeyDown={handleRenameKeyDown}
             onBlur={handleRenameSubmit}
             autoFocus
-            className="h-8 text-sm"
+            className="h-8 text-[13px]"
           />
         </div>
       ) : (
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <button
+              type="button"
+              className="h-8 w-8 shrink-0 inline-flex items-center justify-center rounded-[8px] text-ink-tertiary hover:text-ink-primary hover:bg-bg-2 transition-colors"
+              aria-label="Debate actions"
+            >
               <MoreVertical className="h-4 w-4" />
-            </Button>
+            </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-40 p-1">
+          <PopoverContent align="end" className="w-44 p-1 surface-card">
             <button
               onClick={() => {
                 setMenuOpen(false);
                 setRenaming(true);
                 setRenameValue(debate.topic);
               }}
-              className="flex items-center gap-2 w-full rounded-sm px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-2 w-full rounded-[6px] px-2 py-1.5 text-[13px] text-ink-secondary hover:bg-bg-2 hover:text-ink-primary transition-colors"
             >
               <Pencil className="h-3.5 w-3.5" />
               Rename
             </button>
             <button
               onClick={handleArchiveClick}
-              className="flex items-center gap-2 w-full rounded-sm px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-2 w-full rounded-[6px] px-2 py-1.5 text-[13px] text-ink-secondary hover:bg-bg-2 hover:text-ink-primary transition-colors"
             >
               {isArchived ? (
                 <>
@@ -147,7 +144,7 @@ function DebateCardMenu({
                 setMenuOpen(false);
                 setDeleteOpen(true);
               }}
-              className="flex items-center gap-2 w-full rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              className="flex items-center gap-2 w-full rounded-[6px] px-2 py-1.5 text-[13px] text-dissent hover:bg-dissent/10 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete
@@ -159,23 +156,60 @@ function DebateCardMenu({
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Debate</DialogTitle>
+            <DialogTitle>Delete debate</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this debate? This action cannot be
               undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+            <button
+              type="button"
+              className="btn-consilium btn-consilium-ghost"
+              onClick={() => setDeleteOpen(false)}
+            >
               Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
+            </button>
+            <button
+              type="button"
+              className="btn-consilium btn-consilium-primary bg-dissent/20 border-dissent/40 text-dissent hover:bg-dissent/30"
+              onClick={handleDeleteConfirm}
+            >
               Delete
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function FilterPill({
+  label,
+  active,
+  onClick,
+  icon: Icon,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  icon?: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors",
+        active
+          ? "border-warm/40 bg-warm/12 text-warm"
+          : "border-white/[0.08] bg-bg-1 text-ink-tertiary hover:text-ink-primary hover:border-white/[0.18]",
+      )}
+    >
+      {Icon && <Icon className="h-3 w-3" />}
+      {label}
+    </button>
   );
 }
 
@@ -307,68 +341,59 @@ export function DebateHistory() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Debate History</h1>
-        <p className="text-muted-foreground">
-          View and manage your past debate sessions
+      <div className="mb-8">
+        <div className="eyebrow mb-2">Archive</div>
+        <h1 className="font-display text-[40px] tracking-[-0.02em] text-ink-primary font-light">
+          Debate <em className="text-warm italic">history</em>
+        </h1>
+        <p className="text-[14px] text-ink-secondary mt-2">
+          Review past deliberations, rename, archive, or continue conversations.
         </p>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search debates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={dateFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateFilter("all")}
-              >
-                All
-              </Button>
-              <Button
-                variant={dateFilter === "today" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateFilter("today")}
-              >
-                Today
-              </Button>
-              <Button
-                variant={dateFilter === "week" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateFilter("week")}
-              >
-                This Week
-              </Button>
-              <Button
-                variant={dateFilter === "month" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateFilter("month")}
-              >
-                This Month
-              </Button>
-              <Button
-                variant={showArchived ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowArchived((prev) => !prev)}
-              >
-                <Archive className="h-3.5 w-3.5 mr-1" />
-                Archived
-              </Button>
+      <div className="surface-card p-4 mb-6">
+        <div className="flex gap-3 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-muted" />
+              <Input
+                placeholder="Search debates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 border border-white/[0.08] bg-bg-1 focus-visible:border-warm/40"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex gap-1.5 flex-wrap">
+            <FilterPill
+              label="All"
+              active={dateFilter === "all"}
+              onClick={() => setDateFilter("all")}
+            />
+            <FilterPill
+              label="Today"
+              active={dateFilter === "today"}
+              onClick={() => setDateFilter("today")}
+            />
+            <FilterPill
+              label="Week"
+              active={dateFilter === "week"}
+              onClick={() => setDateFilter("week")}
+            />
+            <FilterPill
+              label="Month"
+              active={dateFilter === "month"}
+              onClick={() => setDateFilter("month")}
+            />
+            <FilterPill
+              label="Archived"
+              active={showArchived}
+              onClick={() => setShowArchived((prev) => !prev)}
+              icon={Archive}
+            />
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="space-y-4">
@@ -377,62 +402,73 @@ export function DebateHistory() {
           ))}
         </div>
       ) : filteredDebates.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                {searchQuery
-                  ? "No debates match your search."
-                  : showArchived
-                    ? "No archived debates."
-                    : "No debates yet. Start your first debate!"}
-              </p>
-              {!searchQuery && !showArchived && (
-                <Button asChild className="mt-4">
-                  <Link href="/council">Start Debate</Link>
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="surface-card p-10 text-center">
+          <p className="text-[14px] text-ink-tertiary">
+            {searchQuery
+              ? "No debates match your search."
+              : showArchived
+                ? "No archived debates."
+                : "No debates yet. Start your first deliberation."}
+          </p>
+          {!searchQuery && !showArchived && (
+            <Link
+              href="/council"
+              className="btn-consilium btn-consilium-primary mt-4 inline-flex"
+            >
+              Start debate
+            </Link>
+          )}
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredDebates.map((debate) => (
-            <Card key={debate.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg mb-2 truncate">
-                      {debate.topic}
-                    </CardTitle>
-                    <CardDescription>
-                      {new Date(debate.createdAt).toLocaleDateString()} •{" "}
-                      {debate.status}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/debates/${debate.id}`}>View</Link>
-                    </Button>
-                    <DebateCardMenu
-                      debate={debate}
-                      onRename={handleRename}
-                      onDelete={handleDelete}
-                      onArchive={handleArchive}
-                    />
-                  </div>
+            <div
+              key={debate.id}
+              className="surface-card p-5 transition-all hover:-translate-y-[1px] hover:border-white/[0.14]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-[18px] tracking-[-0.01em] text-ink-primary mb-1 truncate">
+                    {debate.topic}
+                  </h3>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+                    {new Date(debate.createdAt).toLocaleDateString()} ·{" "}
+                    {debate.status}
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>Models: {debate.modelsUsed.join(", ")}</span>
-                  <span>Cost: ${debate.totalCost.toFixed(4)}</span>
-                  {debate.goldenPrompt && (
-                    <span className="text-green-600">Synthesis</span>
-                  )}
+                <div className="flex items-center gap-1 shrink-0">
+                  <Link
+                    href={`/debates/${debate.id}`}
+                    className="btn-consilium btn-consilium-ghost h-8 px-3 text-[11px]"
+                  >
+                    View
+                  </Link>
+                  <DebateCardMenu
+                    debate={debate}
+                    onRename={handleRename}
+                    onDelete={handleDelete}
+                    onArchive={handleArchive}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex gap-4 flex-wrap mt-4 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+                <span>
+                  <span className="text-ink-muted">Models:</span>{" "}
+                  <span className="text-ink-secondary">
+                    {debate.modelsUsed.join(", ")}
+                  </span>
+                </span>
+                <span>
+                  <span className="text-ink-muted">Cost:</span>{" "}
+                  <span className="text-ink-secondary">
+                    ${debate.totalCost.toFixed(4)}
+                  </span>
+                </span>
+                {debate.goldenPrompt && (
+                  <span className="text-agree">Synthesis ready</span>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}

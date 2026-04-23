@@ -2,12 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Scale, AlertTriangle, CheckCircle2 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { getAgentDisplayName } from "../utils/council-helpers";
 
@@ -40,13 +34,10 @@ function SignificanceBadge({ level }: { level: DissentPoint["significance"] }) {
   return (
     <span
       className={cn(
-        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider",
-        level === "high" &&
-          "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
-        level === "medium" &&
-          "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-        level === "low" &&
-          "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+        "font-mono text-[9px] uppercase tracking-[0.08em] px-1.5 py-0.5 rounded-full border",
+        level === "high" && "bg-dissent/14 text-dissent border-dissent/30",
+        level === "medium" && "bg-warm/12 text-warm border-warm/30",
+        level === "low" && "bg-agree/14 text-agree border-agree/30",
       )}
     >
       {level}
@@ -66,39 +57,41 @@ function OpinionCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "rounded-lg border p-4",
+        "rounded-[10px] border p-4",
         variant === "majority"
-          ? "border-green-500/30 bg-green-50/50 dark:bg-green-950/10"
-          : "border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/10",
+          ? "border-agree/30 bg-agree/6"
+          : "border-dissent/30 bg-dissent/6",
       )}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-semibold truncate">
+        <span className="font-display text-[14px] tracking-[-0.01em] text-ink-primary truncate">
           {getAgentDisplayName(holder.modelId)}
         </span>
         <div className="flex items-center gap-1.5">
-          <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
+          <div className="h-1 w-12 rounded-full bg-bg-2 overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full",
-                variant === "majority" ? "bg-green-500" : "bg-amber-500",
+                variant === "majority" ? "bg-agree" : "bg-dissent",
               )}
               style={{ width: `${holder.confidence * 100}%` }}
             />
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
             {(holder.confidence * 100).toFixed(0)}%
           </span>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground mb-3">{holder.summary}</p>
+      <p className="text-[13px] text-ink-secondary mb-3 leading-[1.55]">
+        {holder.summary}
+      </p>
       <ul className="space-y-1">
         {holder.keyPoints.map((point, i) => (
           <li
             key={i}
-            className="flex items-start gap-2 text-xs text-muted-foreground"
+            className="flex items-start gap-2 text-[12px] text-ink-tertiary"
           >
-            <span className="mt-1 h-1 w-1 rounded-full bg-muted-foreground/50 shrink-0" />
+            <span className="mt-1.5 h-1 w-1 rounded-full bg-ink-muted shrink-0" />
             {point}
           </li>
         ))}
@@ -109,21 +102,25 @@ function OpinionCard({
 
 export function DissentView({ report }: DissentViewProps) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Scale className="h-5 w-5 text-muted-foreground" />
-          <CardTitle className="text-lg">Dissent Report</CardTitle>
+    <div className="surface-card p-5">
+      <div className="flex items-center gap-2 mb-5">
+        <Scale className="h-4 w-4 text-warm" />
+        <div>
+          <div className="eyebrow">Minority report</div>
+          <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+            Dissent analysis
+          </h3>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      </div>
+
+      <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <h3 className="text-sm font-semibold">
-                Majority Opinion ({report.majority.length})
-              </h3>
+              <CheckCircle2 className="h-3.5 w-3.5 text-agree" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-secondary">
+                Majority opinion ({report.majority.length})
+              </span>
             </div>
             <div className="space-y-3">
               {report.majority.map((holder) => (
@@ -138,11 +135,11 @@ export function DissentView({ report }: DissentViewProps) {
 
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <h3 className="text-sm font-semibold">
-                Dissenting Opinion{report.minority.length !== 1 ? "s" : ""} (
+              <AlertTriangle className="h-3.5 w-3.5 text-dissent" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-secondary">
+                Dissenting opinion{report.minority.length !== 1 ? "s" : ""} (
                 {report.minority.length})
-              </h3>
+              </span>
             </div>
             <div className="space-y-3">
               {report.minority.map((holder) => (
@@ -158,7 +155,7 @@ export function DissentView({ report }: DissentViewProps) {
 
         {report.disagreements.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold mb-3">Key Disagreements</h3>
+            <div className="eyebrow mb-3">Key disagreements</div>
             <div className="space-y-3">
               {report.disagreements.map((point, index) => (
                 <motion.div
@@ -166,26 +163,28 @@ export function DissentView({ report }: DissentViewProps) {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="rounded-lg border border-destructive/20 bg-destructive/5 p-4"
+                  className="rounded-[10px] border border-white/[0.08] bg-bg-1 p-4"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{point.topic}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-display text-[14px] tracking-[-0.01em] text-ink-primary">
+                      {point.topic}
+                    </span>
                     <SignificanceBadge level={point.significance} />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                    <div className="rounded-md bg-green-50/50 dark:bg-green-950/10 p-2.5">
-                      <span className="text-[10px] font-semibold uppercase text-green-600 dark:text-green-400 tracking-wider">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="rounded-[8px] border border-agree/20 bg-agree/6 p-3">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-agree">
                         Majority
                       </span>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[12px] text-ink-secondary mt-1 leading-[1.5]">
                         {point.majorityPosition}
                       </p>
                     </div>
-                    <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/10 p-2.5">
-                      <span className="text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400 tracking-wider">
+                    <div className="rounded-[8px] border border-dissent/20 bg-dissent/6 p-3">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-dissent">
                         Dissent
                       </span>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[12px] text-ink-secondary mt-1 leading-[1.5]">
                         {point.minorityPosition}
                       </p>
                     </div>
@@ -198,12 +197,12 @@ export function DissentView({ report }: DissentViewProps) {
 
         {report.consensusAreas.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold mb-3">Areas of Agreement</h3>
+            <div className="eyebrow mb-3">Areas of agreement</div>
             <div className="flex flex-wrap gap-2">
               {report.consensusAreas.map((area, index) => (
                 <span
                   key={index}
-                  className="rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-3 py-1"
+                  className="rounded-full bg-agree/14 border border-agree/30 text-agree font-mono text-[10px] uppercase tracking-[0.06em] px-3 py-1"
                 >
                   {area}
                 </span>
@@ -211,7 +210,7 @@ export function DissentView({ report }: DissentViewProps) {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

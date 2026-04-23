@@ -18,12 +18,6 @@ import {
   Zap,
   Trophy,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { getAgentDisplayName } from "../../council/utils/council-helpers";
 
@@ -358,28 +352,28 @@ function PhaseStatusIcon({ status }: Readonly<{ status: PhaseStatus }>) {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-white shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-agree/40 bg-agree/14 text-agree"
         >
           <Check className="h-4 w-4" />
         </motion.div>
       );
     case "active":
       return (
-        <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+        <div className="relative flex h-9 w-9 items-center justify-center rounded-full border border-warm/50 bg-warm/14 text-warm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="absolute inset-0 rounded-full animate-ping bg-primary/25" />
+          <span className="absolute inset-0 rounded-full animate-ping bg-warm/20" />
         </div>
       );
     case "error":
       return (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-dissent/40 bg-dissent/14 text-dissent">
           <AlertCircle className="h-4 w-4" />
         </div>
       );
     default:
       return (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-muted-foreground/25 bg-muted">
-          <Clock className="h-4 w-4 text-muted-foreground/60" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-bg-2 text-ink-muted">
+          <Clock className="h-4 w-4" />
         </div>
       );
   }
@@ -392,9 +386,9 @@ function ModelStatusIndicator({
     <span
       className={cn(
         "inline-block h-2 w-2 rounded-full shrink-0",
-        status === "thinking" && "bg-primary animate-pulse",
-        status === "complete" && "bg-green-500",
-        status === "error" && "bg-destructive",
+        status === "thinking" && "bg-warm animate-warm-pulse",
+        status === "complete" && "bg-agree",
+        status === "error" && "bg-dissent",
       )}
     />
   );
@@ -426,10 +420,8 @@ function PhaseCard({
         {!isLast && (
           <div
             className={cn(
-              "w-0.5 flex-1 min-h-[32px] transition-colors duration-500",
-              phase.status === "complete"
-                ? "bg-green-500/50"
-                : "bg-muted-foreground/15",
+              "w-px flex-1 min-h-[32px] transition-colors duration-500",
+              phase.status === "complete" ? "bg-agree/40" : "bg-white/[0.08]",
             )}
           />
         )}
@@ -447,50 +439,48 @@ function PhaseCard({
           <PhaseIcon
             className={cn(
               "h-4 w-4 shrink-0",
-              phase.status === "active" && "text-primary",
-              phase.status === "complete" &&
-                "text-green-600 dark:text-green-400",
-              phase.status === "error" && "text-destructive",
-              phase.status === "pending" && "text-muted-foreground/50",
+              phase.status === "active" && "text-warm",
+              phase.status === "complete" && "text-agree",
+              phase.status === "error" && "text-dissent",
+              phase.status === "pending" && "text-ink-muted",
             )}
           />
           <span
             className={cn(
-              "text-sm font-semibold transition-colors",
-              phase.status === "active" && "text-primary",
-              phase.status === "complete" &&
-                "text-green-600 dark:text-green-400",
-              phase.status === "error" && "text-destructive",
-              phase.status === "pending" && "text-muted-foreground",
+              "font-display text-[15px] tracking-[-0.01em] transition-colors",
+              phase.status === "active" && "text-warm italic",
+              phase.status === "complete" && "text-ink-primary",
+              phase.status === "error" && "text-dissent",
+              phase.status === "pending" && "text-ink-tertiary",
             )}
           >
             {phase.label}
           </span>
 
           {phase.status === "active" && (
-            <span className="rounded-full bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 animate-pulse">
-              In Progress
+            <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-warm bg-warm/12 border border-warm/30 rounded-full px-2 py-0.5">
+              In progress
             </span>
           )}
           {phase.status === "complete" && (
-            <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-[10px] font-medium px-2 py-0.5">
+            <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-agree bg-agree/14 border border-agree/30 rounded-full px-2 py-0.5">
               Complete
             </span>
           )}
           {phase.status === "error" && (
-            <span className="rounded-full bg-destructive/10 text-destructive text-[10px] font-medium px-2 py-0.5">
+            <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-dissent bg-dissent/14 border border-dissent/30 rounded-full px-2 py-0.5">
               Error
             </span>
           )}
 
           {phase.timestamp && (
-            <span className="text-[10px] text-muted-foreground ml-auto hidden sm:inline">
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary ml-auto hidden sm:inline">
               {formatTimestamp(phase.timestamp)}
             </span>
           )}
 
           {hasOutputs && (
-            <span className="text-muted-foreground ml-auto sm:ml-2 group-hover:text-foreground transition-colors">
+            <span className="text-ink-tertiary ml-auto sm:ml-2 group-hover:text-ink-primary transition-colors">
               {expanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -501,7 +491,7 @@ function PhaseCard({
         </button>
 
         {phase.description && phase.status !== "pending" && (
-          <p className="text-xs text-muted-foreground mt-1 ml-6">
+          <p className="text-[12px] text-ink-tertiary mt-1 ml-6">
             {phase.description}
           </p>
         )}
@@ -523,26 +513,26 @@ function PhaseCard({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                     className={cn(
-                      "rounded-lg border p-3 text-sm transition-all",
+                      "rounded-[10px] border p-3 transition-all",
                       output.status === "thinking" &&
-                        "border-primary/30 bg-primary/5",
+                        "border-warm/30 bg-warm/8",
                       output.status === "complete" &&
-                        "border-green-500/20 bg-green-50/50 dark:bg-green-950/10",
+                        "border-agree/25 bg-agree/6",
                       output.status === "error" &&
-                        "border-destructive/20 bg-destructive/5",
+                        "border-dissent/25 bg-dissent/6",
                     )}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <ModelStatusIndicator status={output.status} />
-                      <span className="font-medium text-xs truncate">
+                      <span className="font-display text-[13px] tracking-[-0.01em] text-ink-primary truncate">
                         {getAgentDisplayName(output.modelId)}
                       </span>
                       {output.status === "thinking" && (
-                        <Loader2 className="h-3 w-3 animate-spin text-primary ml-auto" />
+                        <Loader2 className="h-3 w-3 animate-spin text-warm ml-auto" />
                       )}
                       {output.durationMs !== undefined &&
                         output.status === "complete" && (
-                          <span className="text-[10px] text-muted-foreground ml-auto">
+                          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary ml-auto">
                             {output.durationMs < 1000
                               ? `${output.durationMs}ms`
                               : `${(output.durationMs / 1000).toFixed(1)}s`}
@@ -550,24 +540,24 @@ function PhaseCard({
                         )}
                     </div>
                     {output.content && (
-                      <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-6">
+                      <div className="text-[12px] text-ink-secondary leading-[1.6] whitespace-pre-wrap line-clamp-6">
                         {output.content}
                       </div>
                     )}
                     {output.status === "thinking" && !output.content && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
                         <span>Analyzing</span>
                         <span className="flex gap-0.5">
                           <span
-                            className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                            className="h-1 w-1 rounded-full bg-warm/70 animate-bounce"
                             style={{ animationDelay: "0ms" }}
                           />
                           <span
-                            className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                            className="h-1 w-1 rounded-full bg-warm/70 animate-bounce"
                             style={{ animationDelay: "150ms" }}
                           />
                           <span
-                            className="h-1 w-1 rounded-full bg-primary/60 animate-bounce"
+                            className="h-1 w-1 rounded-full bg-warm/70 animate-bounce"
                             style={{ animationDelay: "300ms" }}
                           />
                         </span>
@@ -706,65 +696,67 @@ export function DebateTimeline({
   const activePhase = phases.find((p) => p.status === "active");
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            Debate Timeline
+    <div className="surface-card p-5">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div>
+          <div className="eyebrow">Timeline</div>
+          <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1 flex items-center gap-2">
+            Debate progress
             {connected && (
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-normal text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-warm animate-warm-pulse" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-warm">
                   Live
                 </span>
               </span>
             )}
-          </CardTitle>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>
-              {completedCount}/{PHASE_ORDER.length} phases
-            </span>
-            {totalCost > 0 && (
-              <span className="font-mono">${totalCost.toFixed(4)}</span>
-            )}
-          </div>
+          </h3>
         </div>
-        {activePhase && (
-          <p className="text-xs text-muted-foreground">
-            Currently: {activePhase.label}
-            {activePhase.description && ` - ${activePhase.description}`}
-          </p>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col">
-          <AnimatePresence mode="sync">
-            {phases.map((phase, index) => (
-              <PhaseCard
-                key={phase.key}
-                phase={phase}
-                isLast={index === phases.length - 1}
-              />
-            ))}
-          </AnimatePresence>
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+          <span>
+            {completedCount}/{PHASE_ORDER.length} phases
+          </span>
+          {totalCost > 0 && (
+            <span className="text-ink-primary">${totalCost.toFixed(4)}</span>
+          )}
         </div>
+      </div>
+      {activePhase && (
+        <p className="text-[12px] text-ink-tertiary mb-4">
+          Currently: {activePhase.label}
+          {activePhase.description && ` - ${activePhase.description}`}
+        </p>
+      )}
 
-        {finished && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-4 border-t flex items-center justify-between text-sm"
-          >
-            <span className="text-muted-foreground">Debate Complete</span>
-            {totalCost > 0 && (
-              <span className="font-mono font-medium">
-                ${totalCost.toFixed(4)}
-              </span>
-            )}
-          </motion.div>
-        )}
-      </CardContent>
-    </Card>
+      <div className="flex flex-col mt-2">
+        <AnimatePresence mode="sync">
+          {phases.map((phase, index) => (
+            <PhaseCard
+              key={phase.key}
+              phase={phase}
+              isLast={index === phases.length - 1}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {finished && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between"
+        >
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+            Debate complete
+          </span>
+          {totalCost > 0 && (
+            <span className="font-mono text-[13px] text-ink-primary">
+              ${totalCost.toFixed(4)}
+            </span>
+          )}
+        </motion.div>
+      )}
+    </div>
   );
 }
 

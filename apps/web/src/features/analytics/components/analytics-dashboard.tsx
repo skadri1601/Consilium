@@ -2,13 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import {
   BarChart,
   Bar,
   XAxis,
@@ -48,7 +41,44 @@ function formatSourceLabel(source: string): string {
   return s;
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const CHART_COLORS = [
+  "rgb(var(--warm))",
+  "rgb(var(--agree))",
+  "rgb(var(--warm-bright))",
+  "rgb(var(--ink-secondary))",
+  "rgb(var(--dissent))",
+];
+
+function StatCard({
+  label,
+  value,
+  sublabel,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  sublabel?: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="surface-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+          {label}
+        </span>
+        <Icon className="h-4 w-4 text-ink-muted" />
+      </div>
+      <div className="font-display text-[32px] tracking-[-0.02em] text-ink-primary font-light">
+        {value}
+      </div>
+      {sublabel && (
+        <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary mt-1">
+          {sublabel}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -80,211 +110,226 @@ export function AnalyticsDashboard() {
   if (loading || !data) {
     return (
       <div className="container mx-auto p-6">
-        <p>Loading analytics...</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-tertiary">
+          Loading analytics…
+        </p>
       </div>
     );
   }
 
+  const tooltipStyle = {
+    backgroundColor: "rgb(var(--bg-1))",
+    border: "1px solid rgb(255 255 255 / 0.08)",
+    borderRadius: "8px",
+    fontSize: "12px",
+    color: "rgb(var(--ink-primary))",
+  } as const;
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Analytics</h1>
-        <p className="text-muted-foreground">
-          Track your debate usage and costs
+      <div className="mb-8">
+        <div className="eyebrow mb-2">Telemetry</div>
+        <h1 className="font-display text-[40px] tracking-[-0.02em] text-ink-primary font-light">
+          Usage <em className="text-warm italic">analytics</em>
+        </h1>
+        <p className="text-[14px] text-ink-secondary mt-2">
+          Track deliberation volume, cost, and model mix across surfaces.
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Debates</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalDebates}</div>
-            <p className="text-xs text-muted-foreground">
-              {data.debatesThisMonth} this month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${data.totalCost.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              ${data.costThisMonth.toFixed(2)} this month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.debatesThisMonth}</div>
-            <p className="text-xs text-muted-foreground">debates completed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Cost</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              $
-              {data.totalDebates > 0
-                ? (data.totalCost / data.totalDebates).toFixed(4)
-                : "0.0000"}
-            </div>
-            <p className="text-xs text-muted-foreground">per debate</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatCard
+          label="Total debates"
+          value={data.totalDebates}
+          sublabel={`${data.debatesThisMonth} this month`}
+          icon={MessageSquare}
+        />
+        <StatCard
+          label="Total cost"
+          value={`$${data.totalCost.toFixed(2)}`}
+          sublabel={`$${data.costThisMonth.toFixed(2)} this month`}
+          icon={DollarSign}
+        />
+        <StatCard
+          label="This month"
+          value={data.debatesThisMonth}
+          sublabel="Debates completed"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Avg cost"
+          value={`$${
+            data.totalDebates > 0
+              ? (data.totalCost / data.totalDebates).toFixed(4)
+              : "0.0000"
+          }`}
+          sublabel="Per debate"
+          icon={Zap}
+        />
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Debates by Day</CardTitle>
-            <CardDescription>Last 7 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.debatesByDay.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.debatesByDay.slice(-7)}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#0088FE" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
-                No data yet. Start a debate to see activity.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="surface-card p-5">
+          <div className="mb-4">
+            <div className="eyebrow">Activity</div>
+            <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+              Debates by day
+            </h3>
+            <p className="text-[12px] text-ink-tertiary mt-1">Last 7 days</p>
+          </div>
+          {data.debatesByDay.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={data.debatesByDay.slice(-7)}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(255 255 255 / 0.06)"
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: "rgb(var(--ink-tertiary))" }}
+                  stroke="rgb(255 255 255 / 0.08)"
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "rgb(var(--ink-tertiary))" }}
+                  stroke="rgb(255 255 255 / 0.08)"
+                />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar
+                  dataKey="count"
+                  fill="rgb(var(--warm))"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-[13px] text-ink-tertiary">
+              No data yet. Start a debate to see activity.
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Model Usage</CardTitle>
-            <CardDescription>Most used models</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.modelUsage.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data.modelUsage}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ model, percent }) =>
-                      `${model} ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="count"
-                  >
-                    {data.modelUsage.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
-                No data yet. Complete a debate to see model usage.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="surface-card p-5">
+          <div className="mb-4">
+            <div className="eyebrow">Mix</div>
+            <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+              Model usage
+            </h3>
+            <p className="text-[12px] text-ink-tertiary mt-1">
+              Most used models
+            </p>
+          </div>
+          {data.modelUsage.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={data.modelUsage}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ model, percent }) =>
+                    `${model} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  dataKey="count"
+                  stroke="rgb(var(--bg-1))"
+                >
+                  {data.modelUsage.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-[13px] text-ink-tertiary">
+              No data yet. Complete a debate to see model usage.
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Where debates start</CardTitle>
-            <CardDescription>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="surface-card p-5">
+          <div className="mb-4">
+            <div className="eyebrow">Source</div>
+            <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+              Where debates start
+            </h3>
+            <p className="text-[12px] text-ink-tertiary mt-1">
               Web, CLI, MCP, and deliberation sessions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {(data.debatesBySource ?? []).length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={(data.debatesBySource ?? []).map((row) => ({
-                      name: formatSourceLabel(row.source),
-                      count: row.count,
-                    }))}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="count"
-                    nameKey="name"
-                  >
-                    {(data.debatesBySource ?? []).map((_, index) => (
-                      <Cell
-                        key={`src-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
-                No sessions yet.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Terminal className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <CardTitle>CLI</CardTitle>
-              <CardDescription>
-                Classic debates started from the Consilium CLI
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data.cliDebateCount ?? 0}</div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Run <span className="font-mono text-xs">consilium login</span>{" "}
-              then <span className="font-mono text-xs">consilium debate</span>{" "}
-              or <span className="font-mono text-xs">consilium chat</span>.
-              Sessions are tagged automatically so they appear here and in the
-              chart.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          {(data.debatesBySource ?? []).length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={(data.debatesBySource ?? []).map((row) => ({
+                    name: formatSourceLabel(row.source),
+                    count: row.count,
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  }
+                  outerRadius={90}
+                  dataKey="count"
+                  nameKey="name"
+                  stroke="rgb(var(--bg-1))"
+                >
+                  {(data.debatesBySource ?? []).map((_, index) => (
+                    <Cell
+                      key={`src-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[260px] items-center justify-center text-[13px] text-ink-tertiary">
+              No sessions yet.
+            </div>
+          )}
+        </div>
+
+        <div className="surface-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Terminal className="h-4 w-4 text-warm" />
+            <div>
+              <div className="eyebrow">Terminal</div>
+              <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+                CLI activity
+              </h3>
+            </div>
+          </div>
+          <p className="text-[12px] text-ink-tertiary mb-4">
+            Classic debates started from the Consilium CLI
+          </p>
+          <div className="font-display text-[40px] tracking-[-0.02em] text-ink-primary font-light">
+            {data.cliDebateCount ?? 0}
+          </div>
+          <p className="mt-3 text-[13px] text-ink-secondary leading-[1.6]">
+            Run{" "}
+            <span className="font-mono text-[12px] bg-bg-2 border border-white/[0.08] rounded px-1.5 py-0.5 text-warm">
+              consilium login
+            </span>{" "}
+            then{" "}
+            <span className="font-mono text-[12px] bg-bg-2 border border-white/[0.08] rounded px-1.5 py-0.5 text-warm">
+              consilium debate
+            </span>{" "}
+            or{" "}
+            <span className="font-mono text-[12px] bg-bg-2 border border-white/[0.08] rounded px-1.5 py-0.5 text-warm">
+              consilium chat
+            </span>
+            . Sessions are tagged automatically so they appear here.
+          </p>
+        </div>
       </div>
     </div>
   );

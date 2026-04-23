@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent } from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import {
   Popover,
@@ -88,12 +86,14 @@ function ChatBubbleUser({ content }: { content: string }) {
     <div className="flex gap-3 justify-end">
       <div className="max-w-[80%]">
         <div className="flex items-center gap-2 justify-end mb-1">
-          <span className="text-xs font-medium text-muted-foreground">You</span>
-          <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-            <User className="h-3.5 w-3.5 text-primary-foreground" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+            You
+          </span>
+          <div className="h-6 w-6 rounded-full bg-warm flex items-center justify-center">
+            <User className="h-3.5 w-3.5 text-bg-0" />
           </div>
         </div>
-        <div className="rounded-2xl rounded-tr-sm bg-primary text-primary-foreground px-4 py-3 text-sm whitespace-pre-wrap">
+        <div className="rounded-[12px] rounded-tr-sm border border-warm/40 bg-warm/10 text-ink-primary px-4 py-3 text-[13px] whitespace-pre-wrap leading-[1.6]">
           {content}
         </div>
       </div>
@@ -114,19 +114,19 @@ function ChatBubbleAssistant({
     <div className="flex gap-3">
       <div className="max-w-[80%]">
         <div className="flex items-center gap-2 mb-1">
-          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-            <Sparkles className="h-3.5 w-3.5 text-white" />
+          <div className="h-6 w-6 rounded-full border border-warm/40 bg-warm/14 flex items-center justify-center">
+            <Sparkles className="h-3.5 w-3.5 text-warm" />
           </div>
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
             Consilium
           </span>
           {cost != null && cost > 0 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="font-mono text-[10px] text-ink-tertiary">
               ${cost.toFixed(4)}
             </span>
           )}
         </div>
-        <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm whitespace-pre-wrap">
+        <div className="rounded-[12px] rounded-tl-sm border border-white/[0.08] bg-bg-1 text-ink-primary px-4 py-3 text-[13px] whitespace-pre-wrap leading-[1.7]">
           {content}
         </div>
         {modelsUsed && modelsUsed.length > 0 && (
@@ -134,7 +134,7 @@ function ChatBubbleAssistant({
             {modelsUsed.map((m) => (
               <span
                 key={m}
-                className="text-[10px] bg-muted rounded-full px-2 py-0.5 text-muted-foreground"
+                className="font-mono text-[9px] uppercase tracking-[0.06em] bg-bg-2 border border-white/[0.08] rounded-full px-2 py-0.5 text-ink-tertiary"
               >
                 {getAgentDisplayName(m)}
               </span>
@@ -155,7 +155,7 @@ function ModelSelector({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
         Models for follow-up
       </p>
       <div className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
@@ -166,10 +166,10 @@ function ModelSelector({
               key={agent.id}
               onClick={() => onToggle(agent.id)}
               className={cn(
-                "flex items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                "flex items-center justify-between rounded-[8px] px-2 py-1.5 text-left text-[12px] transition-colors",
                 isSelected
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted text-muted-foreground",
+                  ? "bg-warm/12 text-warm border border-warm/30"
+                  : "hover:bg-bg-2 text-ink-secondary border border-transparent",
               )}
             >
               <span>{agent.name}</span>
@@ -178,8 +178,8 @@ function ModelSelector({
           );
         })}
       </div>
-      <p className="text-[10px] text-muted-foreground">
-        {selectedModels.length} selected (min 2)
+      <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+        {selectedModels.length} selected · min 2
       </p>
     </div>
   );
@@ -373,9 +373,11 @@ export function DebateDetail({ debateId }: { debateId: string }) {
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading conversation...</span>
+        <div className="flex items-center gap-2 text-ink-tertiary">
+          <Loader2 className="h-4 w-4 animate-spin text-warm" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.08em]">
+            Loading conversation…
+          </span>
         </div>
       </div>
     );
@@ -384,14 +386,18 @@ export function DebateDetail({ debateId }: { debateId: string }) {
   if (error || debates.length === 0) {
     return (
       <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="pt-6">
-            <p>{error || "Debate not found"}</p>
-            <Button asChild className="mt-4">
-              <Link href="/history">Back to History</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="surface-card p-6">
+          <p className="text-[13px] text-ink-secondary">
+            {error || "Debate not found"}
+          </p>
+          <Link
+            href="/history"
+            className="btn-consilium btn-consilium-ghost mt-4"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to history
+          </Link>
+        </div>
       </div>
     );
   }
@@ -400,18 +406,20 @@ export function DebateDetail({ debateId }: { debateId: string }) {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="shrink-0 border-b bg-background px-6 py-3">
+      <div className="shrink-0 border-b border-white/[0.06] bg-bg-0 px-6 py-3">
         <div className="container mx-auto max-w-4xl flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/history">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+          <Link
+            href="/history"
+            className="btn-consilium btn-consilium-ghost h-8 px-2"
+            aria-label="Back to history"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-semibold truncate">
+            <h1 className="font-display text-[18px] tracking-[-0.01em] text-ink-primary truncate">
               {firstDebate.topic}
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
               {new Date(firstDebate.createdAt).toLocaleString()}
             </p>
           </div>
@@ -424,11 +432,11 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             <div key={debate.id} className="space-y-4">
               {idx > 0 && (
                 <div className="flex items-center gap-3 py-2">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">
+                  <div className="flex-1 h-px bg-white/[0.06]" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
                     Follow-up #{idx}
                   </span>
-                  <div className="flex-1 h-px bg-border" />
+                  <div className="flex-1 h-px bg-white/[0.06]" />
                 </div>
               )}
 
@@ -450,17 +458,17 @@ export function DebateDetail({ debateId }: { debateId: string }) {
                 <div className="flex gap-3">
                   <div className="max-w-[80%]">
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                        <Sparkles className="h-3.5 w-3.5 text-white" />
+                      <div className="h-6 w-6 rounded-full border border-warm/40 bg-warm/14 flex items-center justify-center">
+                        <Sparkles className="h-3.5 w-3.5 text-warm" />
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
                         Consilium
                       </span>
                     </div>
-                    <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="rounded-[12px] rounded-tl-sm border border-white/[0.08] bg-bg-1 px-4 py-3">
+                      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-warm">
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <span>Debating...</span>
+                        <span>Debating…</span>
                       </div>
                     </div>
                   </div>
@@ -481,7 +489,7 @@ export function DebateDetail({ debateId }: { debateId: string }) {
         </div>
       </div>
 
-      <div className="shrink-0 border-t bg-background px-6 py-3">
+      <div className="shrink-0 border-t border-white/[0.06] bg-bg-0 px-6 py-3">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-end gap-2">
             <Textarea
@@ -491,43 +499,44 @@ export function DebateDetail({ debateId }: { debateId: string }) {
               onKeyDown={handleKeyDown}
               placeholder="Ask a follow-up question... (Ctrl+Enter to send)"
               disabled={sending}
-              className="min-h-[44px] max-h-[120px] resize-none flex-1"
+              className="min-h-[44px] max-h-[120px] resize-none flex-1 border border-white/[0.08] bg-bg-1 focus-visible:border-warm/40"
             />
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 h-[44px] w-[44px]"
+                <button
+                  type="button"
+                  className="btn-consilium btn-consilium-ghost shrink-0 h-[44px] w-[44px] justify-center"
+                  aria-label="Model settings"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                </Button>
+                </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-56">
+              <PopoverContent align="end" className="w-56 surface-card p-3">
                 <ModelSelector
                   selectedModels={followUpModels}
                   onToggle={handleToggleModel}
                 />
               </PopoverContent>
             </Popover>
-            <Button
+            <button
+              type="button"
               onClick={handleSendFollowUp}
               disabled={
                 sending || !followUpInput.trim() || followUpModels.length < 2
               }
-              size="icon"
-              className="shrink-0 h-[44px] w-[44px]"
+              className="btn-consilium btn-consilium-primary shrink-0 h-[44px] w-[44px] justify-center"
+              aria-label="Send follow-up"
             >
               {sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
-            </Button>
+            </button>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary mt-2">
             {followUpModels.length} models selected
-            {followUpModels.length < 2 && " (need at least 2)"}
+            {followUpModels.length < 2 && " · need at least 2"}
           </p>
         </div>
       </div>

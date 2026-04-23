@@ -2,13 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import {
   Columns2,
@@ -17,10 +10,7 @@ import {
   ChevronUp,
   Lightbulb,
 } from "lucide-react";
-import {
-  getAgentDisplayName,
-  getProviderStyles,
-} from "../utils/council-helpers";
+import { getAgentDisplayName } from "../utils/council-helpers";
 
 interface Claim {
   text: string;
@@ -84,15 +74,11 @@ function computeSimilarity(a: string, b: string): number {
 function ConfidenceBar({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
   const color =
-    confidence > 0.7
-      ? "bg-green-500"
-      : confidence > 0.4
-        ? "bg-amber-500"
-        : "bg-red-500";
+    confidence > 0.7 ? "bg-agree" : confidence > 0.4 ? "bg-warm" : "bg-dissent";
 
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+      <div className="h-1 flex-1 rounded-full bg-bg-2 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -100,7 +86,7 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
           className={cn("h-full rounded-full", color)}
         />
       </div>
-      <span className="text-xs text-muted-foreground font-medium w-8 text-right">
+      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary w-8 text-right">
         {pct}%
       </span>
     </div>
@@ -132,226 +118,224 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card variant="elevated">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Columns2 className="h-5 w-5 text-blue-500" />
-              Model Comparison
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === "split" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("split")}
-                className="h-7 px-2"
-              >
-                <Columns2 className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className="h-7 px-2"
-              >
-                <List className="h-3.5 w-3.5" />
-              </Button>
+      <div className="surface-card p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Columns2 className="h-4 w-4 text-warm" />
+            <div>
+              <div className="eyebrow">Side by side</div>
+              <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+                Model comparison
+              </h3>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
-              <select
-                value={leftIndex}
-                onChange={(e) => setLeftIndex(Number(e.target.value))}
-                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Select left model"
-              >
-                {responses.map((r, i) => (
-                  <option key={r.modelId} value={i}>
-                    {getAgentDisplayName(r.modelId)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <select
-                value={rightIndex}
-                onChange={(e) => setRightIndex(Number(e.target.value))}
-                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Select right model"
-              >
-                {responses.map((r, i) => (
-                  <option key={r.modelId} value={i}>
-                    {getAgentDisplayName(r.modelId)}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="flex items-center gap-1 rounded-[10px] border border-white/[0.08] bg-bg-1 p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("split")}
+              aria-pressed={viewMode === "split"}
+              className={cn(
+                "h-7 px-2 rounded-[6px] flex items-center justify-center transition-colors",
+                viewMode === "split"
+                  ? "bg-warm/14 text-warm"
+                  : "text-ink-tertiary hover:text-ink-primary",
+              )}
+            >
+              <Columns2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              aria-pressed={viewMode === "list"}
+              className={cn(
+                "h-7 px-2 rounded-[6px] flex items-center justify-center transition-colors",
+                viewMode === "list"
+                  ? "bg-warm/14 text-warm"
+                  : "text-ink-tertiary hover:text-ink-primary",
+              )}
+            >
+              <List className="h-3.5 w-3.5" />
+            </button>
           </div>
+        </div>
 
-          {left && right && (
-            <>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Confidence
-                  </p>
-                  <ConfidenceBar confidence={left.confidence} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Confidence
-                  </p>
-                  <ConfidenceBar confidence={right.confidence} />
-                </div>
+        <div className="flex gap-3 mb-4">
+          <div className="flex-1">
+            <select
+              value={leftIndex}
+              onChange={(e) => setLeftIndex(Number(e.target.value))}
+              className="w-full rounded-[10px] border border-white/[0.08] bg-bg-1 px-3 py-2 text-[13px] text-ink-primary focus-visible:outline-none focus-visible:border-warm/40"
+              aria-label="Select left model"
+            >
+              {responses.map((r, i) => (
+                <option key={r.modelId} value={i}>
+                  {getAgentDisplayName(r.modelId)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <select
+              value={rightIndex}
+              onChange={(e) => setRightIndex(Number(e.target.value))}
+              className="w-full rounded-[10px] border border-white/[0.08] bg-bg-1 px-3 py-2 text-[13px] text-ink-primary focus-visible:outline-none focus-visible:border-warm/40"
+              aria-label="Select right model"
+            >
+              {responses.map((r, i) => (
+                <option key={r.modelId} value={i}>
+                  {getAgentDisplayName(r.modelId)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {left && right && (
+          <>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-1">
+                  Confidence
+                </p>
+                <ConfidenceBar confidence={left.confidence} />
               </div>
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-1">
+                  Confidence
+                </p>
+                <ConfidenceBar confidence={right.confidence} />
+              </div>
+            </div>
 
-              {viewMode === "split" ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <div
-                    className={cn(
-                      "rounded-lg border p-3 text-sm leading-relaxed max-h-[400px] overflow-y-auto",
-                      getProviderStyles(left.modelId, "thinking"),
-                    )}
-                  >
-                    {diffSections.map((section, i) => (
-                      <span
-                        key={i}
-                        className={cn(
-                          section.type === "different" &&
-                            "bg-red-100 dark:bg-red-900/30 rounded px-0.5",
-                        )}
-                      >
-                        {section.leftText}{" "}
-                      </span>
-                    ))}
-                  </div>
-                  <div
-                    className={cn(
-                      "rounded-lg border p-3 text-sm leading-relaxed max-h-[400px] overflow-y-auto",
-                      getProviderStyles(right.modelId, "thinking"),
-                    )}
-                  >
-                    {diffSections.map((section, i) => (
-                      <span
-                        key={i}
-                        className={cn(
-                          section.type === "different" &&
-                            "bg-blue-100 dark:bg-blue-900/30 rounded px-0.5",
-                        )}
-                      >
-                        {section.rightText}{" "}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
+            {viewMode === "split" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-[10px] border border-white/[0.08] bg-bg-1 p-3 text-[13px] leading-[1.6] text-ink-secondary max-h-[400px] overflow-y-auto">
                   {diffSections.map((section, i) => (
-                    <div
+                    <span
                       key={i}
                       className={cn(
-                        "rounded-lg border p-3",
-                        section.type === "different"
-                          ? "border-amber-300/50 bg-amber-50/50 dark:bg-amber-950/10"
-                          : "border-border bg-muted/20",
+                        section.type === "different" &&
+                          "bg-warm/12 text-ink-primary rounded px-0.5",
                       )}
                     >
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <p className="text-muted-foreground">
-                          {section.leftText}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {section.rightText}
-                        </p>
-                      </div>
-                    </div>
+                      {section.leftText}{" "}
+                    </span>
                   ))}
                 </div>
-              )}
-
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowClaims(!showClaims)}
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  Claims Extracted
-                  {showClaims ? (
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  )}
-                </button>
-
-                <AnimatePresence>
-                  {showClaims && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
+                <div className="rounded-[10px] border border-white/[0.08] bg-bg-1 p-3 text-[13px] leading-[1.6] text-ink-secondary max-h-[400px] overflow-y-auto">
+                  {diffSections.map((section, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        section.type === "different" &&
+                          "bg-agree/12 text-ink-primary rounded px-0.5",
+                      )}
                     >
-                      <div className="grid grid-cols-2 gap-3 mt-3">
-                        <div className="space-y-1.5">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                            {getAgentDisplayName(left.modelId)}
-                          </p>
-                          {left.claims.length > 0 ? (
-                            left.claims.map((claim, i) => (
-                              <div
-                                key={i}
-                                className={cn(
-                                  "rounded border px-2.5 py-1.5 text-xs",
-                                  claim.supported
-                                    ? "border-green-300/50 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300"
-                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300",
-                                )}
-                              >
-                                {claim.text}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground">
-                              No claims extracted
-                            </p>
-                          )}
-                        </div>
-                        <div className="space-y-1.5">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                            {getAgentDisplayName(right.modelId)}
-                          </p>
-                          {right.claims.length > 0 ? (
-                            right.claims.map((claim, i) => (
-                              <div
-                                key={i}
-                                className={cn(
-                                  "rounded border px-2.5 py-1.5 text-xs",
-                                  claim.supported
-                                    ? "border-green-300/50 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300"
-                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300",
-                                )}
-                              >
-                                {claim.text}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground">
-                              No claims extracted
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      {section.rightText}{" "}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="space-y-2">
+                {diffSections.map((section, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "rounded-[10px] border p-3",
+                      section.type === "different"
+                        ? "border-warm/30 bg-warm/6"
+                        : "border-white/[0.06] bg-bg-1",
+                    )}
+                  >
+                    <div className="grid grid-cols-2 gap-3 text-[13px]">
+                      <p className="text-ink-secondary">{section.leftText}</p>
+                      <p className="text-ink-secondary">{section.rightText}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <button
+                onClick={() => setShowClaims(!showClaims)}
+                className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary hover:text-ink-primary transition-colors"
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+                Claims extracted
+                {showClaims ? (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showClaims && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <div className="space-y-1.5">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary mb-2">
+                          {getAgentDisplayName(left.modelId)}
+                        </p>
+                        {left.claims.length > 0 ? (
+                          left.claims.map((claim, i) => (
+                            <div
+                              key={i}
+                              className={cn(
+                                "rounded-[8px] border px-2.5 py-1.5 text-[12px]",
+                                claim.supported
+                                  ? "border-agree/30 bg-agree/8 text-ink-primary"
+                                  : "border-dissent/30 bg-dissent/8 text-ink-primary",
+                              )}
+                            >
+                              {claim.text}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-[12px] text-ink-tertiary">
+                            No claims extracted
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary mb-2">
+                          {getAgentDisplayName(right.modelId)}
+                        </p>
+                        {right.claims.length > 0 ? (
+                          right.claims.map((claim, i) => (
+                            <div
+                              key={i}
+                              className={cn(
+                                "rounded-[8px] border px-2.5 py-1.5 text-[12px]",
+                                claim.supported
+                                  ? "border-agree/30 bg-agree/8 text-ink-primary"
+                                  : "border-dissent/30 bg-dissent/8 text-ink-primary",
+                              )}
+                            >
+                              {claim.text}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-[12px] text-ink-tertiary">
+                            No claims extracted
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </>
+        )}
+      </div>
     </motion.div>
   );
 }

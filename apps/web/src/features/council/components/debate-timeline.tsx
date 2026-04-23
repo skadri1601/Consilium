@@ -8,15 +8,8 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
-  DollarSign,
   Loader2,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { getAgentDisplayName } from "../utils/council-helpers";
 
@@ -49,28 +42,28 @@ function PhaseIcon({ status }: { status: TimelinePhase["status"] }) {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-agree/40 bg-agree/14 text-agree"
         >
           <Check className="h-4 w-4" />
         </motion.div>
       );
     case "active":
       return (
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-warm/50 bg-warm/14 text-warm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
+          <span className="absolute inset-0 rounded-full animate-ping bg-warm/20" />
         </div>
       );
     case "error":
       return (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-dissent/40 bg-dissent/14 text-dissent">
           <AlertCircle className="h-4 w-4" />
         </div>
       );
     default:
       return (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-muted-foreground/30 bg-muted">
-          <Clock className="h-4 w-4 text-muted-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.08] bg-bg-2 text-ink-muted">
+          <Clock className="h-4 w-4" />
         </div>
       );
   }
@@ -85,9 +78,9 @@ function ModelStatusDot({
     <span
       className={cn(
         "inline-block h-2 w-2 rounded-full shrink-0",
-        status === "thinking" && "bg-primary animate-pulse",
-        status === "complete" && "bg-green-500",
-        status === "error" && "bg-destructive",
+        status === "thinking" && "bg-warm animate-warm-pulse",
+        status === "complete" && "bg-agree",
+        status === "error" && "bg-dissent",
       )}
     />
   );
@@ -110,10 +103,8 @@ function PhaseItem({
         {!isLast && (
           <div
             className={cn(
-              "w-0.5 flex-1 min-h-[24px]",
-              phase.status === "complete"
-                ? "bg-green-500/50"
-                : "bg-muted-foreground/20",
+              "w-px flex-1 min-h-[24px]",
+              phase.status === "complete" ? "bg-agree/40" : "bg-white/[0.08]",
             )}
           />
         )}
@@ -130,29 +121,27 @@ function PhaseItem({
         >
           <span
             className={cn(
-              "text-sm font-semibold",
-              phase.status === "active" && "text-primary",
-              phase.status === "complete" &&
-                "text-green-600 dark:text-green-400",
-              phase.status === "error" && "text-destructive",
-              phase.status === "pending" && "text-muted-foreground",
+              "font-display text-[15px] tracking-[-0.01em]",
+              phase.status === "active" && "text-warm italic",
+              phase.status === "complete" && "text-ink-primary",
+              phase.status === "error" && "text-dissent",
+              phase.status === "pending" && "text-ink-tertiary",
             )}
           >
             {phase.name}
           </span>
           {phase.duration !== undefined && (
-            <span className="text-xs text-muted-foreground">
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
               {formatDuration(phase.duration)}
             </span>
           )}
           {phase.cost !== undefined && (
-            <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-              <DollarSign className="h-3 w-3" />
-              {phase.cost.toFixed(4)}
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+              ${phase.cost.toFixed(4)}
             </span>
           )}
           {hasModels && (
-            <span className="ml-auto text-muted-foreground">
+            <span className="ml-auto text-ink-tertiary">
               {expanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -175,13 +164,13 @@ function PhaseItem({
                 {phase.models!.map((model) => (
                   <div
                     key={model.id}
-                    className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs"
+                    className="flex items-center gap-2 rounded-[8px] border border-white/[0.06] bg-bg-2 px-3 py-1.5 text-[12px] text-ink-secondary"
                   >
                     <ModelStatusDot status={model.status} />
                     <span className="truncate">
                       {getAgentDisplayName(model.id)}
                     </span>
-                    <span className="ml-auto text-muted-foreground capitalize">
+                    <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
                       {model.status}
                     </span>
                   </div>
@@ -204,74 +193,80 @@ export function DebateTimeline({
   convergence,
 }: DebateTimelineProps) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <div className="surface-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="eyebrow">Timeline</div>
+          <h3 className="font-display text-[20px] tracking-[-0.01em] text-ink-primary mt-1">
+            Debate progress
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-warm bg-warm/12 border border-warm/30 rounded-full px-2 py-0.5 capitalize">
+            {mode}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary">
+            Round {currentRound}/{maxRounds}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        {phases.map((phase, index) => (
+          <PhaseItem
+            key={`${phase.name}-${index}`}
+            phase={phase}
+            isLast={index === phases.length - 1}
+          />
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 border-t border-white/[0.06] pt-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Debate Timeline</CardTitle>
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 capitalize">
-              {mode}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Round {currentRound}/{maxRounds}
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col">
-          {phases.map((phase, index) => (
-            <PhaseItem
-              key={`${phase.name}-${index}`}
-              phase={phase}
-              isLast={index === phases.length - 1}
-            />
-          ))}
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+            Running cost
+          </span>
+          <span className="font-mono text-[13px] text-ink-primary">
+            ${totalCost.toFixed(4)}
+          </span>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 border-t pt-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Running Cost</span>
-            <span className="font-mono font-medium">
-              ${totalCost.toFixed(4)}
-            </span>
-          </div>
-
-          {convergence && (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Convergence</span>
-                <span
-                  className={cn(
-                    "text-xs font-medium px-2 py-0.5 rounded-full",
-                    convergence.converged
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-                  )}
-                >
-                  {convergence.converged ? "Converged" : "Deliberating"}
-                </span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                <motion.div
-                  className={cn(
-                    "h-full rounded-full",
-                    convergence.converged ? "bg-green-500" : "bg-primary",
-                  )}
-                  initial={{ width: 0 }}
-                  animate={{
-                    width: `${Math.min(convergence.score * 100, 100)}%`,
-                  }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                />
-              </div>
-              <span className="text-xs text-muted-foreground text-right">
-                {(convergence.score * 100).toFixed(0)}%
+        {convergence && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-tertiary">
+                Convergence
+              </span>
+              <span
+                className={cn(
+                  "font-mono text-[10px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full border",
+                  convergence.converged
+                    ? "bg-agree/14 text-agree border-agree/30"
+                    : "bg-warm/12 text-warm border-warm/30",
+                )}
+              >
+                {convergence.converged ? "Converged" : "Deliberating"}
               </span>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="h-1.5 w-full rounded-full bg-bg-2 overflow-hidden">
+              <motion.div
+                className={cn(
+                  "h-full rounded-full",
+                  convergence.converged ? "bg-agree" : "bg-warm",
+                )}
+                initial={{ width: 0 }}
+                animate={{
+                  width: `${Math.min(convergence.score * 100, 100)}%`,
+                }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-tertiary text-right">
+              {(convergence.score * 100).toFixed(0)}%
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
