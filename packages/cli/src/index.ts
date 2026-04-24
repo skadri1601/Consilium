@@ -25,6 +25,13 @@ import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
 import {
+  addServerCommand,
+  listServersCommand,
+  removeServerCommand,
+  testServerCommand,
+  toolsCommand,
+} from "./commands/mcp-servers.js";
+import {
   listDebatesCommand,
   cancelDebateCommand,
   startDebateCommand,
@@ -191,11 +198,48 @@ async function main(): Promise<void> {
     .description("Show model performance dashboard")
     .action(statsCommand);
 
-  program
+  const mcp = program
     .command("mcp")
-    .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
+    .description("Manage MCP (Model Context Protocol) servers and integrations");
+
+  mcp
+    .command("setup", { isDefault: true })
+    .description("Print MCP stdio config for Claude Desktop / Cursor / Claude Code (default when no subcommand)")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  mcp
+    .command("add <name> <command> [args...]")
+    .description("Register an MCP server so council models can call its tools during debates")
+    .option("--env <KEY=value...>", "Set environment variables for the server process")
+    .option("--json", "Emit JSON result")
+    .action(
+      (name: string, command: string, args: string[] | undefined, options: { env?: string[]; json?: boolean }) =>
+        addServerCommand(name, command, args, options),
+    );
+
+  mcp
+    .command("list")
+    .description("List configured MCP servers")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => listServersCommand(opts));
+
+  mcp
+    .command("remove <name>")
+    .description("Remove a configured MCP server")
+    .action((name: string) => removeServerCommand(name));
+
+  mcp
+    .command("test <name>")
+    .description("Spawn a configured MCP server and list its tools (verifies config)")
+    .option("--json", "Emit as JSON")
+    .action((name: string, opts: { json?: boolean }) => testServerCommand(name, opts));
+
+  mcp
+    .command("tools")
+    .description("Spawn all enabled MCP servers and list every tool they expose")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => toolsCommand(opts));
 
   const debates = program
     .command("debates")
