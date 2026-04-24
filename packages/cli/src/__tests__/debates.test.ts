@@ -25,6 +25,23 @@ vi.mock('../api/client', () => ({
     streamDebate: mockStreamDebate,
     streamDeliberation: mockStreamDeliberation,
   })),
+  StreamError: class StreamError extends Error {
+    kind: string;
+    constructor(message: string, kind: string) { super(message); this.kind = kind; }
+  },
+  ApiError: class ApiError extends Error {
+    status: number;
+    body: string;
+    constructor(status: number, body: string, message?: string) {
+      super(message ?? `HTTP ${status}: ${body}`);
+      this.status = status;
+      this.body = body;
+    }
+  },
+}));
+
+vi.mock('../commands/debate', () => ({
+  loadWorkspaceContext: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('../utils/require-auth', () => ({
@@ -159,6 +176,16 @@ describe('startDebateCommand', () => {
     mockCreateDebate.mockRejectedValue(new Error('kaboom'));
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await startDebateCommand('t', {});
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('prints auth-specific hint on 401 ApiError', async () => {
+    const { ApiError } = await import('../api/client');
+    mockCreateDebate.mockRejectedValue(new ApiError(401, 'unauthorized'));
+    const errors: string[] = [];
+    vi.spyOn(console, 'error').mockImplementation((...args) => errors.push(args.join(' ')));
+    await startDebateCommand('t', {});
+    expect(errors.join('\n')).toContain('consilium login');
     expect(process.exitCode).toBe(1);
   });
 });

@@ -66,6 +66,30 @@ export interface DebateSummary {
 
 const RECONNECT_BACKOFFS_MS = [1000, 2000, 4000];
 
+type StreamErrorKind = 'transient' | 'fatal' | 'timeout';
+
+export class StreamError extends Error {
+  readonly kind: StreamErrorKind;
+  readonly httpStatus?: number;
+  constructor(message: string, kind: StreamErrorKind, httpStatus?: number) {
+    super(message);
+    this.name = 'StreamError';
+    this.kind = kind;
+    this.httpStatus = httpStatus;
+  }
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: string;
+  constructor(status: number, body: string, message?: string) {
+    super(message ?? `HTTP ${status}: ${body}`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -135,42 +159,48 @@ export class ConsiliumClient {
 
   private async runStreamWithReconnect(
     streamUrl: string,
-    handleMessage: (data: any) => { terminal?: boolean; error?: string },
+    handleMessage: (data: Record<string, unknown>) => { terminal?: boolean; error?: string },
     contextLabel: string,
   ): Promise<void> {
-    const init: { headers?: Record<string, string> } = {};
     const apiKey = this.getApiKey();
-    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
+    const buildInit = (lastEventId: string | null): { headers?: Record<string, string> } => {
+      const headers: Record<string, string> = {};
+      if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+      if (lastEventId) headers['Last-Event-ID'] = lastEventId;
+      return Object.keys(headers).length ? { headers } : {};
+    };
 
     let attempt = 0;
     let terminalSeen = false;
+    let lastEventId: string | null = null;
     let lastError: Error | null = null;
 
     while (!terminalSeen && attempt <= this.maxReconnectAttempts) {
       try {
         await new Promise<void>((resolve, reject) => {
-          const eventSource = new EventSource(streamUrl, init);
+          const eventSource = new EventSource(streamUrl, buildInit(lastEventId));
           let connectionEstablished = false;
           let eventCount = 0;
           const timer = setTimeout(() => {
             eventSource.close();
-            reject(new Error(`Stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
+            reject(new StreamError(`${contextLabel} stream timeout after ${Math.round(this.streamTimeout / 1000)}s`, 'timeout'));
           }, this.streamTimeout);
 
-          eventSource.onmessage = (event: any) => {
+          eventSource.onmessage = (event: MessageEvent) => {
             try {
               if (!connectionEstablished) {
-                this.log(`${contextLabel} SSE connection established`);
+                this.log(`${contextLabel} SSE connection established${lastEventId ? ` (resumed from ${lastEventId})` : ''}`);
                 connectionEstablished = true;
               }
-              const data = JSON.parse(event.data);
+              if (event.lastEventId) lastEventId = event.lastEventId;
+              const data = JSON.parse(event.data) as Record<string, unknown>;
               eventCount++;
               const outcome = handleMessage(data);
               if (outcome.error) {
                 clearTimeout(timer);
                 eventSource.close();
                 terminalSeen = true;
-                reject(new Error(outcome.error));
+                reject(new StreamError(outcome.error, 'fatal'));
                 return;
               }
               if (outcome.terminal) {
@@ -179,37 +209,44 @@ export class ConsiliumClient {
                 terminalSeen = true;
                 resolve();
               }
-            } catch (err: any) {
+            } catch (err) {
               this.logError(`${contextLabel} parse error`, err);
             }
           };
 
-          eventSource.onerror = (err: any) => {
+          eventSource.onerror = (err: Event) => {
             clearTimeout(timer);
+            const status =
+              (err as MessageEvent & { status?: number }).status ??
+              (eventSource as EventSource & { status?: number }).status;
             eventSource.close();
-            const msg = connectionEstablished
+            const reason = connectionEstablished
               ? `${contextLabel} stream dropped after ${eventCount} events`
               : `${contextLabel} stream failed to connect`;
-            this.logError(msg, err);
-            reject(new Error(msg));
+            const kind: StreamErrorKind =
+              status !== undefined && status >= 400 && status < 500 ? 'fatal' : 'transient';
+            this.log(`${reason}${status !== undefined ? ` (status=${status})` : ''}`);
+            reject(new StreamError(reason, kind, status));
           };
         });
-      } catch (err: any) {
+      } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
-        if (terminalSeen) {
-          return;
+        if (terminalSeen) return;
+        if (err instanceof StreamError && err.kind === 'fatal') {
+          throw lastError;
         }
         if (attempt >= this.maxReconnectAttempts) {
           throw lastError;
         }
         const delay = RECONNECT_BACKOFFS_MS[Math.min(attempt, RECONNECT_BACKOFFS_MS.length - 1)] ?? 4000;
-        this.log(`${contextLabel} reconnect attempt ${attempt + 1}/${this.maxReconnectAttempts} in ${delay}ms`);
+        console.error(`[consilium] ${contextLabel} stream dropped, reconnecting in ${delay}ms (attempt ${attempt + 1}/${this.maxReconnectAttempts})`);
         await sleep(delay);
         attempt++;
         continue;
       }
       return;
     }
+    if (!terminalSeen && lastError) throw lastError;
   }
 
   async createDebate(options: DebateOptions): Promise<{ id: string }> {
@@ -255,7 +292,7 @@ export class ConsiliumClient {
           console.error('\nService unavailable. The AI agents backend may be down.');
         }
 
-        throw new Error(`HTTP ${response.status}: ${errorBody}`);
+        throw new ApiError(response.status, errorBody);
       }
 
       const result = (await response.json()) as { id: string };
@@ -284,13 +321,17 @@ export class ConsiliumClient {
     this.log(`Opening SSE stream: ${streamUrl}`);
 
     return this.runStreamWithReconnect(streamUrl, (data) => {
-      const eventType = data.event ?? 'message';
+      const str = (k: string): string | undefined => {
+        const v = data[k];
+        return typeof v === 'string' ? v : undefined;
+      };
+      const eventType = str('event') ?? 'message';
       const debateEvent: DebateEvent = {
         type: eventType as DebateEvent['type'],
-        agent: data.agent ?? data.agent_id,
-        text: data.chunk ?? data.consensus ?? data.golden_prompt ?? data.goldenPrompt ?? data.response ?? data.content,
-        error: data.error,
-        debateId: data.debate_id ?? data.debateId,
+        agent: str('agent') ?? str('agent_id'),
+        text: str('chunk') ?? str('consensus') ?? str('golden_prompt') ?? str('goldenPrompt') ?? str('response') ?? str('content'),
+        error: str('error'),
+        debateId: str('debate_id') ?? str('debateId'),
       };
       onEvent(debateEvent);
 
@@ -298,7 +339,7 @@ export class ConsiliumClient {
         return { terminal: true };
       }
       if (eventType === 'error') {
-        return { error: data.error || 'Server error' };
+        return { error: str('error') || 'Server error' };
       }
       return {};
     }, 'Debate');
@@ -316,7 +357,7 @@ export class ConsiliumClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Cancel failed: HTTP ${response.status}`);
+      throw new ApiError(response.status, await response.text().catch(() => ''), `Cancel failed: HTTP ${response.status}`);
     }
   }
 
@@ -332,7 +373,7 @@ export class ConsiliumClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Skip failed: HTTP ${response.status}`);
+      throw new ApiError(response.status, await response.text().catch(() => ''), `Skip failed: HTTP ${response.status}`);
     }
   }
 
@@ -348,7 +389,7 @@ export class ConsiliumClient {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      throw new ApiError(response.status, await response.text().catch(() => ''));
     }
 
     return response.json();
@@ -404,7 +445,7 @@ export class ConsiliumClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+      throw new ApiError(response.status, errorBody);
     }
 
     return (await response.json()) as { id: string };
@@ -432,7 +473,7 @@ export class ConsiliumClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+      throw new ApiError(response.status, errorBody);
     }
 
     return (await response.json()) as { id: string };
@@ -446,19 +487,27 @@ export class ConsiliumClient {
     this.log(`Opening deliberation stream: ${streamUrl}`);
 
     return this.runStreamWithReconnect(streamUrl, (data) => {
-      const eventType = data.event ?? 'message';
+      const str = (k: string): string | undefined => {
+        const v = data[k];
+        return typeof v === 'string' ? v : undefined;
+      };
+      const num = (k: string): number | undefined => {
+        const v = data[k];
+        return typeof v === 'number' ? v : undefined;
+      };
+      const eventType = str('event') ?? 'message';
       const deliberationEvent: DeliberationEvent = {
         type: eventType as DeliberationEvent['type'],
-        phase: data.phase,
-        agent: data.agent ?? data.agent_id,
-        text: data.chunk ?? data.text ?? data.content ?? data.response,
-        error: data.error,
-        deliberationId: data.deliberation_id ?? data.deliberationId,
-        progress: data.progress,
-        convergence: data.convergence,
-        dissent: data.dissent,
-        vote: data.vote,
-        cost: data.cost,
+        phase: str('phase'),
+        agent: str('agent') ?? str('agent_id'),
+        text: str('chunk') ?? str('text') ?? str('content') ?? str('response'),
+        error: str('error'),
+        deliberationId: str('deliberation_id') ?? str('deliberationId'),
+        progress: num('progress'),
+        convergence: num('convergence'),
+        dissent: data['dissent'] as DeliberationEvent['dissent'],
+        vote: data['vote'] as DeliberationEvent['vote'],
+        cost: data['cost'] as DeliberationEvent['cost'],
       };
       onEvent(deliberationEvent);
 
@@ -466,7 +515,7 @@ export class ConsiliumClient {
         return { terminal: true };
       }
       if (eventType === 'error') {
-        return { error: data.error || 'Deliberation error' };
+        return { error: str('error') || 'Deliberation error' };
       }
       return {};
     }, 'Deliberation');
@@ -479,69 +528,39 @@ export class ConsiliumClient {
     const streamUrl = `${this.apiUrl}/api/v1/deliberation/benchmarks/${id}/stream`;
     this.log(`Opening benchmark stream: ${streamUrl}`);
 
-    const init: { headers?: Record<string, string> } = {};
-    const apiKey = this.getApiKey();
-    if (apiKey) init.headers = { Authorization: `Bearer ${apiKey}` };
-
-    return new Promise((resolve, reject) => {
-      const eventSource = new EventSource(streamUrl, init);
-      let eventCount = 0;
-      let connectionEstablished = false;
-
-      eventSource.onmessage = (event: any) => {
-        try {
-          if (!connectionEstablished) {
-            this.log('Benchmark SSE connection established');
-            connectionEstablished = true;
-          }
-
-          const data = JSON.parse(event.data);
-          const eventType = data.event ?? 'message';
-          eventCount++;
-          this.log(`Benchmark event #${eventCount}: ${eventType}`);
-
-          const deliberationEvent: DeliberationEvent = {
-            type: eventType as DeliberationEvent['type'],
-            phase: data.phase,
-            agent: data.agent ?? data.agent_id,
-            text: data.chunk ?? data.text ?? data.content ?? data.response,
-            error: data.error,
-            deliberationId: data.deliberation_id ?? data.deliberationId ?? data.benchmark_id ?? data.benchmarkId,
-            progress: data.progress,
-            convergence: data.convergence,
-            dissent: data.dissent,
-            vote: data.vote,
-            cost: data.cost,
-          };
-
-          onEvent(deliberationEvent);
-
-          if (eventType === 'done' || eventType === 'deliberation_complete') {
-            this.log(`Benchmark stream completed after ${eventCount} events`);
-            eventSource.close();
-            resolve();
-          }
-
-          if (eventType === 'error') {
-            eventSource.close();
-            reject(new Error(data.error || 'Benchmark error'));
-          }
-        } catch (error: any) {
-          this.logError('Failed to parse benchmark event', error);
-        }
+    return this.runStreamWithReconnect(streamUrl, (data) => {
+      const eventType = (data['event'] as string | undefined) ?? 'message';
+      const deliberationEvent: DeliberationEvent = {
+        type: eventType as DeliberationEvent['type'],
+        phase: data['phase'] as string | undefined,
+        agent: (data['agent'] as string | undefined) ?? (data['agent_id'] as string | undefined),
+        text:
+          (data['chunk'] as string | undefined) ??
+          (data['text'] as string | undefined) ??
+          (data['content'] as string | undefined) ??
+          (data['response'] as string | undefined),
+        error: data['error'] as string | undefined,
+        deliberationId:
+          (data['deliberation_id'] as string | undefined) ??
+          (data['deliberationId'] as string | undefined) ??
+          (data['benchmark_id'] as string | undefined) ??
+          (data['benchmarkId'] as string | undefined),
+        progress: data['progress'] as number | undefined,
+        convergence: data['convergence'] as number | undefined,
+        dissent: data['dissent'] as DeliberationEvent['dissent'],
+        vote: data['vote'] as DeliberationEvent['vote'],
+        cost: data['cost'] as DeliberationEvent['cost'],
       };
+      onEvent(deliberationEvent);
 
-      eventSource.onerror = (error: any) => {
-        this.logError('Benchmark SSE error', error);
-        eventSource.close();
-        reject(new Error('Benchmark stream failed'));
-      };
-
-      setTimeout(() => {
-        eventSource.close();
-        reject(new Error(`Benchmark stream timeout after ${Math.round(this.streamTimeout / 1000)}s`));
-      }, this.streamTimeout);
-    });
+      if (eventType === 'done' || eventType === 'deliberation_complete') {
+        return { terminal: true };
+      }
+      if (eventType === 'error') {
+        return { error: (data['error'] as string | undefined) || 'Benchmark error' };
+      }
+      return {};
+    }, 'Benchmark');
   }
 
   async listDebates(opts: { limit?: number; offset?: number; search?: string } = {}): Promise<DebateSummary[]> {
@@ -563,7 +582,7 @@ export class ConsiliumClient {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      throw new ApiError(response.status, await response.text().catch(() => ''));
     }
 
     const data = await response.json();
@@ -584,7 +603,7 @@ export class ConsiliumClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Cancel failed: HTTP ${response.status}`);
+      throw new ApiError(response.status, await response.text().catch(() => ''), `Cancel failed: HTTP ${response.status}`);
     }
   }
 
@@ -605,7 +624,7 @@ export class ConsiliumClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+      throw new ApiError(response.status, errorBody);
     }
 
     return (await response.json()) as { id: string };

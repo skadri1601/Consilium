@@ -2,6 +2,7 @@ import { ConsiliumClient, DebateSummary, DebateEvent, DeliberationEvent } from "
 import { style } from "../utils/visual-system.js";
 import { requireAuth } from "../utils/require-auth.js";
 import { isValidMode, getDefaultMode } from "../utils/debate-modes.js";
+import { loadWorkspaceContext } from "./debate.js";
 
 const st = style();
 
@@ -98,6 +99,10 @@ export interface StartDebateOptions {
   models?: string[];
   mode?: string;
   json?: boolean;
+  file?: string[];
+  gitDiff?: boolean;
+  ticket?: string;
+  noContext?: boolean;
 }
 
 const DEFAULT_START_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
@@ -113,12 +118,22 @@ export async function startDebateCommand(
   const models = options.models?.length ? options.models : DEFAULT_START_MODELS;
   const client = new ConsiliumClient();
 
+  const wsContext = await loadWorkspaceContext({
+    file: options.file,
+    gitDiff: options.gitDiff,
+    ticket: options.ticket,
+    noContext: options.noContext,
+  });
+
   try {
     const { id } = await client.createDebate({
       topic,
       mode: mode as never,
       models,
       debateSource: "cli",
+      files: wsContext?.files,
+      projectFiles: wsContext?.projectFiles,
+      projectContext: wsContext?.projectContext,
     });
     if (options.json) {
       console.log(JSON.stringify({ id, mode, models }));
@@ -127,7 +142,16 @@ export async function startDebateCommand(
       console.log(st.dim(`  Attach later with: consilium debates stream ${id}`));
     }
   } catch (err) {
-    console.error(st.error(`Start failed: ${(err as Error).message}`));
+    if (err instanceof Error && "status" in err) {
+      const status = (err as { status?: number }).status;
+      if (status === 401 || status === 403) {
+        console.error(st.error("Authentication failed. Run: consilium login"));
+      } else {
+        console.error(st.error(`Start failed: ${err.message}`));
+      }
+    } else {
+      console.error(st.error(`Start failed: ${(err as Error).message}`));
+    }
     process.exitCode = 1;
   }
 }

@@ -227,6 +227,10 @@ async function main(): Promise<void> {
       "Debate mode: quick, council, deep, blind, redteam, jury, market, auto (default: auto)",
     )
     .option("--json", "Output result as JSON")
+    .option("--file <paths...>", "Files to attach as context")
+    .option("--git-diff", "Include git diff in context")
+    .option("--no-context", "Disable automatic codebase context loading")
+    .option("--ticket <id>", "Linear ticket ID to include as context")
     .action(startDebateCommand);
 
   debates

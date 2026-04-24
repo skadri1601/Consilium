@@ -43,7 +43,12 @@ function loadGitignorePatterns(projectPath: string): Set<string> {
         patterns.add(trimmed.replace(/\/$/, ""));
       }
     }
-  } catch {}
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code && code !== "ENOENT") {
+      console.warn(`[consilium] could not read .gitignore: ${code}`);
+    }
+  }
   return patterns;
 }
 
@@ -84,7 +89,12 @@ function discoverFiles(projectPath: string): FileInfo[] {
           if (stat.size <= MAX_FILE_SIZE) {
             allFiles.push({ relativePath, size: stat.size });
           }
-        } catch {}
+        } catch (err) {
+          const code = (err as NodeJS.ErrnoException).code;
+          if (code && code !== "ENOENT") {
+            console.warn(`[consilium] skipped ${relativePath}: ${code}`);
+          }
+        }
       }
     }
   }
@@ -152,7 +162,12 @@ function readFiles(projectPath: string, files: FileInfo[]): { manifests: Map<str
       if (SOURCE_EXTS.has(ext)) {
         sourceFiles.set(f.relativePath, content);
       }
-    } catch {}
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code && code !== "ENOENT") {
+        console.warn(`[consilium] read skipped ${f.relativePath}: ${code}`);
+      }
+    }
   }
 
   return { manifests, sourceFiles, allFiles };
