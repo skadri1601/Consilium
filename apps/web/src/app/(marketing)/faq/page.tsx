@@ -10,7 +10,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
   description:
-    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, self-hosting, and pricing.",
+    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, and pricing.",
   path: "/faq",
   keywords: ["consilium faq", "ai council faq", "multi-agent debate questions"],
 });
@@ -20,7 +20,7 @@ const generalFaqs = [
     id: "what-is",
     question: "What is Consilium?",
     answer:
-      "Consilium is an open-source multi-AI deliberation platform. Not orchestration — it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
+      "Consilium is a multi-AI deliberation platform. Not orchestration — it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
   },
   {
     id: "difference",
@@ -44,13 +44,13 @@ const generalFaqs = [
     id: "free",
     question: "Is Consilium free?",
     answer:
-      "MIT licensed and free to self-host. The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) — Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free.",
+      "The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) — Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free to use.",
   },
   {
     id: "who-built",
     question: "Who built Consilium?",
     answer:
-      "Saad Kadri. Consilium is an MIT licensed open-source project. Contributions are welcome from developers of all skill levels.",
+      "Saad Kadri. Consilium is built and operated by a focused founding team.",
   },
 ];
 
@@ -93,33 +93,6 @@ const technicalFaqs = [
   },
 ];
 
-const selfHostingFaqs = [
-  {
-    id: "self-host",
-    question: "How do I self-host Consilium?",
-    answer:
-      "Docker Compose: clone the repo, cp .env.example .env, add your API keys, then docker compose -f docker-compose.selfhost.yml up. This starts 5 services: PostgreSQL, Redis, the API server, the Agents engine, and the Web UI.",
-  },
-  {
-    id: "infrastructure",
-    question: "What infrastructure do I need?",
-    answer:
-      "Minimum: 2GB RAM + Docker. Recommended: 4GB RAM, 2 vCPUs. Required services: PostgreSQL 16 (or Neon), Redis 7 (or Upstash). Runtime: Node.js 20+ for the API and Web, Python 3.11+ for the Agents engine.",
-  },
-  {
-    id: "kubernetes",
-    question: "Can I deploy to Kubernetes?",
-    answer:
-      "Yes. Each service (web, api, agents) has its own Dockerfile in its respective apps/ directory. Use the docker-compose.selfhost.yml as a reference for environment variables, service dependencies, and health checks.",
-  },
-  {
-    id: "data-storage",
-    question: "How is data stored?",
-    answer:
-      "PostgreSQL via Prisma ORM. All debate sessions, rounds, messages, audit entries, and user data are stored relationally. API keys are encrypted with AES-256-GCM before being written to the database. The Prisma schema lives in packages/database/.",
-  },
-];
-
 const securityFaqs = [
   {
     id: "api-key-storage",
@@ -143,7 +116,7 @@ const securityFaqs = [
     id: "compliance",
     question: "What about HIPAA, SOX, and GDPR compliance?",
     answer:
-      "Self-hosted Consilium can be deployed within compliant infrastructure you control. BYOK ensures API keys never leave your environment. Audit trails provide record-keeping required by most frameworks. Data residency is fully under your control when self-hosted.",
+      "BYOK ensures provider API keys never leave your environment. Audit trails provide record-keeping required by most frameworks. For organizations with specific compliance requirements, contact us to discuss deployment options.",
   },
 ];
 
@@ -164,7 +137,7 @@ const costFaqs = [
     id: "free-options",
     question: "What are the free options?",
     answer:
-      "Groq models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) are completely free with no rate-limit costs. Self-hosting is free — you only pay for your own infrastructure. The hosted free tier includes 50 deliberations per month with no credit card required.",
+      "Groq models (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout) are completely free with no rate-limit costs. The hosted free tier includes 50 deliberations per month with no credit card required.",
   },
   {
     id: "cost-per-mode",
@@ -177,7 +150,6 @@ const costFaqs = [
 const sections = [
   { title: "General", faqs: generalFaqs },
   { title: "Technical", faqs: technicalFaqs },
-  { title: "Self-Hosting", faqs: selfHostingFaqs },
   { title: "Security", faqs: securityFaqs },
   { title: "Pricing & Costs", faqs: costFaqs },
 ];

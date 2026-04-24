@@ -1,9 +1,5 @@
 import { buttonVariants } from "@/shared/components/ui/button";
-import {
-  GitHubLogoIcon,
-  LinkedInLogoIcon,
-  TwitterLogoIcon,
-} from "@radix-ui/react-icons";
+import { LinkedInLogoIcon, TwitterLogoIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 
 const footerLinks = {
@@ -17,20 +13,10 @@ const footerLinks = {
     { label: "Documentation", href: "/docs" },
     { label: "API Reference", href: "/docs/api" },
     { label: "CLI", href: "/docs/cli" },
-    { label: "SDKs", href: "/#sdk" },
-    { label: "Releases", href: "https://github.com/skadri1601/Consilium/releases" },
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
-    { label: "Research", href: "/research" },
-    { label: "Community", href: "/community" },
     { label: "Use Cases", href: "/use-cases" },
-  ],
-  "Open Source": [
-    { label: "GitHub", href: "https://github.com/skadri1601/Consilium" },
-    { label: "Contributing", href: "https://github.com/skadri1601/Consilium/blob/main/CONTRIBUTING.md" },
-    { label: "License (MIT)", href: "https://github.com/skadri1601/Consilium/blob/main/LICENSE" },
-    { label: "Changelog", href: "https://github.com/skadri1601/Consilium/releases" },
   ],
   Company: [
     { label: "About", href: "/about" },
@@ -43,7 +29,6 @@ const footerLinks = {
 type MarketingFooterProps = Readonly<{
   builtBy: string;
   builtByLink: string;
-  githubLink: string;
   twitterLink: string;
   linkedinLink: string;
 }>;
@@ -66,13 +51,10 @@ export function MarketingFooter(props: MarketingFooterProps) {
                 Get Started
               </Link>
               <Link
-                href={props.githubLink}
-                target="_blank"
-                rel="noreferrer"
+                href="/pricing"
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
-                <GitHubLogoIcon className="mr-2 h-4 w-4" />
-                View on GitHub
+                See pricing
               </Link>
             </div>
           </div>
@@ -88,8 +70,14 @@ export function MarketingFooter(props: MarketingFooterProps) {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        target={link.href.startsWith("http") ? "_blank" : undefined}
-                        rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                        target={
+                          link.href.startsWith("http") ? "_blank" : undefined
+                        }
+                        rel={
+                          link.href.startsWith("http")
+                            ? "noreferrer"
+                            : undefined
+                        }
                         className="text-sm text-neutral-400 transition-colors hover:text-white"
                       >
                         {link.label}
@@ -129,7 +117,6 @@ export function MarketingFooter(props: MarketingFooterProps) {
             <div className="flex items-center space-x-1">
               {(
                 [
-                  { href: props.githubLink, icon: GitHubLogoIcon },
                   { href: props.twitterLink, icon: TwitterLogoIcon },
                   { href: props.linkedinLink, icon: LinkedInLogoIcon },
                 ] as const

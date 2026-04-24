@@ -28,10 +28,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Failed to join waitlist" }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Failed to join waitlist" }));
       return NextResponse.json(
         { error: error.error || "Failed to join waitlist" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -43,11 +45,13 @@ export async function POST(req: NextRequest) {
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: process.env.RESEND_FROM_EMAIL || "Consilium <noreply@consiliumai.com>",
+            from:
+              process.env.RESEND_FROM_EMAIL ||
+              "Consilium <noreply@consiliumai.com>",
             to: validated.email,
             subject: "Welcome to Consilium Waitlist",
             html: `
@@ -55,7 +59,6 @@ export async function POST(req: NextRequest) {
               <p>We're building something special — a multi-agent debate platform that helps you create better prompts for Cursor, Copilot, or your editor.</p>
               <p>We'll notify you as soon as we launch. In the meantime, you can:</p>
               <ul>
-                <li>Star us on <a href="https://github.com/yourusername/consilium">GitHub</a></li>
                 <li>Follow our progress on Twitter</li>
                 <li>Check out our <a href="${process.env.NEXT_PUBLIC_APP_URL}/faq">FAQ</a></li>
               </ul>
@@ -70,20 +73,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, message: "Successfully joined waitlist" });
+    return NextResponse.json({
+      success: true,
+      message: "Successfully joined waitlist",
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid email address", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Waitlist error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Calendar, Clock, Github } from "lucide-react";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
@@ -53,11 +53,12 @@ function BenchmarkPost() {
   return (
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
-        As AI models grow more capable, evaluating their performance on complex reasoning
-        tasks becomes critical. Single-model benchmarks tell part of the story, but they
-        miss the gains achievable through structured multi-agent deliberation. We ran
-        Consilium&apos;s council architecture against leading single models across three
-        established benchmarks to quantify the difference.
+        As AI models grow more capable, evaluating their performance on complex
+        reasoning tasks becomes critical. Single-model benchmarks tell part of
+        the story, but they miss the gains achievable through structured
+        multi-agent deliberation. We ran Consilium&apos;s council architecture
+        against leading single models across three established benchmarks to
+        quantify the difference.
       </p>
 
       <h2 className="text-2xl font-bold mt-12 mb-6">Results</h2>
@@ -67,8 +68,12 @@ function BenchmarkPost() {
           <thead>
             <tr className="border-b border-white/10 bg-white/[0.03]">
               <th className="px-6 py-4 text-left font-semibold">Benchmark</th>
-              <th className="px-6 py-4 text-left font-semibold">Single Model (Best)</th>
-              <th className="px-6 py-4 text-left font-semibold">Consilium Council</th>
+              <th className="px-6 py-4 text-left font-semibold">
+                Single Model (Best)
+              </th>
+              <th className="px-6 py-4 text-left font-semibold">
+                Consilium Council
+              </th>
               <th className="px-6 py-4 text-left font-semibold">Improvement</th>
             </tr>
           </thead>
@@ -96,46 +101,53 @@ function BenchmarkPost() {
       </div>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-6">
-        The most significant gains appear in TruthfulQA, where cross-examination during
-        deliberation rounds forces models to identify and correct each other&apos;s
-        hallucinations. This aligns with findings from Du et al. showing that debate
-        improves factual accuracy even when individual models are uncertain.
+        The most significant gains appear in TruthfulQA, where cross-examination
+        during deliberation rounds forces models to identify and correct each
+        other&apos;s hallucinations. This aligns with findings from Du et al.
+        showing that debate improves factual accuracy even when individual
+        models are uncertain.
       </p>
 
       <h2 className="text-2xl font-bold mt-12 mb-6">Methodology</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
-        Each benchmark was run using a 3-model council (Claude Sonnet 4.5, GPT-4o, Gemini
-        2.0 Flash) with Consilium&apos;s default Structured Debate mode. Single-model
-        baselines used the best-performing individual model for each benchmark with
-        identical prompts. All runs used temperature 0.7 with 3 deliberation rounds. Results
-        are averaged over 500 randomly sampled questions per benchmark.
+        Each benchmark was run using a 3-model council (Claude Sonnet 4.5,
+        GPT-4o, Gemini 2.0 Flash) with Consilium&apos;s default Structured
+        Debate mode. Single-model baselines used the best-performing individual
+        model for each benchmark with identical prompts. All runs used
+        temperature 0.7 with 3 deliberation rounds. Results are averaged over
+        500 randomly sampled questions per benchmark.
       </p>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-4">
-        The council configuration used confidence-weighted voting for final answer selection,
-        with a separate judge model (Claude Opus 4.6) synthesizing the final response when
-        consensus was not reached within the voting threshold.
+        The council configuration used confidence-weighted voting for final
+        answer selection, with a separate judge model (Claude Opus 4.6)
+        synthesizing the final response when consensus was not reached within
+        the voting threshold.
       </p>
 
       <h2 className="text-2xl font-bold mt-12 mb-6">Research Background</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
-        Our deliberation approach builds on several key papers in multi-agent reasoning:
+        Our deliberation approach builds on several key papers in multi-agent
+        reasoning:
       </p>
 
       <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
         <li>
-          <strong className="text-foreground">Du et al., ICML 2024</strong> — &quot;Improving
-          Factuality and Reasoning in Language Models through Multiagent Debate&quot;
+          <strong className="text-foreground">Du et al., ICML 2024</strong> —
+          &quot;Improving Factuality and Reasoning in Language Models through
+          Multiagent Debate&quot;
         </li>
         <li>
-          <strong className="text-foreground">Chen et al., ACL 2024</strong> — &quot;ReConcile:
-          Round-Table Conference Improves Reasoning via Consensus Among Diverse LLMs&quot;
+          <strong className="text-foreground">Chen et al., ACL 2024</strong> —
+          &quot;ReConcile: Round-Table Conference Improves Reasoning via
+          Consensus Among Diverse LLMs&quot;
         </li>
         <li>
-          <strong className="text-foreground">Khan et al., ICML 2024</strong> — &quot;Debating
-          with More Persuasive LLMs Leads to More Truthful Answers&quot;
+          <strong className="text-foreground">Khan et al., ICML 2024</strong> —
+          &quot;Debating with More Persuasive LLMs Leads to More Truthful
+          Answers&quot;
         </li>
       </ul>
 
@@ -148,16 +160,19 @@ function BenchmarkPost() {
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
         <code className="text-emerald-400">npx consilium deliberate</code>
         <span className="text-muted-foreground"> --mode structured-debate</span>
-        <span className="text-muted-foreground"> --models claude-sonnet-4.5,gpt-4o,gemini-2.0-flash</span>
-        <span className="text-muted-foreground"> --prompt &quot;Your question here&quot;</span>
+        <span className="text-muted-foreground">
+          {" "}
+          --models claude-sonnet-4.5,gpt-4o,gemini-2.0-flash
+        </span>
+        <span className="text-muted-foreground">
+          {" "}
+          --prompt &quot;Your question here&quot;
+        </span>
       </div>
 
       <div className="mt-12 pt-8 border-t border-white/[0.06]">
         <Button asChild size="lg">
-          <Link href="https://github.com/skadri1601/Consilium" target="_blank" rel="noopener noreferrer">
-            <Github className="mr-2 h-4 w-4" />
-            View on GitHub
-          </Link>
+          <Link href="/sign-up">Try Consilium</Link>
         </Button>
       </div>
     </>
@@ -168,8 +183,8 @@ function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
-        This post is coming soon. We&apos;re working on bringing you a deep dive into{" "}
-        {title.toLowerCase()}. Check back shortly for the full article.
+        This post is coming soon. We&apos;re working on bringing you a deep dive
+        into {title.toLowerCase()}. Check back shortly for the full article.
       </p>
 
       <div className="mt-12 pt-8 border-t border-white/[0.06]">
@@ -230,8 +245,18 @@ export default async function BlogPostPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
-      { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: `${SITE_URL}/blog`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.title,
+        item: `${SITE_URL}/blog/${post.slug}`,
+      },
     ],
   };
 

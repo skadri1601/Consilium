@@ -145,6 +145,10 @@ class RoutingDecision:
     models: Optional[int] = None
     model: Optional[str] = None
     reason: str = ""
+    complexity_score: Optional[float] = None
+    features: Optional[dict] = None
+    estimated_cost: Optional[float] = None
+    council_cost_baseline: Optional[float] = None
 
 @dataclass
 class CostTracker:
@@ -247,6 +251,7 @@ class DeliberationState(TypedDict):
     golden_prompt: Optional[str]
     red_team_report: Optional[dict]
     market_result: Optional[dict]
+    routing_decision: Optional[dict]
 
 DEFAULT_RUBRIC = Rubric(dimensions=[
     RubricDimension("correctness", 0.30, "Factual accuracy and logical validity",

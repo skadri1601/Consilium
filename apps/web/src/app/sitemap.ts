@@ -14,7 +14,6 @@ const MARKETING_ROUTES: Route[] = [
   { path: "/faq", changeFrequency: "monthly", priority: 0.7 },
   { path: "/use-cases", changeFrequency: "monthly", priority: 0.8 },
   { path: "/research", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/community", changeFrequency: "monthly", priority: 0.6 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
@@ -33,7 +32,6 @@ const DOCS_ROUTES: Route[] = [
   { path: "/docs/templates", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/python-sdk", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/typescript-sdk", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/docs/self-hosting", changeFrequency: "monthly", priority: 0.6 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

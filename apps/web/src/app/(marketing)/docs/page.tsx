@@ -6,70 +6,160 @@ import {
   Code,
   Terminal,
   Package,
-  Server,
   ArrowRight,
   Layers,
   Cpu,
   GitBranch,
   FileText,
-  Blocks,
   Users,
-  Wrench,
   Globe,
   Shield,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/shared/components/ui/card";
 
 const sections = [
   {
     title: "For Everyone",
     description: "Understand what Consilium does and how to get started",
     items: [
-      { icon: BookOpen, title: "Getting Started", description: "Set up Consilium and run your first deliberation — via web app, CLI, SDK, or self-hosted.", href: "/docs/getting-started" },
-      { icon: Layers, title: "Deliberation Modes", description: "All 8 modes explained: Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto — phases, parameters, use cases.", href: "/docs/modes" },
-      { icon: GitBranch, title: "How It Works", description: "The deliberation engine internals: state machine, voting algorithms, convergence detection, dissent clustering, confidence calibration.", href: "/docs/how-it-works" },
-      { icon: Cpu, title: "AI Providers & Models", description: "5 providers, 15 models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI — with judge priority and fallback system.", href: "/docs/providers" },
+      {
+        icon: BookOpen,
+        title: "Getting Started",
+        description:
+          "Set up Consilium and run your first deliberation — via the web app, CLI, or SDK.",
+        href: "/docs/getting-started",
+      },
+      {
+        icon: Layers,
+        title: "Deliberation Modes",
+        description:
+          "All 8 modes explained: Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto — phases, parameters, use cases.",
+        href: "/docs/modes",
+      },
+      {
+        icon: GitBranch,
+        title: "How It Works",
+        description:
+          "The deliberation engine internals: state machine, voting algorithms, convergence detection, dissent clustering, confidence calibration.",
+        href: "/docs/how-it-works",
+      },
+      {
+        icon: Cpu,
+        title: "AI Providers & Models",
+        description:
+          "5 providers, 15 models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI — with judge priority and fallback system.",
+        href: "/docs/providers",
+      },
     ],
   },
   {
     title: "For Engineers",
     description: "Integrate Consilium into your applications and workflows",
     items: [
-      { icon: Code, title: "API Reference", description: "Full REST API: debates, deliberation, agents, personas, analytics. All endpoints with request/response schemas and SSE events.", href: "/docs/api" },
-      { icon: Terminal, title: "CLI Reference", description: "12 commands, 20+ slash commands, 5 output formats. Interactive chat, benchmarks, sessions, decision extraction.", href: "/docs/cli" },
-      { icon: Package, title: "Python SDK", description: "Sync and async clients, streaming, automatic retries, Pydantic types. Full method reference with examples.", href: "/docs/python-sdk" },
-      { icon: Package, title: "TypeScript SDK", description: "Full TypeScript support, typed errors, SSE streaming, AsyncIterable. Complete type definitions.", href: "/docs/typescript-sdk" },
-      { icon: Layers, title: "Architecture", description: "System design, data flow, database schema, SSE streaming, auth flow, CI/CD pipeline, error handling.", href: "/docs/architecture" },
+      {
+        icon: Code,
+        title: "API Reference",
+        description:
+          "Full REST API: debates, deliberation, agents, personas, analytics. All endpoints with request/response schemas and SSE events.",
+        href: "/docs/api",
+      },
+      {
+        icon: Terminal,
+        title: "CLI Reference",
+        description:
+          "12 commands, 20+ slash commands, 5 output formats. Interactive chat, benchmarks, sessions, decision extraction.",
+        href: "/docs/cli",
+      },
+      {
+        icon: Package,
+        title: "Python SDK",
+        description:
+          "Sync and async clients, streaming, automatic retries, Pydantic types. Full method reference with examples.",
+        href: "/docs/python-sdk",
+      },
+      {
+        icon: Package,
+        title: "TypeScript SDK",
+        description:
+          "Full TypeScript support, typed errors, SSE streaming, AsyncIterable. Complete type definitions.",
+        href: "/docs/typescript-sdk",
+      },
+      {
+        icon: Layers,
+        title: "Architecture",
+        description:
+          "System design, data flow, database schema, SSE streaming, auth flow, CI/CD pipeline, error handling.",
+        href: "/docs/architecture",
+      },
     ],
   },
   {
     title: "For Integrators",
-    description: "Deploy, customize, and extend Consilium for your organization",
+    description: "Customize and extend Consilium for your organization",
     items: [
-      { icon: Server, title: "Self-Hosting", description: "Docker Compose deployment, all environment variables, service architecture, health checks, production tips.", href: "/docs/self-hosting" },
-      { icon: FileText, title: "Vertical Templates", description: "6 pre-built templates: Code Review, Research, Risk, Healthcare, Legal, Finance — with rubrics, modes, and system prompts.", href: "/docs/templates" },
-      { icon: Blocks, title: "Deployment", description: "Self-hosting, Docker Compose, environment variables, production operations, and health checks.", href: "/docs/self-hosting" },
+      {
+        icon: FileText,
+        title: "Vertical Templates",
+        description:
+          "6 pre-built templates: Code Review, Research, Risk, Healthcare, Legal, Finance — with rubrics, modes, and system prompts.",
+        href: "/docs/templates",
+      },
     ],
   },
 ];
 
 const notionDocs = [
-  { icon: BookOpen, title: "What is Consilium", description: "Product overview and core concepts", href: "/docs/notion/what-is-consilium" },
-  { icon: FileText, title: "FAQ", description: "Frequently asked questions", href: "/docs/notion/faq" },
-  { icon: Shield, title: "Security & Privacy", description: "Trust center, encryption, data handling", href: "/docs/notion/security" },
-  { icon: Globe, title: "Research", description: "Peer-reviewed papers behind each mode", href: "/docs/notion/research" },
+  {
+    icon: BookOpen,
+    title: "What is Consilium",
+    description: "Product overview and core concepts",
+    href: "/docs/notion/what-is-consilium",
+  },
+  {
+    icon: FileText,
+    title: "FAQ",
+    description: "Frequently asked questions",
+    href: "/docs/notion/faq",
+  },
+  {
+    icon: Shield,
+    title: "Security & Privacy",
+    description: "Trust center, encryption, data handling",
+    href: "/docs/notion/security",
+  },
+  {
+    icon: Globe,
+    title: "Research",
+    description: "Peer-reviewed papers behind each mode",
+    href: "/docs/notion/research",
+  },
 ];
 
 const quickLinks = [
-  { icon: Users, title: "Use Cases", description: "How teams use deliberation in practice", href: "/use-cases" },
-  { icon: Globe, title: "Research", description: "Peer-reviewed papers behind Consilium", href: "/docs/notion/research" },
-  { icon: Wrench, title: "Community", description: "Contribute, discuss, and get help", href: "/community" },
+  {
+    icon: Users,
+    title: "Use Cases",
+    description: "How teams use deliberation in practice",
+    href: "/use-cases",
+  },
+  {
+    icon: Globe,
+    title: "Research",
+    description: "Peer-reviewed papers behind Consilium",
+    href: "/docs/notion/research",
+  },
 ];
 
 export const metadata: Metadata = buildMetadata({
   title: "Documentation",
   description:
-    "Consilium documentation — get started, understand the debate modes, integrate the API, CLI, Python SDK, TypeScript SDK, and self-host your own council.",
+    "Consilium documentation — get started, understand the debate modes, and integrate via the API, CLI, Python SDK, or TypeScript SDK.",
   path: "/docs",
   keywords: ["consilium docs", "ai council docs", "multi-agent api"],
 });
@@ -79,7 +169,12 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Documentation", item: `${SITE_URL}/docs` },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Documentation",
+      item: `${SITE_URL}/docs`,
+    },
   ],
 };
 
@@ -92,11 +187,10 @@ export default function DocsPage() {
       />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Documentation
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Documentation</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to understand, integrate, deploy, and extend Consilium — organized by audience.
+            Everything you need to understand, integrate, deploy, and extend
+            Consilium — organized by audience.
           </p>
         </div>
       </section>
@@ -107,7 +201,9 @@ export default function DocsPage() {
             <div key={section.title}>
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">{section.title}</h2>
-                <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {section.description}
+                </p>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 {section.items.map((item) => {
@@ -123,7 +219,9 @@ export default function DocsPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <CardDescription className="text-sm leading-relaxed">{item.description}</CardDescription>
+                          <CardDescription className="text-sm leading-relaxed">
+                            {item.description}
+                          </CardDescription>
                         </CardContent>
                       </Card>
                     </Link>
@@ -136,7 +234,9 @@ export default function DocsPage() {
           <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold">From Notion</h2>
-              <p className="text-sm text-muted-foreground mt-1">Live content from our documentation workspace</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Live content from our documentation workspace
+              </p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               {notionDocs.map((item) => {
@@ -152,7 +252,9 @@ export default function DocsPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <CardDescription className="text-sm leading-relaxed">{item.description}</CardDescription>
+                        <CardDescription className="text-sm leading-relaxed">
+                          {item.description}
+                        </CardDescription>
                       </CardContent>
                     </Card>
                   </Link>
@@ -174,7 +276,9 @@ export default function DocsPage() {
                         <CardTitle className="text-sm">{item.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <CardDescription className="text-xs">{item.description}</CardDescription>
+                        <CardDescription className="text-xs">
+                          {item.description}
+                        </CardDescription>
                       </CardContent>
                     </Card>
                   </Link>

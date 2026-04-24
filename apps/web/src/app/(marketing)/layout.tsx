@@ -4,10 +4,8 @@ import { MarketingFooter } from "@/components/layout/marketing-footer";
 const navItems = [
   { title: "How It Works", href: "/#how-it-works" },
   { title: "Modes", href: "/#modes" },
-  { title: "SDK", href: "/#sdk" },
   { title: "Blog", href: "/blog" },
   { title: "About", href: "/about" },
-  { title: "GitHub", href: "https://github.com/skadri1601/Consilium", external: true },
 ];
 
 export default function MarketingLayout({
@@ -22,11 +20,9 @@ export default function MarketingLayout({
       <MarketingFooter
         builtBy="Saad Kadri"
         builtByLink="https://saadkadri.dev"
-        githubLink="https://github.com/skadri1601/"
         twitterLink="https://twitter.com"
         linkedinLink="https://www.linkedin.com/in/saad-kadri-58b8bb205/"
       />
     </div>
   );
 }
-

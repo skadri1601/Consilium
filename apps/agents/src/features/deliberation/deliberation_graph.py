@@ -403,6 +403,7 @@ class DeliberationEngine:
         self.sse_handler = sse_handler
         self.rubric = DEFAULT_RUBRIC
         self.project_context = project_context
+        self.routing_decision: Optional[dict] = None
         self.state: DeliberationState = self._init_state("")
         self._proposals_history: list[list[Proposal]] = []
         self._votes_history: list[list[Vote]] = []
@@ -430,6 +431,7 @@ class DeliberationEngine:
             golden_prompt=None,
             red_team_report=None,
             market_result=None,
+            routing_decision=self.routing_decision,
         )
 
     def _sse(self, event: str, data: Any) -> None:
@@ -511,11 +513,27 @@ class DeliberationEngine:
         if _HAS_ROUTER:
             decision = _route_auto(topic, available_models=self.models)
             resolved = DeliberationMode(decision.mode)
+            self.routing_decision = {
+                "original_mode": "auto",
+                "resolved_mode": decision.mode,
+                "reason": decision.reason,
+                "complexity_score": decision.complexity_score,
+                "features": decision.features,
+                "estimated_cost": decision.estimated_cost,
+                "council_cost_baseline": decision.council_cost_baseline,
+                "num_models": decision.models,
+            }
         else:
             resolved = DeliberationMode.COUNCIL
+            self.routing_decision = {
+                "original_mode": "auto",
+                "resolved_mode": "council",
+                "reason": "router unavailable, defaulting to council",
+            }
         self.mode = resolved
         self.max_rounds = MAX_ROUNDS_BY_MODE.get(resolved, 3)
         _logger.info("AUTO resolved to %s (max_rounds=%d)", resolved, self.max_rounds)
+        self._sse("routing:decided", self.routing_decision)
 
     async def run(self, topic: str) -> DeliberationState:
         if self.mode == DeliberationMode.AUTO:
