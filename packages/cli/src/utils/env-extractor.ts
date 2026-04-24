@@ -52,7 +52,12 @@ export function extractEnvMetadata(projectDir: string): EnvMetadata | null {
           }
         }
       }
-    } catch {}
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code && code !== "ENOENT") {
+        console.warn(`[consilium] env extraction skipped: ${code}`);
+      }
+    }
   }
 
   if (foundVars.size === 0) return null;

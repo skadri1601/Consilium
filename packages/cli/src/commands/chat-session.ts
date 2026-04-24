@@ -84,6 +84,7 @@ export class ChatSession {
 
     for (let i = previous.length - 1; i >= 0; i--) {
       const d = previous[i];
+      if (!d) continue;
       const block = `--- Turn ${i + 1}: ${d.topic} ---\n${d.goldenPrompt ?? ''}\n`;
       if (usedChars + block.length > MAX_CONTEXT_CHARS) break;
       included.unshift(block);
@@ -97,7 +98,9 @@ export class ChatSession {
       const older = previous.slice(0, firstIncludedIdx);
       parts.push(`[Earlier turns — topics only]\n`);
       for (let i = 0; i < older.length; i++) {
-        parts.push(`  Turn ${i + 1}: ${older[i].topic}`);
+        const turn = older[i];
+        if (!turn) continue;
+        parts.push(`  Turn ${i + 1}: ${turn.topic}`);
       }
       parts.push('');
     }

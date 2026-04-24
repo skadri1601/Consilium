@@ -182,7 +182,12 @@ function loadGitignorePatterns(projectPath: string): Set<string> {
         patterns.add(trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed);
       }
     }
-  } catch {}
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code && code !== "ENOENT") {
+      console.warn(`[consilium] .gitignore read skipped: ${code}`);
+    }
+  }
   return patterns;
 }
 

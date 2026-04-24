@@ -24,12 +24,19 @@ import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
+import {
+  listDebatesCommand,
+  cancelDebateCommand,
+  startDebateCommand,
+  streamDebateCommand,
+} from "./commands/debates.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
 
 const st = style();
 const KNOWN_SUBCOMMANDS = [
   "debate",
+  "debates",
   "ask",
   "chat",
   "config",
@@ -189,6 +196,49 @@ async function main(): Promise<void> {
     .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  const debates = program
+    .command("debates")
+    .description("List and manage your debate sessions");
+
+  debates
+    .command("list")
+    .description("List your recent debates")
+    .option("-l, --limit <n>", "Number of results (max 100)", "20")
+    .option("--offset <n>", "Pagination offset", "0")
+    .option("--search <query>", "Filter by topic substring")
+    .option("--json", "Output as JSON")
+    .action(listDebatesCommand);
+
+  debates
+    .command("cancel")
+    .description("Cancel an in-progress debate")
+    .argument("<debateId>", "Debate ID (e.g., dbt_01HY3K...)")
+    .option("--deliberation", "Cancel a deliberation session instead of a classic debate")
+    .action(cancelDebateCommand);
+
+  debates
+    .command("start")
+    .description("Create a debate without streaming (fire-and-forget)")
+    .argument("<topic>", "Topic to debate")
+    .option("-m, --models <models...>", "Models to use")
+    .option(
+      "--mode <mode>",
+      "Debate mode: quick, council, deep, blind, redteam, jury, market, auto (default: auto)",
+    )
+    .option("--json", "Output result as JSON")
+    .option("--file <paths...>", "Files to attach as context")
+    .option("--git-diff", "Include git diff in context")
+    .option("--no-context", "Disable automatic codebase context loading")
+    .option("--ticket <id>", "Linear ticket ID to include as context")
+    .action(startDebateCommand);
+
+  debates
+    .command("stream")
+    .description("Attach to a running debate's SSE stream")
+    .argument("<debateId>", "Debate or deliberation ID")
+    .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
+    .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const sessionManager = new SessionManager(sessionDir);

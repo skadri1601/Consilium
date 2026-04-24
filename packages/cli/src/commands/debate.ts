@@ -237,15 +237,27 @@ function warnDebateCommandOptions(
   }
 }
 
-function logStreamFailureHints(msg: string): void {
+function logStreamFailureHints(error: unknown): void {
+  const msg = error instanceof Error ? error.message : String(error);
+  const status =
+    error && typeof error === 'object' && 'status' in error
+      ? (error as { status?: number }).status
+      : error && typeof error === 'object' && 'httpStatus' in error
+        ? (error as { httpStatus?: number }).httpStatus
+        : undefined;
+
   if (msg.includes('ECONNREFUSED')) {
     console.log(st.warning('Make sure the Consilium backend is running.'));
     console.log(st.dim('Try: docker-compose up\n'));
     return;
   }
-  if (msg.includes('401') || msg.includes('403')) {
-    console.log(st.warning('Authentication failed. Configure your API key:'));
+  if (status === 401 || status === 403) {
+    console.log(st.warning('Authentication failed. Run consilium login or configure your API key:'));
     console.log(st.dim('consilium config set apiKey "your-key"\n'));
+    return;
+  }
+  if (status === 404) {
+    console.log(st.warning('Debate not found. It may have been deleted or the ID is wrong.\n'));
     return;
   }
   if (msg.includes('timeout') || msg.includes('Timeout')) {
@@ -373,7 +385,7 @@ async function runClassicDebateFlow(
     const msg = error instanceof Error ? error.message : 'Unknown error';
     log('ERROR', 'debate_failed', { debateId: debate.id, error: msg, durationMs: Date.now() - debateStartTime });
     console.log(st.error('\n  Error: ' + msg + '\n'));
-    logStreamFailureHints(msg);
+    logStreamFailureHints(error);
     process.exit(1);
   } finally {
     process.removeListener('SIGINT', sigintHandler);
@@ -387,7 +399,7 @@ async function runClassicDebateFlow(
   return goldenPrompt;
 }
 
-async function loadWorkspaceContext(
+export async function loadWorkspaceContext(
   options: DebateCommandOptions,
 ): Promise<WorkspaceDebateContext | null> {
   const ctx = await loadWorkspaceDebateContext({
@@ -523,7 +535,7 @@ async function runDeliberation(
     const msg = error instanceof Error ? error.message : 'Unknown error';
     log('ERROR', 'deliberation_failed', { debateId: deliberation.id, error: msg, durationMs: Date.now() - startTime });
     console.log(st.error('\n  Error: ' + msg + '\n'));
-    logStreamFailureHints(msg);
+    logStreamFailureHints(error);
     process.exit(1);
   }
 
