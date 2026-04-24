@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Resend } from "resend";
 
 @Injectable()
@@ -7,13 +8,15 @@ export class EmailService {
   private readonly resend: Resend | null;
   private readonly fromAddress: string;
 
-  constructor() {
-    const apiKey = process.env.RESEND_API_KEY;
+  constructor(private readonly configService: ConfigService) {
+    const apiKey = this.configService.get<string>("RESEND_API_KEY");
     this.fromAddress =
-      process.env.RESEND_FROM_ADDRESS || "Saad at Consilium <saad@myconsilium.xyz>";
+      this.configService.get<string>("RESEND_FROM_ADDRESS") ||
+      "Saad at Consilium <saad@myconsilium.xyz>";
 
     if (apiKey) {
       this.resend = new Resend(apiKey);
+      this.logger.log("Email service initialized with Resend");
     } else {
       this.resend = null;
       this.logger.warn("RESEND_API_KEY not set, email sending disabled");
@@ -25,7 +28,7 @@ export class EmailService {
     firstName: string,
   ): Promise<{ success: boolean }> {
     if (!this.resend) {
-      this.logger.debug("Email service not configured, skipping welcome email");
+      this.logger.warn(`Welcome email skipped for ${to} — Resend not configured`);
       return { success: false };
     }
 
@@ -49,7 +52,7 @@ export class EmailService {
 
   private buildWelcomeHtml(firstName: string): string {
     const name = firstName || "there";
-    const appUrl = process.env.APP_URL || "https://myconsilium.xyz";
+    const appUrl = this.configService.get<string>("APP_URL") || "https://myconsilium.xyz";
 
     return `<!DOCTYPE html>
 <html>

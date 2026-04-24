@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import readline from 'node:readline';
 import logUpdate from 'log-update';
 import { ConsiliumClient, DebateEvent, DebateOptions, DeliberationEvent } from '../api/client';
 import {
@@ -475,6 +476,42 @@ export async function debateCommand(
 
   if (options.apply) {
     await maybeApplySynthesisEdits(synthesis, wsContext?.rootPath || resolveProjectRoot(process.cwd()).root);
+  }
+
+  if (terminal.isTTY && !options.apply) {
+    await offerFollowUp(client, synthesis, mode, models, outputFormat, wsContext);
+  }
+}
+
+async function offerFollowUp(
+  client: ConsiliumClient,
+  previousSynthesis: string,
+  mode: DebateMode,
+  models: string[],
+  outputFormat: OutputFormat,
+  wsContext?: WorkspaceDebateContext | null,
+): Promise<void> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const ask = (q: string): Promise<string> => new Promise((r) => rl.question(q, r));
+
+  while (true) {
+    const followUp = await ask(st.dim('\nFollow-up (or Enter to exit): '));
+    if (!followUp.trim()) {
+      rl.close();
+      return;
+    }
+
+    const contextualTopic = `Previous answer:\n${previousSynthesis.slice(0, 4000)}\n\nFollow-up question: ${followUp.trim()}`;
+    const useLiveProgress = terminal.isTTY && !terminal.usePlain;
+    const useDeliberation = ['redteam', 'jury', 'market'].includes(mode);
+
+    let synthesis = '';
+    if (useDeliberation) {
+      synthesis = await runDeliberation(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext);
+    } else {
+      synthesis = await runClassicDebateFlow(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext);
+    }
+    previousSynthesis = synthesis;
   }
 }
 

@@ -19,6 +19,7 @@ interface CouncilState {
   selectedAgents: string[];
   mode: CouncilMode;
   isLoading: boolean;
+  conversationId: string | null;
   _defaultsLoaded: boolean;
   addMessage: (message: Omit<CouncilMessage, "id" | "timestamp">) => void;
   clearMessages: () => void;
@@ -26,6 +27,8 @@ interface CouncilState {
   toggleAgent: (agentId: string) => void;
   setMode: (mode: CouncilMode) => void;
   setLoading: (loading: boolean) => void;
+  setConversationId: (id: string | null) => void;
+  newConversation: () => void;
   loadDefaults: (prefs: { defaultAgents: string[]; defaultMode: CouncilMode }) => void;
 }
 
@@ -34,6 +37,7 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
   selectedAgents: [],
   mode: "council",
   isLoading: false,
+  conversationId: null,
   _defaultsLoaded: false,
 
   addMessage: (message) =>
@@ -48,7 +52,7 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
       ],
     })),
 
-  clearMessages: () => set({ messages: [] }),
+  clearMessages: () => set({ messages: [], conversationId: null }),
 
   setSelectedAgents: (agents) => set({ selectedAgents: agents }),
 
@@ -62,6 +66,10 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
   setMode: (mode) => set({ mode }),
 
   setLoading: (loading) => set({ isLoading: loading }),
+
+  setConversationId: (id) => set({ conversationId: id }),
+
+  newConversation: () => set({ messages: [], conversationId: null }),
 
   loadDefaults: (prefs) => {
     if (get()._defaultsLoaded) return;

@@ -90,7 +90,7 @@ export function CouncilChat() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents, mode, setMode } = useCouncilStore();
+  const { messages, selectedAgents, addMessage, isLoading, setLoading, loadDefaults, setSelectedAgents, mode, setMode, conversationId, setConversationId } = useCouncilStore();
   const { isLoaded: isAuthLoaded } = useAuth();
   const { preferences, isLoaded: isPrefsLoaded } = useUserPreferences();
   const selectedAgentNames = selectedAgents.map(
@@ -214,6 +214,7 @@ export function CouncilChat() {
           topic,
           models: selectedAgents,
           mode,
+          ...(conversationId && { conversationId }),
           ...(selectedPersonaId && { personaId: selectedPersonaId }),
         }),
       });
@@ -226,6 +227,9 @@ export function CouncilChat() {
 
       const debate = await createResponse.json();
       setDebateId(debate.id);
+      if (debate.conversationId) {
+        setConversationId(debate.conversationId);
+      }
 
       const eventSource = new EventSource(
         `/api/debates/${debate.id}/stream`

@@ -358,7 +358,7 @@ export class DebatesService {
       where: { id },
       data: {
         status,
-        ...(goldenPrompt && { goldenPrompt }),
+        ...(goldenPrompt !== undefined && { goldenPrompt }),
       },
     });
   }
