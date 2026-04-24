@@ -52,8 +52,17 @@ export interface RedTeamOptions {
   categories?: string[];
 }
 
+export interface RoutingFallbackResolution {
+  requested_model: string;
+  requested_provider?: string | null;
+  effective_model: string;
+  effective_provider: string;
+  is_fallback: boolean;
+  fallback_reason?: string | null;
+}
+
 export interface DeliberationEvent {
-  type: 'deliberation_start' | 'phase_change' | 'model_progress' | 'convergence_update' | 'dissent_detected' | 'vote_cast' | 'cost_update' | 'deliberation_complete' | 'done' | 'error' | 'tool:call_request' | 'tool:call_completed' | 'tool:call_failed' | 'routing:tools_available';
+  type: 'deliberation_start' | 'phase_change' | 'model_progress' | 'convergence_update' | 'dissent_detected' | 'vote_cast' | 'cost_update' | 'deliberation_complete' | 'done' | 'error' | 'tool:call_request' | 'tool:call_completed' | 'tool:call_failed' | 'routing:tools_available' | 'routing:fallback';
   phase?: string;
   agent?: string;
   text?: string;
@@ -73,6 +82,8 @@ export interface DeliberationEvent {
   bytes?: number;
   reason?: string;
   toolCount?: number;
+  message?: string;
+  resolutions?: RoutingFallbackResolution[];
 }
 
 export interface DebateEvent {
@@ -575,6 +586,8 @@ export class ConsiliumClient {
         dissent: data['dissent'] as DeliberationEvent['dissent'],
         vote: data['vote'] as DeliberationEvent['vote'],
         cost: data['cost'] as DeliberationEvent['cost'],
+        message: str('message'),
+        resolutions: data['resolutions'] as RoutingFallbackResolution[] | undefined,
       };
       onEvent(deliberationEvent);
 

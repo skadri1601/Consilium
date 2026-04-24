@@ -542,12 +542,43 @@ class DeliberationEngine:
         _logger.info("AUTO resolved to %s (max_rounds=%d)", resolved, self.max_rounds)
         self._sse("routing:decided", self.routing_decision)
 
+    def _emit_free_tier_resolutions(self) -> None:
+        """If any of the debate's models will run through free-tier
+        fallback, surface the decision as a routing:fallback SSE event
+        so the CLI / web UI can inform the user transparently."""
+        if not _HAS_AGENT_FACTORY:
+            return
+        try:
+            fallbacks = []
+            for model_id in list(self.models) + [self.judge_model]:
+                try:
+                    resolution = AgentFactory.resolve(model_id, self.api_keys or {})
+                except Exception:
+                    continue
+                if resolution.is_fallback:
+                    fallbacks.append(resolution.to_event_payload())
+            if fallbacks:
+                self._sse(
+                    "routing:fallback",
+                    {
+                        "count": len(fallbacks),
+                        "resolutions": fallbacks,
+                        "message": (
+                            f"{len(fallbacks)} model(s) routed to Consilium free tier; "
+                            "set your own provider API key(s) to use the originally requested models."
+                        ),
+                    },
+                )
+        except Exception as exc:
+            _logger.warning("Free-tier resolution emit failed: %s", exc)
+
     async def run(self, topic: str) -> DeliberationState:
         if self.mode == DeliberationMode.AUTO:
             self._resolve_auto_mode(topic)
         self.state = self._init_state(topic)
         self._proposals_history = []
         self._votes_history = []
+        self._emit_free_tier_resolutions()
         phase = Phase.PROPOSAL
 
         while True:

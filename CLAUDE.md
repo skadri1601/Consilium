@@ -46,6 +46,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 - **Monitoring**: Sentry (consilium-pi org)
 - **CI**: GitHub Actions (lint, typecheck, security, Claude Code review)
 - **Linear**: Project management (MYC- ticket prefix)
+- **Free-tier fallback**: BYOK always wins. When a debate request has no key for the requested provider (and no self-hosted `*_API_KEY` env var), the agents service routes through a platform-hosted pool: `CONSILIUM_FREE_TIER_GROQ_KEY` preferred, `CONSILIUM_FREE_TIER_OPENROUTER_KEY` as backup. Tier is inferred from catalog cost (fast / balanced / deep) and routed to an equivalent free model. Resolution logic lives in `apps/agents/src/features/free_tier/resolver.py`; fallback is surfaced via the `routing:fallback` SSE event and a CLI pre-flight notice in `packages/cli/src/commands/debate.ts`.
 
 ## Code Conventions
 
