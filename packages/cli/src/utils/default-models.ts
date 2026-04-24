@@ -34,8 +34,9 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
 
   { id: "gemini-3.1-pro-preview", provider: "google", tier: "deep", status: "preview", notes: "current main text model" },
   { id: "gemini-3-flash-preview", provider: "google", tier: "fast", status: "preview" },
-  { id: "gemini-2.0-flash", provider: "google", tier: "fast", status: "deprecated", notes: "shutdown 2026-06-01" },
-  { id: "gemini-1.5-pro", provider: "google", tier: "balanced", status: "retired", notes: "404 on Gemini API" },
+  { id: "gemini-2.5-pro", provider: "google", tier: "deep", status: "deprecated", notes: "shutdown 2026-06-17 — migrate to gemini-3.1-pro-preview" },
+  { id: "gemini-2.5-flash", provider: "google", tier: "fast", status: "deprecated", notes: "shutdown 2026-06-17 — migrate to gemini-3-flash-preview" },
+  { id: "gemini-2.0-flash", provider: "google", tier: "fast", status: "deprecated", notes: "shutdown 2026-06-01 — migrate to gemini-3-flash-preview" },
 
   { id: "llama-3.3-70b-versatile", provider: "groq", tier: "balanced", status: "current" },
   { id: "llama-3.1-8b-instant", provider: "groq", tier: "fast", status: "current" },
@@ -55,9 +56,10 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
   { id: "moonshotai/Kimi-K2-Instruct", provider: "moonshot", tier: "balanced", status: "current", notes: "open-weights variant" },
 
   { id: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier via OpenRouter community pool" },
-  { id: "google/gemini-flash-1.5:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier" },
+  { id: "google/gemma-2-9b-it:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier (Gemma 2)" },
   { id: "mistralai/mistral-7b-instruct:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier" },
   { id: "nvidia/nemotron-4-340b-instruct:free", provider: "openrouter", tier: "deep", status: "current", notes: "free tier" },
+  { id: "qwen/qwen-2.5-72b-instruct:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier (Qwen 2.5)" },
 ];
 
 export function findCatalogEntry(id: string): CatalogEntry | undefined {

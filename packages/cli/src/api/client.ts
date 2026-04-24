@@ -303,7 +303,7 @@ export class ConsiliumClient {
     try {
       const body: Record<string, any> = {
         topic: options.topic,
-        models: options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
+        models: options.models || ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'],
       };
       if (options.mode) body.mode = options.mode;
       body.debateSource = options.debateSource ?? 'cli';

@@ -27,9 +27,10 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   'claude-haiku': 'anthropic',
   'gemini-pro': 'google',
   'gemini-flash': 'google',
-  'gemini-2.5-pro': 'google',
-  'grok-2': 'xai',
-  'grok-3': 'xai',
+  'gemini-3.1-pro-preview': 'google',
+  'gemini-3-flash-preview': 'google',
+  'grok-4.20': 'xai',
+  'grok-4-1-fast-reasoning': 'xai',
 };
 
 const JUDGE_PRIORITY: Provider[] = ['anthropic', 'google', 'openai', 'xai'];

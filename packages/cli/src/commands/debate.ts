@@ -457,7 +457,7 @@ export async function debateCommand(
 
   warnDebateCommandOptions(options, mode, outputFormat);
 
-  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
+  const models = options.models || ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'];
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
 
