@@ -275,6 +275,7 @@ async function main(): Promise<void> {
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context")
+    .option("--mcp-tools", "Expose configured MCP servers' tools to the council (experimental)")
     .action(startDebateCommand);
 
   debates
@@ -282,6 +283,7 @@ async function main(): Promise<void> {
     .description("Attach to a running debate's SSE stream")
     .argument("<debateId>", "Debate or deliberation ID")
     .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
+    .option("--mcp-tools", "Handle tool:call_request events via local MCP servers (experimental)")
     .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
