@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator
 from typing import Optional, Tuple
-from .base_agent import BaseAgent
+from ._openai_compat import run_openai_tool_loop
+from .base_agent import BaseAgent, ToolDefinition, ToolExecutor, ToolUseResponse
 
 
 class XAIAgent(BaseAgent):
@@ -85,6 +86,29 @@ class XAIAgent(BaseAgent):
         finally:
             if http_client:
                 await http_client.aclose()
+
+    async def generate_with_tools(
+        self,
+        query: str,
+        tools: list[ToolDefinition],
+        executor: ToolExecutor,
+        system_prompt: Optional[str] = None,
+        max_tool_calls_per_turn: int = 5,
+    ) -> ToolUseResponse:
+        if not self._validate_api_key():
+            self._raise_no_api_key()
+        try:
+            return await run_openai_tool_loop(
+                model_id=self.model_id,
+                query=query,
+                tools=tools,
+                executor=executor,
+                system_prompt=system_prompt or self.get_system_prompt(),
+                client_factory=self._create_openai_client,
+                max_tool_calls_per_turn=max_tool_calls_per_turn,
+            )
+        except Exception as e:
+            self._handle_common_errors(e, "tool-use")
 
     async def health_check(self) -> bool:
         """Check if X.AI API is accessible."""
