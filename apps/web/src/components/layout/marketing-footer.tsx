@@ -59,7 +59,7 @@ export function MarketingFooter(props: MarketingFooterProps) {
             </div>
           </div>
 
-          <div className="mt-16 grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mx-auto mt-16 grid max-w-4xl grid-cols-2 gap-8 text-center md:grid-cols-4">
             {Object.entries(footerLinks).map(([category, links]) => (
               <div key={category}>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-200">
