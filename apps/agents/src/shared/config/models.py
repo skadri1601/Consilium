@@ -42,8 +42,8 @@ AVAILABLE_MODELS = {
         {
             "id": "claude-haiku-4-5-20251001",
             "name": "Claude Haiku 4.5",
-            "input_cost": 0.80,
-            "output_cost": 4.00,
+            "input_cost": 1.00,
+            "output_cost": 5.00,
         },
         {
             "id": "claude-sonnet-4-6",
@@ -54,17 +54,23 @@ AVAILABLE_MODELS = {
         {
             "id": "claude-opus-4-6",
             "name": "Claude Opus 4.6",
-            "input_cost": 15.00,
-            "output_cost": 75.00,
+            "input_cost": 5.00,
+            "output_cost": 25.00,
         },
         {
             "id": "claude-opus-4-7",
             "name": "Claude Opus 4.7",
-            "input_cost": 15.00,
-            "output_cost": 75.00,
+            "input_cost": 5.00,
+            "output_cost": 25.00,
         },
     ],
     "google": [
+        {
+            "id": "gemini-3.1-flash-lite-preview",
+            "name": "Gemini 3.1 Flash-Lite",
+            "input_cost": 0.05,
+            "output_cost": 0.20,
+        },
         {
             "id": "gemini-3-flash-preview",
             "name": "Gemini 3 Flash",
@@ -205,8 +211,11 @@ MODEL_ALIASES = {
     "gemini-1.5-pro": "gemini-3.1-pro-preview",
     "gemini-1.5-flash": "gemini-3-flash-preview",
     "gemini-2.0-flash": "gemini-3-flash-preview",
+    "gemini-2.0-flash-lite": "gemini-3.1-flash-lite-preview",
     "gemini-2.5-pro": "gemini-3.1-pro-preview",
     "gemini-2.5-flash": "gemini-3-flash-preview",
+    "gemini-2.5-flash-lite": "gemini-3.1-flash-lite-preview",
+    "gemini-3-pro-preview": "gemini-3.1-pro-preview",
     "gemini-exp-1206": "gemini-3-flash-preview",
     # xAI
     "grok-beta": "grok-4.20",
