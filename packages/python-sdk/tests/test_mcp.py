@@ -245,3 +245,125 @@ class TestJsonRpcFallback:
         with patch.object(mcp, "CONSILIUM_API_KEY", ""):
             h = mcp._headers()
         assert "Authorization" not in h
+
+
+class TestSafeErrorMessage:
+    def test_auth_friendly_401(self):
+        import httpx
+
+        response = httpx.Response(status_code=401, text="no")
+        exc = httpx.HTTPStatusError("401", request=httpx.Request("GET", "http://x"), response=response)
+        msg = mcp._safe_error_message(exc)
+        assert "Authentication failed" in msg
+        assert "consilium login" in msg
+
+    def test_rate_limit_429(self):
+        import httpx
+
+        response = httpx.Response(status_code=429, text="slow down")
+        exc = httpx.HTTPStatusError("429", request=httpx.Request("GET", "http://x"), response=response)
+        assert "429" in mcp._safe_error_message(exc)
+
+    def test_consilium_error_passthrough(self):
+        msg = mcp._safe_error_message(mcp.ConsiliumError("explicit failure"))
+        assert msg == "explicit failure"
+
+    def test_generic_fallback(self):
+        msg = mcp._safe_error_message(RuntimeError("boom"))
+        assert "RuntimeError" in msg
+
+
+class TestInputValidation:
+    def test_deliberate_rejects_missing_topic(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_deliberate({}))
+
+    def test_deliberate_rejects_non_list_models(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_deliberate({"topic": "x", "models": "gpt-4"}))
+
+    def test_deliberate_rejects_empty_models_list(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_deliberate({"topic": "x", "models": []}))
+
+    def test_red_team_rejects_missing_content(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_red_team({}))
+
+    def test_blind_eval_rejects_missing_topic(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_blind_eval({"responses": {}}))
+
+    def test_blind_eval_rejects_missing_responses(self):
+        with pytest.raises(mcp.ConsiliumError):
+            _run(mcp.handle_blind_eval({"topic": "x"}))
+
+    def test_deliberate_rejects_missing_sid(self):
+        async def fake_post(path: str, body: dict):
+            return {"no_id_here": True}
+
+        with patch.object(mcp, "_post_json", fake_post):
+            with pytest.raises(mcp.ConsiliumError):
+                _run(mcp.handle_deliberate({"topic": "x"}))
+
+
+class TestStreamingForAllTools:
+    def test_red_team_uses_stream_deliberation(self):
+        captured: dict[str, Any] = {}
+
+        async def fake_post(path: str, body: dict):
+            captured["path"] = path
+            return {"id": "rt_1"}
+
+        async def fake_stream(sid: str, on_event=None):
+            captured["sid"] = sid
+            return {"id": sid}
+
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
+            _run(mcp.handle_red_team({"content": "evaluate this"}))
+        assert captured["sid"] == "rt_1"
+        assert captured["path"] == "/api/v1/deliberation/redteam"
+
+    def test_blind_eval_uses_stream_deliberation(self):
+        captured: dict[str, Any] = {}
+
+        async def fake_post(path: str, body: dict):
+            captured["path"] = path
+            return {"id": "be_1"}
+
+        async def fake_stream(sid: str, on_event=None):
+            captured["sid"] = sid
+            return {"id": sid}
+
+        with patch.object(mcp, "_post_json", fake_post), patch.object(mcp, "_stream_deliberation", fake_stream):
+            _run(mcp.handle_blind_eval({"topic": "q", "responses": {"a": "1"}}))
+        assert captured["sid"] == "be_1"
+
+
+class TestTimeoutEnv:
+    def test_poll_uses_default_timeout_when_none(self):
+        sleep_calls = []
+
+        async def fake_get(path: str):
+            return {"status": "completed"}
+
+        async def fake_sleep(s):
+            sleep_calls.append(s)
+
+        with patch.object(mcp, "_get_json", fake_get), patch.object(mcp.asyncio, "sleep", fake_sleep):
+            result = _run(mcp._poll_deliberation("sess_1"))
+        assert result["status"] == "completed"
+
+    def test_poll_timeout_message_mentions_env_var(self):
+        async def fake_get(path: str):
+            return {"status": "pending"}
+
+        async def fake_sleep(s):
+            pass
+
+        with patch.object(mcp, "_get_json", fake_get), patch.object(
+            mcp.asyncio, "sleep", fake_sleep
+        ), patch.object(mcp, "DEFAULT_DELIBERATION_TIMEOUT", 0.0):
+            with pytest.raises(TimeoutError) as exc_info:
+                _run(mcp._poll_deliberation("sess_1"))
+        assert "CONSILIUM_DELIBERATION_TIMEOUT" in str(exc_info.value)

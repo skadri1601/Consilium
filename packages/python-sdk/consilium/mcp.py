@@ -11,11 +11,54 @@ CONSILIUM_API_URL = os.environ.get(
 ).rstrip("/")
 CONSILIUM_API_KEY = os.environ.get("CONSILIUM_API_KEY", "")
 
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name)
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+DEFAULT_DELIBERATION_TIMEOUT = _env_float("CONSILIUM_DELIBERATION_TIMEOUT", 900.0)
+
 DEFAULT_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001"]
 
 ALLOWED_MODES = frozenset(
     {"quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"}
 )
+
+
+class ConsiliumError(Exception):
+    """Raised for user-facing failures in MCP tool execution."""
+
+
+def _safe_error_message(exc: BaseException) -> str:
+    if isinstance(exc, ConsiliumError):
+        return str(exc)
+    import httpx
+
+    if isinstance(exc, httpx.HTTPStatusError):
+        status = exc.response.status_code
+        if status in (401, 403):
+            return "Authentication failed. Run `consilium login` or set CONSILIUM_API_KEY."
+        if status == 404:
+            return "Resource not found (404)."
+        if status == 429:
+            return "Rate limited by the Consilium API (429). Retry shortly."
+        if status >= 500:
+            return f"Consilium API error ({status}). Retry after a short wait."
+        return f"HTTP {status}: {exc.response.text[:200]}"
+    if isinstance(exc, httpx.ConnectError):
+        return f"Cannot reach {CONSILIUM_API_URL}. Check network and CONSILIUM_API_URL."
+    if isinstance(exc, httpx.TimeoutException):
+        return "Request timed out. Increase CONSILIUM_DELIBERATION_TIMEOUT if debates run long."
+    if isinstance(exc, TimeoutError):
+        return str(exc) or "Operation timed out."
+    return f"{type(exc).__name__}: {exc}"
 
 
 def _headers() -> dict[str, str]:
@@ -61,16 +104,23 @@ async def _post_empty(path: str) -> dict[str, Any]:
         return r.json()
 
 
-async def _poll_deliberation(session_id: str, timeout_s: float = 900.0) -> dict[str, Any]:
+async def _poll_deliberation(
+    session_id: str,
+    timeout_s: Optional[float] = None,
+) -> dict[str, Any]:
+    effective = timeout_s if timeout_s is not None else DEFAULT_DELIBERATION_TIMEOUT
     loop = asyncio.get_event_loop()
-    deadline = loop.time() + timeout_s
+    deadline = loop.time() + effective
     while loop.time() < deadline:
         data = await _get_json(f"/api/v1/deliberation/{session_id}")
         st = data.get("status")
         if st in ("completed", "failed", "archived"):
             return data
         await asyncio.sleep(2)
-    raise TimeoutError("Timed out waiting for deliberation to finish")
+    raise TimeoutError(
+        f"Timed out waiting for deliberation {session_id} after {int(effective)}s "
+        "(set CONSILIUM_DELIBERATION_TIMEOUT to raise the ceiling)"
+    )
 
 
 def _parse_sse_event(raw_block: str) -> Optional[dict[str, Any]]:
@@ -99,16 +149,17 @@ _TERMINAL_EVENTS = frozenset({"done", "deliberation_complete", "error"})
 async def _stream_deliberation(
     session_id: str,
     on_event: Optional[Any] = None,
-    timeout_s: float = 900.0,
+    timeout_s: Optional[float] = None,
 ) -> dict[str, Any]:
     import httpx
 
+    effective = timeout_s if timeout_s is not None else DEFAULT_DELIBERATION_TIMEOUT
     url = f"{CONSILIUM_API_URL}/api/v1/deliberation/{session_id}/stream"
     headers = {**_headers(), "Accept": "text/event-stream"}
 
     final_event: Optional[dict[str, Any]] = None
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_s, read=timeout_s)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(effective, read=effective)) as client:
             async with client.stream("GET", url, headers=headers) as response:
                 response.raise_for_status()
                 buffer = ""
@@ -129,8 +180,12 @@ async def _stream_deliberation(
                             break
                     if final_event is not None:
                         break
+    except httpx.HTTPStatusError as status_err:
+        if status_err.response.status_code in (401, 403, 404):
+            raise
+        return await _poll_deliberation(session_id, timeout_s=effective)
     except httpx.HTTPError:
-        return await _poll_deliberation(session_id, timeout_s=timeout_s)
+        return await _poll_deliberation(session_id, timeout_s=effective)
 
     if final_event is None:
         return await _poll_deliberation(session_id, timeout_s=30.0)
@@ -270,14 +325,34 @@ TOOLS = [
 ]
 
 
+def _validate_models(raw: Any) -> list[str]:
+    if raw is None:
+        return list(DEFAULT_MODELS)
+    if not isinstance(raw, list):
+        raise ConsiliumError("models must be a list of model IDs")
+    cleaned = [m for m in raw if isinstance(m, str) and m.strip()]
+    if not cleaned:
+        raise ConsiliumError("models must contain at least one non-empty string")
+    return cleaned
+
+
+def _require_sid(created: dict[str, Any], endpoint: str) -> str:
+    sid = created.get("id")
+    if not sid:
+        raise ConsiliumError(f"{endpoint} did not return a session id (got keys: {sorted(created.keys())})")
+    return str(sid)
+
+
 async def handle_deliberate(arguments: dict[str, Any], progress_sink: Optional[Any] = None) -> str:
+    if not arguments.get("topic"):
+        raise ConsiliumError("topic is required")
     mode = arguments.get("mode", "council")
     if mode not in ALLOWED_MODES:
         mode = "council"
     body: dict[str, Any] = {
         "topic": arguments["topic"],
         "mode": mode,
-        "models": arguments.get("models") or list(DEFAULT_MODELS),
+        "models": _validate_models(arguments.get("models")),
         "maxRounds": int(arguments.get("max_rounds", 5)),
         "debateSource": "mcp",
     }
@@ -290,11 +365,8 @@ async def handle_deliberate(arguments: dict[str, Any], progress_sink: Optional[A
         body.setdefault("context", {})
         body["context"]["files"] = files
     created = await _post_json("/api/v1/deliberation", body)
-    sid = created.get("id")
-    if not sid:
-        return json.dumps(created, indent=2, default=str)
-
-    final = await _stream_deliberation(str(sid), on_event=progress_sink)
+    sid = _require_sid(created, "/api/v1/deliberation")
+    final = await _stream_deliberation(sid, on_event=progress_sink)
     return json.dumps(final, indent=2, default=str)
 
 
@@ -338,33 +410,35 @@ async def handle_cancel_debate(arguments: dict[str, Any]) -> str:
     return json.dumps({"cancelled": debate_id, "kind": kind, "result": result}, indent=2, default=str)
 
 
-async def handle_red_team(arguments: dict[str, Any]) -> str:
+async def handle_red_team(arguments: dict[str, Any], progress_sink: Optional[Any] = None) -> str:
+    if not arguments.get("content"):
+        raise ConsiliumError("content is required")
     topic = str(arguments["content"])[:2000]
     body = {
         "topic": topic,
-        "models": arguments.get("models") or list(DEFAULT_MODELS),
+        "models": _validate_models(arguments.get("models")),
         "debateSource": "mcp",
     }
     created = await _post_json("/api/v1/deliberation/redteam", body)
-    sid = created.get("id")
-    if not sid:
-        return json.dumps(created, indent=2, default=str)
-    final = await _poll_deliberation(str(sid))
+    sid = _require_sid(created, "/api/v1/deliberation/redteam")
+    final = await _stream_deliberation(sid, on_event=progress_sink)
     return json.dumps(final, indent=2, default=str)
 
 
-async def handle_blind_eval(arguments: dict[str, Any]) -> str:
+async def handle_blind_eval(arguments: dict[str, Any], progress_sink: Optional[Any] = None) -> str:
+    if not arguments.get("topic"):
+        raise ConsiliumError("topic is required")
+    if arguments.get("responses") is None:
+        raise ConsiliumError("responses is required")
     body = {
         "topic": arguments["topic"],
-        "models": arguments.get("models") or list(DEFAULT_MODELS),
+        "models": _validate_models(arguments.get("models")),
         "responses": arguments["responses"],
         "debateSource": "mcp",
     }
     created = await _post_json("/api/v1/deliberation/blind", body)
-    sid = created.get("id")
-    if not sid:
-        return json.dumps(created, indent=2, default=str)
-    final = await _poll_deliberation(str(sid))
+    sid = _require_sid(created, "/api/v1/deliberation/blind")
+    final = await _stream_deliberation(sid, on_event=progress_sink)
     return json.dumps(final, indent=2, default=str)
 
 
@@ -417,19 +491,21 @@ try:
 
         return _sink
 
+    _STREAMING_TOOLS = frozenset({"consilium_deliberate", "consilium_red_team", "consilium_blind_eval"})
+
     @_server.call_tool()
     async def _call_tool(name: str, arguments: dict) -> list[TextContent]:
         handler = TOOL_HANDLERS.get(name)
         if not handler:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
         try:
-            if name == "consilium_deliberate":
+            if name in _STREAMING_TOOLS:
                 result = await handler(arguments, progress_sink=_make_progress_sink())
             else:
                 result = await handler(arguments)
             return [TextContent(type="text", text=result)]
         except Exception as e:
-            return [TextContent(type="text", text=f"Error: {e}")]
+            return [TextContent(type="text", text=_safe_error_message(e))]
 
     HAS_MCP = True
 
@@ -467,7 +543,7 @@ async def _jsonrpc_handle(request: dict) -> dict:
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
-                "error": {"code": -32000, "message": str(e)},
+                "error": {"code": -32000, "message": _safe_error_message(e)},
             }
 
     return {

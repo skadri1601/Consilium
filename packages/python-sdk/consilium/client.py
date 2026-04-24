@@ -169,6 +169,13 @@ class ConsiliumClient:
         mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
+        if not topic or not topic.strip():
+            raise ValueError("topic must be a non-empty string")
+        if models is not None:
+            if not isinstance(models, list) or not all(isinstance(m, str) and m.strip() for m in models):
+                raise ValueError("models must be a list of non-empty model IDs")
+            if len(models) < 1:
+                raise ValueError("models must contain at least one model ID")
         payload: dict[str, Any] = {
             "topic": topic,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
@@ -180,10 +187,10 @@ class ConsiliumClient:
         response = self._request_with_retry("POST", DELIBERATION_PATH, json=payload)
         data = self._handle_response(response)
 
-        if "id" in data:
-            return self._poll_deliberation(data["id"])
+        if "id" not in data:
+            raise ConsiliumError("API did not return a deliberation id")
 
-        return DeliberationResult.from_dict(data)
+        return self._poll_deliberation(data["id"])
 
     def _poll_deliberation(
         self, deliberation_id: str, poll_interval: float = 2.0, max_wait: float = 300.0
@@ -290,9 +297,9 @@ class _SyncSSEIterator:
         self._timeout = timeout
 
     def __iter__(self) -> Iterator[dict[str, Any]]:
-        return iter(self.events())
+        return self.events()
 
-    def events(self) -> list[dict[str, Any]]:
+    def events(self) -> Iterator[dict[str, Any]]:
         create_response = httpx.post(
             f"{self._base_url}{DELIBERATION_PATH}",
             json=self._payload,
@@ -305,7 +312,6 @@ class _SyncSSEIterator:
         if not deliberation_id:
             raise ConsiliumError(message="No deliberation ID returned")
 
-        collected: list[dict[str, Any]] = []
         with httpx.stream(
             "GET",
             f"{self._base_url}{DELIBERATION_PATH}/{deliberation_id}/stream",
@@ -323,9 +329,10 @@ class _SyncSSEIterator:
                     event_str, buffer = buffer.split("\n\n", 1)
                     for line in event_str.split("\n"):
                         if line.startswith("data: "):
-                            data = json.loads(line[6:])
-                            collected.append(data)
-        return collected
+                            try:
+                                yield json.loads(line[6:])
+                            except json.JSONDecodeError:
+                                continue
 
 
 class AsyncConsiliumClient:
@@ -397,6 +404,13 @@ class AsyncConsiliumClient:
         mode: str | DeliberationMode = DeliberationMode.COUNCIL,
         max_rounds: int = 3,
     ) -> DeliberationResult:
+        if not topic or not topic.strip():
+            raise ValueError("topic must be a non-empty string")
+        if models is not None:
+            if not isinstance(models, list) or not all(isinstance(m, str) and m.strip() for m in models):
+                raise ValueError("models must be a list of non-empty model IDs")
+            if len(models) < 1:
+                raise ValueError("models must contain at least one model ID")
         payload: dict[str, Any] = {
             "topic": topic,
             "mode": str(mode.value if isinstance(mode, DeliberationMode) else mode),
@@ -408,10 +422,10 @@ class AsyncConsiliumClient:
         response = await self._request_with_retry("POST", DELIBERATION_PATH, json=payload)
         data = self._handle_response(response)
 
-        if "id" in data:
-            return await self._poll_deliberation(data["id"])
+        if "id" not in data:
+            raise ConsiliumError("API did not return a deliberation id")
 
-        return DeliberationResult.from_dict(data)
+        return await self._poll_deliberation(data["id"])
 
     async def _poll_deliberation(
         self, deliberation_id: str, poll_interval: float = 2.0, max_wait: float = 300.0
@@ -486,6 +500,12 @@ class AsyncConsiliumClient:
         models: list[str],
         mode: str | DeliberationMode = DeliberationMode.COUNCIL,
     ) -> AsyncIterator[dict[str, Any]]:
+        if not topic or not topic.strip():
+            raise ValueError("topic must be a non-empty string")
+        if not isinstance(models, list) or not all(isinstance(m, str) and m.strip() for m in models):
+            raise ValueError("models must be a list of non-empty model IDs")
+        if len(models) < 1:
+            raise ValueError("models must contain at least one model ID")
         payload: dict[str, Any] = {
             "topic": topic,
             "models": models,
@@ -515,7 +535,10 @@ class AsyncConsiliumClient:
                         event_str, buffer = buffer.split("\n\n", 1)
                         for line in event_str.split("\n"):
                             if line.startswith("data: "):
-                                yield json.loads(line[6:])
+                                try:
+                                    yield json.loads(line[6:])
+                                except json.JSONDecodeError:
+                                    continue
 
     async def close(self) -> None:
         await self._client.aclose()
