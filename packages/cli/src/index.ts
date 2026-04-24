@@ -24,6 +24,7 @@ import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
+import { modelsCommand } from "./commands/models.js";
 import {
   listDebatesCommand,
   cancelDebateCommand,
@@ -50,6 +51,7 @@ const KNOWN_SUBCOMMANDS = [
   "eval",
   "benchmark",
   "mcp",
+  "models",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -196,6 +198,12 @@ async function main(): Promise<void> {
     .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  program
+    .command("models")
+    .description("List default models and the full known catalog")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => modelsCommand(opts));
 
   const debates = program
     .command("debates")

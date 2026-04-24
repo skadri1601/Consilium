@@ -105,7 +105,7 @@ export interface StartDebateOptions {
   noContext?: boolean;
 }
 
-const DEFAULT_START_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
+import { DEFAULT_MODELS as DEFAULT_START_MODELS } from "../utils/default-models";
 
 export async function startDebateCommand(
   topic: string,
@@ -115,7 +115,7 @@ export async function startDebateCommand(
 
   const mode =
     options.mode && isValidMode(options.mode) ? options.mode : getDefaultMode();
-  const models = options.models?.length ? options.models : DEFAULT_START_MODELS;
+  const models = options.models?.length ? options.models : [...DEFAULT_START_MODELS];
   const client = new ConsiliumClient();
 
   const wsContext = await loadWorkspaceContext({

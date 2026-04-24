@@ -4,6 +4,7 @@ import { requireAuth } from "../utils/require-auth";
 import { style } from "../utils/visual-system";
 import { terminal } from "../utils/terminal-capabilities";
 import { log } from "../utils/logger";
+import { DEFAULT_BLIND_EVAL_MODELS } from "../utils/default-models";
 import logUpdate from "log-update";
 
 const st = style();
@@ -171,7 +172,7 @@ export async function evalCommand(
   try {
     deliberation = await client.createDeliberation(topic, {
       mode: "blind",
-      models: options.models ?? ["gpt-4o-mini", "claude-haiku-4-5-20251001"],
+      models: options.models ?? [...DEFAULT_BLIND_EVAL_MODELS],
       responses: responsesPayload,
       debateSource: "cli",
     });

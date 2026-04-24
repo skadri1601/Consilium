@@ -14,8 +14,8 @@ pip install consilium
 from consilium import ConsiliumClient, DeliberationMode
 
 client = ConsiliumClient(
-    api_url="https://api.consilium.dev/api/v1",
-    api_key="your-api-key",
+    api_url="https://api.myconsilium.xyz/api/v1",
+    api_key="consilium_...",
 )
 
 result = client.deliberate(
@@ -26,6 +26,8 @@ result = client.deliberate(
 print(result.golden_prompt)
 print(result.confidence_scores)
 ```
+
+The `deliberate()` call validates `topic` (non-empty string) and `models` (non-empty list of non-empty strings) before hitting the API, and raises `ConsiliumError` if the API response is missing the deliberation id.
 
 ## Deliberation Modes
 
@@ -99,6 +101,9 @@ stream = client.stream_deliberation(
 for event in stream.events():
     print(f"[{event.get('type')}] {event.get('content', '')[:80]}")
 ```
+
+`stream.events()` yields events as they arrive (streaming generator, not a
+buffered list) so memory stays bounded for long deliberations.
 
 ### estimate_cost
 
@@ -187,6 +192,63 @@ except ServerError as e:
 except ConsiliumError as e:
     print(f"Error: {e.message}")
 ```
+
+## MCP Server (Model Context Protocol)
+
+The package ships with a stdio MCP server so Claude Desktop, Cursor, and
+Claude Code can run deliberations directly as tool calls.
+
+```bash
+pip install 'consilium[mcp]'         # includes the optional mcp library
+consilium-mcp                         # runs the stdio server
+```
+
+Configure your MCP client with:
+
+```json
+{
+  "mcpServers": {
+    "consilium": {
+      "command": "python",
+      "args": ["-m", "consilium.mcp"],
+      "env": {
+        "CONSILIUM_API_URL": "https://api.myconsilium.xyz",
+        "CONSILIUM_API_KEY": "${CONSILIUM_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | Purpose |
+|------|---------|
+| `consilium_deliberate` | Run a full deliberation; accepts `topic`, `mode`, `models`, `max_rounds`, optional `context` and `files` (gated on `codebase_access: true`) |
+| `consilium_red_team` | Adversarial assessment on arbitrary content |
+| `consilium_blind_eval` | Blind-evaluate a set of candidate responses |
+| `consilium_list_debates` | Paginate / search the caller's debate history (`limit`, `offset`, `search`) |
+| `consilium_cancel_debate` | Cancel an in-flight debate or deliberation by id (`kind: "debate" \| "deliberation"`) |
+
+Long-running deliberation tools consume the Nest SSE stream and emit MCP
+`notifications/progress` messages whenever the client supplies a
+`progressToken` in `_meta`, so Claude Desktop / Cursor show live phase
+and convergence updates instead of a frozen spinner. If the stream
+connection fails, the server falls back to status polling so the tool
+still returns the final session record.
+
+Errors are converted to actionable messages before being surfaced to
+the MCP client (401/403 → "run `consilium login`", 429 → rate-limit
+hint, `ConnectError` → includes the configured `CONSILIUM_API_URL`).
+
+### Environment variables
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `CONSILIUM_API_URL` | `https://api.myconsilium.xyz` | Nest API origin (no `/api/v1` suffix) |
+| `CONSILIUM_API_KEY` | — | Your `consilium_` token |
+| `CONSILIUM_DELIBERATION_TIMEOUT` | `900` (sec) | Max wait for a deliberation to finish |
+| `CONSILIUM_HTTP_TIMEOUT` | `120` (sec) | Override for supporting HTTP calls (create, list, cancel) |
 
 ## License
 

@@ -1,5 +1,6 @@
 import EventSource from 'eventsource';
 import { DEFAULT_API_ORIGIN, loadConfig } from '../utils/config';
+import { DEFAULT_MODELS } from '../utils/default-models';
 
 export interface DebateOptions {
   topic: string;
@@ -181,10 +182,27 @@ export class ConsiliumClient {
           const eventSource = new EventSource(streamUrl, buildInit(lastEventId));
           let connectionEstablished = false;
           let eventCount = 0;
-          const timer = setTimeout(() => {
-            eventSource.close();
-            reject(new StreamError(`${contextLabel} stream timeout after ${Math.round(this.streamTimeout / 1000)}s`, 'timeout'));
-          }, this.streamTimeout);
+
+          let idleTimer: ReturnType<typeof setTimeout> | null = null;
+          const clearIdleTimer = () => {
+            if (idleTimer !== null) {
+              clearTimeout(idleTimer);
+              idleTimer = null;
+            }
+          };
+          const scheduleIdleTimeout = () => {
+            clearIdleTimer();
+            idleTimer = setTimeout(() => {
+              eventSource.close();
+              reject(
+                new StreamError(
+                  `${contextLabel} stream idle for ${Math.round(this.streamTimeout / 1000)}s`,
+                  'timeout',
+                ),
+              );
+            }, this.streamTimeout);
+          };
+          scheduleIdleTimeout();
 
           eventSource.onmessage = (event: MessageEvent) => {
             try {
@@ -195,16 +213,17 @@ export class ConsiliumClient {
               if (event.lastEventId) lastEventId = event.lastEventId;
               const data = JSON.parse(event.data) as Record<string, unknown>;
               eventCount++;
+              scheduleIdleTimeout();
               const outcome = handleMessage(data);
               if (outcome.error) {
-                clearTimeout(timer);
+                clearIdleTimer();
                 eventSource.close();
                 terminalSeen = true;
                 reject(new StreamError(outcome.error, 'fatal'));
                 return;
               }
               if (outcome.terminal) {
-                clearTimeout(timer);
+                clearIdleTimer();
                 eventSource.close();
                 terminalSeen = true;
                 resolve();
@@ -215,7 +234,7 @@ export class ConsiliumClient {
           };
 
           eventSource.onerror = (err: Event) => {
-            clearTimeout(timer);
+            clearIdleTimer();
             const status =
               (err as MessageEvent & { status?: number }).status ??
               (eventSource as EventSource & { status?: number }).status;
@@ -265,7 +284,7 @@ export class ConsiliumClient {
     try {
       const body: Record<string, any> = {
         topic: options.topic,
-        models: options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
+        models: options.models || [...DEFAULT_MODELS],
       };
       if (options.mode) body.mode = options.mode;
       body.debateSource = options.debateSource ?? 'cli';

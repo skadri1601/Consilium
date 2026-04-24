@@ -4,6 +4,7 @@ import { requireAuth } from '../utils/require-auth';
 import { style } from '../utils/visual-system';
 import { terminal } from '../utils/terminal-capabilities';
 import { log } from '../utils/logger';
+import { DEFAULT_MODELS } from '../utils/default-models';
 import logUpdate from 'log-update';
 
 const st = style();
@@ -346,7 +347,7 @@ export async function benchmarkCommand(
   await requireAuth();
   assertValidBenchmark(options);
 
-  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
+  const models = options.models || [...DEFAULT_MODELS];
   const mode = options.mode || 'council';
   const n = parseQuestionCount(options.n);
 

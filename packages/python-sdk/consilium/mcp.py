@@ -24,6 +24,9 @@ def _env_float(name: str, default: float) -> float:
 
 
 DEFAULT_DELIBERATION_TIMEOUT = _env_float("CONSILIUM_DELIBERATION_TIMEOUT", 900.0)
+DEFAULT_HTTP_TIMEOUT = _env_float("CONSILIUM_HTTP_TIMEOUT", 120.0)
+DEFAULT_GET_TIMEOUT = _env_float("CONSILIUM_HTTP_TIMEOUT", 60.0)
+DEFAULT_CANCEL_TIMEOUT = _env_float("CONSILIUM_HTTP_TIMEOUT", 30.0)
 
 DEFAULT_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001"]
 
@@ -74,7 +77,7 @@ async def _post_json(path: str, body: dict[str, Any]) -> dict[str, Any]:
     except ImportError as e:
         raise RuntimeError("Install httpx: pip install httpx") from e
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
         r = await client.post(
             f"{CONSILIUM_API_URL}{path}",
             json=body,
@@ -87,7 +90,7 @@ async def _post_json(path: str, body: dict[str, Any]) -> dict[str, Any]:
 async def _get_json(path: str) -> Any:
     import httpx
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=DEFAULT_GET_TIMEOUT) as client:
         r = await client.get(f"{CONSILIUM_API_URL}{path}", headers=_headers())
         r.raise_for_status()
         return r.json()
@@ -96,7 +99,7 @@ async def _get_json(path: str) -> Any:
 async def _post_empty(path: str) -> dict[str, Any]:
     import httpx
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=DEFAULT_CANCEL_TIMEOUT) as client:
         r = await client.post(f"{CONSILIUM_API_URL}{path}", headers=_headers())
         r.raise_for_status()
         if r.status_code == 204 or not r.content:

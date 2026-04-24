@@ -27,6 +27,7 @@ import { applyEdits, parseEditsFromSynthesis } from '../utils/apply-edits';
 import { formatEditPreview } from '../utils/diff-preview';
 import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
 import { resolveProjectRoot } from '../utils/project-root';
+import { DEFAULT_MODELS } from '../utils/default-models';
 
 const st = style();
 
@@ -457,7 +458,7 @@ export async function debateCommand(
 
   warnDebateCommandOptions(options, mode, outputFormat);
 
-  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
+  const models = options.models || [...DEFAULT_MODELS];
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
 

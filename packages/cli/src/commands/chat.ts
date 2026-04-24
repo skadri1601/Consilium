@@ -281,13 +281,20 @@ function runReplLoop(
           autoSave(session, sessionManager);
           runReplLoop(rl, history, session, sessionManager);
         },
-        (error: any) => {
-          console.error(st.error('\nDebate failed:'), error.message);
-          if (error.message.includes('503')) {
+        (error: unknown) => {
+          const msg = error instanceof Error ? error.message : String(error);
+          const status =
+            error && typeof error === 'object' && 'status' in error
+              ? (error as { status?: number }).status
+              : undefined;
+          console.error(st.error('\nDebate failed:'), msg);
+          if (status === 503) {
             console.log(st.warning('Suggestion: Make sure the agents service is running.'));
             console.log(
               st.dim('   cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000')
             );
+          } else if (status === 401 || status === 403) {
+            console.log(st.warning('Authentication failed. Run: consilium login'));
           }
           console.log(st.dim('Continuing... type /help or ask something else.\n'));
           runReplLoop(rl, history, session, sessionManager);
@@ -326,16 +333,23 @@ function runReplLoop(
         autoSave(session, sessionManager);
         runReplLoop(rl, history, session, sessionManager);
       },
-      (error: any) => {
-        console.error(st.error('\nDebate failed:'), error.message);
-        if (error.message.includes('503')) {
+      (error: unknown) => {
+        const msg = error instanceof Error ? error.message : String(error);
+        const status =
+          error && typeof error === 'object' && 'status' in error
+            ? (error as { status?: number }).status
+            : undefined;
+        console.error(st.error('\nDebate failed:'), msg);
+        if (status === 503) {
           console.log(st.warning('Suggestion: Make sure the agents service is running:'));
           console.log(
             st.dim('   cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000')
           );
+        } else if (status === 401 || status === 403) {
+          console.log(st.warning('Authentication failed. Run: consilium login'));
         } else if (
-          error.message.includes('context size') ||
-          error.message.includes('Total context')
+          msg.includes('context size') ||
+          msg.includes('Total context')
         ) {
           console.log(st.warning('Suggestion: Try /clear to remove files, or use smaller files.'));
         }
@@ -433,8 +447,9 @@ export async function chatResumeCommand(sessionId: string): Promise<void> {
       removeHistoryDuplicates: true,
     });
     runReplLoop(rl, history, session, sessionManager);
-  } catch (error: any) {
-    console.error(st.error('Failed to load session:'), error.message);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(st.error('Failed to load session:'), msg);
     process.exit(1);
   }
 }

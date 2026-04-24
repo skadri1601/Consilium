@@ -7,7 +7,8 @@ import { DebateMode, getDefaultMode } from '../utils/debate-modes';
 import { OutputFormat } from '../utils/output-formatter';
 import { type ScanManifest, type ScannedFile } from '../utils/project-scanner';
 
-const DEFAULT_MODELS = ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
+import { DEFAULT_MODELS as DEFAULT_MODELS_LIST } from '../utils/default-models';
+const DEFAULT_MODELS = [...DEFAULT_MODELS_LIST];
 const MAX_CONTEXT_CHARS = 80_000;
 
 export interface DebateRecord {
