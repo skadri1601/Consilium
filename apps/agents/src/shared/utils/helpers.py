@@ -4,11 +4,14 @@ from typing import Dict
 
 # Token pricing per 1000 tokens (approximate)
 TOKEN_PRICING: Dict[str, Dict[str, float]] = {
-    "gpt-4": {"input": 0.03, "output": 0.06},
-    "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-    "claude-3-opus": {"input": 0.015, "output": 0.075},
-    "claude-3-sonnet": {"input": 0.003, "output": 0.015},
-    "gemini-pro": {"input": 0.00025, "output": 0.0005},
+    "gpt-5.4": {"input": 0.002, "output": 0.008},
+    "gpt-5.4-mini": {"input": 0.0002, "output": 0.0008},
+    "gpt-5.5": {"input": 0.003, "output": 0.012},
+    "claude-opus-4-7": {"input": 0.015, "output": 0.075},
+    "claude-sonnet-4-6": {"input": 0.003, "output": 0.015},
+    "claude-haiku-4-5-20251001": {"input": 0.0008, "output": 0.004},
+    "gemini-3.1-pro-preview": {"input": 0.00125, "output": 0.005},
+    "gemini-3-flash-preview": {"input": 0.00015, "output": 0.0006},
 }
 
 

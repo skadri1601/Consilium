@@ -17,20 +17,25 @@ export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
 };
 
 const MODEL_PROVIDER_MAP: Record<string, Provider> = {
-  'gpt-4o': 'openai',
-  'gpt-4o-mini': 'openai',
-  'gpt-4': 'openai',
-  'o1': 'openai',
-  'o3': 'openai',
-  'claude-opus': 'anthropic',
-  'claude-sonnet': 'anthropic',
-  'claude-haiku': 'anthropic',
-  'gemini-pro': 'google',
-  'gemini-flash': 'google',
+  // OpenAI (GPT-5.x family)
+  'gpt-5.5-pro': 'openai',
+  'gpt-5.5': 'openai',
+  'gpt-5.4': 'openai',
+  'gpt-5.4-mini': 'openai',
+  'gpt-5.4-nano': 'openai',
+  // Anthropic (Claude 4.x family)
+  'claude-opus-4-7': 'anthropic',
+  'claude-opus-4-6': 'anthropic',
+  'claude-sonnet-4-6': 'anthropic',
+  'claude-haiku-4-5-20251001': 'anthropic',
+  // Google (Gemini 3.x family)
   'gemini-3.1-pro-preview': 'google',
   'gemini-3-flash-preview': 'google',
+  // xAI (Grok 4.x family)
   'grok-4.20': 'xai',
   'grok-4-1-fast-reasoning': 'xai',
+  'grok-4-1-fast-non-reasoning': 'xai',
+  'grok-code-fast-1': 'xai',
 };
 
 const JUDGE_PRIORITY: Provider[] = ['anthropic', 'google', 'openai', 'xai'];

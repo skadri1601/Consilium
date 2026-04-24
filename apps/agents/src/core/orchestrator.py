@@ -60,12 +60,15 @@ def _log_exc(exc: BaseException) -> str:
 _start_time = time.time()
 
 CHEAP_VARIANTS = {
-    "gpt-4o": "gpt-4o-mini",
-    "gpt-4.1": "gpt-4o-mini",
-    "claude-sonnet-4-20250514": "claude-haiku-4-5-20251001",
-    "claude-opus-4-20250514": "claude-haiku-4-5-20251001",
-    "gemini-2.5-pro": "gemini-2.0-flash",
-    "grok-2": "grok-2",
+    "gpt-5.4": "gpt-5.4-mini",
+    "gpt-5.5": "gpt-5.4-mini",
+    "gpt-5.5-pro": "gpt-5.4-mini",
+    "claude-sonnet-4-6": "claude-haiku-4-5-20251001",
+    "claude-opus-4-7": "claude-haiku-4-5-20251001",
+    "claude-opus-4-6": "claude-haiku-4-5-20251001",
+    "gemini-3.1-pro-preview": "gemini-3-flash-preview",
+    "grok-4.20": "grok-4-1-fast-non-reasoning",
+    "grok-4-1-fast-reasoning": "grok-4-1-fast-non-reasoning",
 }
 
 _CONTEXT_TOO_LARGE_CODES = {413, 400}

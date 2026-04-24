@@ -1,42 +1,53 @@
-"""Available LLM models configuration."""
+"""Available LLM models configuration.
+
+Source of truth for the engine. Keeps only current-generation models —
+anything deprecated by the provider is removed here (not just tagged)
+so the engine never picks a model that will 404.
+"""
 
 AVAILABLE_MODELS = {
     "openai": [
         {
-            "id": "gpt-4o-mini",
-            "name": "GPT-4o Mini",
-            "input_cost": 0.15,
-            "output_cost": 0.60,
+            "id": "gpt-5.4-nano",
+            "name": "GPT-5.4 Nano",
+            "input_cost": 0.08,
+            "output_cost": 0.30,
         },
         {
-            "id": "gpt-4o",
-            "name": "GPT-4o",
-            "input_cost": 2.50,
-            "output_cost": 10.00,
+            "id": "gpt-5.4-mini",
+            "name": "GPT-5.4 Mini",
+            "input_cost": 0.20,
+            "output_cost": 0.80,
         },
         {
-            "id": "gpt-4.1",
-            "name": "GPT-4.1",
+            "id": "gpt-5.4",
+            "name": "GPT-5.4",
             "input_cost": 2.00,
             "output_cost": 8.00,
         },
         {
-            "id": "o3-mini",
-            "name": "o3-mini",
-            "input_cost": 1.10,
-            "output_cost": 4.40,
+            "id": "gpt-5.5",
+            "name": "GPT-5.5",
+            "input_cost": 3.00,
+            "output_cost": 12.00,
+        },
+        {
+            "id": "gpt-5.5-pro",
+            "name": "GPT-5.5 Pro",
+            "input_cost": 8.00,
+            "output_cost": 32.00,
         },
     ],
     "anthropic": [
         {
-            "id": "claude-haiku-4-5",
+            "id": "claude-haiku-4-5-20251001",
             "name": "Claude Haiku 4.5",
             "input_cost": 0.80,
             "output_cost": 4.00,
         },
         {
-            "id": "claude-sonnet-4-5",
-            "name": "Claude Sonnet 4.5",
+            "id": "claude-sonnet-4-6",
+            "name": "Claude Sonnet 4.6",
             "input_cost": 3.00,
             "output_cost": 15.00,
         },
@@ -46,23 +57,23 @@ AVAILABLE_MODELS = {
             "input_cost": 15.00,
             "output_cost": 75.00,
         },
+        {
+            "id": "claude-opus-4-7",
+            "name": "Claude Opus 4.7",
+            "input_cost": 15.00,
+            "output_cost": 75.00,
+        },
     ],
     "google": [
         {
-            "id": "gemini-2.0-flash",
-            "name": "Gemini 2.0 Flash",
-            "input_cost": 0.10,
-            "output_cost": 0.40,
-        },
-        {
-            "id": "gemini-2.5-flash",
-            "name": "Gemini 2.5 Flash",
+            "id": "gemini-3-flash-preview",
+            "name": "Gemini 3 Flash",
             "input_cost": 0.15,
             "output_cost": 0.60,
         },
         {
-            "id": "gemini-2.5-pro",
-            "name": "Gemini 2.5 Pro",
+            "id": "gemini-3.1-pro-preview",
+            "name": "Gemini 3.1 Pro",
             "input_cost": 1.25,
             "output_cost": 5.00,
         },
@@ -71,34 +82,92 @@ AVAILABLE_MODELS = {
         {
             "id": "llama-3.1-8b-instant",
             "name": "Llama 3.1 8B Instant",
-            "input_cost": 0.0,
-            "output_cost": 0.0,
+            "input_cost": 0.05,
+            "output_cost": 0.08,
         },
         {
             "id": "llama-3.3-70b-versatile",
             "name": "Llama 3.3 70B Versatile",
-            "input_cost": 0.0,
-            "output_cost": 0.0,
+            "input_cost": 0.59,
+            "output_cost": 0.79,
         },
         {
-            "id": "llama-4-scout-17b-16e-instruct",
-            "name": "Llama 4 Scout 17B",
-            "input_cost": 0.0,
-            "output_cost": 0.0,
+            "id": "openai/gpt-oss-120b",
+            "name": "GPT-OSS 120B (via Groq)",
+            "input_cost": 0.15,
+            "output_cost": 0.60,
+        },
+        {
+            "id": "openai/gpt-oss-20b",
+            "name": "GPT-OSS 20B (via Groq)",
+            "input_cost": 0.05,
+            "output_cost": 0.15,
+        },
+        {
+            "id": "groq/compound",
+            "name": "Groq Compound (agentic)",
+            "input_cost": 0.80,
+            "output_cost": 1.60,
+        },
+        {
+            "id": "groq/compound-mini",
+            "name": "Groq Compound Mini",
+            "input_cost": 0.30,
+            "output_cost": 0.60,
         },
     ],
     "xai": [
         {
-            "id": "grok-2",
-            "name": "Grok 2",
-            "input_cost": 2.00,
-            "output_cost": 10.00,
+            "id": "grok-code-fast-1",
+            "name": "Grok Code Fast",
+            "input_cost": 0.30,
+            "output_cost": 1.20,
         },
         {
-            "id": "grok-2-mini",
-            "name": "Grok 2 Mini",
-            "input_cost": 0.30,
-            "output_cost": 1.00,
+            "id": "grok-4-1-fast-non-reasoning",
+            "name": "Grok 4.1 Fast (non-reasoning)",
+            "input_cost": 0.50,
+            "output_cost": 2.00,
+        },
+        {
+            "id": "grok-4-1-fast-reasoning",
+            "name": "Grok 4.1 Fast (reasoning)",
+            "input_cost": 1.00,
+            "output_cost": 4.00,
+        },
+        {
+            "id": "grok-4.20",
+            "name": "Grok 4.20",
+            "input_cost": 3.00,
+            "output_cost": 15.00,
+        },
+    ],
+    "moonshot": [
+        {
+            "id": "kimi-k2.6",
+            "name": "Kimi K2.6",
+            "input_cost": 1.20,
+            "output_cost": 2.50,
+        },
+    ],
+    "openrouter": [
+        {
+            "id": "meta-llama/llama-3.3-70b-instruct:free",
+            "name": "Llama 3.3 70B (OpenRouter free tier)",
+            "input_cost": 0.0,
+            "output_cost": 0.0,
+        },
+        {
+            "id": "google/gemma-2-9b-it:free",
+            "name": "Gemma 2 9B (OpenRouter free tier)",
+            "input_cost": 0.0,
+            "output_cost": 0.0,
+        },
+        {
+            "id": "qwen/qwen-2.5-72b-instruct:free",
+            "name": "Qwen 2.5 72B (OpenRouter free tier)",
+            "input_cost": 0.0,
+            "output_cost": 0.0,
         },
     ],
 }
@@ -113,24 +182,40 @@ def get_model_info(model_id: str) -> dict | None:
     return None
 
 
+# Aliases forward legacy / short names to their current replacements.
+# Only list aliases whose *target* is currently live — never alias
+# something to a model that's retired or near-shutdown.
 MODEL_ALIASES = {
-    "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
-    "claude-3-5-haiku-latest": "claude-haiku-4-5",
-    "claude-3-5-sonnet-latest": "claude-sonnet-4-5",
-    "claude-sonnet-4-20250514": "claude-sonnet-4-5",
-    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
-    "claude-opus-4-20250918": "claude-opus-4-6",
-    "claude-4.6-opus": "claude-opus-4-6",
-    "claude-3-opus-latest": "claude-opus-4-6",
-    "claude-4.5-sonnet": "claude-sonnet-4-5",
-    "o1": "o3-mini",
-    "gpt-4-turbo": "gpt-4.1",
-    "gemini-1.5-pro": "gemini-2.5-pro",
-    "gemini-1.5-flash": "gemini-2.5-flash",
-    "gemini-3-flash-preview": "gemini-2.5-flash",
-    "gemini-exp-1206": "gemini-2.0-flash",
-    "grok-beta": "grok-2",
+    # OpenAI
+    "gpt-4o": "gpt-5.4",
+    "gpt-4o-mini": "gpt-5.4-mini",
+    "gpt-4.1": "gpt-5.4",
+    "o3-mini": "gpt-5.4-mini",
+    "o1": "gpt-5.4",
+    # Anthropic
+    "claude-3-5-haiku-latest": "claude-haiku-4-5-20251001",
+    "claude-3-5-sonnet-latest": "claude-sonnet-4-6",
+    "claude-sonnet-4-20250514": "claude-sonnet-4-6",
+    "claude-opus-4-20250514": "claude-opus-4-6",
+    "claude-3-opus-latest": "claude-opus-4-7",
+    "claude-opus-latest": "claude-opus-4-7",
+    "claude-sonnet-latest": "claude-sonnet-4-6",
+    "claude-haiku-latest": "claude-haiku-4-5-20251001",
+    # Google
+    "gemini-1.5-pro": "gemini-3.1-pro-preview",
+    "gemini-1.5-flash": "gemini-3-flash-preview",
+    "gemini-2.0-flash": "gemini-3-flash-preview",
+    "gemini-2.5-pro": "gemini-3.1-pro-preview",
+    "gemini-2.5-flash": "gemini-3-flash-preview",
+    "gemini-exp-1206": "gemini-3-flash-preview",
+    # xAI
+    "grok-beta": "grok-4.20",
+    "grok-2": "grok-4.20",
+    "grok-2-mini": "grok-4-1-fast-non-reasoning",
+    "grok-3": "grok-4.20",
+    # Groq
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
+    "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
 }
 
 
@@ -157,6 +242,9 @@ def calculate_cost(model_id: str, input_tokens: int, output_tokens: int) -> floa
     return input_cost + output_cost
 
 
+# Free-tier fallback: when a user has no BYOK keys set, the engine
+# routes through Groq's free tier (community access) with these
+# models. Used by the free-tier-fallback feature (Phase 2).
 FREE_FALLBACK_MODELS = {
     "debater": "llama-3.1-8b-instant",
     "judge": "llama-3.3-70b-versatile",
@@ -171,4 +259,3 @@ def get_free_fallback_models(count: int = 2) -> list[str]:
 
 def get_free_fallback_judge() -> str:
     return FREE_FALLBACK_MODELS["judge"]
-

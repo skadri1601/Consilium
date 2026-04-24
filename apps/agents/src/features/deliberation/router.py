@@ -60,7 +60,7 @@ class StartDeliberationRequest(BaseModel):
     topic: str = Field(..., description="The topic or question to deliberate on")
     models: list[str] = Field(..., description="List of model IDs to participate")
     mode: DeliberationMode = Field(DeliberationMode.COUNCIL, description="Deliberation mode")
-    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
+    judge_model: str = Field("gpt-5.4-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
     max_rounds: Optional[int] = Field(None, description="Maximum deliberation rounds")
     project_context: Optional[dict] = Field(None, description="Codebase context metadata and files")
@@ -72,7 +72,7 @@ class RedTeamRequest(BaseModel):
     deliberation_id: Optional[str] = Field(None, description="Pre-assigned deliberation ID")
     topic: str = Field(..., description="The topic to red-team")
     models: list[str] = Field(..., description="List of model IDs to participate")
-    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
+    judge_model: str = Field("gpt-5.4-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
 
 
@@ -80,7 +80,7 @@ class BlindEvalRequest(BaseModel):
     deliberation_id: Optional[str] = Field(None, description="Pre-assigned deliberation ID")
     topic: str = Field(..., description="The topic to evaluate blindly")
     models: list[str] = Field(..., description="List of model IDs to participate")
-    judge_model: str = Field("gpt-4o-mini", description="Model ID for the judge")
+    judge_model: str = Field("gpt-5.4-mini", description="Model ID for the judge")
     api_keys: dict = Field(..., description="API keys for model providers")
 
 

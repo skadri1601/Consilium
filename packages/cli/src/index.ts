@@ -105,7 +105,7 @@ async function main(): Promise<void> {
     .argument("<topic>", "Topic to debate")
     .option(
       "-m, --models <models...>",
-      "Models to use (e.g., gpt-4o-mini claude-haiku)",
+      "Models to use (e.g., gpt-5.4-mini claude-haiku-4-5-20251001)",
     )
     .option(
       "--mode <mode>",

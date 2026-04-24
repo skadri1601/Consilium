@@ -20,10 +20,6 @@ function statusBadge(status: CatalogEntry["status"]): string {
       return st.success("current");
     case "preview":
       return st.warning("preview");
-    case "deprecated":
-      return st.warning("deprecated");
-    case "retired":
-      return st.error("retired");
   }
 }
 

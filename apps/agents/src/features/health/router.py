@@ -98,15 +98,15 @@ def get_available_models() -> list:
     models = []
 
     if keys["openai"]:
-        models.extend(["gpt-4o", "gpt-4o-mini"])
+        models.extend(["gpt-5.4", "gpt-5.4-mini"])
     if keys["anthropic"]:
-        models.extend(["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest"])
+        models.extend(["claude-sonnet-4-6", "claude-haiku-4-5-20251001"])
     if keys["google"]:
-        models.extend(["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-exp-1206"])
+        models.extend(["gemini-3.1-pro-preview", "gemini-3-flash-preview"])
     if keys["groq"]:
         models.extend(["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
     if keys["xai"]:
-        models.extend(["grok-beta"])
+        models.extend(["grok-4.20", "grok-4-1-fast-reasoning"])
 
     return models
 
