@@ -100,9 +100,7 @@ const organizationJsonLd = {
   name: SITE_NAME,
   url: SITE_URL,
   logo: `${SITE_URL}/brand/consilium-logo.svg`,
-  sameAs: [
-    "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
-  ],
+  sameAs: ["https://www.linkedin.com/in/saad-kadri-58b8bb205/"],
 };
 
 const softwareJsonLd = {
@@ -128,11 +126,7 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <TestModeClerkProvider>
       <html lang="en" className="dark" suppressHydrationWarning>
@@ -141,7 +135,9 @@ export default function RootLayout({
             id="ld-organization"
             type="application/ld+json"
             strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationJsonLd),
+            }}
           />
           <Script
             id="ld-software"
@@ -155,7 +151,12 @@ export default function RootLayout({
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
           />
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            forcedTheme="dark"
+          >
             <PostHogProvider>
               <ErrorBoundary>
                 <OnboardingProvider>

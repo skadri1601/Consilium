@@ -33,9 +33,7 @@ export default function ContactPage() {
     <div className="min-h-screen">
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Contact Us
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Contact Us</h1>
           <p className="text-xl text-muted-foreground">
             We&apos;d love to hear from you
           </p>
@@ -64,8 +62,12 @@ export default function ContactPage() {
                         <CardTitle className="text-base mb-1 group-hover:text-indigo-400 transition-colors">
                           {channel.title}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">{channel.value}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{channel.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {channel.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {channel.description}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -105,7 +107,7 @@ export default function ContactPage() {
                       href="mailto:saad@myconsilium.xyz"
                       className="text-indigo-400 hover:underline"
                     >
-                     saad@myconsilium.xyz
+                      saad@myconsilium.xyz
                     </Link>{" "}
                     directly.
                   </p>
