@@ -11,7 +11,7 @@ export const DEFAULT_BLIND_EVAL_MODELS = [
 
 export interface CatalogEntry {
   id: string;
-  provider: "openai" | "anthropic" | "google" | "groq" | "xai";
+  provider: "openai" | "anthropic" | "google" | "groq" | "xai" | "moonshot" | "openrouter";
   tier: "fast" | "balanced" | "deep";
   status: "current" | "preview" | "deprecated" | "retired";
   notes?: string;
@@ -49,6 +49,15 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
   { id: "grok-4-1-fast-non-reasoning", provider: "xai", tier: "fast", status: "current" },
   { id: "grok-code-fast-1", provider: "xai", tier: "fast", status: "current", notes: "agentic coding" },
   { id: "grok-beta", provider: "xai", tier: "balanced", status: "deprecated", notes: "legacy" },
+
+  { id: "kimi-k2.6", provider: "moonshot", tier: "deep", status: "current", notes: "256K ctx, tool-use (OpenAI-compatible)" },
+  { id: "kimi-k2.5", provider: "moonshot", tier: "balanced", status: "current" },
+  { id: "moonshotai/Kimi-K2-Instruct", provider: "moonshot", tier: "balanced", status: "current", notes: "open-weights variant" },
+
+  { id: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier via OpenRouter community pool" },
+  { id: "google/gemini-flash-1.5:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier" },
+  { id: "mistralai/mistral-7b-instruct:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier" },
+  { id: "nvidia/nemotron-4-340b-instruct:free", provider: "openrouter", tier: "deep", status: "current", notes: "free tier" },
 ];
 
 export function findCatalogEntry(id: string): CatalogEntry | undefined {
