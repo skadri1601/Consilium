@@ -6,7 +6,7 @@ from .base_agent import BaseAgent
 class XAIAgent(BaseAgent):
     """X.AI (Grok) LLM agent implementation (OpenAI-compatible API)."""
 
-    def __init__(self, model_id: str = "grok-beta", api_key: str | None = None):
+    def __init__(self, model_id: str = "grok-4.20", api_key: str | None = None):
         super().__init__(
             name="Grok",
             provider="X.AI",

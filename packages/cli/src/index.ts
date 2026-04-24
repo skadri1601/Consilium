@@ -24,6 +24,7 @@ import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
+import { modelsCommand } from "./commands/models.js";
 import {
   addServerCommand,
   listServersCommand,
@@ -57,6 +58,7 @@ const KNOWN_SUBCOMMANDS = [
   "eval",
   "benchmark",
   "mcp",
+  "models",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -240,6 +242,13 @@ async function main(): Promise<void> {
     .description("Spawn all enabled MCP servers and list every tool they expose")
     .option("--json", "Emit as JSON")
     .action((opts: { json?: boolean }) => toolsCommand(opts));
+
+  program
+    .command("models")
+    .description("Show default models, full catalog, and deprecation status")
+    .option("--check", "Exit non-zero if any default model is deprecated/retired")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean; check?: boolean }) => modelsCommand(opts));
 
   const debates = program
     .command("debates")
