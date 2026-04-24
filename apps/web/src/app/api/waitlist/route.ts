@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
               <p>We're building something special — a multi-agent debate platform that helps you create better prompts for Cursor, Copilot, or your editor.</p>
               <p>We'll notify you as soon as we launch. In the meantime, you can:</p>
               <ul>
-                <li>Star us on <a href="https://github.com/yourusername/consilium">GitHub</a></li>
                 <li>Follow our progress on Twitter</li>
                 <li>Check out our <a href="${process.env.NEXT_PUBLIC_APP_URL}/faq">FAQ</a></li>
               </ul>

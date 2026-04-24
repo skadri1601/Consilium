@@ -339,7 +339,6 @@ describe("Marketing Pages", () => {
     it("renders contact channels", () => {
       render(<ContactPage />);
       expect(screen.getByText("Email")).toBeInTheDocument();
-      expect(screen.getByText("GitHub")).toBeInTheDocument();
       expect(screen.getByText("LinkedIn")).toBeInTheDocument();
     });
 

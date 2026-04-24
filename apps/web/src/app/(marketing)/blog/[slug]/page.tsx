@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Calendar, Clock, Github } from "lucide-react";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
@@ -154,9 +154,8 @@ function BenchmarkPost() {
 
       <div className="mt-12 pt-8 border-t border-white/[0.06]">
         <Button asChild size="lg">
-          <Link href="https://github.com/skadri1601/Consilium" target="_blank" rel="noopener noreferrer">
-            <Github className="mr-2 h-4 w-4" />
-            View on GitHub
+          <Link href="/sign-up">
+            Try Consilium
           </Link>
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Mail, Github, Linkedin, AlertTriangle, Bug } from "lucide-react";
+import { Mail, Linkedin, AlertTriangle, Bug } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
 
@@ -18,13 +18,6 @@ const channels = [
     value: "saad@myconsilium.xyz",
     href: "mailto:saad@myconsilium.xyz",
     description: "General inquiries, partnerships, and enterprise plans",
-  },
-  {
-    icon: Github,
-    title: "GitHub",
-    value: "github.com/skadri1601/Consilium",
-    href: "https://github.com/skadri1601/Consilium",
-    description: "Source code, issues, and discussions",
   },
   {
     icon: Linkedin,
@@ -88,15 +81,14 @@ export default function ContactPage() {
                 <div>
                   <p className="font-medium mb-1">Bug Reports</p>
                   <p className="text-sm text-muted-foreground">
-                    Found a bug? Open an issue on{" "}
+                    Found a bug? Email{" "}
                     <Link
-                      href="https://github.com/skadri1601/Consilium/issues"
-                      target="_blank"
-                      rel="noreferrer"
+                      href="mailto:saad@myconsilium.xyz"
                       className="text-indigo-400 hover:underline"
                     >
-                      GitHub Issues
-                    </Link>.
+                      saad@myconsilium.xyz
+                    </Link>{" "}
+                    with repro steps.
                   </p>
                 </div>
               </CardContent>

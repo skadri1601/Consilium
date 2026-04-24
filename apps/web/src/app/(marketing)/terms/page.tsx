@@ -668,9 +668,9 @@ export default function TermsPage() {
                 The following sections shall survive termination of these Terms:
                 Definitions, AI-Generated Content, Intellectual Property,
                 Disclaimer of Warranties, Limitation of Liability,
-                Indemnification, Self-Hosted Instances, Governing Law and
-                Dispute Resolution, Export Controls, and any other provisions
-                that by their nature should survive termination.
+                Indemnification, Governing Law and Dispute Resolution, Export
+                Controls, and any other provisions that by their nature should
+                survive termination.
               </p>
             </section>
 

@@ -387,15 +387,13 @@ data: {"id":"dlb_abc123","consensus":true,"rounds":3}`}</code>
 
           <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
             <p className="text-muted-foreground mb-4">
-              Explore the full API with our Postman collection
+              Need help integrating? Get in touch.
             </p>
             <Link
-              href="https://github.com/skadri1601/Consilium/tree/main/docs/api"
-              target="_blank"
-              rel="noreferrer"
+              href="/contact"
               className="inline-flex h-11 items-center justify-center rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 px-8 text-sm font-medium text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl"
             >
-              View Postman Collection
+              Contact us
             </Link>
           </div>
         </div>

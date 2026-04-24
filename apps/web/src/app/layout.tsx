@@ -101,7 +101,6 @@ const organizationJsonLd = {
   url: SITE_URL,
   logo: `${SITE_URL}/brand/consilium-logo.svg`,
   sameAs: [
-    "https://github.com/skadri1601/Consilium",
     "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
   ],
 };

@@ -1362,17 +1362,6 @@ export default function PrivacyPage() {
                     saad@myconsilium.xyz
                   </a>
                 </li>
-                <li>
-                  <strong className="text-foreground">GitHub:</strong>{" "}
-                  <a
-                    href="https://github.com/skadri1601/Consilium"
-                    className="text-primary hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    skadri1601/Consilium
-                  </a>
-                </li>
               </ul>
               <p className="mb-4 text-muted-foreground">
                 For GDPR purposes, Saad Kadri acts as the data controller. Given

@@ -9,9 +9,7 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY });
 export const NOTION_DOCS: Record<string, string> = {
   "what-is-consilium": "33f2627d-d545-8151-bb04-c6fe20d3e59f",
   faq: "33f2627d-d545-8172-8b9d-ece326c70eba",
-  "self-hosting": "33f2627d-d545-8163-aff8-f3fce2eefaa5",
   security: "33f2627d-d545-8138-bc68-db494408c80f",
-  research: "33f2627d-d545-81b2-b3f2-cc1e9dc2ec19",
   cli: "33f2627d-d545-8194-ac79-e95cc3a604d0",
   modes: "33f2627d-d545-81d8-8f2f-e22543ad0684",
 };
