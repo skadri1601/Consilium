@@ -65,7 +65,7 @@ const providers = [
   {
     name: "OpenRouter",
     env: "OPENROUTER_API_KEY",
-    models: "Free-tier Llama 3.3 70B, Gemma 2 9B, Qwen 2.5 72B (also used as Consilium fallback when no BYOK)",
+    models: "Free-tier Gemma 4 26B/31B, Qwen3 Coder, Nemotron 3 Super 120B, Ling 2.6 1T (also used as Consilium fallback when no BYOK)",
     free: true,
   },
 ];

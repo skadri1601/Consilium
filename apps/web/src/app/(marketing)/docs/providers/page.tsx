@@ -180,7 +180,7 @@ const models = [
   {
     provider: "xAI",
     model: "Grok 4.20",
-    id: "grok-4.20",
+    id: "grok-4-20",
     input: "$3.00",
     output: "$15.00",
     free: false,
@@ -224,8 +224,8 @@ const models = [
   },
   {
     provider: "OpenRouter",
-    model: "Llama 3.3 70B (free)",
-    id: "meta-llama/llama-3.3-70b-instruct:free",
+    model: "Gemma 4 26B (free)",
+    id: "google/gemma-4-26b-a4b-it:free",
     input: "$0.00",
     output: "$0.00",
     free: true,
@@ -233,8 +233,8 @@ const models = [
   },
   {
     provider: "OpenRouter",
-    model: "Gemma 2 9B (free)",
-    id: "google/gemma-2-9b-it:free",
+    model: "Gemma 4 31B (free)",
+    id: "google/gemma-4-31b-it:free",
     input: "$0.00",
     output: "$0.00",
     free: true,
@@ -242,8 +242,26 @@ const models = [
   },
   {
     provider: "OpenRouter",
-    model: "Qwen 2.5 72B (free)",
-    id: "qwen/qwen-2.5-72b-instruct:free",
+    model: "Qwen3 Coder (free)",
+    id: "qwen/qwen3-coder:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Nemotron 3 Super 120B (free)",
+    id: "nvidia/nemotron-3-super-120b-a12b:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Ling 2.6 1T (free)",
+    id: "inclusionai/ling-2.6-1t:free",
     input: "$0.00",
     output: "$0.00",
     free: true,
@@ -321,7 +339,7 @@ const providerDetails = [
     maxTokens: 2000,
     judgePriority: 7,
     description:
-      "OpenRouter aggregates access to dozens of models behind one OpenAI-compatible endpoint, including a free tier for popular community models like Llama 3.3 70B, Gemma 2, and Qwen 2.5 72B (rate-limited at 20 req/min, 200 req/day). Consilium uses OpenRouter as the secondary free-tier fallback (CONSILIUM_FREE_TIER_OPENROUTER_KEY) when Groq is unavailable.",
+      "OpenRouter aggregates access to dozens of models behind one OpenAI-compatible endpoint, including a free tier for popular community models like Gemma 4, Qwen3 Coder, Nemotron 3 Super 120B, and Ling 2.6 1T (rate-limited at 20 req/min, 50 req/day per OpenRouter's April 2026 free-tier policy). Consilium uses OpenRouter as the secondary free-tier fallback (CONSILIUM_FREE_TIER_OPENROUTER_KEY) when Groq is unavailable.",
     strengths: "Free tier breadth, single endpoint for many providers, easy fallback",
   },
 ];
@@ -332,7 +350,7 @@ const cheapoFallbacks = [
   { from: "claude-opus-4-7", to: "claude-haiku-4-5-20251001" },
   { from: "claude-sonnet-4-6", to: "claude-haiku-4-5-20251001" },
   { from: "gemini-3.1-pro-preview", to: "gemini-3-flash-preview" },
-  { from: "grok-4.20", to: "grok-4-1-fast-non-reasoning" },
+  { from: "grok-4-20", to: "grok-4-1-fast-non-reasoning" },
 ];
 
 export default function ProvidersPage() {

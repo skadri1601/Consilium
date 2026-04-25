@@ -67,7 +67,7 @@ CHEAP_VARIANTS = {
     "claude-opus-4-7": "claude-haiku-4-5-20251001",
     "claude-opus-4-6": "claude-haiku-4-5-20251001",
     "gemini-3.1-pro-preview": "gemini-3-flash-preview",
-    "grok-4.20": "grok-4-1-fast-non-reasoning",
+    "grok-4-20": "grok-4-1-fast-non-reasoning",
     "grok-4-1-fast-reasoning": "grok-4-1-fast-non-reasoning",
 }
 

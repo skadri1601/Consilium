@@ -106,7 +106,7 @@ def get_available_models() -> list:
     if keys["groq"]:
         models.extend(["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
     if keys["xai"]:
-        models.extend(["grok-4.20", "grok-4-1-fast-reasoning"])
+        models.extend(["grok-4-20", "grok-4-1-fast-reasoning"])
 
     return models
 

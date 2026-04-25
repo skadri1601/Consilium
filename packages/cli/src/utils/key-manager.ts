@@ -63,16 +63,22 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   'groq/compound': 'groq',
   'groq/compound-mini': 'groq',
   // xAI (Grok 4.x family)
-  'grok-4.20': 'xai',
+  'grok-4-20': 'xai',
   'grok-4-1-fast-reasoning': 'xai',
   'grok-4-1-fast-non-reasoning': 'xai',
   'grok-code-fast-1': 'xai',
   // Moonshot
   'kimi-k2.6': 'moonshot',
+  'kimi-k2.5': 'moonshot',
+  'kimi-k2-thinking': 'moonshot',
+  'kimi-k2-thinking-turbo': 'moonshot',
+  'kimi-k2-turbo-preview': 'moonshot',
   // OpenRouter free models (also reachable via platform free-tier pool)
-  'meta-llama/llama-3.3-70b-instruct:free': 'openrouter',
-  'google/gemma-2-9b-it:free': 'openrouter',
-  'qwen/qwen-2.5-72b-instruct:free': 'openrouter',
+  'google/gemma-4-26b-a4b-it:free': 'openrouter',
+  'google/gemma-4-31b-it:free': 'openrouter',
+  'qwen/qwen3-coder:free': 'openrouter',
+  'nvidia/nemotron-3-super-120b-a12b:free': 'openrouter',
+  'inclusionai/ling-2.6-1t:free': 'openrouter',
 };
 
 const JUDGE_PRIORITY: Provider[] = [

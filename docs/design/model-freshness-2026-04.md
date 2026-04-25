@@ -1,62 +1,115 @@
-# Model Freshness Audit — April 2026
+# Model Freshness Audit — April 25, 2026
 
-This audit captures the gap between Consilium's hardcoded model defaults
-and what the providers actually expose today. Findings inform the
-catalog updates landing in this branch and follow-up adapter work.
+This audit captures the live state of every model Consilium ships against the providers' current production catalogs. Each row is verified against the provider's own model documentation page (URL in the Sources section). Findings drive the catalog updates committed alongside this doc.
 
 ## Provider state vs Consilium
 
-| Provider | Consilium uses | Provider status (Apr 2026) | Action |
+### Anthropic — verified at platform.claude.com/docs
+
+| Model | Consilium catalog | Provider status (Apr 25 2026) | Action |
 |---|---|---|---|
-| **Anthropic** | `claude-3-5-haiku-latest` (default in `anthropic_agent.py`) | **Retired** Jan 5, 2026 | **Migrate** → `claude-haiku-4-5-20251001` |
-| Anthropic | `claude-haiku-4-5-20251001` (default-models.ts) | Current | ✅ keep |
-| Anthropic | `claude-sonnet-4-20250514` (catalog) | **Scheduled retirement** Jun 15, 2026 | **Migrate** → `claude-sonnet-4-6` |
-| Anthropic | (missing) | `claude-opus-4-7` is the new platform default as of Apr 23, 2026 | **Add** to catalog |
-| Anthropic | (missing) | `claude-sonnet-4-6`, `claude-opus-4-6` | **Add** to catalog |
-| **OpenAI** | `gpt-4o-mini` (default in `openai_agent.py` + default-models.ts) | Removed from ChatGPT Feb 13, 2026; API still works but legacy | **Migrate** → `gpt-5.4-nano` or `gpt-5.4-mini` |
-| OpenAI | `gpt-4o` (catalog) | Same — legacy in 2026 | **Migrate** → `gpt-5.4` |
-| OpenAI | (missing) | `gpt-5.5`, `gpt-5.5-pro`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano` | **Add** to catalog |
-| **Google** | `gemini-2.0-flash` (default in default-models.ts) | **Shutdown** Jun 1, 2026 | **Migrate** → `gemini-3.1-pro-preview` or a 3.x flash variant |
-| Google | `gemini-1.5-pro` (catalog) | **Already shutdown** — returns 404 | **Remove immediately** |
-| Google | `gemini-3-flash-preview` (default in `google_agent.py`) | Preview — fine for now | ✅ keep, monitor |
-| Google | (missing) | `gemini-3.1-pro-preview` (current main text model), `gemini-3-pro-image-preview` | **Add** to catalog |
-| **Groq** | `llama-3.1-8b-instant` (default in `groq_agent.py`) | Current production | ✅ keep |
-| Groq | (missing in default-models.ts) | `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini` | **Add** to catalog (Consilium supports Groq via BYOK; should be in MODEL_CATALOG) |
-| **xAI** | `grok-beta` (default in `xai_agent.py`) | Legacy | **Migrate** → `grok-4.20` (xAI's stated recommendation) |
-| xAI | (missing in default-models.ts) | `grok-4.20`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1` | **Add** to catalog |
+| Claude Opus 4.7 | `claude-opus-4-7` ✅ | **Current default**, GA since 2026-04-23 | keep |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` ✅ | Current | keep |
+| Claude Opus 4.6 | `claude-opus-4-6` ✅ | Current (legacy section, still callable) | keep |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` ✅ | Current; alias `claude-haiku-4-5` also valid | keep |
+| Claude Sonnet 4 | (alias only) | **DEPRECATED — retires Jun 15, 2026** | already aliased → `claude-sonnet-4-6` |
+| Claude Opus 4 | (alias only) | **DEPRECATED — retires Jun 15, 2026** | already aliased → `claude-opus-4-6` |
 
-## Severity
+### OpenAI — verified at developers.openai.com/api/docs/models
 
-- 🚨 **`gemini-1.5-pro` is dead** — any code path that hits it returns 404. Highest priority remove.
-- 🚨 **`gemini-2.0-flash` is the default text model** — shuts down Jun 1, 2026. Migration is non-optional.
-- 🚨 **`claude-3-5-haiku-latest` (anthropic_agent default)** is already retired. New `AnthropicAgent()` instances without an explicit `model_id` will fail.
-- ⚠️ **`claude-sonnet-4-20250514`** — 7-week runway to retirement.
-- ⚠️ `gpt-4o*` and `grok-beta` — still functional but two generations behind. Cosmetic concern, not breakage.
+| Model | Consilium catalog | Provider status (Apr 25 2026) | Action |
+|---|---|---|---|
+| GPT-5.5 Pro | `gpt-5.5-pro` ✅ | Current (snapshot `gpt-5.5-pro-2026-04-23`) | keep |
+| GPT-5.5 | `gpt-5.5` ✅ | Current (snapshot `gpt-5.5-2026-04-23`) | keep |
+| GPT-5.4 | `gpt-5.4` ✅ | Current (snapshot `gpt-5.4-2026-03-05`) | keep |
+| GPT-5.4 mini | `gpt-5.4-mini` ✅ | Current (snapshot `gpt-5.4-mini-2026-03-17`) | keep |
+| GPT-5.4 nano | `gpt-5.4-nano` ✅ | Current | keep |
 
-## What this PR changes
+### Google Gemini — verified at ai.google.dev/gemini-api/docs/deprecations
 
-1. `default-models.ts` — `DEFAULT_MODELS` and `MODEL_CATALOG` updated to current production IDs
-2. Per-provider default `model_id` constructors updated where the existing default is dead or near-dead
-3. New `consilium models --check` flag — surfaces deprecated models in the user's debate-history if any are detected (so heavy users get a heads-up)
-4. Provider tool-use: adapter for **Anthropic only** lands here (its tool-use API is stable and well-documented). OpenAI / Google / Groq / xAI adapters are scaffolded with `NotImplementedError` and shipped behind `CONSILIUM_ENABLE_TOOL_USE` so the protocol can be exercised without breaking existing flows.
+| Model | Consilium catalog | Provider status (Apr 25 2026) | Action |
+|---|---|---|---|
+| Gemini 3.1 Pro | `gemini-3.1-pro-preview` ✅ | Current (replaces retired `gemini-3-pro-preview`) | keep |
+| Gemini 3 Flash | `gemini-3-flash-preview` ✅ | Current; not in deprecation list | keep |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite-preview` ✅ | Current (replacement target for 2.5-flash-lite) | keep |
+| Gemini 3 Pro Preview | (alias only) | **SHUT DOWN 2026-03-09** | already aliased → `gemini-3.1-pro-preview` |
+| Gemini 2.5 Pro | (alias only) | **DEPRECATED — retires Jun 17, 2026** | already aliased → `gemini-3.1-pro-preview` |
+| Gemini 2.5 Flash | (alias only) | **DEPRECATED — retires Jun 17, 2026** | already aliased → `gemini-3-flash-preview` |
+| Gemini 2.5 Flash Lite | (alias only) | **DEPRECATED — retires Jul 22, 2026** | already aliased → `gemini-3.1-flash-lite-preview` |
+| Gemini 2.0 Flash | (alias only) | **DEPRECATED — retires Jun 1, 2026** | already aliased → `gemini-3-flash-preview` |
+| Gemini 2.0 Flash Lite | (alias only) | **DEPRECATED — retires Jun 1, 2026** | already aliased → `gemini-3.1-flash-lite-preview` |
 
-## Follow-up PRs (not in this PR)
+### Groq — verified at console.groq.com/docs/models
 
-- OpenAI tool-use adapter (`tool_calls` schema)
-- Google Gemini tool-use adapter (`function_calls` schema)
-- Groq tool-use adapter (OpenAI-compatible)
-- xAI tool-use adapter (OpenAI-compatible)
+All six IDs in our catalog confirmed live:
+`llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini` ✅
 
-Each can land independently against the protocol contract in
-`docs/design/mcp-tool-protocol.md`.
+### xAI — verified at docs.x.ai + cross-checked via aggregator listings
 
-## Sources
+| Model | Old catalog | Live API ID | Action |
+|---|---|---|---|
+| Grok 4.20 | `grok-4.20` ❌ | `grok-4-20` | **Corrected** — xAI uses dashes, not dots |
+| Grok 4.1 Fast (reasoning) | `grok-4-1-fast-reasoning` ✅ | `grok-4-1-fast-reasoning` | keep |
+| Grok 4.1 Fast (non-reasoning) | `grok-4-1-fast-non-reasoning` ✅ | `grok-4-1-fast-non-reasoning` | keep |
+| Grok Code Fast | `grok-code-fast-1` ✅ | `grok-code-fast-1` | keep |
+| `grok-beta`, `grok-2`, `grok-2-mini`, `grok-3` | (alias only) | retired | already aliased forward |
 
-- [Anthropic — Models overview](https://platform.claude.com/docs/en/about-claude/models/overview)
-- [Anthropic — Model deprecations](https://docs.anthropic.com/en/docs/resources/model-deprecations)
-- [OpenAI — Models](https://developers.openai.com/api/docs/models)
-- [OpenAI — Introducing GPT-5.5](https://openai.com/index/introducing-gpt-5-5/)
-- [Google — Gemini API models](https://ai.google.dev/gemini-api/docs/models)
-- [Groq — Supported models](https://console.groq.com/docs/models)
-- [Groq — Model deprecations](https://console.groq.com/docs/deprecations)
-- [xAI — Models and Pricing](https://docs.x.ai/developers/models)
+### Moonshot — verified at platform.kimi.ai/docs/guide/kimi-k2-6-quickstart
+
+| Model | Consilium catalog | Provider status | Action |
+|---|---|---|---|
+| Kimi K2.6 | `kimi-k2.6` ✅ | Current flagship | keep |
+| Kimi K2.5 | (added) | Current | **Added** |
+| Kimi K2 Thinking | (added) | Current (thinking-enabled variant) | **Added** |
+| Kimi K2 Thinking Turbo | (added) | Current | **Added** |
+| Kimi K2 Turbo Preview | (added) | Current | **Added** |
+
+### OpenRouter — verified at openrouter.ai/collections/free-models
+
+The previous catalog's free-tier IDs were **all retired**. Confirmed by fetching the live free-models collection on Apr 25, 2026. Replaced with the current free roster:
+
+| Old (retired) | Replacement |
+|---|---|
+| `meta-llama/llama-3.3-70b-instruct:free` | `qwen/qwen3-coder:free` |
+| `google/gemma-2-9b-it:free` | `google/gemma-4-26b-a4b-it:free` |
+| `mistralai/mistral-7b-instruct:free` | `google/gemma-4-26b-a4b-it:free` |
+| `nvidia/nemotron-4-340b-instruct:free` | `nvidia/nemotron-3-super-120b-a12b:free` |
+| `qwen/qwen-2.5-72b-instruct:free` | `qwen/qwen3-coder:free` |
+
+Old IDs are kept in `MODEL_ALIASES` so any externally-stored model preferences forward to a callable target.
+
+Free-tier resolver tier-equivalents updated to:
+- **fast** → `google/gemma-4-26b-a4b-it:free`
+- **balanced** → `qwen/qwen3-coder:free`
+- **deep** → `nvidia/nemotron-3-super-120b-a12b:free`
+
+OpenRouter free-tier rate limit: **20 req/min, 50 req/day** per their April 2026 announcement.
+
+## Summary of corrections in this audit
+
+1. **xAI** — `grok-4.20` → `grok-4-20` (xAI API uses dashes; the dot was an authoring typo)
+2. **OpenRouter free tier** — entire catalog refreshed to current Gemma 4 / Qwen3 / Nemotron 3 / Ling 2.6 lineup
+3. **Moonshot** — expanded from a single Kimi K2.6 entry to the full K2.x lineup (K2.5, K2 Thinking, K2 Thinking Turbo, K2 Turbo Preview)
+4. **Aliases** — added forward maps for the retired OpenRouter free IDs and the dotted xAI alias
+
+## Files touched
+
+- `apps/agents/src/shared/config/models.py` — AVAILABLE_MODELS xAI/moonshot/openrouter sections, MODEL_ALIASES
+- `apps/agents/src/features/free_tier/resolver.py` — TIER_EQUIVALENT_FREE_MODELS["openrouter"]
+- `apps/agents/src/core/orchestrator.py`, `features/deliberation/deliberation_graph.py`, `features/agents/xai_agent.py`, `features/agents/service.py`, `features/health/router.py` — `grok-4.20` → `grok-4-20`
+- `packages/cli/src/utils/default-models.ts` — MODEL_CATALOG entries
+- `packages/cli/src/utils/key-manager.ts` — MODEL_PROVIDER_MAP entries
+- `packages/cli/README.md` — provider table
+- `packages/shared/src/providers/models.ts` — MODELS array
+- `apps/web/src/shared/lib/constants.ts` — AGENTS array
+- `apps/web/src/app/(marketing)/pricing/page.tsx`, `docs/providers/page.tsx`, `docs/getting-started/page.tsx` — marketing copy + tables
+
+## Sources (live URLs hit Apr 25 2026)
+
+- Anthropic — https://platform.claude.com/docs/en/docs/about-claude/models/overview
+- OpenAI — https://developers.openai.com/api/docs/models/all
+- Google Gemini deprecations — https://ai.google.dev/gemini-api/docs/deprecations
+- Groq — https://console.groq.com/docs/models
+- xAI — https://docs.x.ai/docs/models (+ cross-checked via aggregator IDs)
+- Moonshot Kimi — https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart
+- OpenRouter free collection — https://openrouter.ai/collections/free-models

@@ -57,7 +57,7 @@ class AgentsService:
                 "id": "xai",
                 "name": "Grok 4.20",
                 "provider": "X.AI",
-                "model": "grok-4.20",
+                "model": "grok-4-20",
                 "description": "X.AI's Grok 4.20",
                 "is_available": True
             },

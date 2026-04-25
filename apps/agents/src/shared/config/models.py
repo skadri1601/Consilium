@@ -142,7 +142,7 @@ AVAILABLE_MODELS = {
             "output_cost": 4.00,
         },
         {
-            "id": "grok-4.20",
+            "id": "grok-4-20",
             "name": "Grok 4.20",
             "input_cost": 3.00,
             "output_cost": 15.00,
@@ -155,23 +155,59 @@ AVAILABLE_MODELS = {
             "input_cost": 1.20,
             "output_cost": 2.50,
         },
+        {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "input_cost": 0.80,
+            "output_cost": 1.80,
+        },
+        {
+            "id": "kimi-k2-thinking",
+            "name": "Kimi K2 Thinking",
+            "input_cost": 1.20,
+            "output_cost": 2.50,
+        },
+        {
+            "id": "kimi-k2-thinking-turbo",
+            "name": "Kimi K2 Thinking Turbo",
+            "input_cost": 0.80,
+            "output_cost": 1.80,
+        },
+        {
+            "id": "kimi-k2-turbo-preview",
+            "name": "Kimi K2 Turbo (preview)",
+            "input_cost": 0.50,
+            "output_cost": 1.20,
+        },
     ],
     "openrouter": [
         {
-            "id": "meta-llama/llama-3.3-70b-instruct:free",
-            "name": "Llama 3.3 70B (OpenRouter free tier)",
+            "id": "google/gemma-4-26b-a4b-it:free",
+            "name": "Gemma 4 26B (OpenRouter free tier)",
             "input_cost": 0.0,
             "output_cost": 0.0,
         },
         {
-            "id": "google/gemma-2-9b-it:free",
-            "name": "Gemma 2 9B (OpenRouter free tier)",
+            "id": "google/gemma-4-31b-it:free",
+            "name": "Gemma 4 31B (OpenRouter free tier)",
             "input_cost": 0.0,
             "output_cost": 0.0,
         },
         {
-            "id": "qwen/qwen-2.5-72b-instruct:free",
-            "name": "Qwen 2.5 72B (OpenRouter free tier)",
+            "id": "qwen/qwen3-coder:free",
+            "name": "Qwen3 Coder (OpenRouter free tier)",
+            "input_cost": 0.0,
+            "output_cost": 0.0,
+        },
+        {
+            "id": "nvidia/nemotron-3-super-120b-a12b:free",
+            "name": "Nemotron 3 Super 120B (OpenRouter free tier)",
+            "input_cost": 0.0,
+            "output_cost": 0.0,
+        },
+        {
+            "id": "inclusionai/ling-2.6-1t:free",
+            "name": "Ling 2.6 1T (OpenRouter free tier)",
             "input_cost": 0.0,
             "output_cost": 0.0,
         },
@@ -217,14 +253,24 @@ MODEL_ALIASES = {
     "gemini-2.5-flash-lite": "gemini-3.1-flash-lite-preview",
     "gemini-3-pro-preview": "gemini-3.1-pro-preview",
     "gemini-exp-1206": "gemini-3-flash-preview",
-    # xAI
-    "grok-beta": "grok-4.20",
-    "grok-2": "grok-4.20",
+    # xAI — note: canonical xAI API IDs use dashes (grok-4-20, not grok-4.20)
+    "grok-beta": "grok-4-20",
+    "grok-2": "grok-4-20",
     "grok-2-mini": "grok-4-1-fast-non-reasoning",
-    "grok-3": "grok-4.20",
+    "grok-3": "grok-4-20",
+    "grok-4.20": "grok-4-20",
+    "grok-4-20-reasoning": "grok-4-20",
+    "grok-4-20-non-reasoning": "grok-4-1-fast-non-reasoning",
     # Groq
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
     "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
+    # OpenRouter — older free-tier IDs forwarded to current free models
+    # (verified Apr 25 2026: original IDs no longer in OpenRouter free roster)
+    "meta-llama/llama-3.3-70b-instruct:free": "qwen/qwen3-coder:free",
+    "google/gemma-2-9b-it:free": "google/gemma-4-26b-a4b-it:free",
+    "mistralai/mistral-7b-instruct:free": "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-4-340b-instruct:free": "nvidia/nemotron-3-super-120b-a12b:free",
+    "qwen/qwen-2.5-72b-instruct:free": "qwen/qwen3-coder:free",
 }
 
 

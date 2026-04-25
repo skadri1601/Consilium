@@ -37,13 +37,17 @@ export const MODELS: ModelDefinition[] = [
   { id: "grok-code-fast-1", name: "Grok Code Fast", provider: "xai", free: false, pricing: { inputPerMillion: 0.30, outputPerMillion: 1.20 } },
   { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast (non-reasoning)", provider: "xai", free: false, pricing: { inputPerMillion: 0.50, outputPerMillion: 2.00 } },
   { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast (reasoning)", provider: "xai", free: false, pricing: { inputPerMillion: 1.00, outputPerMillion: 4.00 } },
-  { id: "grok-4.20", name: "Grok 4.20", provider: "xai", free: false, pricing: { inputPerMillion: 3.00, outputPerMillion: 15.00 } },
+  { id: "grok-4-20", name: "Grok 4.20", provider: "xai", free: false, pricing: { inputPerMillion: 3.00, outputPerMillion: 15.00 } },
 
   { id: "kimi-k2.6", name: "Kimi K2.6", provider: "moonshot", free: false, pricing: { inputPerMillion: 1.20, outputPerMillion: 2.50 } },
+  { id: "kimi-k2.5", name: "Kimi K2.5", provider: "moonshot", free: false, pricing: { inputPerMillion: 0.80, outputPerMillion: 1.80 } },
+  { id: "kimi-k2-thinking", name: "Kimi K2 Thinking", provider: "moonshot", free: false, pricing: { inputPerMillion: 1.20, outputPerMillion: 2.50 } },
 
-  { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
-  { id: "google/gemma-2-9b-it:free", name: "Gemma 2 9B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
-  { id: "qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
+  { id: "google/gemma-4-26b-a4b-it:free", name: "Gemma 4 26B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
+  { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
+  { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
+  { id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super 120B (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
+  { id: "inclusionai/ling-2.6-1t:free", name: "Ling 2.6 1T (OpenRouter free)", provider: "openrouter", free: true, pricing: { inputPerMillion: 0, outputPerMillion: 0 } },
 ];
 
 export const MODEL_BY_ID: Record<string, ModelDefinition> = Object.fromEntries(

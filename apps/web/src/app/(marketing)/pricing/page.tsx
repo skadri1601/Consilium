@@ -234,9 +234,11 @@ const modelPricing = [
   {
     provider: "OpenRouter (free tier)",
     models: [
-      { name: "Llama 3.3 70B (free)", input: "Free", output: "Free" },
-      { name: "Gemma 2 9B (free)", input: "Free", output: "Free" },
-      { name: "Qwen 2.5 72B (free)", input: "Free", output: "Free" },
+      { name: "Gemma 4 26B (free)", input: "Free", output: "Free" },
+      { name: "Gemma 4 31B (free)", input: "Free", output: "Free" },
+      { name: "Qwen3 Coder (free)", input: "Free", output: "Free" },
+      { name: "Nemotron 3 Super 120B (free)", input: "Free", output: "Free" },
+      { name: "Ling 2.6 1T (free)", input: "Free", output: "Free" },
     ],
   },
 ];

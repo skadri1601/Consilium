@@ -220,7 +220,7 @@ COST_PER_1K_TOKENS = {
     "claude-haiku-4-5-20251001": (0.0008, 0.004),
     "gemini-3.1-pro-preview": (0.00125, 0.005),
     "gemini-3-flash-preview": (0.00015, 0.0006),
-    "grok-4.20": (0.003, 0.015),
+    "grok-4-20": (0.003, 0.015),
     "grok-4-1-fast-reasoning": (0.001, 0.004),
     "grok-4-1-fast-non-reasoning": (0.0005, 0.002),
     "grok-code-fast-1": (0.0003, 0.0012),

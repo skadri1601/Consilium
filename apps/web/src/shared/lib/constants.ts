@@ -147,7 +147,7 @@ export const AGENTS = [
     free: false,
   },
   {
-    id: "grok-4.20",
+    id: "grok-4-20",
     name: "Grok 4.20",
     provider: "xAI",
     description: "xAI's flagship four-agent reasoning model",

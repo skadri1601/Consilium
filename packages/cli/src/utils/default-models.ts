@@ -44,20 +44,22 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
   { id: "groq/compound", provider: "groq", tier: "deep", status: "current", notes: "agentic system with web search + code exec" },
   { id: "groq/compound-mini", provider: "groq", tier: "balanced", status: "current" },
 
-  { id: "grok-4.20", provider: "xai", tier: "deep", status: "current", notes: "xAI's stated recommended default" },
+  { id: "grok-4-20", provider: "xai", tier: "deep", status: "current", notes: "Grok 4.20 flagship (multi-agent reasoning)" },
   { id: "grok-4-1-fast-reasoning", provider: "xai", tier: "fast", status: "current" },
   { id: "grok-4-1-fast-non-reasoning", provider: "xai", tier: "fast", status: "current" },
   { id: "grok-code-fast-1", provider: "xai", tier: "fast", status: "current", notes: "agentic coding" },
 
   { id: "kimi-k2.6", provider: "moonshot", tier: "deep", status: "current", notes: "256K ctx, tool-use (OpenAI-compatible)" },
   { id: "kimi-k2.5", provider: "moonshot", tier: "balanced", status: "current" },
-  { id: "moonshotai/Kimi-K2-Instruct", provider: "moonshot", tier: "balanced", status: "current", notes: "open-weights variant" },
+  { id: "kimi-k2-thinking", provider: "moonshot", tier: "deep", status: "current", notes: "thinking-enabled variant" },
+  { id: "kimi-k2-thinking-turbo", provider: "moonshot", tier: "balanced", status: "current", notes: "fast thinking variant" },
+  { id: "kimi-k2-turbo-preview", provider: "moonshot", tier: "fast", status: "current", notes: "low-latency turbo preview" },
 
-  { id: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier via OpenRouter community pool" },
-  { id: "google/gemma-2-9b-it:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier (Gemma 2)" },
-  { id: "mistralai/mistral-7b-instruct:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier" },
-  { id: "nvidia/nemotron-4-340b-instruct:free", provider: "openrouter", tier: "deep", status: "current", notes: "free tier" },
-  { id: "qwen/qwen-2.5-72b-instruct:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier (Qwen 2.5)" },
+  { id: "google/gemma-4-26b-a4b-it:free", provider: "openrouter", tier: "fast", status: "current", notes: "free tier (Gemma 4 26B activated)" },
+  { id: "google/gemma-4-31b-it:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier (Gemma 4 31B)" },
+  { id: "qwen/qwen3-coder:free", provider: "openrouter", tier: "balanced", status: "current", notes: "free tier (Qwen3 Coder)" },
+  { id: "nvidia/nemotron-3-super-120b-a12b:free", provider: "openrouter", tier: "deep", status: "current", notes: "free tier (Nemotron 3 Super 120B)" },
+  { id: "inclusionai/ling-2.6-1t:free", provider: "openrouter", tier: "deep", status: "current", notes: "free tier (Ling 2.6 1T)" },
 ];
 
 export function findCatalogEntry(id: string): CatalogEntry | undefined {
