@@ -93,7 +93,7 @@ python -m agents.scripts.test_pipeline_e2e
 - Follow existing patterns in the file you are editing
 - TypeScript: strict mode, shared types live in `packages/shared/`
 - Python: type hints, no subprocess where direct imports work
-- Model IDs use full versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-20250514`
+- Model IDs use current versions (April 2026 lineup): `claude-haiku-4-5-20251001`, `claude-sonnet-4-6`, `claude-opus-4-7`, `gpt-5.4`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`. Legacy IDs are aliased to current replacements but should not be hardcoded in new code.
 - Never duplicate types that exist in `packages/shared/`
 
 ## Architecture Overview

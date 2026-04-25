@@ -59,7 +59,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ### TypeScript (apps/web/, apps/api/, packages/)
 - Shared types in packages/shared/ — never duplicate
-- Model IDs use full versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-20250514`
+- Model IDs use current versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-6`, `claude-opus-4-7`, `gpt-5.4`/`gpt-5.5`, `gemini-3-flash-preview`/`gemini-3.1-pro-preview`. Legacy IDs (`gpt-4o`, `claude-3-5-*`, `gemini-2.x`) are aliased to current replacements but should not be hardcoded in new code.
 - BullMQ for async debate processing
 - SSE for real-time streaming
 

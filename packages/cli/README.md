@@ -151,19 +151,37 @@ consilium eval "Which sorting algorithm is best for nearly-sorted data?"
 consilium eval "Which sorting algorithm?" --responses responses.json
 ```
 
-The `--responses` file should be a JSON array: `[{"model": "gpt-4o", "text": "..."}, ...]`
+The `--responses` file should be a JSON array: `[{"model": "gpt-5.4", "text": "..."}, ...]`
+
+## Providers & Models
+
+Consilium supports 7 LLM providers as of April 2026. Bring your own key for any provider — or run without keys and Consilium will fall back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
+
+| Provider | Current production models |
+|---|---|
+| **OpenAI** | `gpt-5.5-pro`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano` |
+| **Anthropic** | `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
+| **Google** | `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview` |
+| **Groq** | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini` |
+| **xAI** | `grok-4.20`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1` |
+| **Moonshot** | `kimi-k2.6` |
+| **OpenRouter** | `meta-llama/llama-3.3-70b-instruct:free`, `google/gemma-2-9b-it:free`, `qwen/qwen-2.5-72b-instruct:free` |
+
+Run `consilium models` for the live catalog with pricing and tier badges. Legacy IDs (e.g. `gpt-4o`, `claude-3-5-sonnet-latest`, `gemini-2.0-flash`) are forwarded to current replacements via aliases — but you should migrate your scripts.
 
 ## Configuration
 
-Manage API keys and settings with BYOK (Bring Your Own Keys). Supported providers: OpenAI, Anthropic, Google, Groq, XAI.
+Manage API keys and settings with BYOK (Bring Your Own Keys). Supported providers: OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter.
 
 ```bash
 consilium config set openai_key sk-...
 consilium config set anthropic_key sk-ant-...
+consilium config set moonshot_key sk-...
+consilium config set openrouter_key sk-or-...
 consilium config list
 ```
 
-Configuration is stored in `~/.consilium/config.json`.
+Configuration is stored in `~/.consilium/config.json`. BYOK always wins over the free-tier pool. When a debate runs without a key for the requested provider, the CLI prints a pre-flight notice and the engine emits a `routing:fallback` SSE event so you always know when fallback is active.
 
 Defaults target production (`https://api.myconsilium.xyz`, `https://myconsilium.xyz`). For a local Nest API, set:
 

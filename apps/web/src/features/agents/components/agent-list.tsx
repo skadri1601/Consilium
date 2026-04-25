@@ -5,7 +5,15 @@ import { AGENTS } from "@/shared/lib/constants";
 import { AgentCard } from "./agent-card";
 import type { AgentDef, AgentProvider } from "../types/agents.types";
 
-const PROVIDER_ORDER: AgentProvider[] = ["OpenAI", "Anthropic", "Google", "Groq", "XAI"];
+const PROVIDER_ORDER: AgentProvider[] = [
+  "OpenAI",
+  "Anthropic",
+  "Google",
+  "Groq",
+  "xAI",
+  "Moonshot",
+  "OpenRouter",
+];
 
 function groupByProvider(agents: readonly AgentDef[]): Record<string, AgentDef[]> {
   const groups: Record<string, AgentDef[]> = {};
@@ -24,6 +32,8 @@ interface ConfiguredKeys {
   googleKey: string | null;
   groqKey: string | null;
   xaiKey: string | null;
+  moonshotKey: string | null;
+  openrouterKey: string | null;
 }
 
 const PROVIDER_KEY_MAP: Record<AgentProvider, keyof ConfiguredKeys> = {
@@ -31,7 +41,9 @@ const PROVIDER_KEY_MAP: Record<AgentProvider, keyof ConfiguredKeys> = {
   Anthropic: "anthropicKey",
   Google: "googleKey",
   Groq: "groqKey",
-  XAI: "xaiKey",
+  xAI: "xaiKey",
+  Moonshot: "moonshotKey",
+  OpenRouter: "openrouterKey",
 };
 
 export function AgentList() {
@@ -41,6 +53,8 @@ export function AgentList() {
     googleKey: null,
     groqKey: null,
     xaiKey: null,
+    moonshotKey: null,
+    openrouterKey: null,
   });
 
   const fetchKeys = useCallback(async () => {
@@ -53,6 +67,8 @@ export function AgentList() {
         googleKey: data.googleKey ?? null,
         groqKey: data.groqKey ?? null,
         xaiKey: data.xaiKey ?? null,
+        moonshotKey: data.moonshotKey ?? null,
+        openrouterKey: data.openrouterKey ?? null,
       });
     } catch {
       // ignore

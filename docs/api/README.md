@@ -57,7 +57,7 @@ Start a new debate session.
 ```json
 {
   "topic": "Build a REST API with authentication using Node.js and PostgreSQL",
-  "models": ["gpt-5.4-mini", "claude-3-5-haiku-latest"]
+  "models": ["gpt-5.4-mini", "claude-haiku-4-5-20251001"]
 }
 ```
 
@@ -68,7 +68,7 @@ Start a new debate session.
   "userId": "user-456",
   "topic": "Build a REST API...",
   "status": "processing",
-  "modelsUsed": ["gpt-5.4-mini", "claude-3-5-haiku-latest"],
+  "modelsUsed": ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
   "totalCost": 0,
   "createdAt": "2026-01-10T12:00:00Z"
 }
@@ -248,7 +248,7 @@ Get analytics data.
   ],
   "modelUsage": {
     "gpt-5.4-mini": 20,
-    "claude-3-5-haiku-latest": 15,
+    "claude-haiku-4-5-20251001": 15,
     "gemini-3-flash-preview": 7
   }
 }
@@ -359,7 +359,7 @@ const client = new ConsiliumClient({
 // Start a debate
 const debate = await client.debates.create({
   topic: 'Build a REST API...',
-  models: ['gpt-5.4-mini', 'claude-3-5-haiku-latest']
+  models: ['gpt-5.4-mini', 'claude-haiku-4-5-20251001']
 });
 
 // Stream progress

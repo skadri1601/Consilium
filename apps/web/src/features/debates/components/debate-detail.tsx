@@ -160,7 +160,7 @@ export function DebateDetail({ debateId }: { debateId: string }) {
   const [sending, setSending] = useState(false);
   const [streamingGolden, setStreamingGolden] = useState<string | null>(null);
   const [followUpModels, setFollowUpModels] = useState<string[]>([
-    "gemini-2.0-flash",
+    "gemini-3-flash-preview",
     "llama-3.1-8b-instant",
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);

@@ -21,7 +21,7 @@ client = ConsiliumClient(
 result = client.deliberate(
     "Should we migrate to microservices?",
     mode=DeliberationMode.COUNCIL,
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
 )
 print(result.golden_prompt)
 print(result.confidence_scores)
@@ -47,7 +47,7 @@ print(result.confidence_scores)
 ```python
 result = client.deliberate(
     topic="Should we use Rust or Go for the backend?",
-    models=["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-pro"],
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3.1-pro-preview"],
     mode=DeliberationMode.DEEP,
     max_rounds=5,
 )
@@ -63,7 +63,7 @@ print(f"Cost: ${result.cost:.3f}")
 ```python
 result = client.red_team(
     content="Your system prompt here",
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
     categories=["injection", "jailbreak", "data_exfiltration"],
 )
 print(f"Score: {result.overall_score}/10")
@@ -81,7 +81,7 @@ result = client.blind_eval(
         "Quantum computing uses qubits...",
         "A quantum computer harnesses...",
     ],
-    models=["claude-sonnet-4-20250514"],
+    models=["claude-sonnet-4-6"],
 )
 for rank in result.rankings:
     print(f"#{rank['position']}: {rank['response_id']}")
@@ -93,7 +93,7 @@ print(result.scores)
 ```python
 stream = client.stream_deliberation(
     topic="Best database for time-series data?",
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
     mode=DeliberationMode.COUNCIL,
 )
 for event in stream.events():
@@ -106,7 +106,7 @@ for event in stream.events():
 estimate = client.estimate_cost(
     topic="Complex architecture decision",
     mode=DeliberationMode.DEEP,
-    models=["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-pro"],
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3.1-pro-preview"],
 )
 print(f"Estimated cost: ${estimate.total:.3f}")
 print(f"Per round: ${estimate.breakdown.per_round:.3f}")

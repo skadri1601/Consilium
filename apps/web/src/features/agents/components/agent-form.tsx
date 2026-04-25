@@ -36,7 +36,7 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
             <Input
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="GPT-4o-mini"
+              placeholder="GPT-5.4 Mini"
               required
             />
           </div>
@@ -53,6 +53,8 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
               <option value="google">Google</option>
               <option value="groq">Groq</option>
               <option value="xai">xAI</option>
+              <option value="moonshot">Moonshot</option>
+              <option value="openrouter">OpenRouter</option>
             </select>
           </div>
 
@@ -61,7 +63,7 @@ export function AgentForm({ onSubmit, isLoading }: AgentFormProps) {
             <Input
               value={formData.modelId}
               onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
-              placeholder="gpt-4o-mini"
+              placeholder="gpt-5.4-mini"
               required
             />
           </div>

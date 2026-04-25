@@ -79,7 +79,7 @@ Research shows multi-agent debate improves factual accuracy by reducing hallucin
                +---------------+    +----------------+
 ```
 
-**LLM Providers:** OpenAI, Anthropic, Google, Groq, xAI -- BYOK (bring your own keys), no markup on API costs.
+**LLM Providers:** OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), OpenRouter — BYOK (bring your own keys) with no markup on API costs. When no key is provided, Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
 
 ## Quick Start
 
@@ -112,7 +112,7 @@ client = ConsiliumClient(api_key="your-key")
 result = client.deliberate(
     topic="What is the most energy-efficient sorting algorithm?",
     mode="council",
-    models=["gpt-4o", "claude-sonnet-4-5", "gemini-2.0-flash"],
+    models=["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
 )
 
 print(result.verdict)
@@ -142,7 +142,7 @@ const client = new ConsiliumClient({ apiKey: 'your-key' });
 const result = await client.deliberate({
   topic: 'Should we migrate to server components?',
   mode: 'jury',
-  models: ['gpt-4o', 'claude-sonnet-4-5', 'gemini-2.0-flash'],
+  models: ['gpt-5.4', 'claude-sonnet-4-6', 'gemini-3-flash-preview'],
 });
 
 console.log(result.verdict);
@@ -228,10 +228,10 @@ Initial benchmark runs completed but produced artificially low scores due to str
 
 ### Methodology
 
-- **Models:** GPT-4o, Claude Sonnet 4.5, Gemini 2.0 Flash (heterogeneous council)
+- **Models:** GPT-5.4, Claude Sonnet 4.6, Gemini 3 Flash (heterogeneous council)
 - **Mode tested:** `council` (3-round deliberation)
 - **Current answer checker:** Exact string match -- produces false negatives on free-text and code responses. Improvement planned to use semantic matching and unit test execution.
-- **Single model baseline:** GPT-4o individual responses
+- **Single model baseline:** GPT-5.4 individual responses
 
 ### Research Baselines
 
@@ -247,11 +247,11 @@ Initial benchmark runs completed but produced artificially low scores due to str
 ```bash
 cd apps/agents
 python -m src.features.deliberation.benchmarks.runner \
-  --benchmark mmlu_pro --models claude-sonnet-4-5,gpt-4o,gemini-2.0-flash \
+  --benchmark mmlu_pro --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview \
   --mode council --n 200 --output results/mmlu_pro_council.json
 
 python -m src.features.deliberation.benchmarks.runner \
-  --benchmark truthfulqa --models claude-sonnet-4-5,gpt-4o \
+  --benchmark truthfulqa --models claude-sonnet-4-6,gpt-5.4 \
   --mode blind --n 200 --output results/truthfulqa_blind.json
 ```
 

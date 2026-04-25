@@ -162,7 +162,7 @@ function BenchmarkPost() {
         <span className="text-muted-foreground"> --mode structured-debate</span>
         <span className="text-muted-foreground">
           {" "}
-          --models claude-sonnet-4.5,gpt-4o,gemini-2.0-flash
+          --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview
         </span>
         <span className="text-muted-foreground">
           {" "}
