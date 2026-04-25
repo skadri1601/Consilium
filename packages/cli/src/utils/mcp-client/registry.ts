@@ -20,17 +20,26 @@ export class McpRegistry {
     const results = await Promise.allSettled(
       effective.map(async (cfg) => {
         const client = new StdioMcpClient(cfg);
-        await client.start();
-        const tools = await client.listTools();
-        this.clients.set(cfg.name, client);
-        for (const t of tools) {
-          this.tools.push({
-            server: cfg.name,
-            qualifiedName: `${cfg.name}.${t.name}`,
-            tool: t,
+        try {
+          await client.start();
+          const tools = await client.listTools();
+          this.clients.set(cfg.name, client);
+          for (const t of tools) {
+            this.tools.push({
+              server: cfg.name,
+              qualifiedName: `${cfg.name}.${t.name}`,
+              tool: t,
+            });
+          }
+          return cfg.name;
+        } catch (err) {
+          // start() may have spawned the child process before listTools()
+          // failed; ensure we kill it so we don't leak a runaway server.
+          await client.stop().catch(() => {
+            /* best-effort cleanup */
           });
+          throw err;
         }
-        return cfg.name;
       }),
     );
 
