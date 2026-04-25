@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import uuid
 from enum import Enum
 from typing import Any, AsyncGenerator, Optional
@@ -13,6 +14,19 @@ from src.features.deliberation.deliberation_graph import DeliberationEngine
 from src.features.deliberation.types import DeliberationMode
 
 logger = logging.getLogger(__name__)
+
+
+_LOG_INJECTION_PATTERN = re.compile(r"[\r\n\t\x00-\x1f]")
+
+
+def _safe_log_value(value: object, *, max_length: int = 64) -> str:
+    """Strip control chars + truncate so user input can't forge log lines.
+
+    Mitigates pythonsecurity:S5145 (log injection) for any user-supplied
+    string that flows into a log call.
+    """
+    text = str(value)
+    return _LOG_INJECTION_PATTERN.sub("_", text)[:max_length]
 
 router = APIRouter(prefix="/deliberation", tags=["deliberation"])
 
@@ -162,7 +176,10 @@ async def _run_deliberation(deliberation_id: str, engine: DeliberationEngine, to
         entry["state"] = dict(state)
         entry["status"] = DeliberationStatus.COMPLETED
     except Exception as e:
-        logger.exception("Deliberation %s failed", deliberation_id)
+        # deliberation_id originates from the request body; sanitize before
+        # logging to neutralize CR/LF / control-char log injection
+        # (pythonsecurity:S5145).
+        logger.exception("Deliberation %s failed", _safe_log_value(deliberation_id))
         entry["error"] = str(e)
         entry["status"] = DeliberationStatus.FAILED
 

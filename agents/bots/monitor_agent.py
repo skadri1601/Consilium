@@ -14,7 +14,13 @@ _repo_root = Path(__file__).resolve().parent.parent
 _memory_dir = (_repo_root / "memory").resolve()
 if not _memory_dir.is_relative_to(_repo_root):
     raise RuntimeError("invalid monitor memory directory")
-STATE_FILE = (_memory_dir / "monitor_state.json").resolve()
+# Hardcoded filename — never derived from request data — so the path
+# can never escape _memory_dir. The `_assert_safe_state_path` helper
+# below re-checks at every read/write site so static analyzers see
+# the sanitization at the SINK (mitigates Sonar pythonsecurity:S2083
+# false-positive when state-dict contents flow into write_text).
+_STATE_FILENAME = "monitor_state.json"
+STATE_FILE = (_memory_dir / _STATE_FILENAME).resolve()
 if STATE_FILE.parent != _memory_dir:
     raise RuntimeError("invalid monitor state file path")
 
@@ -41,16 +47,20 @@ except ImportError:
     _HAS_SENTRY = False
 
 
-def _resolved_state_file() -> Path:
-    resolved = STATE_FILE.resolve()
-    root = _repo_root.resolve()
-    if not resolved.is_relative_to(root):
+def _assert_safe_state_path(path: Path) -> Path:
+    """Re-resolve and verify the state file is inside _memory_dir.
+
+    Run at every read/write site so static analyzers see the
+    sanitization inline at the SINK and don't taint-flag the IO call.
+    """
+    resolved = path.resolve(strict=False)
+    if resolved.parent != _memory_dir or resolved.name != _STATE_FILENAME:
         raise RuntimeError("invalid monitor state file path")
     return resolved
 
 
 def _load_state():
-    state_path = _resolved_state_file()
+    state_path = _assert_safe_state_path(STATE_FILE)
     if state_path.exists():
         try:
             return json.loads(state_path.read_text(encoding="utf-8"))
@@ -64,9 +74,10 @@ def _load_state():
 
 def _save_state(state):
     state["updated_at"] = datetime.now(timezone.utc).isoformat()
-    state_path = _resolved_state_file()
+    state_path = _assert_safe_state_path(STATE_FILE)
     state_path.parent.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
+    payload = json.dumps(state, indent=2, default=str)
+    state_path.write_text(payload, encoding="utf-8")
 
 
 def _fetch_issue_detail(issue_id):
