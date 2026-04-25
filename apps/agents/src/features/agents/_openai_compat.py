@@ -1,17 +1,22 @@
-"""Shared tool-use loop for OpenAI-compatible providers.
+"""Shared tool-use loop and base class for OpenAI-compatible providers.
 
-OpenAI, Groq, and xAI all expose the ChatCompletions "tool_calls"
-contract via the ``openai`` Python SDK. This module centralizes the
-tool-use loop so each provider adapter only supplies its client
-factory and model id.
+OpenAI, Groq, xAI, Moonshot, and OpenRouter all expose the
+ChatCompletions ``tool_calls`` contract via the ``openai`` Python SDK.
+This module centralizes both the tool-use loop AND the surrounding
+boilerplate (generate_response / stream_response / health_check) so
+each provider adapter only supplies its base URL, env var, and any
+provider-specific client kwargs (e.g. OpenRouter's attribution
+headers).
 """
 
 from __future__ import annotations
 
 import json
-from typing import Any, Awaitable, Callable, Optional
+from collections.abc import AsyncIterator
+from typing import Any, Callable, Optional, Tuple
 
 from .base_agent import (
+    BaseAgent,
     ToolCall,
     ToolDefinition,
     ToolExecutor,
@@ -83,7 +88,6 @@ async def run_openai_tool_loop(
             if not tool_calls:
                 break
 
-            # Append the assistant message (with tool_calls) to history
             messages.append(
                 {
                     "role": "assistant",
@@ -122,3 +126,125 @@ async def run_openai_tool_loop(
     finally:
         if http_client is not None:
             await http_client.aclose()
+
+
+class BaseOpenAICompatAgent(BaseAgent):
+    """Common implementation for every OpenAI-compatible provider.
+
+    Subclasses set ``base_url`` (None for OpenAI itself, since the SDK
+    defaults to ``api.openai.com``) and optionally override
+    ``_extra_client_kwargs`` for provider-specific headers (e.g.
+    OpenRouter's HTTP-Referer / X-Title attribution).
+    """
+
+    base_url: Optional[str] = None
+
+    def _extra_client_kwargs(self) -> dict[str, Any]:
+        return {}
+
+    def _create_openai_client(self) -> tuple[Any, Any]:
+        import openai
+        import httpx
+
+        http_client = httpx.AsyncClient()
+        kwargs: dict[str, Any] = {"api_key": self.api_key, "http_client": http_client}
+        if self.base_url:
+            kwargs["base_url"] = self.base_url
+        kwargs.update(self._extra_client_kwargs())
+        client = openai.AsyncOpenAI(**kwargs)
+        return client, http_client
+
+    async def generate_response(
+        self, query: str, system_prompt: Optional[str] = None
+    ) -> Tuple[str, int]:
+        if not self._validate_api_key():
+            self._raise_no_api_key()
+
+        http_client = None
+        try:
+            client, http_client = self._create_openai_client()
+            response = await client.chat.completions.create(
+                model=self.model_id,
+                messages=[
+                    {"role": "system", "content": system_prompt or self.get_system_prompt()},
+                    {"role": "user", "content": query},
+                ],
+                temperature=0.7,
+                max_tokens=2000,
+            )
+            content = response.choices[0].message.content or ""
+            tokens = response.usage.total_tokens if response.usage else 0
+            return content, tokens
+        except Exception as e:
+            self._handle_common_errors(e, "API")
+        finally:
+            if http_client:
+                await http_client.aclose()
+
+    async def stream_response(
+        self, query: str, system_prompt: Optional[str] = None
+    ) -> AsyncIterator[str]:
+        if not self._validate_api_key():
+            self._raise_no_api_key()
+
+        http_client = None
+        try:
+            client, http_client = self._create_openai_client()
+            stream = await client.chat.completions.create(
+                model=self.model_id,
+                messages=[
+                    {"role": "system", "content": system_prompt or self.get_system_prompt()},
+                    {"role": "user", "content": query},
+                ],
+                temperature=0.7,
+                max_tokens=2000,
+                stream=True,
+            )
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            self._handle_common_errors(e, "Streaming")
+        finally:
+            if http_client:
+                await http_client.aclose()
+
+    async def generate_with_tools(
+        self,
+        query: str,
+        tools: list[ToolDefinition],
+        executor: ToolExecutor,
+        system_prompt: Optional[str] = None,
+        max_tool_calls_per_turn: int = 5,
+    ) -> ToolUseResponse:
+        if not self._validate_api_key():
+            self._raise_no_api_key()
+        try:
+            return await run_openai_tool_loop(
+                model_id=self.model_id,
+                query=query,
+                tools=tools,
+                executor=executor,
+                system_prompt=system_prompt or self.get_system_prompt(),
+                client_factory=self._create_openai_client,
+                max_tool_calls_per_turn=max_tool_calls_per_turn,
+            )
+        except Exception as e:
+            self._handle_common_errors(e, "tool-use")
+
+    async def health_check(self) -> bool:
+        if not self._validate_api_key():
+            return False
+
+        http_client = None
+        try:
+            client, http_client = self._create_openai_client()
+            await client.models.list()
+            return True
+        except (ConnectionError, TimeoutError, OSError):
+            return False
+        except Exception:
+            return False
+        finally:
+            if http_client:
+                await http_client.aclose()
