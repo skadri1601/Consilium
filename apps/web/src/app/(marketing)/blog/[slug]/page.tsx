@@ -305,6 +305,156 @@ function ModelFreshnessAuditPost() {
   );
 }
 
+function ByokSafetyNetPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Bring-Your-Own-Key (BYOK) is the right default for an
+        AI-mediating product — users keep control of cost, rate limits,
+        and provider relationships. But BYOK alone has a sharp edge:
+        when a user hasn&apos;t added a key for the provider their
+        debate happens to need, the debate just fails. Consilium&apos;s
+        free-tier fallback is the safety net for exactly that case.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">The four-step resolver</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Every model request runs through{" "}
+        <code>FreeTierResolver</code>{" "}
+        (<code>apps/agents/src/features/free_tier/resolver.py</code>).
+        It returns a tuple of (effective model, effective provider,
+        effective key, is_fallback). The chain has four steps and stops
+        at the first one that succeeds:
+      </p>
+
+      <ol className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground list-decimal list-inside">
+        <li>
+          <strong className="text-foreground">User BYOK.</strong> If the
+          requested model&apos;s provider has a key in the request payload
+          (<code>openaiKey</code>, <code>anthropicKey</code>, etc.), use
+          it. No fallback.
+        </li>
+        <li>
+          <strong className="text-foreground">Self-hosted env var.</strong>{" "}
+          If <code>OPENAI_API_KEY</code> /{" "}
+          <code>ANTHROPIC_API_KEY</code> / etc. is set on the engine
+          host, use it. This is the single-tenant deployment case where
+          one operator funds every debate.
+        </li>
+        <li>
+          <strong className="text-foreground">Free-tier Groq.</strong>{" "}
+          If <code>CONSILIUM_FREE_TIER_GROQ_KEY</code> is set, route to
+          Groq with a tier-equivalent open model — fast →{" "}
+          <code>llama-3.1-8b-instant</code>, balanced →{" "}
+          <code>llama-3.3-70b-versatile</code>, deep →{" "}
+          <code>openai/gpt-oss-120b</code>. Tier is inferred from the
+          requested model&apos;s catalog cost.
+        </li>
+        <li>
+          <strong className="text-foreground">Free-tier OpenRouter.</strong>{" "}
+          Backup path. If{" "}
+          <code>CONSILIUM_FREE_TIER_OPENROUTER_KEY</code> is set, route
+          through OpenRouter&apos;s free roster — fast →{" "}
+          <code>google/gemma-4-26b-a4b-it:free</code>, balanced →{" "}
+          <code>qwen/qwen3-coder:free</code>, deep →{" "}
+          <code>nvidia/nemotron-3-super-120b-a12b:free</code>.
+        </li>
+      </ol>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-6">
+        If none of the four match, the resolver raises{" "}
+        <code>NoKeyAvailableError</code>. The debate fails with a clear
+        message about which provider needs a key, not a 401 from the
+        upstream API.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Why the platform pool uses separate env vars</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The free-tier env vars{" "}
+        (<code>CONSILIUM_FREE_TIER_GROQ_KEY</code>,{" "}
+        <code>CONSILIUM_FREE_TIER_OPENROUTER_KEY</code>) are
+        deliberately distinct from the standard{" "}
+        <code>GROQ_API_KEY</code> and{" "}
+        <code>OPENROUTER_API_KEY</code>. An operator running Consilium
+        for a single internal team probably wants their own provider
+        keys to handle every debate — that&apos;s the step-2 path. A
+        platform operator funding a free pool for users who haven&apos;t
+        signed up for a provider yet uses the step-3 / step-4 path. The
+        two should not collide.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Transparency at the surface</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        When fallback fires, the engine emits a{" "}
+        <code>routing:fallback</code> SSE event before the first round
+        runs. The payload lists every model that got rerouted, the
+        substitution it received, and a human-readable reason. Critically,
+        the API key never appears in the event — only the substitution
+        metadata.
+      </p>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`event: routing:fallback
+data: {
+  "count": 1,
+  "resolutions": [{
+    "requested_model": "claude-opus-4-7",
+    "requested_provider": "anthropic",
+    "effective_model": "openai/gpt-oss-120b",
+    "effective_provider": "groq",
+    "is_fallback": true,
+    "fallback_reason": "No anthropic API key configured. Routed claude-opus-4-7 to groq free tier..."
+  }],
+  "message": "1 model(s) routed to Consilium free tier..."
+}`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-6">
+        The CLI surfaces this as a pre-flight notice (yellow banner with
+        the substitution and a hint to add a key in{" "}
+        <code>consilium config</code>). The web app surfaces it on the
+        debate detail page. Either way, the user sees the substitution
+        before they see the result.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">What happens to legacy model IDs</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The resolver runs after the alias map, so legacy IDs forward
+        first and then resolve through the chain. A request for{" "}
+        <code>gpt-4o</code> with no OpenAI key resolves to{" "}
+        <code>gpt-5.4</code> (alias), then through the chain — if no
+        OpenAI key exists anywhere, it falls back to Groq&apos;s
+        balanced tier. The user sees{" "}
+        <code>requested_model: &quot;gpt-4o&quot;</code> →{" "}
+        <code>effective_model: &quot;llama-3.3-70b-versatile&quot;</code>{" "}
+        and knows exactly what ran.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Why this matters</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The combination — BYOK preferred, free pool as backstop,
+        substitution surfaced explicitly — means a user can try
+        Consilium with zero setup and still see real multi-provider
+        debate behavior. They&apos;re not locked into a paid signup
+        before they know if they want the product. And they&apos;re
+        never silently routed to a different model than they
+        asked for.
+      </p>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -328,6 +478,7 @@ function PlaceholderPost({ title }: { title: string }) {
 const postContent: Record<string, React.FC> = {
   "benchmark-results-council-deliberation-vs-single-models": BenchmarkPost,
   "model-freshness-audit-april-2026": ModelFreshnessAuditPost,
+  "byok-with-a-safety-net": ByokSafetyNetPost,
 };
 
 export default async function BlogPostPage({
