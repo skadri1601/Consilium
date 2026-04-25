@@ -32,6 +32,31 @@ function PostCTA() {
   );
 }
 
+function BlogTable({
+  headers,
+  children,
+}: {
+  headers: string[];
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-white/10 bg-white/[0.03]">
+            {headers.map((h) => (
+              <th key={h} className="px-6 py-4 text-left font-semibold">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/10">{children}</tbody>
+      </table>
+    </div>
+  );
+}
+
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
@@ -80,46 +105,41 @@ function BenchmarkPost() {
         single-model GPT-5.4 as the baseline:
       </p>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-6 py-4 text-left font-semibold">Benchmark</th>
-              <th className="px-6 py-4 text-left font-semibold">N</th>
-              <th className="px-6 py-4 text-left font-semibold">Raw single</th>
-              <th className="px-6 py-4 text-left font-semibold">Raw deliberation</th>
-              <th className="px-6 py-4 text-left font-semibold">API cost (single / debate)</th>
-              <th className="px-6 py-4 text-left font-semibold">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="px-6 py-4 font-medium">MMLU</td>
-              <td className="px-6 py-4 text-muted-foreground">200</td>
-              <td className="px-6 py-4 text-muted-foreground">2%</td>
-              <td className="px-6 py-4 text-muted-foreground">2%</td>
-              <td className="px-6 py-4 text-muted-foreground">$0.03 / $9.58</td>
-              <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">TruthfulQA</td>
-              <td className="px-6 py-4 text-muted-foreground">100</td>
-              <td className="px-6 py-4 text-muted-foreground">27%</td>
-              <td className="px-6 py-4 text-muted-foreground">19%</td>
-              <td className="px-6 py-4 text-muted-foreground">$0.01 / $4.69</td>
-              <td className="px-6 py-4 text-amber-400 text-xs">checker + API errors</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">HumanEval</td>
-              <td className="px-6 py-4 text-muted-foreground">50</td>
-              <td className="px-6 py-4 text-muted-foreground">0%</td>
-              <td className="px-6 py-4 text-muted-foreground">0%</td>
-              <td className="px-6 py-4 text-muted-foreground">$0.01 / $3.00</td>
-              <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BlogTable
+        headers={[
+          "Benchmark",
+          "N",
+          "Raw single",
+          "Raw deliberation",
+          "API cost (single / debate)",
+          "Status",
+        ]}
+      >
+        <tr>
+          <td className="px-6 py-4 font-medium">MMLU</td>
+          <td className="px-6 py-4 text-muted-foreground">200</td>
+          <td className="px-6 py-4 text-muted-foreground">2%</td>
+          <td className="px-6 py-4 text-muted-foreground">2%</td>
+          <td className="px-6 py-4 text-muted-foreground">$0.03 / $9.58</td>
+          <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 font-medium">TruthfulQA</td>
+          <td className="px-6 py-4 text-muted-foreground">100</td>
+          <td className="px-6 py-4 text-muted-foreground">27%</td>
+          <td className="px-6 py-4 text-muted-foreground">19%</td>
+          <td className="px-6 py-4 text-muted-foreground">$0.01 / $4.69</td>
+          <td className="px-6 py-4 text-amber-400 text-xs">checker + API errors</td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 font-medium">HumanEval</td>
+          <td className="px-6 py-4 text-muted-foreground">50</td>
+          <td className="px-6 py-4 text-muted-foreground">0%</td>
+          <td className="px-6 py-4 text-muted-foreground">0%</td>
+          <td className="px-6 py-4 text-muted-foreground">$0.01 / $3.00</td>
+          <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
+        </tr>
+      </BlogTable>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-6">
         Total spend: $17.30 for 350 questions. We&apos;re publishing
@@ -173,47 +193,37 @@ function BenchmarkPost() {
         contributes:
       </p>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-6 py-4 text-left font-semibold">Study</th>
-              <th className="px-6 py-4 text-left font-semibold">Finding</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="px-6 py-4 font-medium align-top">Du et al., ICML 2024</td>
-              <td className="px-6 py-4 text-muted-foreground">
-                Multi-agent debate adds +10–20% on math and strategic
-                reasoning tasks vs. single-model baselines.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium align-top">Chen et al., ACL 2024 (ReConcile)</td>
-              <td className="px-6 py-4 text-muted-foreground">
-                +6.8% accuracy on reasoning benchmarks using
-                heterogeneous models with confidence-weighted voting.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium align-top">Khan et al., ICML 2024</td>
-              <td className="px-6 py-4 text-muted-foreground">
-                Debate between persuasive LLMs increases truthfulness
-                even when none of the participants individually knows
-                the answer.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium align-top">Liang et al., 2023</td>
-              <td className="px-6 py-4 text-muted-foreground">
-                Multi-agent debate increases solution diversity on
-                creative and divergent-thinking tasks.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BlogTable headers={["Study", "Finding"]}>
+        <tr>
+          <td className="px-6 py-4 font-medium align-top">Du et al., ICML 2024</td>
+          <td className="px-6 py-4 text-muted-foreground">
+            Multi-agent debate adds +10–20% on math and strategic
+            reasoning tasks vs. single-model baselines.
+          </td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 font-medium align-top">Chen et al., ACL 2024 (ReConcile)</td>
+          <td className="px-6 py-4 text-muted-foreground">
+            +6.8% accuracy on reasoning benchmarks using
+            heterogeneous models with confidence-weighted voting.
+          </td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 font-medium align-top">Khan et al., ICML 2024</td>
+          <td className="px-6 py-4 text-muted-foreground">
+            Debate between persuasive LLMs increases truthfulness
+            even when none of the participants individually knows
+            the answer.
+          </td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 font-medium align-top">Liang et al., 2023</td>
+          <td className="px-6 py-4 text-muted-foreground">
+            Multi-agent debate increases solution diversity on
+            creative and divergent-thinking tasks.
+          </td>
+        </tr>
+      </BlogTable>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-6">
         These are the deltas Consilium&apos;s council mode is designed
@@ -558,68 +568,25 @@ function ModelDeprecationCalendarPost() {
 
       <h2 className="text-2xl font-bold mt-12 mb-6">The calendar</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-6 py-4 text-left font-semibold">Date</th>
-              <th className="px-6 py-4 text-left font-semibold">Provider</th>
-              <th className="px-6 py-4 text-left font-semibold">Model ID</th>
-              <th className="px-6 py-4 text-left font-semibold">Aliased forward to</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 1, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.0-flash</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3-flash-preview</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 1, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.0-flash-lite</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-lite-preview</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 15, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Anthropic</td>
-              <td className="px-6 py-4 font-mono text-xs">claude-sonnet-4-20250514</td>
-              <td className="px-6 py-4 font-mono text-xs">claude-sonnet-4-6</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 15, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Anthropic</td>
-              <td className="px-6 py-4 font-mono text-xs">claude-opus-4-20250514</td>
-              <td className="px-6 py-4 font-mono text-xs">claude-opus-4-6</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 17, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-pro</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-pro-preview</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jun 17, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3-flash-preview</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Jul 22, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash-lite</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-lite-preview</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Oct 2, 2026</td>
-              <td className="px-6 py-4 text-muted-foreground">Google</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash-image</td>
-              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-image-preview</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BlogTable headers={["Date", "Provider", "Model ID", "Aliased forward to"]}>
+        {[
+          ["Jun 1, 2026", "Google", "gemini-2.0-flash", "gemini-3-flash-preview"],
+          ["Jun 1, 2026", "Google", "gemini-2.0-flash-lite", "gemini-3.1-flash-lite-preview"],
+          ["Jun 15, 2026", "Anthropic", "claude-sonnet-4-20250514", "claude-sonnet-4-6"],
+          ["Jun 15, 2026", "Anthropic", "claude-opus-4-20250514", "claude-opus-4-6"],
+          ["Jun 17, 2026", "Google", "gemini-2.5-pro", "gemini-3.1-pro-preview"],
+          ["Jun 17, 2026", "Google", "gemini-2.5-flash", "gemini-3-flash-preview"],
+          ["Jul 22, 2026", "Google", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite-preview"],
+          ["Oct 2, 2026", "Google", "gemini-2.5-flash-image", "gemini-3.1-flash-image-preview"],
+        ].map(([date, provider, oldId, newId]) => (
+          <tr key={`${date}-${oldId}`}>
+            <td className="px-6 py-4 font-medium">{date}</td>
+            <td className="px-6 py-4 text-muted-foreground">{provider}</td>
+            <td className="px-6 py-4 font-mono text-xs">{oldId}</td>
+            <td className="px-6 py-4 font-mono text-xs">{newId}</td>
+          </tr>
+        ))}
+      </BlogTable>
 
       <p className="text-sm text-muted-foreground mt-3">
         Sourced from{" "}
@@ -805,44 +772,27 @@ function WhyDeliberationBeatsOrchestrationPost() {
 
       <h2 className="text-2xl font-bold mt-12 mb-6">A concrete diff</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-6 py-4 text-left font-semibold">Property</th>
-              <th className="px-6 py-4 text-left font-semibold">Orchestration (CrewAI / LangChain agents)</th>
-              <th className="px-6 py-4 text-left font-semibold">Deliberation (Consilium)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="px-6 py-4 font-medium">Model interaction</td>
-              <td className="px-6 py-4 text-muted-foreground">Sequential pipeline</td>
-              <td className="px-6 py-4 text-muted-foreground">Adversarial rounds</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Error handling</td>
-              <td className="px-6 py-4 text-muted-foreground">Propagates downstream</td>
-              <td className="px-6 py-4 text-muted-foreground">Caught by cross-examination</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Confidence</td>
-              <td className="px-6 py-4 text-muted-foreground">Self-reported</td>
-              <td className="px-6 py-4 text-muted-foreground">Calibrated via convergence detection</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Disagreement</td>
-              <td className="px-6 py-4 text-muted-foreground">Hidden / overwritten</td>
-              <td className="px-6 py-4 text-muted-foreground">Surfaced as dissent reports</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">Audit trail</td>
-              <td className="px-6 py-4 text-muted-foreground">Logs of intermediate outputs</td>
-              <td className="px-6 py-4 text-muted-foreground">Structured claims, challenges, rebuttals</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BlogTable
+        headers={[
+          "Property",
+          "Orchestration (CrewAI / LangChain agents)",
+          "Deliberation (Consilium)",
+        ]}
+      >
+        {[
+          ["Model interaction", "Sequential pipeline", "Adversarial rounds"],
+          ["Error handling", "Propagates downstream", "Caught by cross-examination"],
+          ["Confidence", "Self-reported", "Calibrated via convergence detection"],
+          ["Disagreement", "Hidden / overwritten", "Surfaced as dissent reports"],
+          ["Audit trail", "Logs of intermediate outputs", "Structured claims, challenges, rebuttals"],
+        ].map(([prop, orch, del]) => (
+          <tr key={prop}>
+            <td className="px-6 py-4 font-medium">{prop}</td>
+            <td className="px-6 py-4 text-muted-foreground">{orch}</td>
+            <td className="px-6 py-4 text-muted-foreground">{del}</td>
+          </tr>
+        ))}
+      </BlogTable>
 
       <h2 className="text-2xl font-bold mt-12 mb-6">When orchestration is better</h2>
 
@@ -940,68 +890,25 @@ function EightDeliberationModesPost() {
 
       <h2 className="text-2xl font-bold mt-12 mb-6">The lineup</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-6 py-4 text-left font-semibold">Mode</th>
-              <th className="px-6 py-4 text-left font-semibold">Rounds</th>
-              <th className="px-6 py-4 text-left font-semibold">Median latency</th>
-              <th className="px-6 py-4 text-left font-semibold">Best for</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="px-6 py-4 font-medium">quick</td>
-              <td className="px-6 py-4 text-muted-foreground">1</td>
-              <td className="px-6 py-4 text-muted-foreground">~15s</td>
-              <td className="px-6 py-4 text-muted-foreground">Fast lookup-style questions</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">council</td>
-              <td className="px-6 py-4 text-muted-foreground">3</td>
-              <td className="px-6 py-4 text-muted-foreground">~45s</td>
-              <td className="px-6 py-4 text-muted-foreground">Default for most reasoning tasks</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">deep</td>
-              <td className="px-6 py-4 text-muted-foreground">5</td>
-              <td className="px-6 py-4 text-muted-foreground">~90s</td>
-              <td className="px-6 py-4 text-muted-foreground">Architecture-level decisions</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">blind</td>
-              <td className="px-6 py-4 text-muted-foreground">3</td>
-              <td className="px-6 py-4 text-muted-foreground">~45s</td>
-              <td className="px-6 py-4 text-muted-foreground">Reducing model-anchor bias</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">redteam</td>
-              <td className="px-6 py-4 text-muted-foreground">1 (attack/defend cycle)</td>
-              <td className="px-6 py-4 text-muted-foreground">~60–120s</td>
-              <td className="px-6 py-4 text-muted-foreground">Security &amp; vulnerability review</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">jury</td>
-              <td className="px-6 py-4 text-muted-foreground">3</td>
-              <td className="px-6 py-4 text-muted-foreground">~60s</td>
-              <td className="px-6 py-4 text-muted-foreground">Ranked-choice on multiple options</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">market</td>
-              <td className="px-6 py-4 text-muted-foreground">5</td>
-              <td className="px-6 py-4 text-muted-foreground">~90s</td>
-              <td className="px-6 py-4 text-muted-foreground">Forecasting / probability claims</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 font-medium">auto</td>
-              <td className="px-6 py-4 text-muted-foreground">varies</td>
-              <td className="px-6 py-4 text-muted-foreground">depends on routed mode</td>
-              <td className="px-6 py-4 text-muted-foreground">When you don&apos;t want to choose</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BlogTable headers={["Mode", "Rounds", "Median latency", "Best for"]}>
+        {[
+          ["quick", "1", "~15s", "Fast lookup-style questions"],
+          ["council", "3", "~45s", "Default for most reasoning tasks"],
+          ["deep", "5", "~90s", "Architecture-level decisions"],
+          ["blind", "3", "~45s", "Reducing model-anchor bias"],
+          ["redteam", "1 (attack/defend cycle)", "~60–120s", "Security & vulnerability review"],
+          ["jury", "3", "~60s", "Ranked-choice on multiple options"],
+          ["market", "5", "~90s", "Forecasting / probability claims"],
+          ["auto", "varies", "depends on routed mode", "When you don’t want to choose"],
+        ].map(([mode, rounds, latency, best]) => (
+          <tr key={mode}>
+            <td className="px-6 py-4 font-medium">{mode}</td>
+            <td className="px-6 py-4 text-muted-foreground">{rounds}</td>
+            <td className="px-6 py-4 text-muted-foreground">{latency}</td>
+            <td className="px-6 py-4 text-muted-foreground">{best}</td>
+          </tr>
+        ))}
+      </BlogTable>
 
       <p className="text-sm text-muted-foreground mt-3">
         Round counts are the actual values in{" "}
