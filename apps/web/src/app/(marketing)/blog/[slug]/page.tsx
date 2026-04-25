@@ -179,6 +179,132 @@ function BenchmarkPost() {
   );
 }
 
+function ModelFreshnessAuditPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        On April 25, 2026 we re-verified every model ID Consilium ships
+        against each provider&apos;s own documentation page. The audit was
+        prompted by a simple worry: catalogs go stale, and a stale ID
+        becomes a 404 on the user&apos;s next debate. We expected to find
+        small drift. We found three real bugs.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 1 — xAI uses dashes, not dots</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Our catalog listed <code>grok-4.20</code>. The xAI native API uses
+        <code> grok-4-20</code>. The dot was an authoring typo carried
+        forward through the catalog, the per-provider default model in{" "}
+        <code>xai_agent.py</code>, the cost map in the deliberation graph,
+        the cheap-variants table in the orchestrator, and the marketing
+        pricing page. xAI&apos;s naming convention everywhere else
+        (<code>grok-4-1-fast-reasoning</code>,{" "}
+        <code>grok-4-1-fast-non-reasoning</code>,{" "}
+        <code>grok-code-fast-1</code>) uses dashes — we just spelled the
+        4.20 model wrong from the start.
+      </p>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        Fix was a global rename plus an alias entry mapping{" "}
+        <code>grok-4.20</code> → <code>grok-4-20</code> so any
+        externally-stored debate session that was created before the fix
+        still resolves to a callable target.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 2 — OpenRouter&apos;s free roster had rotated entirely</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Consilium uses OpenRouter as the secondary free-tier fallback when
+        Groq is unavailable. We had five free-tier IDs hard-coded:
+      </p>
+
+      <ul className="mt-4 space-y-2 text-base leading-relaxed text-muted-foreground list-disc list-inside font-mono text-sm">
+        <li>meta-llama/llama-3.3-70b-instruct:free</li>
+        <li>google/gemma-2-9b-it:free</li>
+        <li>mistralai/mistral-7b-instruct:free</li>
+        <li>nvidia/nemotron-4-340b-instruct:free</li>
+        <li>qwen/qwen-2.5-72b-instruct:free</li>
+      </ul>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-6">
+        Fetching <code>openrouter.ai/collections/free-models</code>{" "}
+        returned zero of those slugs. The free roster had moved entirely
+        to a newer generation: Gemma 4, Qwen3 Coder, Nemotron 3 Super,
+        Ling 2.6, GLM 4.5 Air. Every debate that hit the OpenRouter
+        fallback path before April 25 was attempting to call a model
+        OpenRouter no longer routes.
+      </p>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        We replaced the catalog with five current free IDs, updated the
+        free-tier resolver&apos;s tier-equivalence table (fast →{" "}
+        <code>google/gemma-4-26b-a4b-it:free</code>, balanced →{" "}
+        <code>qwen/qwen3-coder:free</code>, deep →{" "}
+        <code>nvidia/nemotron-3-super-120b-a12b:free</code>), and aliased
+        the five retired IDs forward.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 3 — Moonshot&apos;s catalog was incomplete</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        We listed only <code>kimi-k2.6</code>, the latest flagship.
+        Moonshot&apos;s K2 family is broader than that — the K2.6
+        quickstart page also lists <code>kimi-k2.5</code>,{" "}
+        <code>kimi-k2-thinking</code>,{" "}
+        <code>kimi-k2-thinking-turbo</code>, and{" "}
+        <code>kimi-k2-turbo-preview</code>. All five are callable today
+        and serve different cost/latency profiles. Our catalog now
+        carries them all.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">What didn&apos;t change</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Anthropic, OpenAI, Google, and Groq came back clean. All four
+        models in the Anthropic table (<code>claude-opus-4-7</code>,{" "}
+        <code>claude-sonnet-4-6</code>, <code>claude-opus-4-6</code>,{" "}
+        <code>claude-haiku-4-5-20251001</code>), all five OpenAI IDs (the
+        full GPT-5.4 / GPT-5.5 family), all three current Gemini 3.x
+        previews, and all six Groq production models matched their
+        provider docs verbatim.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">The deprecation calendar that came out of it</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The same audit also surfaced six legacy model IDs scheduled for
+        shutdown between June and October 2026 — including{" "}
+        <code>gemini-2.0-flash</code> on June 1, <code>claude-sonnet-4</code>{" "}
+        and <code>claude-opus-4</code> on June 15, and{" "}
+        <code>gemini-2.5-pro</code> / <code>gemini-2.5-flash</code> on
+        June 17. Each is aliased forward in our config so debates that
+        request a soon-to-retire ID resolve to a current model
+        automatically. Detail in the next post.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Why we publish the audit</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Multi-provider catalogs rot. The seven-provider lineup we ship is
+        the largest in this category, which means the surface area for
+        rot is larger too. We commit the audit doc{" "}
+        (<code>docs/design/model-freshness-2026-04.md</code>) into the
+        repo so the next time someone wonders why we substituted{" "}
+        <code>qwen/qwen3-coder:free</code> for{" "}
+        <code>qwen-2.5-72b-instruct:free</code>, the answer with the
+        verbatim provider URL is one git-blame away.
+      </p>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -201,6 +327,7 @@ function PlaceholderPost({ title }: { title: string }) {
 
 const postContent: Record<string, React.FC> = {
   "benchmark-results-council-deliberation-vs-single-models": BenchmarkPost,
+  "model-freshness-audit-april-2026": ModelFreshnessAuditPost,
 };
 
 export default async function BlogPostPage({
