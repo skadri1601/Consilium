@@ -31,6 +31,8 @@ export class ApiKeysService {
           googleKey: null,
           groqKey: null,
           xaiKey: null,
+          moonshotKey: null,
+          openrouterKey: null,
         };
       }
 
@@ -40,6 +42,8 @@ export class ApiKeysService {
         googleKey?: string | null;
         groqKey?: string | null;
         xaiKey?: string | null;
+        moonshotKey?: string | null;
+        openrouterKey?: string | null;
       };
 
       return {
@@ -56,6 +60,12 @@ export class ApiKeysService {
           ? this.maskKey(userWithKeys.groqKey)
           : null,
         xaiKey: userWithKeys.xaiKey ? this.maskKey(userWithKeys.xaiKey) : null,
+        moonshotKey: userWithKeys.moonshotKey
+          ? this.maskKey(userWithKeys.moonshotKey)
+          : null,
+        openrouterKey: userWithKeys.openrouterKey
+          ? this.maskKey(userWithKeys.openrouterKey)
+          : null,
       };
     } catch (error) {
       this.logger.error("Error fetching API keys:", error);
@@ -93,6 +103,18 @@ export class ApiKeysService {
     if (dto.xaiKey !== undefined) {
       updateData.xaiKey = dto.xaiKey
         ? this.encryption.encrypt(dto.xaiKey)
+        : null;
+    }
+
+    if (dto.moonshotKey !== undefined) {
+      updateData.moonshotKey = dto.moonshotKey
+        ? this.encryption.encrypt(dto.moonshotKey)
+        : null;
+    }
+
+    if (dto.openrouterKey !== undefined) {
+      updateData.openrouterKey = dto.openrouterKey
+        ? this.encryption.encrypt(dto.openrouterKey)
         : null;
     }
 
@@ -138,6 +160,10 @@ export class ApiKeysService {
           return await this.testGroqKey(dto.key);
         case ApiKeyProvider.XAI:
           return await this.testXAIKey(dto.key);
+        case ApiKeyProvider.MOONSHOT:
+          return await this.testMoonshotKey(dto.key);
+        case ApiKeyProvider.OPENROUTER:
+          return await this.testOpenRouterKey(dto.key);
         default:
           throw new BadRequestException("Invalid provider");
       }
@@ -289,12 +315,58 @@ export class ApiKeysService {
     }
   }
 
+  private async testMoonshotKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
+    try {
+      const response = await fetch("https://api.moonshot.cn/v1/models", {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return {
+          valid: false,
+          message: `Invalid Moonshot API key: ${errorMessage}`,
+        };
+      }
+      return { valid: true, message: "Moonshot API key is valid" };
+    } catch (error) {
+      return { valid: false, message: `Failed to validate: ${error.message}` };
+    }
+  }
+
+  private async testOpenRouterKey(
+    key: string,
+  ): Promise<{ valid: boolean; message: string }> {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        return {
+          valid: false,
+          message: `Invalid OpenRouter API key: ${errorMessage}`,
+        };
+      }
+      return { valid: true, message: "OpenRouter API key is valid" };
+    } catch (error) {
+      return { valid: false, message: `Failed to validate: ${error.message}` };
+    }
+  }
+
   async getUserApiKeys(userId: string): Promise<{
     openaiKey?: string;
     anthropicKey?: string;
     googleKey?: string;
     groqKey?: string;
     xaiKey?: string;
+    moonshotKey?: string;
+    openrouterKey?: string;
   }> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
@@ -307,6 +379,8 @@ export class ApiKeysService {
         googleKey: process.env.GOOGLE_API_KEY,
         groqKey: process.env.GROQ_API_KEY,
         xaiKey: process.env.XAI_API_KEY,
+        moonshotKey: process.env.MOONSHOT_API_KEY,
+        openrouterKey: process.env.OPENROUTER_API_KEY,
       };
     }
 
@@ -316,6 +390,8 @@ export class ApiKeysService {
       googleKey?: string | null;
       groqKey?: string | null;
       xaiKey?: string | null;
+      moonshotKey?: string | null;
+      openrouterKey?: string | null;
     };
 
     const keys: Record<string, string | undefined> = {};
@@ -326,6 +402,8 @@ export class ApiKeysService {
       googleKey: userWithKeys.googleKey,
       groqKey: userWithKeys.groqKey,
       xaiKey: userWithKeys.xaiKey,
+      moonshotKey: userWithKeys.moonshotKey,
+      openrouterKey: userWithKeys.openrouterKey,
     };
 
     for (const [keyName, encryptedValue] of Object.entries(keyMap)) {
@@ -337,24 +415,20 @@ export class ApiKeysService {
         }
       }
     }
-    if (!keys.openaiKey && process.env.OPENAI_API_KEY) {
-      keys.openaiKey = process.env.OPENAI_API_KEY;
-    }
 
-    if (!keys.anthropicKey && process.env.ANTHROPIC_API_KEY) {
-      keys.anthropicKey = process.env.ANTHROPIC_API_KEY;
-    }
-
-    if (!keys.googleKey && process.env.GOOGLE_API_KEY) {
-      keys.googleKey = process.env.GOOGLE_API_KEY;
-    }
-
-    if (!keys.groqKey && process.env.GROQ_API_KEY) {
-      keys.groqKey = process.env.GROQ_API_KEY;
-    }
-
-    if (!keys.xaiKey && process.env.XAI_API_KEY) {
-      keys.xaiKey = process.env.XAI_API_KEY;
+    const envFallbacks: Array<[keyof typeof keys, string | undefined]> = [
+      ["openaiKey", process.env.OPENAI_API_KEY],
+      ["anthropicKey", process.env.ANTHROPIC_API_KEY],
+      ["googleKey", process.env.GOOGLE_API_KEY],
+      ["groqKey", process.env.GROQ_API_KEY],
+      ["xaiKey", process.env.XAI_API_KEY],
+      ["moonshotKey", process.env.MOONSHOT_API_KEY],
+      ["openrouterKey", process.env.OPENROUTER_API_KEY],
+    ];
+    for (const [name, envVal] of envFallbacks) {
+      if (!keys[name] && envVal) {
+        keys[name] = envVal;
+      }
     }
 
     return keys;

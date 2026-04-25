@@ -89,6 +89,8 @@ export class CreateDeliberationDto {
     googleKey?: string;
     groqKey?: string;
     xaiKey?: string;
+    moonshotKey?: string;
+    openrouterKey?: string;
   };
 
   @ApiPropertyOptional({

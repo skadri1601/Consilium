@@ -131,7 +131,13 @@ export function CouncilChat() {
       .then((res) => (res.ok ? res.json() : {}))
       .then((data: Record<string, string | null>) => {
         const hasAnyKey =
-          data.openaiKey || data.anthropicKey || data.googleKey || data.groqKey || data.xaiKey;
+          data.openaiKey ||
+          data.anthropicKey ||
+          data.googleKey ||
+          data.groqKey ||
+          data.xaiKey ||
+          data.moonshotKey ||
+          data.openrouterKey;
         if (!hasAnyKey) {
           setSelectedAgents([...FREE_MODEL_IDS.slice(0, 2)]);
           setUsingFreeModels(true);

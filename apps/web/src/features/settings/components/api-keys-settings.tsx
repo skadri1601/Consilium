@@ -8,13 +8,19 @@ import { Label } from "@/shared/components/ui/label";
 import { CheckCircle2, XCircle, Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
 
+type KeyState = "idle" | "testing" | "valid" | "invalid";
+
 interface ApiKeyStatus {
-  openai: "idle" | "testing" | "valid" | "invalid";
-  anthropic: "idle" | "testing" | "valid" | "invalid";
-  google: "idle" | "testing" | "valid" | "invalid";
-  groq: "idle" | "testing" | "valid" | "invalid";
-  xai: "idle" | "testing" | "valid" | "invalid";
+  openai: KeyState;
+  anthropic: KeyState;
+  google: KeyState;
+  groq: KeyState;
+  xai: KeyState;
+  moonshot: KeyState;
+  openrouter: KeyState;
 }
+
+type ProviderId = keyof ApiKeyStatus;
 
 export function ApiKeysSettings() {
   const [keys, setKeys] = useState({
@@ -23,6 +29,8 @@ export function ApiKeysSettings() {
     googleKey: "",
     groqKey: "",
     xaiKey: "",
+    moonshotKey: "",
+    openrouterKey: "",
   });
   const [maskedKeys, setMaskedKeys] = useState({
     openaiKey: null as string | null,
@@ -30,6 +38,8 @@ export function ApiKeysSettings() {
     googleKey: null as string | null,
     groqKey: null as string | null,
     xaiKey: null as string | null,
+    moonshotKey: null as string | null,
+    openrouterKey: null as string | null,
   });
   const [status, setStatus] = useState<ApiKeyStatus>({
     openai: "idle",
@@ -37,6 +47,8 @@ export function ApiKeysSettings() {
     google: "idle",
     groq: "idle",
     xai: "idle",
+    moonshot: "idle",
+    openrouter: "idle",
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -52,6 +64,8 @@ export function ApiKeysSettings() {
           googleKey: data.googleKey,
           groqKey: data.groqKey,
           xaiKey: data.xaiKey,
+          moonshotKey: data.moonshotKey ?? null,
+          openrouterKey: data.openrouterKey ?? null,
         });
       })
       .catch(() => {
@@ -59,7 +73,7 @@ export function ApiKeysSettings() {
       });
   }, []);
 
-  const testKey = async (provider: "openai" | "anthropic" | "google" | "groq" | "xai", key: string) => {
+  const testKey = async (provider: ProviderId, key: string) => {
     if (!key) {
       toast({
         title: "Error",
@@ -126,7 +140,15 @@ export function ApiKeysSettings() {
           description: "API keys saved successfully",
         });
         // Clear input fields
-        setKeys({ openaiKey: "", anthropicKey: "", googleKey: "", groqKey: "", xaiKey: "" });
+        setKeys({
+          openaiKey: "",
+          anthropicKey: "",
+          googleKey: "",
+          groqKey: "",
+          xaiKey: "",
+          moonshotKey: "",
+          openrouterKey: "",
+        });
         // Refresh masked keys
         const data = await fetch("/api/api-keys").then((res) => res.json());
         setMaskedKeys({
@@ -135,6 +157,8 @@ export function ApiKeysSettings() {
           googleKey: data.googleKey,
           groqKey: data.groqKey,
           xaiKey: data.xaiKey,
+          moonshotKey: data.moonshotKey ?? null,
+          openrouterKey: data.openrouterKey ?? null,
         });
       } else {
         throw new Error("Failed to save keys");
@@ -389,6 +413,97 @@ export function ApiKeysSettings() {
                 )}
               </Button>
             </div>
+          </div>
+
+          {/* Moonshot (Kimi) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="moonshot">Moonshot (Kimi) API Key</Label>
+              <a
+                href="https://platform.moonshot.cn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+              >
+                Get key <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            {maskedKeys.moonshotKey && (
+              <p className="text-sm text-muted-foreground">
+                Current: {maskedKeys.moonshotKey}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="moonshot"
+                type="password"
+                placeholder="sk-..."
+                value={keys.moonshotKey}
+                onChange={(e) => setKeys({ ...keys, moonshotKey: e.target.value })}
+              />
+              <Button
+                variant="outline"
+                onClick={() => testKey("moonshot", keys.moonshotKey)}
+                disabled={status.moonshot === "testing"}
+              >
+                {status.moonshot === "testing" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : status.moonshot === "valid" ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : status.moonshot === "invalid" ? (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                ) : (
+                  "Test"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* OpenRouter */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="openrouter">OpenRouter API Key</Label>
+              <a
+                href="https://openrouter.ai/keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+              >
+                Get key <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            {maskedKeys.openrouterKey && (
+              <p className="text-sm text-muted-foreground">
+                Current: {maskedKeys.openrouterKey}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="openrouter"
+                type="password"
+                placeholder="sk-or-..."
+                value={keys.openrouterKey}
+                onChange={(e) => setKeys({ ...keys, openrouterKey: e.target.value })}
+              />
+              <Button
+                variant="outline"
+                onClick={() => testKey("openrouter", keys.openrouterKey)}
+                disabled={status.openrouter === "testing"}
+              >
+                {status.openrouter === "testing" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : status.openrouter === "valid" ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : status.openrouter === "invalid" ? (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                ) : (
+                  "Test"
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              OpenRouter unlocks 300+ models including free-tier Llama / Gemma / Qwen variants.
+            </p>
           </div>
 
           <Button onClick={saveKeys} disabled={loading} className="w-full">

@@ -6,6 +6,8 @@ export enum ApiKeyProvider {
   GOOGLE = "google",
   GROQ = "groq",
   XAI = "xai",
+  MOONSHOT = "moonshot",
+  OPENROUTER = "openrouter",
 }
 
 export class TestApiKeyDto {
