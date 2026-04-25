@@ -2,6 +2,8 @@
 
 Python client for the Consilium multi-AI deliberation platform.
 
+> The Consilium source repository is **private** as of April 2026. The Python SDK is publicly distributed via PyPI; the hosted API is at `https://api.myconsilium.xyz`. Bring your own LLM keys, or run without keys and Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so debates keep running at zero cost.
+
 ## Installation
 
 ```bash
@@ -14,7 +16,7 @@ pip install consilium
 from consilium import ConsiliumClient, DeliberationMode
 
 client = ConsiliumClient(
-    api_url="https://api.consilium.dev/api/v1",
+    api_url="https://api.myconsilium.xyz/api/v1",
     api_key="your-api-key",
 )
 
@@ -129,7 +131,7 @@ from consilium import AsyncConsiliumClient, DeliberationMode
 
 async def main():
     async with AsyncConsiliumClient(
-        api_url="https://api.consilium.dev/api/v1",
+        api_url="https://api.myconsilium.xyz/api/v1",
         api_key="your-api-key",
     ) as client:
         result = await client.deliberate(
@@ -151,7 +153,7 @@ asyncio.run(main())
 
 ```python
 client = ConsiliumClient(
-    api_url="https://api.consilium.dev/api/v1",
+    api_url="https://api.myconsilium.xyz/api/v1",
     api_key="your-api-key",
     timeout=60.0,
     max_retries=5,
@@ -188,6 +190,10 @@ except ConsiliumError as e:
     print(f"Error: {e.message}")
 ```
 
+## Providers and free-tier fallback
+
+Bring your own keys for OpenAI, Anthropic, Google, Groq, xAI, Moonshot, or OpenRouter. When no key is provided for the requested provider, Consilium routes the call through its free-tier pool (Groq's Llama / GPT-OSS, with OpenRouter as backup) and emits a `routing:fallback` event on the SSE stream so you always know when fallback is active. BYOK always wins; the free pool engages only as a backstop.
+
 ## License
 
-MIT
+Proprietary — © Consilium. All rights reserved. The Python SDK is distributed publicly via PyPI; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.

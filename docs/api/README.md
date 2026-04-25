@@ -389,7 +389,9 @@ Consilium receives webhooks from Clerk for user events:
 ## Support
 
 For API issues:
-- Check [Swagger UI](http://localhost:4000/api/docs) for interactive docs
+- Check [Swagger UI](http://localhost:4000/api/docs) for interactive docs (or `https://api.myconsilium.xyz/api/docs` for the hosted API)
 - Review error responses for details
-- Open an issue on [GitHub](https://github.com/yourusername/consilium)
+- Email <support@myconsilium.xyz>
+
+The Consilium source repository is private as of April 2026. The CLI (`@myconsilium/cli`), TypeScript SDK (`@myconsilium/sdk`), and Python SDK (`consilium`) remain publicly distributed.
 

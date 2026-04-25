@@ -2,10 +2,10 @@
 
 **Structured deliberation between AI models.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/skadri1601/Consilium/actions/workflows/ci.yml/badge.svg)](https://github.com/skadri1601/Consilium/actions)
 [![npm](https://img.shields.io/npm/v/@myconsilium/cli)](https://www.npmjs.com/package/@myconsilium/cli)
 [![PyPI](https://img.shields.io/pypi/v/consilium)](https://pypi.org/project/consilium/)
+
+> The Consilium source repository is **private** as of April 2026. The CLI (`@myconsilium/cli`), TypeScript SDK (`@myconsilium/sdk`), and Python SDK (`consilium`) remain publicly distributed via npm and PyPI, and the hosted web app is at [myconsilium.xyz](https://myconsilium.xyz). For source access, partner integrations, or self-hosting, contact <support@myconsilium.xyz>.
 
 ---
 
@@ -160,17 +160,18 @@ const result = await client.streamDeliberation(
 
 ### Option 4: Self-Hosted (Docker)
 
-```bash
-git clone https://github.com/skadri1601/Consilium.git
-cd Consilium
+Self-hosting is available to source-licensed customers. After provisioning, the bundle ships as a tarball; extract and run:
 
-# Add your LLM API keys
+```bash
+tar -xzf consilium-selfhost-<version>.tar.gz
+cd consilium-selfhost
 cp .env.example .env.local
+# Add your LLM API keys
 
 docker compose -f docker-compose.selfhost.yml up -d
 ```
 
-This starts PostgreSQL, Redis, the API server (port 4000), AI agents (port 8000), and the web app (port 3000).
+This starts PostgreSQL, Redis, the API server (port 4000), AI agents (port 8000), and the web app (port 3000). Contact <support@myconsilium.xyz> to request a self-host license.
 
 ## CLI Reference
 
@@ -319,9 +320,10 @@ Consilium's deliberation protocol draws from peer-reviewed research on multi-age
 
 ## Development
 
+The Consilium repository is private. Internal contributors with access:
+
 ```bash
-git clone https://github.com/skadri1601/Consilium.git
-cd Consilium
+# After cloning the private repo (auth required)
 cp .env.example .env.local
 # Add your API keys to .env.local
 
@@ -332,8 +334,8 @@ cp .env.example .env.local
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
+Source contributions are limited to internal team members. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the in-tree workflow. External feedback, bug reports, and feature requests are welcome at <support@myconsilium.xyz>.
 
 ## License
 
-MIT -- see [LICENSE](./LICENSE).
+Proprietary — © Consilium. All rights reserved. See [LICENSE](./LICENSE) for permitted use.
