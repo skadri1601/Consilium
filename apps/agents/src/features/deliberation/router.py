@@ -133,7 +133,23 @@ def _store_deliberation(deliberation_id: str, status: DeliberationStatus, engine
         "tool_results": {},
         "tool_waiters": {},
         "tool_call_count": 0,
+        "task": None,
     }
+
+
+def _spawn_run_task(deliberation_id: str, engine: DeliberationEngine, topic: str) -> asyncio.Task:
+    """Schedule _run_deliberation and KEEP the task reference.
+
+    Without this, asyncio.create_task() returns a value that's only held
+    by the event loop's weak set; the GC can collect it before the
+    coroutine completes, dropping the in-flight deliberation
+    (python:S6912 — task GC).
+    """
+    task = asyncio.create_task(_run_deliberation(deliberation_id, engine, topic))
+    entry = _deliberations.get(deliberation_id)
+    if entry is not None:
+        entry["task"] = task
+    return task
 
 
 async def await_tool_result(
@@ -217,7 +233,7 @@ async def start_deliberation(request: StartDeliberationRequest):
             "routing:tools_available",
             {"toolCount": len(request.tools), "names": [t.qualifiedName for t in request.tools]},
         )
-    asyncio.create_task(_run_deliberation(deliberation_id, engine, request.topic))
+    _spawn_run_task(deliberation_id, engine, request.topic)
 
     return DeliberationStartResponse(id=deliberation_id, status=DeliberationStatus.RUNNING)
 
@@ -250,7 +266,7 @@ async def start_red_team(request: RedTeamRequest):
     )
 
     _store_deliberation(deliberation_id, DeliberationStatus.PENDING, engine, request.topic)
-    asyncio.create_task(_run_deliberation(deliberation_id, engine, request.topic))
+    _spawn_run_task(deliberation_id, engine, request.topic)
 
     return DeliberationStartResponse(id=deliberation_id, status=DeliberationStatus.RUNNING)
 
@@ -269,7 +285,7 @@ async def start_blind_eval(request: BlindEvalRequest):
     )
 
     _store_deliberation(deliberation_id, DeliberationStatus.PENDING, engine, request.topic)
-    asyncio.create_task(_run_deliberation(deliberation_id, engine, request.topic))
+    _spawn_run_task(deliberation_id, engine, request.topic)
 
     return DeliberationStartResponse(id=deliberation_id, status=DeliberationStatus.RUNNING)
 
