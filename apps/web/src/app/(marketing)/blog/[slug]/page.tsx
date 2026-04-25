@@ -1159,6 +1159,220 @@ function EightDeliberationModesPost() {
   );
 }
 
+function GettingStartedSdkPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        This is a five-minute walkthrough: install the CLI or one of
+        the SDKs, run a debate, see the result. The unusual thing
+        about Consilium&apos;s onboarding is that you can skip the
+        API-key step entirely on your first try — the platform-hosted
+        free-tier pool will handle the call. You add your own key
+        when you&apos;re ready, not before.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 1 — npx (no install)</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Fastest path. No global install, no config:
+      </p>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`npx @myconsilium/cli debate "Should I use Postgres or DynamoDB for an event store?"`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        That runs council mode (3 rounds) against the default model
+        lineup. If you have no provider keys configured, the resolver
+        routes the call through the free-tier pool and the CLI prints
+        a yellow notice telling you which model substituted in for
+        which paid model. The debate result is the same; only the
+        upstream API calls differ.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 2 — install globally</h2>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`npm install -g @myconsilium/cli
+
+consilium debate "What causes inflation?" --mode council
+consilium debate "Review this architecture" --mode redteam --file diagram.png
+consilium debate "Is Rust better than Go for CLIs?" --mode blind`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        The <code>--file</code> flag attaches local files as context.
+        You can pass code, diagrams, or both — the agent factory
+        will route image inputs through the multimodal-capable
+        models in your council and skip them on text-only models.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Add your own key (when you&apos;re ready)</h2>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`consilium config set openai_key sk-...
+consilium config set anthropic_key sk-ant-...
+consilium config set google_key AIza...
+consilium config set moonshot_key sk-...
+consilium config list`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        Keys are stored in <code>~/.consilium/config.json</code> on
+        your machine — not on our servers. BYOK always wins over the
+        free-tier pool, so the moment you add a key for a provider,
+        debates stop substituting and start using your key directly.
+        The CLI surfaces this with no fallback notice on the next
+        debate.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 3 — TypeScript SDK</h2>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`npm install @myconsilium/sdk`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        Same protocol, programmatic API:
+      </p>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`import { ConsiliumClient } from '@myconsilium/sdk';
+
+const client = new ConsiliumClient({
+  apiUrl: 'https://api.myconsilium.xyz',
+  apiKey: process.env.CONSILIUM_API_KEY,
+});
+
+const result = await client.deliberate({
+  topic: 'Should we migrate to server components?',
+  mode: 'jury',
+  models: ['gpt-5.4', 'claude-sonnet-4-6', 'gemini-3-flash-preview'],
+});
+
+console.log(result.verdict);
+console.log(result.votes);`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        For real-time event handling, stream instead:
+      </p>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`for await (const event of client.streamDeliberation({
+  topic: 'Evaluate our security posture',
+  mode: 'redteam',
+})) {
+  if (event.type === 'routing:fallback') {
+    console.log('Substituted models:', event.data.resolutions);
+  }
+  if (event.type === 'agent:complete') {
+    console.log(\`\${event.agentId}: \${event.content}\`);
+  }
+}`}</pre>
+      </div>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 4 — Python SDK</h2>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`pip install consilium`}</pre>
+      </div>
+
+      <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
+        <pre className="text-muted-foreground">{`from consilium import ConsiliumClient, DeliberationMode
+
+client = ConsiliumClient(
+    api_url="https://api.myconsilium.xyz",
+    api_key=os.environ["CONSILIUM_API_KEY"],
+)
+
+result = client.deliberate(
+    topic="What is the most energy-efficient sorting algorithm?",
+    mode=DeliberationMode.COUNCIL,
+    models=["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
+)
+
+print(result.golden_prompt)
+print(result.confidence_scores)
+print(result.dissent_report)`}</pre>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        Both SDKs expose the same five primary methods:{" "}
+        <code>deliberate</code>, <code>stream_deliberation</code>,{" "}
+        <code>red_team</code>, <code>blind_eval</code>, and{" "}
+        <code>estimate_cost</code>. The <code>estimate_cost</code>{" "}
+        call is worth knowing about — it predicts the spend for a
+        debate before you run it, using the same token estimator the
+        web UI uses.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">What to expect on your first debate</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        For a council-mode debate over a moderately complex topic
+        with three models:
+      </p>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">~45 seconds median latency</strong>{" "}
+          — three rounds of generation plus a judge synthesis pass.
+        </li>
+        <li>
+          <strong className="text-foreground">~$0.05–0.10 cost</strong>{" "}
+          if you&apos;re on BYOK with mid-tier models. The free-tier
+          fallback path is, as the name suggests, free to the user
+          and runs against open models on Groq or OpenRouter.
+        </li>
+        <li>
+          <strong className="text-foreground">A structured result object</strong>{" "}
+          with the verdict, per-model votes, confidence scores, a
+          dissent report when the council didn&apos;t fully converge,
+          and the full claim/challenge/rebuttal trace for audit.
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Common follow-ups</h2>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">&quot;How do I pick
+          which mode?&quot;</strong> Three rules of thumb in the
+          modes post: quick for fact-of-the-matter, council for
+          tradeoffs, specialized modes (jury / market / redteam)
+          when the deliverable is structured.
+        </li>
+        <li>
+          <strong className="text-foreground">&quot;Can I run it
+          locally?&quot;</strong> Yes, but the source repository is
+          private as of April 2026. Self-host bundles ship to
+          source-licensed customers as tarballs. Email{" "}
+          <a className="text-primary hover:underline" href="mailto:support@myconsilium.xyz">
+            support@myconsilium.xyz
+          </a>
+          .
+        </li>
+        <li>
+          <strong className="text-foreground">&quot;What if a
+          model errors mid-debate?&quot;</strong> The orchestrator
+          falls back to a cheaper variant via{" "}
+          <code>CHEAP_VARIANTS</code> on context-too-large errors,
+          and the circuit breaker skips a provider entirely if it&apos;s
+          flapping. The debate completes with a partial council if
+          one provider is down.
+        </li>
+      </ul>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -1186,6 +1400,7 @@ const postContent: Record<string, React.FC> = {
   "model-deprecation-calendar-2026": ModelDeprecationCalendarPost,
   "why-deliberation-beats-orchestration": WhyDeliberationBeatsOrchestrationPost,
   "introducing-8-deliberation-modes": EightDeliberationModesPost,
+  "getting-started-with-consilium-sdk": GettingStartedSdkPost,
 };
 
 export default async function BlogPostPage({
