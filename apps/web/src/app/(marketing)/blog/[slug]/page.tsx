@@ -724,6 +724,216 @@ function ModelDeprecationCalendarPost() {
   );
 }
 
+function WhyDeliberationBeatsOrchestrationPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Most multi-agent frameworks — CrewAI, LangGraph orchestrations,
+        AutoGen pipelines — treat AI models as workers in a sequence:
+        researcher hands off to writer, writer hands off to editor,
+        editor produces the final answer. Consilium does something
+        different. Models are adversaries in a structured debate, not
+        collaborators in an assembly line. This post explains why that
+        choice changes the output and where it doesn&apos;t.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Orchestration: errors propagate</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        In a sequential pipeline, the second model only sees the first
+        model&apos;s output. If the first model hallucinated a fact, made
+        an off-by-one in the reasoning, or anchored on the wrong
+        framing, the downstream models inherit it. They might polish
+        the prose, but they don&apos;t go back and check whether the
+        upstream claim was correct — that&apos;s not their job in the
+        pipeline graph. The compounding error problem is well-known in
+        chained agent systems.
+      </p>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        The orchestration approach also flattens disagreement. If two
+        models would have produced contradictory answers, you only see
+        whichever one happened to be in the right slot at the right
+        time. The dissent — usually the most informative signal — is
+        gone before the response leaves the system.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Deliberation: errors get caught</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Consilium runs a fixed protocol every debate:
+      </p>
+
+      <ol className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground list-decimal list-inside">
+        <li>
+          <strong className="text-foreground">Round 1 — Independent
+          analysis.</strong> Every model produces an answer to the
+          topic in isolation. They never see each other&apos;s output
+          in this round, so the responses are uncorrelated and any
+          shared error has to come from training-data overlap, not
+          from one model influencing another.
+        </li>
+        <li>
+          <strong className="text-foreground">Round 2 —
+          Cross-examination.</strong> Each model receives every other
+          model&apos;s Round 1 answer and is asked to challenge it on
+          factual errors, flawed reasoning, missing evidence, and edge
+          cases. Challenges are typed, so the engine can route each
+          one to the right defender.
+        </li>
+        <li>
+          <strong className="text-foreground">Round 3 — Rebuttal and
+          refinement.</strong> Defenders respond to each challenge
+          (concede, refute, qualify, or redirect) and produce a
+          revised answer that incorporates the survivable points and
+          drops the indefensible ones.
+        </li>
+        <li>
+          <strong className="text-foreground">Judge — 5-phase
+          synthesis.</strong> A separate judge model performs claim
+          extraction, cross-reference (which claims survived
+          challenge), dispute resolution (where models still
+          disagree), rubric scoring (correctness 30% / reasoning 25%
+          / completeness 20% / actionability 15% / conciseness 10%),
+          and produces the final verdict with a dissent report
+          attached.
+        </li>
+      </ol>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-6">
+        The cross-examination round is the load-bearing piece. It is
+        the only place in the protocol where one model&apos;s mistake
+        gets named by another model in the same conversation. In
+        orchestration, that doesn&apos;t happen — there&apos;s no
+        round where the editor is asked &quot;does this claim from the
+        researcher actually hold up?&quot;
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">A concrete diff</h2>
+
+      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/[0.03]">
+              <th className="px-6 py-4 text-left font-semibold">Property</th>
+              <th className="px-6 py-4 text-left font-semibold">Orchestration (CrewAI / LangChain agents)</th>
+              <th className="px-6 py-4 text-left font-semibold">Deliberation (Consilium)</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            <tr>
+              <td className="px-6 py-4 font-medium">Model interaction</td>
+              <td className="px-6 py-4 text-muted-foreground">Sequential pipeline</td>
+              <td className="px-6 py-4 text-muted-foreground">Adversarial rounds</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Error handling</td>
+              <td className="px-6 py-4 text-muted-foreground">Propagates downstream</td>
+              <td className="px-6 py-4 text-muted-foreground">Caught by cross-examination</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Confidence</td>
+              <td className="px-6 py-4 text-muted-foreground">Self-reported</td>
+              <td className="px-6 py-4 text-muted-foreground">Calibrated via convergence detection</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Disagreement</td>
+              <td className="px-6 py-4 text-muted-foreground">Hidden / overwritten</td>
+              <td className="px-6 py-4 text-muted-foreground">Surfaced as dissent reports</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Audit trail</td>
+              <td className="px-6 py-4 text-muted-foreground">Logs of intermediate outputs</td>
+              <td className="px-6 py-4 text-muted-foreground">Structured claims, challenges, rebuttals</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">When orchestration is better</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Deliberation is not a universal upgrade. We don&apos;t ship
+        Consilium as a replacement for every agent framework, and
+        you&apos;d misuse it if you tried. Orchestration wins for:
+      </p>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">Pure tool execution.</strong>{" "}
+          If the task is &quot;run this query, summarize the result&quot;
+          and the tool call is the bottleneck, multiple models arguing
+          about the result is overkill.
+        </li>
+        <li>
+          <strong className="text-foreground">Speed-bound interactive UX.</strong>{" "}
+          A 3-round debate adds 30–60 seconds of latency. For an
+          autocomplete or a typing-speed chat surface, that&apos;s
+          not the right tradeoff.
+        </li>
+        <li>
+          <strong className="text-foreground">Single-domain expert pipelines.</strong>{" "}
+          When you genuinely have a researcher → writer → editor flow
+          and the boundaries between roles are clear, orchestration is
+          a more natural fit than &quot;all three argue.&quot;
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">When deliberation is better</h2>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">Hard reasoning with disagreement.</strong>{" "}
+          Architecture decisions, technical tradeoffs, code reviews
+          where multiple defensible answers exist.
+        </li>
+        <li>
+          <strong className="text-foreground">Hallucination-prone domains.</strong>{" "}
+          Anything where one model could confidently produce a wrong
+          fact and the only way to catch it is another model checking.
+          Du et al. and Khan et al. both quantify this gain in the
+          literature.
+        </li>
+        <li>
+          <strong className="text-foreground">High-stakes decisions where dissent matters.</strong>{" "}
+          When the user wants to see &quot;the answer is X, but two
+          out of five panelists pushed back on Y&quot;, deliberation
+          surfaces that. Orchestration silently picks one.
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">What this looks like in code</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The deliberation graph lives in{" "}
+        <code>apps/agents/src/features/deliberation/deliberation_graph.py</code>{" "}
+        and the judge in <code>apps/agents/src/core/judge.py</code>.
+        It&apos;s a LangGraph state machine — round transitions are
+        explicit nodes, the round-2 challenge generation is its own
+        prompt, and the rebuttal classifications (concede / refute /
+        qualify / redirect) come back as typed structured output. The
+        whole thing is auditable: every challenge, every rebuttal,
+        and every claim that survived to the synthesis is preserved
+        in the debate session record.
+      </p>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        That auditability is the other reason we picked deliberation
+        over orchestration. When a debate produces a controversial
+        answer, you can replay it and see exactly which model said
+        what at which point — not just &quot;the writer agent
+        produced this.&quot;
+      </p>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -749,6 +959,7 @@ const postContent: Record<string, React.FC> = {
   "model-freshness-audit-april-2026": ModelFreshnessAuditPost,
   "byok-with-a-safety-net": ByokSafetyNetPost,
   "model-deprecation-calendar-2026": ModelDeprecationCalendarPost,
+  "why-deliberation-beats-orchestration": WhyDeliberationBeatsOrchestrationPost,
 };
 
 export default async function BlogPostPage({
