@@ -29,32 +29,44 @@ const providers = [
   {
     name: "Anthropic",
     env: "ANTHROPIC_API_KEY",
-    models: "Claude Opus 4.6, Sonnet 4.5, Haiku 4.5",
+    models: "Claude Opus 4.7, Opus 4.6, Sonnet 4.6, Haiku 4.5",
     free: false,
   },
   {
     name: "OpenAI",
     env: "OPENAI_API_KEY",
-    models: "GPT-4o, 4o-mini, 4.1, o3-mini",
+    models: "GPT-5.5 Pro, GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano",
     free: false,
   },
   {
     name: "Google",
     env: "GOOGLE_API_KEY",
-    models: "Gemini 2.0 Flash, 2.5 Flash, 2.5 Pro",
+    models: "Gemini 3.1 Pro, 3 Flash, 3.1 Flash-Lite",
     free: false,
   },
   {
     name: "Groq",
     env: "GROQ_API_KEY",
-    models: "Llama 3.1 8B, 3.3 70B, 4 Scout",
+    models: "Llama 3.1 8B, 3.3 70B, GPT-OSS 120B/20B, Compound",
     free: true,
   },
   {
     name: "xAI",
     env: "XAI_API_KEY",
-    models: "Grok 2, Grok 2 Mini",
+    models: "Grok 4.20, Grok 4.1 Fast (reasoning + non-reasoning), Grok Code Fast",
     free: false,
+  },
+  {
+    name: "Moonshot",
+    env: "MOONSHOT_API_KEY",
+    models: "Kimi K2.6",
+    free: false,
+  },
+  {
+    name: "OpenRouter",
+    env: "OPENROUTER_API_KEY",
+    models: "Free-tier Llama 3.3 70B, Gemma 2 9B, Qwen 2.5 72B (also used as Consilium fallback when no BYOK)",
+    free: true,
   },
 ];
 

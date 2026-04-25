@@ -120,7 +120,7 @@ class TestPydanticSchemas:
     def test_start_request_accepts_tools(self):
         req = deliberation_router.StartDeliberationRequest(
             topic="t",
-            models=["gpt-4o-mini"],
+            models=["gpt-5.4-mini"],
             api_keys={"openai": "x"},
             tools=[
                 deliberation_router.ToolSchema(
@@ -138,7 +138,7 @@ class TestPydanticSchemas:
     def test_start_request_tools_optional(self):
         req = deliberation_router.StartDeliberationRequest(
             topic="t",
-            models=["gpt-4o-mini"],
+            models=["gpt-5.4-mini"],
             api_keys={"openai": "x"},
         )
         assert req.tools is None

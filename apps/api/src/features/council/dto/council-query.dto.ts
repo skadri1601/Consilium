@@ -7,7 +7,7 @@ export class CouncilQueryDto {
   query: string;
 
   @ApiProperty({
-    example: ["gpt-4o-mini", "claude-3-5-haiku", "gemini-2.0-flash"],
+    example: ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"],
     isArray: true,
   })
   @IsArray()

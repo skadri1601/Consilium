@@ -18,7 +18,7 @@ describe("DebateHistory", () => {
       id: "debate-1",
       topic: "Build a REST API with authentication",
       status: "completed",
-      modelsUsed: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+      modelsUsed: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
       totalCost: 0.0123,
       goldenPrompt: "Generated prompt here",
       createdAt: new Date().toISOString(),
@@ -27,7 +27,7 @@ describe("DebateHistory", () => {
       id: "debate-2",
       topic: "Create a React dashboard",
       status: "pending",
-      modelsUsed: ["gpt-4o"],
+      modelsUsed: ["gpt-5.4"],
       totalCost: 0.0456,
       goldenPrompt: null,
       createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
@@ -36,7 +36,7 @@ describe("DebateHistory", () => {
       id: "debate-3",
       topic: "Design a database schema",
       status: "completed",
-      modelsUsed: ["claude-3-5-sonnet-latest"],
+      modelsUsed: ["claude-sonnet-4-6"],
       totalCost: 0.0789,
       goldenPrompt: "Schema prompt",
       createdAt: new Date(Date.now() - 604800000).toISOString(), // 7 days ago
@@ -76,7 +76,7 @@ describe("DebateHistory", () => {
     render(<DebateHistory />);
 
     await waitFor(() => {
-      expect(screen.getByText(/gpt-4o-mini, claude-3-5-haiku-latest/)).toBeInTheDocument();
+      expect(screen.getByText(/gpt-5\.4-mini, claude-haiku-4-5-20251001/)).toBeInTheDocument();
       expect(screen.getByText(/\$0\.0123/)).toBeInTheDocument();
     });
     

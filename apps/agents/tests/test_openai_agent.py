@@ -12,7 +12,7 @@ class TestOpenAIAgent:
     def agent(self):
         """Create agent instance."""
         with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-test-key"}):
-            return OpenAIAgent(model_id="gpt-4o-mini", api_key="sk-test-key")
+            return OpenAIAgent(model_id="gpt-5.4-mini", api_key="sk-test-key")
 
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")
@@ -91,7 +91,7 @@ class TestOpenAIAgent:
     @pytest.mark.asyncio
     async def test_health_check_no_key(self):
         """Test health check without API key."""
-        agent = OpenAIAgent(model_id="gpt-4o-mini", api_key=None)
+        agent = OpenAIAgent(model_id="gpt-5.4-mini", api_key=None)
         result = await agent.health_check()
         assert result is False
 

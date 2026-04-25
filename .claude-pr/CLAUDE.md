@@ -73,7 +73,7 @@ This single command checks prerequisites, installs deps, generates Prisma client
 
 ### TypeScript (apps/web/, apps/api/, packages/)
 - Shared types in packages/shared/
-- Model IDs: use registry names (claude-sonnet-4-5, gpt-4o)
+- Model IDs: use current registry names (claude-haiku-4-5-20251001, claude-sonnet-4-6, claude-opus-4-7, gpt-5.4, gpt-5.5, gemini-3-flash-preview, gemini-3.1-pro-preview, grok-4.20, kimi-k2.6). Legacy IDs are aliased but must not be hardcoded.
 - BullMQ for async debate processing
 - SSE for real-time streaming
 

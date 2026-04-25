@@ -91,7 +91,7 @@ handling is the CLI's responsibility.
 {
   "event": "tool:call_request",
   "callId": "call_01HYZK3...",
-  "seat": "claude-sonnet-4-20250514",
+  "seat": "claude-sonnet-4-6",
   "round": 1,
   "phase": "proposing",
   "name": "filesystem.read_file",

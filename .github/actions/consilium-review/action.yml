@@ -20,7 +20,7 @@ inputs:
   models:
     description: 'Comma-separated model IDs for deliberation'
     required: false
-    default: 'claude-sonnet-4-5,gpt-4o'
+    default: 'claude-sonnet-4-6,gpt-5.4'
   mode:
     description: 'Deliberation mode (redteam, council, blind, jury, deep)'
     required: false

@@ -14,7 +14,7 @@ export class DebateResponseDto {
   status: string;
 
   @ApiProperty({
-    example: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+    example: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
     type: [String],
   })
   modelsUsed: string[];

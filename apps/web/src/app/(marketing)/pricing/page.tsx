@@ -181,48 +181,69 @@ const modelPricing = [
   {
     provider: "Anthropic",
     models: [
-      { name: "Claude Opus 4.6", input: "$15.00", output: "$75.00" },
-      { name: "Claude Sonnet 4.5", input: "$3.00", output: "$15.00" },
-      { name: "Claude Haiku 4.5", input: "$0.80", output: "$4.00" },
+      { name: "Claude Opus 4.7", input: "$5.00", output: "$25.00" },
+      { name: "Claude Opus 4.6", input: "$5.00", output: "$25.00" },
+      { name: "Claude Sonnet 4.6", input: "$3.00", output: "$15.00" },
+      { name: "Claude Haiku 4.5", input: "$1.00", output: "$5.00" },
     ],
   },
   {
     provider: "OpenAI",
     models: [
-      { name: "GPT-4o", input: "$2.50", output: "$10.00" },
-      { name: "GPT-4o-mini", input: "$0.15", output: "$0.60" },
-      { name: "GPT-4.1", input: "$2.00", output: "$8.00" },
-      { name: "o3-mini", input: "$1.10", output: "$4.40" },
+      { name: "GPT-5.5 Pro", input: "$8.00", output: "$32.00" },
+      { name: "GPT-5.5", input: "$3.00", output: "$12.00" },
+      { name: "GPT-5.4", input: "$2.00", output: "$8.00" },
+      { name: "GPT-5.4 Mini", input: "$0.20", output: "$0.80" },
+      { name: "GPT-5.4 Nano", input: "$0.08", output: "$0.30" },
     ],
   },
   {
     provider: "Google",
     models: [
-      { name: "Gemini 2.0 Flash", input: "$0.10", output: "$0.40" },
-      { name: "Gemini 2.5 Flash", input: "$0.15", output: "$0.60" },
-      { name: "Gemini 2.5 Pro", input: "$1.25", output: "$10.00" },
+      { name: "Gemini 3.1 Pro", input: "$1.25", output: "$5.00" },
+      { name: "Gemini 3 Flash", input: "$0.15", output: "$0.60" },
+      { name: "Gemini 3.1 Flash-Lite", input: "$0.05", output: "$0.20" },
     ],
   },
   {
-    provider: "Groq (Free)",
+    provider: "Groq",
     models: [
-      { name: "Llama 3.1 8B", input: "Free", output: "Free" },
-      { name: "Llama 3.3 70B", input: "Free", output: "Free" },
-      { name: "Llama 4 Scout", input: "Free", output: "Free" },
+      { name: "Llama 3.1 8B Instant", input: "Free*", output: "Free*" },
+      { name: "Llama 3.3 70B Versatile", input: "Free*", output: "Free*" },
+      { name: "GPT-OSS 120B (via Groq)", input: "$0.15", output: "$0.60" },
+      { name: "GPT-OSS 20B (via Groq)", input: "$0.05", output: "$0.15" },
+      { name: "Groq Compound", input: "$0.80", output: "$1.60" },
+      { name: "Groq Compound Mini", input: "$0.30", output: "$0.60" },
     ],
   },
   {
     provider: "xAI",
     models: [
-      { name: "Grok 2", input: "$2.00", output: "$10.00" },
-      { name: "Grok 2 Mini", input: "$0.30", output: "$1.00" },
+      { name: "Grok 4.20", input: "$3.00", output: "$15.00" },
+      { name: "Grok 4.1 Fast (reasoning)", input: "$1.00", output: "$4.00" },
+      { name: "Grok 4.1 Fast (non-reasoning)", input: "$0.50", output: "$2.00" },
+      { name: "Grok Code Fast", input: "$0.30", output: "$1.20" },
+    ],
+  },
+  {
+    provider: "Moonshot",
+    models: [
+      { name: "Kimi K2.6", input: "$1.20", output: "$2.50" },
+    ],
+  },
+  {
+    provider: "OpenRouter (free tier)",
+    models: [
+      { name: "Llama 3.3 70B (free)", input: "Free", output: "Free" },
+      { name: "Gemma 2 9B (free)", input: "Free", output: "Free" },
+      { name: "Qwen 2.5 72B (free)", input: "Free", output: "Free" },
     ],
   },
 ];
 
 const costExamples = [
   {
-    label: "Quick question with GPT-4o-mini",
+    label: "Quick question with GPT-5.4 Mini",
     cost: "~$0.001",
     detail: "1 round, 1 model",
   },

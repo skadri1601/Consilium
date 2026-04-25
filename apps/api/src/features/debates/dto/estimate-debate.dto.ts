@@ -24,7 +24,7 @@ export class EstimateDebateDto {
 
   @ApiProperty({
     description: "List of model IDs to use",
-    example: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+    example: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
     type: [String],
     minItems: 2,
     maxItems: 5,
@@ -65,7 +65,7 @@ export class EstimateDebateDto {
 }
 
 export class EstimateBreakdownDto {
-  @ApiProperty({ example: "gpt-4o-mini" })
+  @ApiProperty({ example: "gpt-5.4-mini" })
   model: string;
 
   @ApiProperty({ example: "debater" })

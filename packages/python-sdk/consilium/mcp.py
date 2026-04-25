@@ -25,7 +25,7 @@ def _env_float(name: str, default: float) -> float:
 
 DEFAULT_DELIBERATION_TIMEOUT = _env_float("CONSILIUM_DELIBERATION_TIMEOUT", 900.0)
 
-DEFAULT_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001"]
+DEFAULT_MODELS = ["gpt-5.4-mini", "claude-haiku-4-5-20251001"]
 
 ALLOWED_MODES = frozenset(
     {"quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"}

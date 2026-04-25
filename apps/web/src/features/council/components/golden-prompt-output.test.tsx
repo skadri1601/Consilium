@@ -67,12 +67,12 @@ describe('SynthesisOutput', () => {
       <SynthesisOutput
         prompt={mockPrompt}
         cost={0.05}
-        modelsUsed={['gpt-4o-mini', 'claude-3-5-haiku']}
+        modelsUsed={['gpt-5.4-mini', 'claude-haiku-4-5-20251001']}
       />,
     );
 
     expect(screen.getByText(/0.05/)).toBeInTheDocument();
-    expect(screen.getByText(/gpt-4o-mini/)).toBeInTheDocument();
+    expect(screen.getByText(/gpt-5.4-mini/)).toBeInTheDocument();
   });
 
   it('should copy to clipboard when copy button is clicked', async () => {

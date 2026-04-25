@@ -186,7 +186,7 @@ export class ApiKeysService {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-3-haiku-20240307",
+          model: "claude-haiku-4-5-20251001",
           max_tokens: 10,
           messages: [{ role: "user", content: "test" }],
         }),
@@ -212,7 +212,7 @@ export class ApiKeysService {
   ): Promise<{ valid: boolean; message: string }> {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
         {
           method: "POST",
           headers: {

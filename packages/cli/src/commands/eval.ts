@@ -171,7 +171,7 @@ export async function evalCommand(
   try {
     deliberation = await client.createDeliberation(topic, {
       mode: "blind",
-      models: options.models ?? ["gpt-4o-mini", "claude-haiku-4-5-20251001"],
+      models: options.models ?? ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
       responses: responsesPayload,
       debateSource: "cli",
     });

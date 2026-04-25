@@ -39,8 +39,8 @@ test.describe("Debate Flow", () => {
 
   test("should enable submit button when agents selected and topic entered", async ({ page }) => {
     // Select an agent (click on agent checkbox/button)
-    const agentCheckbox = page.locator('[aria-label*="gpt-4o-mini"]').or(
-      page.locator('button:has-text("GPT-4o Mini")')
+    const agentCheckbox = page.locator('[aria-label*="gpt-5.4-mini"]').or(
+      page.locator('button:has-text("GPT-5.4 Mini")')
     );
     if (await agentCheckbox.count() > 0) {
       await agentCheckbox.first().click();
@@ -73,7 +73,7 @@ test.describe("Debate Flow", () => {
     test.skip(process.env.CI !== undefined, "Skipping in CI - requires API mocking");
 
     // Select agents
-    const agentCheckbox = page.locator('[aria-label*="gpt-4o-mini"]').first();
+    const agentCheckbox = page.locator('[aria-label*="gpt-5.4-mini"]').first();
     if (await agentCheckbox.isVisible()) {
       await agentCheckbox.click();
     }

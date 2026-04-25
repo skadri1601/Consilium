@@ -111,7 +111,7 @@ describe("Debate Flow Integration (e2e)", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           topic: "Build a REST API with authentication",
-          models: ["gpt-4o-mini"],
+          models: ["gpt-5.4-mini"],
         })
         .expect(201);
 
@@ -144,13 +144,13 @@ describe("Debate Flow Integration (e2e)", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           topic: "Create a React dashboard",
-          models: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+          models: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
         })
         .expect(201);
 
       expect(response.body.modelsUsed).toHaveLength(2);
-      expect(response.body.modelsUsed).toContain("gpt-4o-mini");
-      expect(response.body.modelsUsed).toContain("claude-3-5-haiku-latest");
+      expect(response.body.modelsUsed).toContain("gpt-5.4-mini");
+      expect(response.body.modelsUsed).toContain("claude-haiku-4-5-20251001");
     });
 
     it("should reject debate creation without API keys", async () => {
@@ -170,7 +170,7 @@ describe("Debate Flow Integration (e2e)", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           topic: "Test topic",
-          models: ["gpt-4o-mini"],
+          models: ["gpt-5.4-mini"],
         })
         // May succeed if env vars have keys, or fail if not
         .expect((res) => {
@@ -192,7 +192,7 @@ describe("Debate Flow Integration (e2e)", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           topic: "Test status update",
-          models: ["gpt-4o-mini"],
+          models: ["gpt-5.4-mini"],
         })
         .expect(201);
 
@@ -224,7 +224,7 @@ describe("Debate Flow Integration (e2e)", () => {
           .set("Authorization", `Bearer ${authToken}`)
           .send({
             topic: `Test debate ${i}`,
-            models: ["gpt-4o-mini"],
+            models: ["gpt-5.4-mini"],
           });
       }
 
@@ -254,7 +254,7 @@ describe("Debate Flow Integration (e2e)", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           topic: "User-specific debate",
-          models: ["gpt-4o-mini"],
+          models: ["gpt-5.4-mini"],
         })
         .expect(201);
 
@@ -284,7 +284,7 @@ describe("Debate Flow Integration (e2e)", () => {
         .post("/api/v1/debates")
         .send({
           topic: "Test",
-          models: ["gpt-4o-mini"],
+          models: ["gpt-5.4-mini"],
         })
         .expect(401);
     });
