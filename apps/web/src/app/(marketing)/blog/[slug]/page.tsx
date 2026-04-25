@@ -22,6 +22,16 @@ function formatDate(dateStr: string) {
   });
 }
 
+function PostCTA() {
+  return (
+    <div className="mt-12 pt-8 border-t border-white/[0.06]">
+      <Button asChild size="lg">
+        <Link href="/sign-up">Try Consilium</Link>
+      </Button>
+    </div>
+  );
+}
+
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
@@ -259,11 +269,7 @@ python -m src.features.deliberation.benchmarks.runner \\
   --output results/mmlu_pro_council.json`}</pre>
       </div>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -385,11 +391,7 @@ function ModelFreshnessAuditPost() {
         verbatim provider URL is one git-blame away.
       </p>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -535,11 +537,7 @@ data: {
         asked for.
       </p>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -715,11 +713,7 @@ function ModelDeprecationCalendarPost() {
         verbatim source URLs for every row above.
       </p>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -925,11 +919,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         produced this.&quot;
       </p>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -1150,11 +1140,7 @@ function EightDeliberationModesPost() {
         what we use as the default for unclassified incoming traffic.
       </p>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
@@ -1364,11 +1350,7 @@ print(result.dissent_report)`}</pre>
         </li>
       </ul>
 
-      <div className="mt-12 pt-8 border-t border-white/[0.06]">
-        <Button asChild size="lg">
-          <Link href="/sign-up">Try Consilium</Link>
-        </Button>
-      </div>
+      <PostCTA />
     </>
   );
 }
