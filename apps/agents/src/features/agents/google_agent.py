@@ -112,8 +112,14 @@ class GoogleAgent(BaseAgent):
                 original_error=_GOOGLE_PKG_MISSING,
             )
 
+        if genai is None:
+            raise LLMProviderError(
+                provider=self.provider,
+                error_type="unknown",
+                original_error=_GOOGLE_PKG_MISSING,
+            )
+
         try:
-            assert genai is not None
             genai.configure(api_key=self.api_key)
 
             declarations = [
