@@ -93,9 +93,14 @@ class TestAwaitToolResult:
                     "dlb_e", "call_9", {"content": [{"type": "text", "text": "late"}]}
                 )
 
-            asyncio.create_task(record_later())
-            result = await deliberation_router.await_tool_result("dlb_e", "call_9", timeout_ms=2000)
-            assert result["content"][0]["text"] == "late"
+            # Hold a reference to the task so the GC doesn't collect it
+            # before record_later() finishes — see python:S6912.
+            recorder = asyncio.create_task(record_later())
+            try:
+                result = await deliberation_router.await_tool_result("dlb_e", "call_9", timeout_ms=2000)
+                assert result["content"][0]["text"] == "late"
+            finally:
+                await recorder
 
         asyncio.run(run())
 

@@ -151,19 +151,65 @@ export class ApiKeysService {
     try {
       switch (dto.provider) {
         case ApiKeyProvider.OPENAI:
-          return await this.testOpenAIKey(dto.key);
+          return await this.probe(
+            "OpenAI",
+            "https://api.openai.com/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.ANTHROPIC:
-          return await this.testAnthropicKey(dto.key);
+          return await this.probe(
+            "Anthropic",
+            "https://api.anthropic.com/v1/messages",
+            {
+              method: "POST",
+              headers: {
+                "x-api-key": dto.key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "claude-haiku-4-5-20251001",
+                max_tokens: 10,
+                messages: [{ role: "user", content: "test" }],
+              }),
+            },
+          );
         case ApiKeyProvider.GOOGLE:
-          return await this.testGoogleKey(dto.key);
+          return await this.probe(
+            "Google AI",
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${dto.key}`,
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "test" }] }],
+              }),
+            },
+          );
         case ApiKeyProvider.GROQ:
-          return await this.testGroqKey(dto.key);
+          return await this.probe(
+            "Groq",
+            "https://api.groq.com/openai/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.XAI:
-          return await this.testXAIKey(dto.key);
+          return await this.probe(
+            "XAI (Grok)",
+            "https://api.x.ai/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.MOONSHOT:
-          return await this.testMoonshotKey(dto.key);
+          return await this.probe(
+            "Moonshot",
+            "https://api.moonshot.cn/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.OPENROUTER:
-          return await this.testOpenRouterKey(dto.key);
+          return await this.probe(
+            "OpenRouter",
+            "https://openrouter.ai/api/v1/auth/key",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         default:
           throw new BadRequestException("Invalid provider");
       }
@@ -175,187 +221,27 @@ export class ApiKeysService {
     }
   }
 
-  private async testOpenAIKey(
-    key: string,
+  private async probe(
+    label: string,
+    url: string,
+    init: RequestInit,
   ): Promise<{ valid: boolean; message: string }> {
     try {
-      const response = await fetch("https://api.openai.com/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
+      const response = await fetch(url, init);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
         return {
           valid: false,
-          message: `Invalid OpenAI API key: ${errorMessage}`,
+          message: `Invalid ${label} API key: ${errorMessage}`,
         };
       }
-
-      return { valid: true, message: "OpenAI API key is valid" };
+      return { valid: true, message: `${label} API key is valid` };
     } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testAnthropicKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": key,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 10,
-          messages: [{ role: "user", content: "test" }],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Anthropic API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Anthropic API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testGoogleKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "test" }] }],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Google AI API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Google AI API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testGroqKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.groq.com/openai/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Groq API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Groq API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testXAIKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.x.ai/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid XAI (Grok) API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "XAI (Grok) API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testMoonshotKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.moonshot.cn/v1/models", {
-        headers: { Authorization: `Bearer ${key}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Moonshot API key: ${errorMessage}`,
-        };
-      }
-      return { valid: true, message: "Moonshot API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testOpenRouterKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
-        headers: { Authorization: `Bearer ${key}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid OpenRouter API key: ${errorMessage}`,
-        };
-      }
-      return { valid: true, message: "OpenRouter API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
+      return {
+        valid: false,
+        message: `Failed to validate: ${error.message}`,
+      };
     }
   }
 
