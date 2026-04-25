@@ -83,6 +83,7 @@ class AnthropicAgent(BaseAgent):
         if not self._validate_api_key():
             self._raise_no_api_key()
 
+        client = None
         try:
             import anthropic
 
@@ -153,6 +154,9 @@ class AnthropicAgent(BaseAgent):
 
         except Exception as e:
             self._handle_common_errors(e, "tool-use")
+        finally:
+            if client is not None:
+                await client.close()
 
     async def health_check(self) -> bool:
         """Check if Anthropic API is accessible."""
