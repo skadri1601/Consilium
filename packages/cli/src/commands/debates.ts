@@ -181,8 +181,21 @@ export async function streamDebateCommand(
 
   const bridge = await startToolBridge(client, { enabled: Boolean(options.mcpTools) });
 
+  // The stream event callbacks are sync, so we can't await the
+  // bridge's async handleEvent. Attach an explicit .catch() instead of
+  // `void` so that postToolResult / registry.callTool failures
+  // surface in the user's terminal as a warning rather than silently
+  // becoming an unhandled rejection.
+  const dispatchToBridge = (event: DebateEvent | DeliberationEvent) => {
+    if (!bridge) return;
+    bridge.handleEvent(event, debateId).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(st.warning(`[mcp] tool dispatch failed: ${message}`));
+    });
+  };
+
   const onDebateEvent = (event: DebateEvent) => {
-    void bridge?.handleEvent(event, debateId);
+    dispatchToBridge(event);
     const prefix = event.agent ? `[${event.agent}] ` : "";
     if (event.text) {
       process.stdout.write(prefix + event.text);
@@ -192,7 +205,7 @@ export async function streamDebateCommand(
   };
 
   const onDeliberationEvent = (event: DeliberationEvent) => {
-    void bridge?.handleEvent(event, debateId);
+    dispatchToBridge(event);
     const prefix = event.agent ? `[${event.agent}] ` : "";
     if (event.text) {
       process.stdout.write(prefix + event.text);

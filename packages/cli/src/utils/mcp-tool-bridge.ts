@@ -55,7 +55,54 @@ export async function startToolBridge(
     return null;
   }
 
-  let totalCalls = 0;
+  // Per-deliberation tool-call counters. The budget message says
+  // "...for this debate", which was a lie when totalCalls was a single
+  // bridge-scoped counter — debate #2 inherited the budget consumed by
+  // debate #1. Tracking by deliberationId restores the documented
+  // contract.
+  const callsByDeliberation = new Map<string, number>();
+  // Per-deliberation set of in-flight callIds. SSE reconnects can
+  // replay events with the same callId; without dedup the bridge
+  // would invoke the same MCP tool twice, double-charge the budget,
+  // and post conflicting tool results.
+  const seenCalls = new Map<string, Set<string>>();
+
+  function bumpAndCheckBudget(deliberationId: string): boolean {
+    const next = (callsByDeliberation.get(deliberationId) ?? 0) + 1;
+    callsByDeliberation.set(deliberationId, next);
+    return next <= DEFAULT_BUDGET.maxTotalCalls;
+  }
+
+  function markSeen(deliberationId: string, callId: string): boolean {
+    let set = seenCalls.get(deliberationId);
+    if (!set) {
+      set = new Set();
+      seenCalls.set(deliberationId, set);
+    }
+    if (set.has(callId)) return false;
+    set.add(callId);
+    return true;
+  }
+
+  async function postResultSafely(
+    deliberationId: string,
+    callId: string,
+    result: Parameters<typeof client.postToolResult>[2],
+  ): Promise<void> {
+    try {
+      await client.postToolResult(deliberationId, callId, result);
+    } catch (err) {
+      // postToolResult was previously fire-and-forget; failures
+      // disappeared into a void. Log so the operator at least knows
+      // the engine never received the tool result.
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(
+        st.warning(
+          `[mcp] failed to deliver tool result for ${deliberationId}/${callId}: ${message}`,
+        ),
+      );
+    }
+  }
 
   return {
     tools,
@@ -65,9 +112,13 @@ export async function startToolBridge(
       const { callId, name, arguments: args } = event as { callId?: string; name?: string; arguments?: Record<string, unknown> };
       if (!callId || !name) return;
 
-      totalCalls++;
-      if (totalCalls > DEFAULT_BUDGET.maxTotalCalls) {
-        await client.postToolResult(deliberationId, callId, {
+      if (!markSeen(deliberationId, callId)) {
+        // Duplicate request from an SSE replay — already handled.
+        return;
+      }
+
+      if (!bumpAndCheckBudget(deliberationId)) {
+        await postResultSafely(deliberationId, callId, {
           content: [{ type: "text", text: "Tool budget exhausted for this debate." }],
           isError: true,
         });
@@ -80,16 +131,18 @@ export async function startToolBridge(
 
       try {
         const result = await registry.callTool(name, args ?? {});
-        await client.postToolResult(deliberationId, callId, result);
+        await postResultSafely(deliberationId, callId, result);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        await client.postToolResult(deliberationId, callId, {
+        await postResultSafely(deliberationId, callId, {
           content: [{ type: "text", text: `Tool call failed: ${message}` }],
           isError: true,
         });
       }
     },
     shutdown: async () => {
+      callsByDeliberation.clear();
+      seenCalls.clear();
       await registry.stopAll();
     },
   };
