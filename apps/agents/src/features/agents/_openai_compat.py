@@ -241,9 +241,11 @@ class BaseOpenAICompatAgent(BaseAgent):
             client, http_client = self._create_openai_client()
             await client.models.list()
             return True
-        except (ConnectionError, TimeoutError, OSError):
-            return False
         except Exception:
+            # Any error from the upstream API or network is "unhealthy"
+            # for the purposes of this readiness probe; the caller treats
+            # bool unconditionally and detailed errors are surfaced
+            # through generate_response paths instead.
             return False
         finally:
             if http_client:

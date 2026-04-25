@@ -101,9 +101,13 @@ except ImportError:
 
 try:
     from src.core.agent_factory import AgentFactory
+    from src.features.free_tier.resolver import NoKeyAvailableError
     _HAS_AGENT_FACTORY = True
 except ImportError:
     _HAS_AGENT_FACTORY = False
+
+    class NoKeyAvailableError(Exception):  # type: ignore[no-redef]
+        """Stub raised when AgentFactory is unavailable in a stripped runtime."""
 
 try:
     from src.features.agents.base_agent import LLMProviderError, is_error_response
@@ -553,7 +557,16 @@ class DeliberationEngine:
             for model_id in list(self.models) + [self.judge_model]:
                 try:
                     resolution = AgentFactory.resolve(model_id, self.api_keys or {})
-                except Exception:
+                except NoKeyAvailableError:
+                    # Resolver couldn't pick any key for this model. Skip
+                    # this seat — the per-round agent construction will
+                    # raise with a user-actionable message when the seat
+                    # actually runs.
+                    continue
+                except Exception as model_exc:  # noqa: BLE001 - widened only for diagnostics
+                    _logger.warning(
+                        "Free-tier resolution failed for %s: %s", model_id, model_exc
+                    )
                     continue
                 if resolution.is_fallback:
                     fallbacks.append(resolution.to_event_payload())
