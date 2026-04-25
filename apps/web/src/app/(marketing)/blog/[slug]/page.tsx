@@ -455,6 +455,186 @@ data: {
   );
 }
 
+function ModelDeprecationCalendarPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        While auditing our catalog on April 25, 2026 we pulled every
+        provider&apos;s deprecation schedule. Six widely-used model IDs
+        across Anthropic and Google are scheduled for shutdown in the
+        next six months. If your application hard-codes any of them,
+        the calls will start returning 404 on the date listed. If your
+        application talks to Consilium, our alias map redirects each
+        retired ID to a live equivalent — but you should still know what
+        is moving.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">The calendar</h2>
+
+      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/[0.03]">
+              <th className="px-6 py-4 text-left font-semibold">Date</th>
+              <th className="px-6 py-4 text-left font-semibold">Provider</th>
+              <th className="px-6 py-4 text-left font-semibold">Model ID</th>
+              <th className="px-6 py-4 text-left font-semibold">Aliased forward to</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 1, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.0-flash</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3-flash-preview</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 1, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.0-flash-lite</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-lite-preview</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 15, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Anthropic</td>
+              <td className="px-6 py-4 font-mono text-xs">claude-sonnet-4-20250514</td>
+              <td className="px-6 py-4 font-mono text-xs">claude-sonnet-4-6</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 15, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Anthropic</td>
+              <td className="px-6 py-4 font-mono text-xs">claude-opus-4-20250514</td>
+              <td className="px-6 py-4 font-mono text-xs">claude-opus-4-6</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 17, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-pro</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-pro-preview</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jun 17, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3-flash-preview</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Jul 22, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash-lite</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-lite-preview</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">Oct 2, 2026</td>
+              <td className="px-6 py-4 text-muted-foreground">Google</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-2.5-flash-image</td>
+              <td className="px-6 py-4 font-mono text-xs">gemini-3.1-flash-image-preview</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-sm text-muted-foreground mt-3">
+        Sourced from{" "}
+        <a
+          href="https://docs.anthropic.com/en/docs/about-claude/model-deprecations"
+          className="text-primary hover:underline"
+        >
+          Anthropic deprecations
+        </a>{" "}
+        and{" "}
+        <a
+          href="https://ai.google.dev/gemini-api/docs/deprecations"
+          className="text-primary hover:underline"
+        >
+          Gemini deprecations
+        </a>
+        {" "}as of April 25, 2026.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Already gone</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        One model in our previous catalog was already retired before the
+        audit ran: <code>gemini-3-pro-preview</code> shut down on March
+        9, 2026 — about seven weeks before we caught it. The replacement
+        target Google specifies is <code>gemini-3.1-pro-preview</code>,
+        which is what our catalog now points to. Anyone who hit the old
+        ID between March 9 and our April 25 update would have seen a
+        404 on the upstream call. (We didn&apos;t list it as a default,
+        which is the only reason the impact was small.)
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">How aliasing keeps debates working</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Every entry in the calendar above has a key in our{" "}
+        <code>MODEL_ALIASES</code> map (<code>apps/agents/src/shared/config/models.py</code>).
+        When a debate request arrives with one of these IDs — usually
+        from a script someone wrote a year ago, or a debate session we
+        replay from history — the resolver substitutes the live target
+        before the agent class is constructed. The user&apos;s
+        configured model is preserved in the session record so the
+        substitution is auditable, but the actual upstream call uses an
+        ID that responds.
+      </p>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        The tradeoff: alias targets must themselves stay live. We
+        deliberately do not point an alias at any model with its own
+        retirement date inside the calendar window. So{" "}
+        <code>gemini-2.5-pro</code> (retiring Jun 17) is{" "}
+        <strong>not</strong> aliased to{" "}
+        <code>gemini-2.5-flash</code> (also retiring Jun 17) — both go
+        directly to the 3.x preview line. Same logic for{" "}
+        <code>claude-sonnet-4-20250514</code> →{" "}
+        <code>claude-sonnet-4-6</code> (skipping{" "}
+        <code>claude-sonnet-4-5</code>, which has its own future risk).
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">What you should do if you hard-code IDs</h2>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          Search your code for any of the eight legacy IDs above and
+          replace them with the alias target on the right. Do not wait
+          for the retirement date — preview IDs have shorter notice
+          windows, and the migration is mechanical.
+        </li>
+        <li>
+          If you call Consilium, you don&apos;t need to do anything — but
+          it&apos;s still cleaner to migrate so the substitution is
+          visible in your code, not invisible in our resolver.
+        </li>
+        <li>
+          For Gemini specifically: do not move from{" "}
+          <code>gemini-2.0-flash</code> to{" "}
+          <code>gemini-2.5-flash</code>. Both retire in June. Move
+          straight to <code>gemini-3-flash-preview</code>.
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Why we re-audit</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Provider deprecation schedules don&apos;t arrive in a feed we
+        can subscribe to. The shutdown dates land on documentation pages
+        we have to fetch and re-read. We re-audit on a calendar (next
+        run: end of May, just before the June 1 cluster) and commit the
+        diff back to the catalog. The audit doc is in the repo at{" "}
+        <code>docs/design/model-freshness-2026-04.md</code> with the
+        verbatim source URLs for every row above.
+      </p>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -479,6 +659,7 @@ const postContent: Record<string, React.FC> = {
   "benchmark-results-council-deliberation-vs-single-models": BenchmarkPost,
   "model-freshness-audit-april-2026": ModelFreshnessAuditPost,
   "byok-with-a-safety-net": ByokSafetyNetPost,
+  "model-deprecation-calendar-2026": ModelDeprecationCalendarPost,
 };
 
 export default async function BlogPostPage({
