@@ -53,121 +53,210 @@ function BenchmarkPost() {
   return (
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
-        As AI models grow more capable, evaluating their performance on complex
-        reasoning tasks becomes critical. Single-model benchmarks tell part of
-        the story, but they miss the gains achievable through structured
-        multi-agent deliberation. We ran Consilium&apos;s council architecture
-        against leading single models across three established benchmarks to
-        quantify the difference.
+        Most multi-agent products advertise benchmark gains. We ran our
+        own — and the raw numbers are not yet representative of what
+        either single models or council deliberation can do. The reason
+        is mundane: our answer-checker is too strict. This post lays
+        out what we ran in April 2026, what broke, what the cost was,
+        and the published research baselines we measure ourselves
+        against in the meantime.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Results</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">What we actually ran</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Three benchmarks against a 3-model council (GPT-5.4, Claude
+        Sonnet 4.6, Gemini 3 Flash) in council mode (3 rounds), with
+        single-model GPT-5.4 as the baseline:
+      </p>
+
+      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10 bg-white/[0.03]">
               <th className="px-6 py-4 text-left font-semibold">Benchmark</th>
-              <th className="px-6 py-4 text-left font-semibold">
-                Single Model (Best)
-              </th>
-              <th className="px-6 py-4 text-left font-semibold">
-                Consilium Council
-              </th>
-              <th className="px-6 py-4 text-left font-semibold">Improvement</th>
+              <th className="px-6 py-4 text-left font-semibold">N</th>
+              <th className="px-6 py-4 text-left font-semibold">Raw single</th>
+              <th className="px-6 py-4 text-left font-semibold">Raw deliberation</th>
+              <th className="px-6 py-4 text-left font-semibold">API cost (single / debate)</th>
+              <th className="px-6 py-4 text-left font-semibold">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
             <tr>
-              <td className="px-6 py-4 font-medium">MMLU-Pro</td>
-              <td className="px-6 py-4 text-muted-foreground">76.2%</td>
-              <td className="px-6 py-4 text-muted-foreground">82.8%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+8.7%</td>
+              <td className="px-6 py-4 font-medium">MMLU</td>
+              <td className="px-6 py-4 text-muted-foreground">200</td>
+              <td className="px-6 py-4 text-muted-foreground">2%</td>
+              <td className="px-6 py-4 text-muted-foreground">2%</td>
+              <td className="px-6 py-4 text-muted-foreground">$0.03 / $9.58</td>
+              <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
             </tr>
             <tr>
               <td className="px-6 py-4 font-medium">TruthfulQA</td>
-              <td className="px-6 py-4 text-muted-foreground">68.5%</td>
-              <td className="px-6 py-4 text-muted-foreground">79.3%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+15.8%</td>
+              <td className="px-6 py-4 text-muted-foreground">100</td>
+              <td className="px-6 py-4 text-muted-foreground">27%</td>
+              <td className="px-6 py-4 text-muted-foreground">19%</td>
+              <td className="px-6 py-4 text-muted-foreground">$0.01 / $4.69</td>
+              <td className="px-6 py-4 text-amber-400 text-xs">checker + API errors</td>
             </tr>
             <tr>
               <td className="px-6 py-4 font-medium">HumanEval</td>
-              <td className="px-6 py-4 text-muted-foreground">82.0%</td>
-              <td className="px-6 py-4 text-muted-foreground">89.4%</td>
-              <td className="px-6 py-4 text-emerald-400 font-medium">+9.0%</td>
+              <td className="px-6 py-4 text-muted-foreground">50</td>
+              <td className="px-6 py-4 text-muted-foreground">0%</td>
+              <td className="px-6 py-4 text-muted-foreground">0%</td>
+              <td className="px-6 py-4 text-muted-foreground">$0.01 / $3.00</td>
+              <td className="px-6 py-4 text-amber-400 text-xs">checker too strict</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-6">
-        The most significant gains appear in TruthfulQA, where cross-examination
-        during deliberation rounds forces models to identify and correct each
-        other&apos;s hallucinations. This aligns with findings from Du et al.
-        showing that debate improves factual accuracy even when individual
-        models are uncertain.
+        Total spend: $17.30 for 350 questions. We&apos;re publishing
+        the raw numbers because pretending we have headline gains right
+        now would be dishonest.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Methodology</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Why the scores are not representative</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
-        Each benchmark was run using a 3-model council (Claude Sonnet 4.5,
-        GPT-4o, Gemini 2.0 Flash) with Consilium&apos;s default Structured
-        Debate mode. Single-model baselines used the best-performing individual
-        model for each benchmark with identical prompts. All runs used
-        temperature 0.7 with 3 deliberation rounds. Results are averaged over
-        500 randomly sampled questions per benchmark.
-      </p>
-
-      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
-        The council configuration used confidence-weighted voting for final
-        answer selection, with a separate judge model (Claude Opus 4.6)
-        synthesizing the final response when consensus was not reached within
-        the voting threshold.
-      </p>
-
-      <h2 className="text-2xl font-bold mt-12 mb-6">Research Background</h2>
-
-      <p className="text-lg leading-relaxed text-muted-foreground">
-        Our deliberation approach builds on several key papers in multi-agent
-        reasoning:
+        Our answer-checker uses exact string matching. That works for
+        carefully formatted multiple-choice answers and breaks
+        immediately on:
       </p>
 
       <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
         <li>
-          <strong className="text-foreground">Du et al., ICML 2024</strong> —
-          &quot;Improving Factuality and Reasoning in Language Models through
-          Multiagent Debate&quot;
+          <strong className="text-foreground">Free-text TruthfulQA answers</strong> —
+          a model can produce a factually correct response that doesn&apos;t
+          contain the reference string verbatim, and the checker scores it
+          zero. Council deliberation produces longer, more carefully-worded
+          answers, which actually <em>hurts</em> the raw score under exact
+          match. (That&apos;s why deliberation scored 19% to single-model 27%
+          on TruthfulQA — not a real regression.)
         </li>
         <li>
-          <strong className="text-foreground">Chen et al., ACL 2024</strong> —
-          &quot;ReConcile: Round-Table Conference Improves Reasoning via
-          Consensus Among Diverse LLMs&quot;
+          <strong className="text-foreground">HumanEval code</strong> — we
+          should be running the unit tests that ship with each problem,
+          not string-matching the function body. The fix is straightforward
+          but it&apos;s not done yet.
         </li>
         <li>
-          <strong className="text-foreground">Khan et al., ICML 2024</strong> —
-          &quot;Debating with More Persuasive LLMs Leads to More Truthful
-          Answers&quot;
+          <strong className="text-foreground">MMLU at 2%</strong> — the
+          checker is failing to extract the answer letter from longer
+          responses. A 2% absolute score on a 4-choice benchmark is a
+          checker bug, not a model bug.
         </li>
       </ul>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Try It Yourself</h2>
-
-      <p className="text-lg leading-relaxed text-muted-foreground mb-4">
-        Run your own benchmarks with the Consilium CLI:
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        Some TruthfulQA runs also hit OpenAI rate limits during
+        execution, which dropped a fraction of debates entirely. We
+        haven&apos;t separated checker noise from rate-limit noise yet.
       </p>
 
+      <h2 className="text-2xl font-bold mt-12 mb-6">What we measure ourselves against</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Until the checker is fixed, the published research literature is
+        the most honest reference for what multi-agent debate
+        contributes:
+      </p>
+
+      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/[0.03]">
+              <th className="px-6 py-4 text-left font-semibold">Study</th>
+              <th className="px-6 py-4 text-left font-semibold">Finding</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            <tr>
+              <td className="px-6 py-4 font-medium align-top">Du et al., ICML 2024</td>
+              <td className="px-6 py-4 text-muted-foreground">
+                Multi-agent debate adds +10–20% on math and strategic
+                reasoning tasks vs. single-model baselines.
+              </td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium align-top">Chen et al., ACL 2024 (ReConcile)</td>
+              <td className="px-6 py-4 text-muted-foreground">
+                +6.8% accuracy on reasoning benchmarks using
+                heterogeneous models with confidence-weighted voting.
+              </td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium align-top">Khan et al., ICML 2024</td>
+              <td className="px-6 py-4 text-muted-foreground">
+                Debate between persuasive LLMs increases truthfulness
+                even when none of the participants individually knows
+                the answer.
+              </td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium align-top">Liang et al., 2023</td>
+              <td className="px-6 py-4 text-muted-foreground">
+                Multi-agent debate increases solution diversity on
+                creative and divergent-thinking tasks.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-6">
+        These are the deltas Consilium&apos;s council mode is designed
+        to capture. They&apos;re also the deltas we expect to see on
+        our benchmark runs once the checker is doing semantic matching
+        for free-text and unit-test execution for code.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Operational metrics that are real</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Even with the checker noise, we did learn something concrete
+        about runtime cost and convergence behavior:
+      </p>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">Council deliberation cost</strong> ran
+          ~$0.05–0.10 per question with 3 models × 3 rounds (the 350-question
+          spend works out close to this on average).
+        </li>
+        <li>
+          <strong className="text-foreground">Convergence detection</strong> shaves
+          roughly 30–40% off API spend vs. running a fixed round count, by
+          stopping early when the council&apos;s votes have stabilized.
+        </li>
+        <li>
+          <strong className="text-foreground">Median latency</strong> ~45s in
+          council mode, ~15s in quick mode.
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">When we&apos;ll publish real scores</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        The next benchmark run is gated on the checker fix: semantic
+        match for TruthfulQA (LLM-as-judge with a held-out reference
+        model), unit-test execution for HumanEval, and per-question
+        rate-limit retry. When that lands we&apos;ll re-run the same
+        350-question set, publish the deltas, and update this post.
+        Until then, treat the table at the top as evidence that we ran
+        the experiment, not as evidence of what deliberation does.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">Run your own</h2>
+
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-        <code className="text-emerald-400">npx consilium deliberate</code>
-        <span className="text-muted-foreground"> --mode structured-debate</span>
-        <span className="text-muted-foreground">
-          {" "}
-          --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview
-        </span>
-        <span className="text-muted-foreground">
-          {" "}
-          --prompt &quot;Your question here&quot;
-        </span>
+        <pre className="text-muted-foreground">{`cd apps/agents
+python -m src.features.deliberation.benchmarks.runner \\
+  --benchmark mmlu_pro \\
+  --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview \\
+  --mode council --n 200 \\
+  --output results/mmlu_pro_council.json`}</pre>
       </div>
 
       <div className="mt-12 pt-8 border-t border-white/[0.06]">
