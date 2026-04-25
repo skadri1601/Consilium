@@ -934,6 +934,231 @@ function WhyDeliberationBeatsOrchestrationPost() {
   );
 }
 
+function EightDeliberationModesPost() {
+  return (
+    <>
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Consilium ships eight deliberation modes. They&apos;re not
+        marketing skins on the same logic — each one is a distinct
+        state machine in the deliberation graph with a different
+        round count, transition shape, and judge behavior. Picking the
+        right one matters. Picking the wrong one wastes spend or
+        produces a thinner answer than the topic deserves. Here&apos;s
+        what each mode actually does, when to reach for it, and what
+        it costs.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">The lineup</h2>
+
+      <div className="overflow-x-auto rounded-lg border border-white/[0.06] mt-6">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/[0.03]">
+              <th className="px-6 py-4 text-left font-semibold">Mode</th>
+              <th className="px-6 py-4 text-left font-semibold">Rounds</th>
+              <th className="px-6 py-4 text-left font-semibold">Median latency</th>
+              <th className="px-6 py-4 text-left font-semibold">Best for</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            <tr>
+              <td className="px-6 py-4 font-medium">quick</td>
+              <td className="px-6 py-4 text-muted-foreground">1</td>
+              <td className="px-6 py-4 text-muted-foreground">~15s</td>
+              <td className="px-6 py-4 text-muted-foreground">Fast lookup-style questions</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">council</td>
+              <td className="px-6 py-4 text-muted-foreground">3</td>
+              <td className="px-6 py-4 text-muted-foreground">~45s</td>
+              <td className="px-6 py-4 text-muted-foreground">Default for most reasoning tasks</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">deep</td>
+              <td className="px-6 py-4 text-muted-foreground">5</td>
+              <td className="px-6 py-4 text-muted-foreground">~90s</td>
+              <td className="px-6 py-4 text-muted-foreground">Architecture-level decisions</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">blind</td>
+              <td className="px-6 py-4 text-muted-foreground">3</td>
+              <td className="px-6 py-4 text-muted-foreground">~45s</td>
+              <td className="px-6 py-4 text-muted-foreground">Reducing model-anchor bias</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">redteam</td>
+              <td className="px-6 py-4 text-muted-foreground">1 (attack/defend cycle)</td>
+              <td className="px-6 py-4 text-muted-foreground">~60–120s</td>
+              <td className="px-6 py-4 text-muted-foreground">Security &amp; vulnerability review</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">jury</td>
+              <td className="px-6 py-4 text-muted-foreground">3</td>
+              <td className="px-6 py-4 text-muted-foreground">~60s</td>
+              <td className="px-6 py-4 text-muted-foreground">Ranked-choice on multiple options</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">market</td>
+              <td className="px-6 py-4 text-muted-foreground">5</td>
+              <td className="px-6 py-4 text-muted-foreground">~90s</td>
+              <td className="px-6 py-4 text-muted-foreground">Forecasting / probability claims</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 font-medium">auto</td>
+              <td className="px-6 py-4 text-muted-foreground">varies</td>
+              <td className="px-6 py-4 text-muted-foreground">depends on routed mode</td>
+              <td className="px-6 py-4 text-muted-foreground">When you don&apos;t want to choose</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-sm text-muted-foreground mt-3">
+        Round counts are the actual values in{" "}
+        <code>MAX_ROUNDS_BY_MODE</code> in{" "}
+        <code>apps/agents/src/features/deliberation/deliberation_graph.py</code>.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">quick — single round, no debate</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Each model produces one independent answer; the judge picks
+        the best one. There is no cross-examination round. This is
+        the cheapest mode and the only mode where you are essentially
+        getting a ranked best-of-N from your council. Use it when you
+        want multiple model perspectives but the question is simple
+        enough that none of them is going to challenge another&apos;s
+        answer productively.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">council — the default</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Three rounds: independent analysis, cross-examination,
+        rebuttal-and-refinement. The judge runs the 5-phase synthesis
+        on the round-3 outputs. This is what we recommend for most
+        non-trivial reasoning tasks: long enough to surface
+        disagreement, short enough not to drag.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">deep — five rounds with sub-agent research</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Adds two more rounds beyond council, plus optional sub-agent
+        research for context-heavy questions. Worth the extra spend
+        when the topic is genuinely contested and the room is split
+        after round 3. Convergence detection still applies, so a
+        deep-mode debate that locks in early ends early — you only
+        pay for the rounds you needed.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">blind — names hidden until scored</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Same shape as council, but model identities are stripped
+        before each round so models judging round-1 outputs in
+        round 2 don&apos;t know which one came from
+        Claude vs. GPT vs. Gemini. Useful when you suspect anchoring
+        to a particular brand — for example when ranking responses to
+        a prompt where the &quot;safe&quot; answer is the one a more
+        cautious model wrote.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">redteam — attack/defend cycle</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Designed for security review. The flow is asymmetric: one
+        subset of models attacks (generates exploits / failure modes
+        / adversarial inputs), another defends, and the judge
+        categorizes findings into five severity-ranked dimensions
+        (security, bugs, performance, quality, edge cases). Despite
+        the single-round count, redteam runs longer than council in
+        wall-clock time because the attack and defend phases are
+        sequential and each pulls more tokens than a normal
+        round-1 generation.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">jury — ranked-choice voting</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Three rounds. After round 3, every model casts a ranked
+        ballot over the candidate answers. We aggregate using
+        Borda count for the headline score and run a Condorcet check
+        for cycle detection. When the room produces a consistent
+        preference order, jury surfaces it; when there&apos;s a
+        cycle (A beats B beats C beats A), the judge produces a
+        weighted synthesis that the dissent report explicitly flags.
+        Use jury when there are clearly multiple defensible answers
+        and you want the council&apos;s collective ranking instead
+        of a single verdict.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">market — prediction-market aggregation</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Five rounds with confidence-weighted voting. Each model
+        produces a probability claim and a justification; the judge
+        aggregates the probabilities the way a prediction market
+        would — weighted by each model&apos;s calibrated confidence
+        on similar past questions. This is the right mode for
+        forecasting (&quot;will WebAssembly replace Docker for
+        serverless within 3 years?&quot;) where the deliverable is a
+        probability with reasoning, not a yes/no.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">auto — let the engine pick</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Auto runs a small classifier on the topic in front of round 1
+        and routes to one of the seven explicit modes. The decision
+        is surfaced in the SSE stream as a{" "}
+        <code>routing:decided</code> event so you can see what it
+        chose and why — auto is not a black box, it&apos;s
+        a default with an audit trail. If the classifier is uncertain
+        it falls back to council, which is the safest non-trivial
+        mode.
+      </p>
+
+      <h2 className="text-2xl font-bold mt-12 mb-6">How to choose</h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        Three rules of thumb that work in practice:
+      </p>
+
+      <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
+        <li>
+          <strong className="text-foreground">If the topic has
+          a fact-of-the-matter answer, start with quick.</strong>{" "}
+          You don&apos;t need debate when one round of best-of-N is
+          enough.
+        </li>
+        <li>
+          <strong className="text-foreground">If the topic has
+          tradeoffs, council.</strong> The cross-examination round is
+          where tradeoff analysis actually happens.
+        </li>
+        <li>
+          <strong className="text-foreground">If the deliverable
+          is structured (a vote, a probability, a security report),
+          pick the matching specialized mode</strong> — jury, market,
+          or redteam respectively.
+        </li>
+      </ul>
+
+      <p className="text-lg leading-relaxed text-muted-foreground mt-4">
+        And if you genuinely don&apos;t know, auto is fine. It&apos;s
+        what we use as the default for unclassified incoming traffic.
+      </p>
+
+      <div className="mt-12 pt-8 border-t border-white/[0.06]">
+        <Button asChild size="lg">
+          <Link href="/sign-up">Try Consilium</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function PlaceholderPost({ title }: { title: string }) {
   return (
     <>
@@ -960,6 +1185,7 @@ const postContent: Record<string, React.FC> = {
   "byok-with-a-safety-net": ByokSafetyNetPost,
   "model-deprecation-calendar-2026": ModelDeprecationCalendarPost,
   "why-deliberation-beats-orchestration": WhyDeliberationBeatsOrchestrationPost,
+  "introducing-8-deliberation-modes": EightDeliberationModesPost,
 };
 
 export default async function BlogPostPage({
