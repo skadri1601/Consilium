@@ -75,7 +75,13 @@ function readLocalLogs(debateId: string, level?: string): LogEntry[] {
 
 function formatTimestamp(ts: string | undefined): string {
   if (!ts) return 'N/A';
-  return new Date(ts).toLocaleString();
+  // new Date('') silently returns Invalid Date which then renders
+  // toLocaleString() as the literal string "Invalid Date". Guard
+  // against malformed timestamps from the API and show 'N/A' instead
+  // so the timeline output stays readable.
+  const parsed = new Date(ts);
+  if (Number.isNaN(parsed.getTime())) return 'N/A';
+  return parsed.toLocaleString();
 }
 
 function buildTimeline(debate: any): LogEntry[] {

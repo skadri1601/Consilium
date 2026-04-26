@@ -272,8 +272,17 @@ export class ConsiliumClient {
             const reason = connectionEstablished
               ? `${contextLabel} stream dropped after ${eventCount} events`
               : `${contextLabel} stream failed to connect`;
+            // 429 is technically 4xx but is a backpressure signal, not
+            // a fatal client error — treat it as transient so the
+            // caller's reconnect loop applies backoff instead of
+            // surfacing the rate-limit as an immediate failure. All
+            // other 4xx codes (401/403/404) remain fatal.
             const kind: StreamErrorKind =
-              status !== undefined && status >= 400 && status < 500 ? 'fatal' : 'transient';
+              status === 429
+                ? 'transient'
+                : status !== undefined && status >= 400 && status < 500
+                ? 'fatal'
+                : 'transient';
             this.log(`${reason}${status !== undefined ? ` (status=${status})` : ''}`);
             reject(new StreamError(reason, kind, status));
           };
