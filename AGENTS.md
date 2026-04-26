@@ -28,7 +28,7 @@ Multi-model structured deliberation with 8 modes and 13 core modules.
 apps/agents/src/
 ├── core/
 │   ├── orchestrator.py   — Legacy 3-round debate (being replaced by deliberation engine)
-│   ├── agent_factory.py  — Multi-provider LLM routing (OpenAI, Anthropic, Google, Groq, xAI)
+│   ├── agent_factory.py  — Multi-provider LLM routing (OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter) + free-tier fallback resolver
 │   ├── circuit_breaker.py — Per-provider failure tracking
 │   └── cost_tracker.py   — Per-model token/cost accounting
 ├── features/

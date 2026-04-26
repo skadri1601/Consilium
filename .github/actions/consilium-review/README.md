@@ -10,7 +10,7 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
     github-token: ${{ secrets.GITHUB_TOKEN }}
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-    models: 'claude-sonnet-4-5,gpt-4o'
+    models: 'claude-sonnet-4-6,gpt-5.4'
     mode: 'redteam'
 ```
 
@@ -36,7 +36,7 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
     github-token: ${{ secrets.GITHUB_TOKEN }}
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-    models: 'claude-sonnet-4-5'
+    models: 'claude-sonnet-4-6'
 ```
 
 ## Inputs
@@ -46,7 +46,7 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
 | `github-token` | Yes | | GitHub token for posting reviews |
 | `anthropic-api-key` | Yes | | Anthropic API key |
 | `openai-api-key` | No | `''` | OpenAI API key |
-| `models` | No | `claude-sonnet-4-5,gpt-4o` | Comma-separated model IDs |
+| `models` | No | `claude-sonnet-4-6,gpt-5.4` | Comma-separated model IDs |
 | `mode` | No | `redteam` | Deliberation mode |
 | `api-url` | No | `''` | Consilium API URL (direct mode if empty) |
 | `max-rounds` | No | `3` | Maximum deliberation rounds |

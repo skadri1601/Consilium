@@ -190,8 +190,8 @@ client = Consilium(api_key="your-key")
 result = client.deliberate(
     question="Should we migrate to microservices?",
     mode="council",
-    models=["claude-sonnet-4-20250514",
-            "gpt-4o", "gemini-2.0-flash"],
+    models=["claude-sonnet-4-6",
+            "gpt-5.4", "gemini-3-flash-preview"],
 )
 
 print(result.synthesis)
@@ -205,8 +205,8 @@ const client = new Consilium({ apiKey: "your-key" });
 const result = await client.deliberate({
   question: "Should we migrate to microservices?",
   mode: "council",
-  models: ["claude-sonnet-4-20250514",
-           "gpt-4o", "gemini-2.0-flash"],
+  models: ["claude-sonnet-4-6",
+           "gpt-5.4", "gemini-3-flash-preview"],
 });
 
 console.log(result.synthesis);
@@ -217,7 +217,7 @@ const cliCode = String.raw`# Quick deliberation
 consilium deliberate \
   --question "Should we migrate to microservices?" \
   --mode council \
-  --models claude-sonnet-4,gpt-4o,gemini-2.0
+  --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview
 
 # Red team assessment
 consilium deliberate \

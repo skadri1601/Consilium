@@ -57,7 +57,7 @@ Start a new debate session.
 ```json
 {
   "topic": "Build a REST API with authentication using Node.js and PostgreSQL",
-  "models": ["gpt-4o-mini", "claude-3-5-haiku-latest"]
+  "models": ["gpt-5.4-mini", "claude-haiku-4-5-20251001"]
 }
 ```
 
@@ -68,7 +68,7 @@ Start a new debate session.
   "userId": "user-456",
   "topic": "Build a REST API...",
   "status": "processing",
-  "modelsUsed": ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+  "modelsUsed": ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
   "totalCost": 0,
   "createdAt": "2026-01-10T12:00:00Z"
 }
@@ -88,7 +88,7 @@ List user's debate sessions.
     "id": "debate-123",
     "topic": "Build a REST API...",
     "status": "completed",
-    "modelsUsed": ["gpt-4o-mini"],
+    "modelsUsed": ["gpt-5.4-mini"],
     "totalCost": 0.0123,
     "goldenPrompt": "Create a REST API...",
     "createdAt": "2026-01-10T12:00:00Z",
@@ -115,8 +115,8 @@ Get specific debate session details.
       "messages": [
         {
           "id": "msg-1",
-          "agentId": "gpt-4o-mini",
-          "modelUsed": "gpt-4o-mini",
+          "agentId": "gpt-5.4-mini",
+          "modelUsed": "gpt-5.4-mini",
           "content": "Agent response...",
           "promptTokens": 100,
           "completionTokens": 200,
@@ -148,7 +148,7 @@ Stream debate progress via Server-Sent Events (SSE).
 **Example Event:**
 ```
 event: agent:chunk
-data: {"event":"agent:chunk","agentId":"gpt-4o-mini","chunk":"This is a chunk of text..."}
+data: {"event":"agent:chunk","agentId":"gpt-5.4-mini","chunk":"This is a chunk of text..."}
 ```
 
 ### API Keys
@@ -247,9 +247,9 @@ Get analytics data.
     { "date": "2026-01-09", "count": 3 }
   ],
   "modelUsage": {
-    "gpt-4o-mini": 20,
-    "claude-3-5-haiku-latest": 15,
-    "gemini-2.0-flash": 7
+    "gpt-5.4-mini": 20,
+    "claude-haiku-4-5-20251001": 15,
+    "gemini-3-flash-preview": 7
   }
 }
 ```
@@ -359,7 +359,7 @@ const client = new ConsiliumClient({
 // Start a debate
 const debate = await client.debates.create({
   topic: 'Build a REST API...',
-  models: ['gpt-4o-mini', 'claude-3-5-haiku-latest']
+  models: ['gpt-5.4-mini', 'claude-haiku-4-5-20251001']
 });
 
 // Stream progress
@@ -389,7 +389,9 @@ Consilium receives webhooks from Clerk for user events:
 ## Support
 
 For API issues:
-- Check [Swagger UI](http://localhost:4000/api/docs) for interactive docs
+- Check [Swagger UI](http://localhost:4000/api/docs) for interactive docs (or `https://api.myconsilium.xyz/api/docs` for the hosted API)
 - Review error responses for details
-- Open an issue on [GitHub](https://github.com/yourusername/consilium)
+- Email <support@myconsilium.xyz>
+
+The Consilium source repository is private as of April 2026. The CLI (`@myconsilium/cli`), TypeScript SDK (`@myconsilium/sdk`), and Python SDK (`consilium`) remain publicly distributed.
 

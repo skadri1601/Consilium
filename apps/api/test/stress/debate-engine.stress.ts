@@ -16,23 +16,23 @@ const expiredJwtPayload = Buffer.from(
 ).toString("base64url");
 const EXPIRED_TOKEN = `Bearer hdr.${expiredJwtPayload}.sig`;
 const MALFORMED_TOKEN = "Bearer not-a-real-jwt-token!!!";
-const VALID_MODELS_TWO = ["gpt-4o-mini", "claude-3-5-haiku-latest"];
+const VALID_MODELS_TWO = ["gpt-5.4-mini", "claude-haiku-4-5-20251001"];
 const VALID_MODELS_FIVE = [
-  "gpt-4o-mini",
-  "claude-3-5-haiku-latest",
-  "gemini-2.0-flash",
+  "gpt-5.4-mini",
+  "claude-haiku-4-5-20251001",
+  "gemini-3-flash-preview",
   "llama-3.1-8b-instant",
-  "gpt-4o",
+  "gpt-5.4",
 ];
 const VALID_MODELS_SIX = [
-  "gpt-4o-mini",
-  "claude-3-5-haiku-latest",
-  "gemini-2.0-flash",
+  "gpt-5.4-mini",
+  "claude-haiku-4-5-20251001",
+  "gemini-3-flash-preview",
   "llama-3.1-8b-instant",
-  "gpt-4o",
-  "claude-3-5-sonnet-latest",
+  "gpt-5.4",
+  "claude-sonnet-4-6",
 ];
-const SINGLE_MODEL = ["gpt-4o-mini"];
+const SINGLE_MODEL = ["gpt-5.4-mini"];
 const REALISTIC_TOPIC =
   "Design a distributed event-driven microservices architecture for a fintech payment processing platform with real-time fraud detection";
 const MIN_TOPIC = "API";

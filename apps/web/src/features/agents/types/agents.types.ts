@@ -1,4 +1,11 @@
-export type AgentProvider = "OpenAI" | "Anthropic" | "Google" | "Groq" | "XAI";
+export type AgentProvider =
+  | "OpenAI"
+  | "Anthropic"
+  | "Google"
+  | "Groq"
+  | "xAI"
+  | "Moonshot"
+  | "OpenRouter";
 
 export interface AgentDef {
   id: string;

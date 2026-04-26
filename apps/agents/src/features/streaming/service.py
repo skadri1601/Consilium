@@ -12,9 +12,9 @@ class StreamingService:
 
     def __init__(self):
         self._default_agents = {
-            "gpt-4o-mini": "gpt-4o-mini",
+            "gpt-5.4-mini": "gpt-5.4-mini",
             "claude-haiku": "claude-haiku-4-5-20251001",
-            "gemini-flash": "gemini-2.0-flash",
+            "gemini-flash": "gemini-3-flash-preview",
         }
 
     def _get_agent(self, agent_id: str, api_keys: dict | None = None) -> BaseAgent:

@@ -16,19 +16,31 @@ export function AgentSelector() {
     googleKey: string | null;
     groqKey: string | null;
     xaiKey: string | null;
+    moonshotKey: string | null;
+    openrouterKey: string | null;
   }>({
     openaiKey: null,
     anthropicKey: null,
     googleKey: null,
     groqKey: null,
     xaiKey: null,
+    moonshotKey: null,
+    openrouterKey: null,
   });
 
   useEffect(() => {
     fetch("/api/api-keys")
       .then((res) => {
         if (!res.ok) {
-          return { openaiKey: null, anthropicKey: null, googleKey: null, groqKey: null, xaiKey: null };
+          return {
+            openaiKey: null,
+            anthropicKey: null,
+            googleKey: null,
+            groqKey: null,
+            xaiKey: null,
+            moonshotKey: null,
+            openrouterKey: null,
+          };
         }
         return res.json();
       })
@@ -40,6 +52,8 @@ export function AgentSelector() {
             googleKey: data.googleKey || null,
             groqKey: data.groqKey || null,
             xaiKey: data.xaiKey || null,
+            moonshotKey: data.moonshotKey || null,
+            openrouterKey: data.openrouterKey || null,
           });
         }
       })
@@ -58,6 +72,10 @@ export function AgentSelector() {
         return apiKeys.groqKey;
       case "xai":
         return apiKeys.xaiKey;
+      case "moonshot":
+        return apiKeys.moonshotKey;
+      case "openrouter":
+        return apiKeys.openrouterKey;
       default:
         return null;
     }

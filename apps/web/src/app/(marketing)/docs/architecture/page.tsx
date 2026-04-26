@@ -285,7 +285,7 @@ export default function ArchitecturePage() {
                     <p className="text-sm"><span className="text-indigo-400 font-medium">Error Classification</span> — Errors categorized as: rate_limit, auth, timeout, server_error, unknown. Raised as LLMProviderError(provider, error_type, original_error).</p>
                   </div>
                   <div className="rounded-lg bg-neutral-900 p-3">
-                    <p className="text-sm"><span className="text-indigo-400 font-medium">Context Overflow</span> — On 413/400 errors, automatically retries with cheaper model variant (e.g., gpt-4o → gpt-4o-mini).</p>
+                    <p className="text-sm"><span className="text-indigo-400 font-medium">Context Overflow</span> — On 413/400 errors, automatically retries with cheaper model variant (e.g., gpt-5.4 → gpt-5.4-mini).</p>
                   </div>
                   <div className="rounded-lg bg-neutral-900 p-3">
                     <p className="text-sm"><span className="text-indigo-400 font-medium">Timeout</span> — 60 seconds per API call. Configurable per-provider.</p>

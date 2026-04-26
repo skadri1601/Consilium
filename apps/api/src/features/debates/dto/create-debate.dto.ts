@@ -26,9 +26,9 @@ export class CreateDebateDto {
   @ApiProperty({
     description: "List of model IDs to use in the debate",
     example: [
-      "gpt-4o-mini",
-      "claude-3-5-haiku-latest",
-      "gemini-2.0-flash",
+      "gpt-5.4-mini",
+      "claude-haiku-4-5-20251001",
+      "gemini-3-flash-preview",
       "llama-3.1-8b-instant",
     ],
     type: [String],

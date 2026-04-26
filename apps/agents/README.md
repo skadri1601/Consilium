@@ -7,7 +7,8 @@ Multi-agent LLM orchestration workers for the Consilium AI Council platform.
 This service orchestrates debates between multiple AI models using LangGraph. It handles:
 - Multi-agent debate workflows
 - Real-time streaming responses via SSE
-- Integration with OpenAI, Anthropic, Google, and Groq models
+- Integration with 7 LLM providers: OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), and OpenRouter
+- BYOK-first with platform free-tier fallback (CONSILIUM_FREE_TIER_GROQ_KEY / CONSILIUM_FREE_TIER_OPENROUTER_KEY)
 - Consensus generation (Golden Prompt synthesis)
 
 ## Tech Stack
@@ -47,6 +48,14 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 GROQ_API_KEY=gsk_...
+XAI_API_KEY=xai-...
+MOONSHOT_API_KEY=sk-...
+OPENROUTER_API_KEY=sk-or-...
+
+# Free-tier fallback pool (used only when a debate has no BYOK
+# for the requested provider — BYOK always takes precedence)
+CONSILIUM_FREE_TIER_GROQ_KEY=gsk_...
+CONSILIUM_FREE_TIER_OPENROUTER_KEY=sk-or-...
 
 # Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/consilium
@@ -103,4 +112,4 @@ docker run -p 8000:8000 --env-file .env consilium-agents
 
 ## License
 
-MIT License - See [LICENSE](../../LICENSE) for details.
+Proprietary — © Consilium. All rights reserved. The Consilium source repository is private as of April 2026. See [LICENSE](../../LICENSE) for permitted use.

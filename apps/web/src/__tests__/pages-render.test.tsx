@@ -604,8 +604,8 @@ describe("Feature Components", () => {
           name: "Cross-Examination",
           status: "active" as const,
           models: [
-            { id: "claude-sonnet-4-20250514", status: "thinking" as const },
-            { id: "gpt-4o", status: "complete" as const },
+            { id: "claude-sonnet-4-6", status: "thinking" as const },
+            { id: "gpt-5.4", status: "complete" as const },
           ],
         },
         { name: "Synthesis", status: "pending" as const },
@@ -637,20 +637,20 @@ describe("Feature Components", () => {
     const defaultProps = {
       votes: [
         {
-          modelId: "claude-sonnet-4-20250514",
+          modelId: "claude-sonnet-4-6",
           bordaScore: 8,
           rankings: [1, 2, 1],
           confidence: 0.92,
           isCondorcetWinner: true,
         },
         {
-          modelId: "gpt-4o",
+          modelId: "gpt-5.4",
           bordaScore: 6,
           rankings: [2, 1, 2],
           confidence: 0.85,
         },
       ],
-      winnerId: "claude-sonnet-4-20250514",
+      winnerId: "claude-sonnet-4-6",
     };
 
     it("renders without throwing", () => {
@@ -670,13 +670,13 @@ describe("Feature Components", () => {
       report: {
         type: "dissent" as const,
         majority: {
-          models: ["claude-sonnet-4-20250514", "gpt-4o"],
+          models: ["claude-sonnet-4-6", "gpt-5.4"],
           positionSummary: "Majority agrees on approach A",
           keyArguments: ["Strong evidence", "Well documented"],
         },
         minority: [
           {
-            models: ["gemini-2.0-flash"],
+            models: ["gemini-3-flash-preview"],
             positionSummary: "Alternative approach B",
             keyArguments: ["Different perspective"],
           },
@@ -710,16 +710,16 @@ describe("Feature Components", () => {
           label: "Proposal",
           outputs: [
             {
-              modelId: "claude-sonnet-4-20250514",
+              modelId: "claude-sonnet-4-6",
               modelName: "Claude Sonnet",
               provider: "anthropic",
               content: "Claude's proposal content here.",
             },
             {
-              modelId: "gpt-4o",
-              modelName: "GPT-4o",
+              modelId: "gpt-5.4",
+              modelName: "GPT-5.4",
               provider: "openai",
-              content: "GPT-4o's proposal content here.",
+              content: "GPT-5.4's proposal content here.",
             },
           ],
         },
@@ -728,7 +728,7 @@ describe("Feature Components", () => {
           label: "Rebuttal",
           outputs: [
             {
-              modelId: "claude-sonnet-4-20250514",
+              modelId: "claude-sonnet-4-6",
               modelName: "Claude Sonnet",
               provider: "anthropic",
               content: "Claude's rebuttal.",
@@ -766,7 +766,7 @@ describe("Feature Components", () => {
         totalOutputTokens: 2000,
         modelCosts: [
           {
-            modelId: "claude-sonnet-4-20250514",
+            modelId: "claude-sonnet-4-6",
             modelName: "Claude Sonnet",
             provider: "anthropic",
             inputTokens: 3000,
@@ -774,8 +774,8 @@ describe("Feature Components", () => {
             cost: 0.008,
           },
           {
-            modelId: "gpt-4o",
-            modelName: "GPT-4o",
+            modelId: "gpt-5.4",
+            modelName: "GPT-5.4",
             provider: "openai",
             inputTokens: 2000,
             outputTokens: 800,
@@ -786,12 +786,12 @@ describe("Feature Components", () => {
           {
             round: 1,
             totalCost: 0.005,
-            models: { "claude-sonnet-4-20250514": 0.003, "gpt-4o": 0.002 },
+            models: { "claude-sonnet-4-6": 0.003, "gpt-5.4": 0.002 },
           },
           {
             round: 2,
             totalCost: 0.0075,
-            models: { "claude-sonnet-4-20250514": 0.005, "gpt-4o": 0.0025 },
+            models: { "claude-sonnet-4-6": 0.005, "gpt-5.4": 0.0025 },
           },
         ],
         cumulativeCosts: [

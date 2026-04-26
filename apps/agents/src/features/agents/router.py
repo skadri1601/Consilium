@@ -20,7 +20,7 @@ def get_agent(model_id: str, api_keys: dict[str, str] | None = None) -> BaseAgen
     Get an agent instance for a given model ID.
 
     Args:
-        model_id: The model ID (e.g., "gpt-4o-mini", "claude-3-5-haiku-latest")
+        model_id: The model ID (e.g., "gpt-5.4-mini", "claude-haiku-4-5-20251001")
         api_keys: Optional dictionary of provider -> API key mappings
 
     Returns:

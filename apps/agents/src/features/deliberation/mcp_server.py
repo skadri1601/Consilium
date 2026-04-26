@@ -95,8 +95,8 @@ TOOLS = [
     },
 ]
 
-DEFAULT_MODELS = ["gpt-4o", "claude-sonnet-4-20250514", "gemini-1.5-pro"]
-DEFAULT_JUDGE = "gpt-4o"
+DEFAULT_MODELS = ["gpt-5.4", "claude-sonnet-4-6", "gemini-3.1-pro-preview"]
+DEFAULT_JUDGE = "gpt-5.4-mini"
 
 
 async def llm_stub(model: str, prompt: str, api_keys: dict) -> str:
@@ -189,7 +189,7 @@ async def handle_blind_eval(arguments: dict) -> str:
     model_ids = [p.model_id for p in proposals]
     judge = DEFAULT_JUDGE
     if judge in model_ids:
-        judge = "claude-sonnet-4-20250514" if judge != "claude-sonnet-4-20250514" else "gpt-4o"
+        judge = "claude-sonnet-4-6" if judge != "claude-sonnet-4-6" else "gpt-5.4"
 
     def judge_func(ordering):
         return {p.model_id: 5.0 for p in ordering}

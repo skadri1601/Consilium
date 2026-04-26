@@ -24,11 +24,13 @@ model User {
   tenantId  String
 
   // API Keys (encrypted, for BYOK)
-  openaiKey    String? // Encrypted
-  anthropicKey String? // Encrypted
-  googleKey    String? // Encrypted
-  groqKey      String? // Encrypted
-  xaiKey       String? // Encrypted
+  openaiKey     String? // Encrypted
+  anthropicKey  String? // Encrypted
+  googleKey     String? // Encrypted
+  groqKey       String? // Encrypted
+  xaiKey        String? // Encrypted
+  moonshotKey   String? // Encrypted
+  openrouterKey String? // Encrypted
 
   // CLI access: hash of long-lived token (user generates in Settings)
   cliTokenHash String? @unique

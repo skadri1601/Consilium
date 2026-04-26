@@ -101,9 +101,13 @@ except ImportError:
 
 try:
     from src.core.agent_factory import AgentFactory
+    from src.features.free_tier.resolver import NoKeyAvailableError
     _HAS_AGENT_FACTORY = True
 except ImportError:
     _HAS_AGENT_FACTORY = False
+
+    class NoKeyAvailableError(Exception):  # type: ignore[no-redef]
+        """Stub raised when AgentFactory is unavailable in a stripped runtime."""
 
 try:
     from src.features.agents.base_agent import LLMProviderError, is_error_response
@@ -209,18 +213,25 @@ MAX_ROUNDS_BY_MODE: dict[str, int] = {
 
 
 COST_PER_1K_TOKENS = {
-    "gpt-4o": (0.0025, 0.010),
-    "gpt-4o-mini": (0.00015, 0.0006),
-    "gpt-4.1": (0.002, 0.008),
-    "o3-mini": (0.0011, 0.0044),
-    "claude-sonnet-4-5": (0.003, 0.015),
-    "claude-haiku-4-5": (0.0008, 0.004),
+    "gpt-5.5-pro": (0.008, 0.032),
+    "gpt-5.5": (0.003, 0.012),
+    "gpt-5.4": (0.002, 0.008),
+    "gpt-5.4-mini": (0.0002, 0.0008),
+    "gpt-5.4-nano": (0.00008, 0.0003),
+    "claude-opus-4-7": (0.015, 0.075),
     "claude-opus-4-6": (0.015, 0.075),
-    "gemini-2.5-pro": (0.00125, 0.005),
-    "gemini-2.5-flash": (0.00015, 0.0006),
-    "gemini-2.0-flash": (0.0001, 0.0004),
-    "grok-2": (0.002, 0.010),
-    "grok-2-mini": (0.0003, 0.001),
+    "claude-sonnet-4-6": (0.003, 0.015),
+    "claude-haiku-4-5-20251001": (0.0008, 0.004),
+    "gemini-3.1-pro-preview": (0.00125, 0.005),
+    "gemini-3-flash-preview": (0.00015, 0.0006),
+    "grok-4-20": (0.003, 0.015),
+    "grok-4-1-fast-reasoning": (0.001, 0.004),
+    "grok-4-1-fast-non-reasoning": (0.0005, 0.002),
+    "grok-code-fast-1": (0.0003, 0.0012),
+    "llama-3.3-70b-versatile": (0.00059, 0.00079),
+    "llama-3.1-8b-instant": (0.00005, 0.00008),
+    "openai/gpt-oss-120b": (0.00015, 0.0006),
+    "kimi-k2.6": (0.0012, 0.0025),
 }
 
 
@@ -535,12 +546,52 @@ class DeliberationEngine:
         _logger.info("AUTO resolved to %s (max_rounds=%d)", resolved, self.max_rounds)
         self._sse("routing:decided", self.routing_decision)
 
+    def _emit_free_tier_resolutions(self) -> None:
+        """If any of the debate's models will run through free-tier
+        fallback, surface the decision as a routing:fallback SSE event
+        so the CLI / web UI can inform the user transparently."""
+        if not _HAS_AGENT_FACTORY:
+            return
+        try:
+            fallbacks = []
+            for model_id in list(self.models) + [self.judge_model]:
+                try:
+                    resolution = AgentFactory.resolve(model_id, self.api_keys or {})
+                except NoKeyAvailableError:
+                    # Resolver couldn't pick any key for this model. Skip
+                    # this seat — the per-round agent construction will
+                    # raise with a user-actionable message when the seat
+                    # actually runs.
+                    continue
+                except Exception as model_exc:  # noqa: BLE001 - widened only for diagnostics
+                    _logger.warning(
+                        "Free-tier resolution failed for %s: %s", model_id, model_exc
+                    )
+                    continue
+                if resolution.is_fallback:
+                    fallbacks.append(resolution.to_event_payload())
+            if fallbacks:
+                self._sse(
+                    "routing:fallback",
+                    {
+                        "count": len(fallbacks),
+                        "resolutions": fallbacks,
+                        "message": (
+                            f"{len(fallbacks)} model(s) routed to Consilium free tier; "
+                            "set your own provider API key(s) to use the originally requested models."
+                        ),
+                    },
+                )
+        except Exception as exc:
+            _logger.warning("Free-tier resolution emit failed: %s", exc)
+
     async def run(self, topic: str) -> DeliberationState:
         if self.mode == DeliberationMode.AUTO:
             self._resolve_auto_mode(topic)
         self.state = self._init_state(topic)
         self._proposals_history = []
         self._votes_history = []
+        self._emit_free_tier_resolutions()
         phase = Phase.PROPOSAL
 
         while True:

@@ -2,19 +2,19 @@ import { IsString, IsOptional, IsBoolean, IsIn } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateAgentDto {
-  @ApiProperty({ example: "GPT-4o-mini" })
+  @ApiProperty({ example: "GPT-5.4 Mini" })
   @IsString()
   name: string;
 
   @ApiProperty({
     example: "openai",
-    enum: ["openai", "anthropic", "google", "groq", "xai"],
+    enum: ["openai", "anthropic", "google", "groq", "xai", "moonshot", "openrouter"],
   })
   @IsString()
-  @IsIn(["openai", "anthropic", "google", "groq", "xai"])
+  @IsIn(["openai", "anthropic", "google", "groq", "xai", "moonshot", "openrouter"])
   provider: string;
 
-  @ApiProperty({ example: "gpt-4o-mini" })
+  @ApiProperty({ example: "gpt-5.4-mini" })
   @IsString()
   modelId: string;
 

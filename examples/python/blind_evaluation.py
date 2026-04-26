@@ -46,7 +46,7 @@ def run_blind_evaluation():
         ),
     ]
 
-    evaluator_models = ["gpt-4o", "claude-sonnet-4-20250514", "gemini-2.0-flash"]
+    evaluator_models = ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"]
 
     try:
         result = client.blind_eval(

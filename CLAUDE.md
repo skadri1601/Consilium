@@ -46,6 +46,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 - **Monitoring**: Sentry (consilium-pi org)
 - **CI**: GitHub Actions (lint, typecheck, security, Claude Code review)
 - **Linear**: Project management (MYC- ticket prefix)
+- **Free-tier fallback**: BYOK always wins. When a debate request has no key for the requested provider (and no self-hosted `*_API_KEY` env var), the agents service routes through a platform-hosted pool: `CONSILIUM_FREE_TIER_GROQ_KEY` preferred, `CONSILIUM_FREE_TIER_OPENROUTER_KEY` as backup. Tier is inferred from catalog cost (fast / balanced / deep) and routed to an equivalent free model. Resolution logic lives in `apps/agents/src/features/free_tier/resolver.py`; fallback is surfaced via the `routing:fallback` SSE event and a CLI pre-flight notice in `packages/cli/src/commands/debate.ts`.
 
 ## Code Conventions
 
@@ -58,7 +59,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ### TypeScript (apps/web/, apps/api/, packages/)
 - Shared types in packages/shared/ — never duplicate
-- Model IDs use full versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-20250514`
+- Model IDs use current versions: `claude-haiku-4-5-20251001`, `claude-sonnet-4-6`, `claude-opus-4-7`, `gpt-5.4`/`gpt-5.5`, `gemini-3-flash-preview`/`gemini-3.1-pro-preview`. Legacy IDs (`gpt-4o`, `claude-3-5-*`, `gemini-2.x`) are aliased to current replacements but should not be hardcoded in new code.
 - BullMQ for async debate processing
 - SSE for real-time streaming
 

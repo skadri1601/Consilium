@@ -26,7 +26,7 @@ const MOCK_DEBATES_LIST = [
     id: "debate-hist-001",
     topic: "Implement a real-time collaborative document editor using CRDTs and WebSocket",
     status: "completed",
-    modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest"],
+    modelsUsed: ["gpt-5.4", "claude-sonnet-4-6"],
     totalCost: 0.0342,
     goldenPrompt: "Use Yjs CRDT library with HocusPocus WebSocket backend...",
     createdAt: new Date().toISOString(),
@@ -35,7 +35,7 @@ const MOCK_DEBATES_LIST = [
     id: "debate-hist-002",
     topic: "Build a Kubernetes-native CI/CD pipeline with canary deployments",
     status: "completed",
-    modelsUsed: ["gpt-4o-mini", "gemini-2.0-flash", "claude-3-5-haiku-latest"],
+    modelsUsed: ["gpt-5.4-mini", "gemini-3-flash-preview", "claude-haiku-4-5-20251001"],
     totalCost: 0.0187,
     goldenPrompt: "Use Argo Rollouts for progressive delivery...",
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -44,7 +44,7 @@ const MOCK_DEBATES_LIST = [
     id: "debate-hist-003",
     topic: "Design an observability stack with distributed tracing and anomaly detection",
     status: "completed",
-    modelsUsed: ["claude-3-5-sonnet-latest", "gemini-1.5-pro"],
+    modelsUsed: ["claude-sonnet-4-6", "gemini-3.1-pro-preview"],
     totalCost: 0.0256,
     goldenPrompt: null,
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
@@ -95,7 +95,7 @@ const MOCK_DEBATE_DETAIL = {
   id: MOCK_DEBATE_ID,
   topic: REALISTIC_TOPIC,
   status: "completed",
-  modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest", "gemini-2.0-flash"],
+  modelsUsed: ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
   totalCost: 0.0456,
   goldenPrompt: "Implement a hexagonal architecture with domain-driven design...",
   createdAt: new Date().toISOString(),
@@ -107,7 +107,7 @@ const MOCK_DEBATE_DETAIL = {
       messages: [
         {
           id: "msg-001",
-          agentId: "gpt-4o",
+          agentId: "gpt-5.4",
           modelUsed: "GPT-4o",
           content: "For the payment processing platform, I recommend an event-sourcing pattern...",
           cost: 0.012,
@@ -115,7 +115,7 @@ const MOCK_DEBATE_DETAIL = {
         },
         {
           id: "msg-002",
-          agentId: "claude-3-5-sonnet-latest",
+          agentId: "claude-sonnet-4-6",
           modelUsed: "Claude 3.5 Sonnet",
           content: "The fraud detection subsystem should use a streaming architecture...",
           cost: 0.015,
@@ -370,11 +370,11 @@ test.describe("Council and Debate Flow", () => {
     const sseEvents = [
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
-      { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:chunk", agentId: "gpt-4o-mini", chunk: "Analyzing the architecture requirements..." },
-      { event: "agent:start", agentId: "gpt-4o" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Full response from GPT-4o Mini" },
-      { event: "agent:complete", agentId: "gpt-4o", content: "Full response from GPT-4o" },
+      { event: "agent:start", agentId: "gpt-5.4-mini" },
+      { event: "agent:chunk", agentId: "gpt-5.4-mini", chunk: "Analyzing the architecture requirements..." },
+      { event: "agent:start", agentId: "gpt-5.4" },
+      { event: "agent:complete", agentId: "gpt-5.4-mini", content: "Full response from GPT-4o Mini" },
+      { event: "agent:complete", agentId: "gpt-5.4", content: "Full response from GPT-4o" },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);
@@ -390,16 +390,16 @@ test.describe("Council and Debate Flow", () => {
     const sseEvents = [
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
-      { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Response A" },
-      { event: "agent:start", agentId: "gpt-4o" },
-      { event: "agent:complete", agentId: "gpt-4o", content: "Response B" },
+      { event: "agent:start", agentId: "gpt-5.4-mini" },
+      { event: "agent:complete", agentId: "gpt-5.4-mini", content: "Response A" },
+      { event: "agent:start", agentId: "gpt-5.4" },
+      { event: "agent:complete", agentId: "gpt-5.4", content: "Response B" },
       { event: "synthesis:start" },
       {
         event: "debate:complete",
         goldenPrompt: goldenPromptText,
         totalCost: 0.0312,
-        modelsUsed: ["gpt-4o-mini", "gpt-4o"],
+        modelsUsed: ["gpt-5.4-mini", "gpt-5.4"],
       },
     ];
     await mockDebateCreateEndpoint(page);
@@ -415,9 +415,9 @@ test.describe("Council and Debate Flow", () => {
   test("copy synthesis to clipboard shows success indicator", async ({ page }) => {
     const sseEvents = [
       { event: "debate:start" },
-      { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Done" },
-      { event: "debate:complete", goldenPrompt: "Synthesized output for clipboard test", totalCost: 0.01, modelsUsed: ["gpt-4o-mini"] },
+      { event: "agent:start", agentId: "gpt-5.4-mini" },
+      { event: "agent:complete", agentId: "gpt-5.4-mini", content: "Done" },
+      { event: "debate:complete", goldenPrompt: "Synthesized output for clipboard test", totalCost: 0.01, modelsUsed: ["gpt-5.4-mini"] },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);
@@ -434,9 +434,9 @@ test.describe("Council and Debate Flow", () => {
   test("export as markdown triggers download", async ({ page }) => {
     const sseEvents = [
       { event: "debate:start" },
-      { event: "agent:start", agentId: "gpt-4o-mini" },
-      { event: "agent:complete", agentId: "gpt-4o-mini", content: "Done" },
-      { event: "debate:complete", goldenPrompt: "Markdown export content", totalCost: 0.01, modelsUsed: ["gpt-4o-mini"] },
+      { event: "agent:start", agentId: "gpt-5.4-mini" },
+      { event: "agent:complete", agentId: "gpt-5.4-mini", content: "Done" },
+      { event: "debate:complete", goldenPrompt: "Markdown export content", totalCost: 0.01, modelsUsed: ["gpt-5.4-mini"] },
     ];
     await mockDebateCreateEndpoint(page);
     await mockDebateStreamEndpoint(page, sseEvents);

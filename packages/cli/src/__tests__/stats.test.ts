@@ -65,7 +65,7 @@ describe('statsCommand', () => {
         avgCost: 0.0294,
         modelUsage: {
           'claude-haiku-4-5-20251001': 30,
-          'gpt-4o-mini': 12,
+          'gpt-5.4-mini': 12,
         },
       }),
     });

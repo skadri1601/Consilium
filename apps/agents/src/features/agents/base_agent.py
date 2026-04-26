@@ -1,8 +1,41 @@
 import os
 import re
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import dataclass, field
 from typing import Any, Dict, NoReturn, Optional, Tuple
+
+
+@dataclass
+class ToolDefinition:
+    qualified_name: str
+    description: str
+    input_schema: Dict[str, Any]
+
+
+@dataclass
+class ToolCall:
+    call_id: str
+    name: str
+    arguments: Dict[str, Any]
+
+
+@dataclass
+class ToolResult:
+    call_id: str
+    content: str
+    is_error: bool = False
+
+
+@dataclass
+class ToolUseResponse:
+    text: str
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    tokens: int = 0
+
+
+# Callback signature: takes a ToolCall, returns the awaited ToolResult.
+ToolExecutor = Callable[[ToolCall], Awaitable[ToolResult]]
 
 
 _ERROR_PATTERNS = [
@@ -81,6 +114,27 @@ class BaseAgent(ABC):
     @abstractmethod
     async def health_check(self) -> bool:
         pass
+
+    async def generate_with_tools(
+        self,
+        query: str,
+        tools: list[ToolDefinition],
+        executor: ToolExecutor,
+        system_prompt: Optional[str] = None,
+        max_tool_calls_per_turn: int = 5,
+    ) -> ToolUseResponse:
+        """Generate a response with tool-use support.
+
+        Default implementation raises NotImplementedError. Subclasses opt
+        in to tool-use by overriding this. The orchestrator invokes
+        ``executor`` for every tool call the model emits and feeds the
+        result back into the conversation. ``max_tool_calls_per_turn``
+        caps how many calls a single response can chain.
+        """
+        raise NotImplementedError(
+            f"{self.provider} agent does not yet support tool-use. "
+            "See docs/design/mcp-tool-protocol.md for adapter status."
+        )
 
     def get_system_prompt(self) -> str:
         return f"""You are {self.name}, an AI assistant powered by {self.provider}'s {self.model}.

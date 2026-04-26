@@ -6,3 +6,5 @@ from .anthropic_agent import AnthropicAgent
 from .google_agent import GoogleAgent
 from .groq_agent import GroqAgent
 from .xai_agent import XAIAgent
+from .moonshot_agent import MoonshotAgent
+from .openrouter_agent import OpenRouterAgent

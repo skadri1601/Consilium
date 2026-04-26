@@ -24,6 +24,14 @@ import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
 import { mcpCommand } from "./commands/mcp.js";
+import { modelsCommand } from "./commands/models.js";
+import {
+  addServerCommand,
+  listServersCommand,
+  removeServerCommand,
+  testServerCommand,
+  toolsCommand,
+} from "./commands/mcp-servers.js";
 import {
   listDebatesCommand,
   cancelDebateCommand,
@@ -50,6 +58,7 @@ const KNOWN_SUBCOMMANDS = [
   "eval",
   "benchmark",
   "mcp",
+  "models",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -96,7 +105,7 @@ async function main(): Promise<void> {
     .argument("<topic>", "Topic to debate")
     .option(
       "-m, --models <models...>",
-      "Models to use (e.g., gpt-4o-mini claude-haiku)",
+      "Models to use (e.g., gpt-5.4-mini claude-haiku-4-5-20251001)",
     )
     .option(
       "--mode <mode>",
@@ -191,11 +200,55 @@ async function main(): Promise<void> {
     .description("Show model performance dashboard")
     .action(statsCommand);
 
-  program
+  const mcp = program
     .command("mcp")
-    .description("Print MCP (Model Context Protocol) setup for Cursor and Python stdio")
+    .description("Manage MCP (Model Context Protocol) servers and integrations");
+
+  mcp
+    .command("setup", { isDefault: true })
+    .description("Print MCP stdio config for Claude Desktop / Cursor / Claude Code (default when no subcommand)")
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
+
+  mcp
+    .command("add <name> <command> [args...]")
+    .description("Register an MCP server so council models can call its tools during debates")
+    .option("--env <KEY=value...>", "Set environment variables for the server process")
+    .option("--json", "Emit JSON result")
+    .action(
+      (name: string, command: string, args: string[] | undefined, options: { env?: string[]; json?: boolean }) =>
+        addServerCommand(name, command, args, options),
+    );
+
+  mcp
+    .command("list")
+    .description("List configured MCP servers")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => listServersCommand(opts));
+
+  mcp
+    .command("remove <name>")
+    .description("Remove a configured MCP server")
+    .action((name: string) => removeServerCommand(name));
+
+  mcp
+    .command("test <name>")
+    .description("Spawn a configured MCP server and list its tools (verifies config)")
+    .option("--json", "Emit as JSON")
+    .action((name: string, opts: { json?: boolean }) => testServerCommand(name, opts));
+
+  mcp
+    .command("tools")
+    .description("Spawn all enabled MCP servers and list every tool they expose")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => toolsCommand(opts));
+
+  program
+    .command("models")
+    .description("Show default models, full catalog, and deprecation status")
+    .option("--check", "Exit non-zero if any default model is deprecated/retired")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean; check?: boolean }) => modelsCommand(opts));
 
   const debates = program
     .command("debates")
@@ -231,6 +284,7 @@ async function main(): Promise<void> {
     .option("--git-diff", "Include git diff in context")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context")
+    .option("--mcp-tools", "Expose configured MCP servers' tools to the council (experimental)")
     .action(startDebateCommand);
 
   debates
@@ -238,6 +292,7 @@ async function main(): Promise<void> {
     .description("Attach to a running debate's SSE stream")
     .argument("<debateId>", "Debate or deliberation ID")
     .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
+    .option("--mcp-tools", "Handle tool:call_request events via local MCP servers (experimental)")
     .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");

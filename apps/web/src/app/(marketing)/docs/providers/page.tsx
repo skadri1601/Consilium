@@ -13,11 +13,11 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Providers & Models",
   description:
-    "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, and xAI. Pricing, capabilities, and model selection guide.",
+    "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter. Pricing, capabilities, and model selection guide.",
   path: "/docs/providers",
   keywords: [
     "ai providers",
-    "openai claude gemini",
+    "openai claude gemini grok kimi openrouter",
     "llm comparison",
     "model pricing",
   ],
@@ -26,17 +26,26 @@ export const metadata: Metadata = buildMetadata({
 const models = [
   {
     provider: "Anthropic",
-    model: "Claude Opus 4.6",
-    id: "claude-opus-4-6",
-    input: "$15.00",
-    output: "$75.00",
+    model: "Claude Opus 4.7",
+    id: "claude-opus-4-7",
+    input: "$5.00",
+    output: "$25.00",
     free: false,
     tier: "Most Capable",
   },
   {
     provider: "Anthropic",
-    model: "Claude Sonnet 4.5",
-    id: "claude-sonnet-4-5",
+    model: "Claude Opus 4.6",
+    id: "claude-opus-4-6",
+    input: "$5.00",
+    output: "$25.00",
+    free: false,
+    tier: "Previous Flagship",
+  },
+  {
+    provider: "Anthropic",
+    model: "Claude Sonnet 4.6",
+    id: "claude-sonnet-4-6",
     input: "$3.00",
     output: "$15.00",
     free: false,
@@ -46,60 +55,69 @@ const models = [
     provider: "Anthropic",
     model: "Claude Haiku 4.5",
     id: "claude-haiku-4-5-20251001",
-    input: "$0.80",
-    output: "$4.00",
+    input: "$1.00",
+    output: "$5.00",
     free: false,
     tier: "Fast",
   },
   {
     provider: "OpenAI",
-    model: "GPT-4o",
-    id: "gpt-4o",
-    input: "$2.50",
-    output: "$10.00",
+    model: "GPT-5.5 Pro",
+    id: "gpt-5.5-pro",
+    input: "$30.00",
+    output: "$180.00",
+    free: false,
+    tier: "Most Capable",
+  },
+  {
+    provider: "OpenAI",
+    model: "GPT-5.5",
+    id: "gpt-5.5",
+    input: "$5.00",
+    output: "$30.00",
     free: false,
     tier: "Flagship",
   },
   {
     provider: "OpenAI",
-    model: "GPT-4o Mini",
-    id: "gpt-4o-mini",
-    input: "$0.15",
-    output: "$0.60",
+    model: "GPT-5.4",
+    id: "gpt-5.4",
+    input: "$2.00",
+    output: "$8.00",
+    free: false,
+    tier: "Reasoning",
+  },
+  {
+    provider: "OpenAI",
+    model: "GPT-5.4 Mini",
+    id: "gpt-5.4-mini",
+    input: "$0.20",
+    output: "$0.80",
     free: false,
     tier: "Cost-effective",
   },
   {
     provider: "OpenAI",
-    model: "GPT-4.1",
-    id: "gpt-4.1",
-    input: "$2.00",
-    output: "$8.00",
+    model: "GPT-5.4 Nano",
+    id: "gpt-5.4-nano",
+    input: "$0.08",
+    output: "$0.30",
     free: false,
-    tier: "Latest",
-  },
-  {
-    provider: "OpenAI",
-    model: "o3-mini",
-    id: "o3-mini",
-    input: "$1.10",
-    output: "$4.40",
-    free: false,
-    tier: "Reasoning",
+    tier: "Lowest Cost",
   },
   {
     provider: "Google",
-    model: "Gemini 2.0 Flash",
-    id: "gemini-2.0-flash",
-    input: "$0.10",
-    output: "$0.40",
+    model: "Gemini 3.1 Pro",
+    id: "gemini-3.1-pro-preview",
+    input: "$1.25",
+    output: "$5.00",
     free: false,
-    tier: "Fastest",
+    tier: "Most Capable",
   },
   {
     provider: "Google",
-    model: "Gemini 2.5 Flash",
-    id: "gemini-2.5-flash",
+    model: "Gemini 3 Flash",
+    id: "gemini-3-flash-preview",
     input: "$0.15",
     output: "$0.60",
     free: false,
@@ -107,12 +125,12 @@ const models = [
   },
   {
     provider: "Google",
-    model: "Gemini 2.5 Pro",
-    id: "gemini-2.5-pro",
-    input: "$1.25",
-    output: "$5.00",
+    model: "Gemini 3.1 Flash-Lite",
+    id: "gemini-3.1-flash-lite-preview",
+    input: "$0.05",
+    output: "$0.20",
     free: false,
-    tier: "Most Capable",
+    tier: "Lowest Cost",
   },
   {
     provider: "Groq",
@@ -134,30 +152,120 @@ const models = [
   },
   {
     provider: "Groq",
-    model: "Llama 4 Scout",
-    id: "llama-4-scout-17b",
+    model: "GPT-OSS 120B",
+    id: "openai/gpt-oss-120b",
     input: "$0.00",
     output: "$0.00",
     free: true,
-    tier: "Latest",
+    tier: "Open-Weight Flagship",
   },
   {
-    provider: "xAI",
-    model: "Grok 2",
-    id: "grok-2",
-    input: "$2.00",
-    output: "$10.00",
+    provider: "Groq",
+    model: "GPT-OSS 20B",
+    id: "openai/gpt-oss-20b",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Open-Weight",
+  },
+  {
+    provider: "Groq",
+    model: "Groq Compound",
+    id: "groq/compound",
+    input: "$0.80",
+    output: "$1.60",
     free: false,
-    tier: "Full",
+    tier: "Agentic",
   },
   {
     provider: "xAI",
-    model: "Grok 2 Mini",
-    id: "grok-2-mini",
+    model: "Grok 4.20",
+    id: "grok-4-20",
+    input: "$3.00",
+    output: "$15.00",
+    free: false,
+    tier: "Most Capable",
+  },
+  {
+    provider: "xAI",
+    model: "Grok 4.1 Fast (reasoning)",
+    id: "grok-4-1-fast-reasoning",
+    input: "$1.00",
+    output: "$4.00",
+    free: false,
+    tier: "Reasoning",
+  },
+  {
+    provider: "xAI",
+    model: "Grok 4.1 Fast",
+    id: "grok-4-1-fast-non-reasoning",
+    input: "$0.50",
+    output: "$2.00",
+    free: false,
+    tier: "Fast",
+  },
+  {
+    provider: "xAI",
+    model: "Grok Code Fast",
+    id: "grok-code-fast-1",
     input: "$0.30",
-    output: "$1.00",
+    output: "$1.20",
     free: false,
-    tier: "Compact",
+    tier: "Coding",
+  },
+  {
+    provider: "Moonshot",
+    model: "Kimi K2.6",
+    id: "kimi-k2.6",
+    input: "$1.20",
+    output: "$2.50",
+    free: false,
+    tier: "1T Open-Source",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Gemma 4 26B (free)",
+    id: "google/gemma-4-26b-a4b-it:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Gemma 4 31B (free)",
+    id: "google/gemma-4-31b-it:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Qwen3 Coder (free)",
+    id: "qwen/qwen3-coder:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Nemotron 3 Super 120B (free)",
+    id: "nvidia/nemotron-3-super-120b-a12b:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
+  },
+  {
+    provider: "OpenRouter",
+    model: "Ling 2.6 1T (free)",
+    id: "inclusionai/ling-2.6-1t:free",
+    input: "$0.00",
+    output: "$0.00",
+    free: true,
+    tier: "Free Tier",
   },
 ];
 
@@ -169,9 +277,9 @@ const providerDetails = [
     maxTokens: 2000,
     judgePriority: 1,
     description:
-      "Claude models excel at nuanced reasoning, following complex instructions, and producing well-structured outputs. Claude Opus 4.6 is the most capable model available. Claude Sonnet 4.5 offers the best balance of cost and capability. Claude Haiku 4.5 is optimized for speed.",
+      "Claude models excel at nuanced reasoning, following complex instructions, and agentic coding. Claude Opus 4.7 is Anthropic's most capable generally available model with a step-change improvement in agentic coding over Opus 4.6. Claude Sonnet 4.6 offers the best balance of speed and intelligence with a 1M-token context. Claude Haiku 4.5 is the fastest model with near-frontier intelligence.",
     strengths:
-      "Nuanced reasoning, instruction following, safety, structured output",
+      "Nuanced reasoning, instruction following, agentic coding, 1M context, structured output",
   },
   {
     name: "OpenAI",
@@ -180,9 +288,9 @@ const providerDetails = [
     maxTokens: 2000,
     judgePriority: 3,
     description:
-      "GPT-4o is OpenAI's flagship multimodal model. GPT-4o Mini is the most cost-effective option for lighter tasks. GPT-4.1 is the latest iteration. o3-mini specializes in chain-of-thought reasoning tasks.",
+      "GPT-5.5 and GPT-5.5 Pro are OpenAI's latest flagship models with 1M-token context windows, available through the Responses and Chat Completions APIs. GPT-5.4 (and the Mini/Nano variants) remain the cost-tier options for high-volume workloads. Retired models like GPT-4o, GPT-4.1, and o4-mini are no longer supported by OpenAI as of February 2026.",
     strengths:
-      "General capability, code generation, creative writing, multimodal",
+      "General capability, code generation, agentic tool use, multimodal, 1M context",
   },
   {
     name: "Google",
@@ -191,18 +299,18 @@ const providerDetails = [
     maxTokens: 2000,
     judgePriority: 2,
     description:
-      "Gemini models offer excellent performance at competitive prices. Gemini 2.0 Flash is one of the cheapest capable models. Gemini 2.5 Pro provides strong reasoning at a fraction of Claude Opus cost. Token estimation uses word_count * 2 approximation.",
-    strengths: "Cost efficiency, multimodal, long context, reasoning",
+      "Gemini 3.1 Pro is Google's most advanced reasoning model, optimized for complex agentic workflows and coding. Gemini 3 Flash provides strong frontier-class performance at low cost, while Gemini 3.1 Flash-Lite is the cheapest option for high-volume, latency-sensitive traffic. Gemini 1.x and 2.x lines have been deprecated.",
+    strengths: "Cost efficiency, multimodal, long context, frontier reasoning",
   },
   {
     name: "Groq",
     env: "GROQ_API_KEY",
     api: "OpenAI-compatible (api.groq.com/openai/v1)",
     maxTokens: 2000,
-    judgePriority: 5,
+    judgePriority: 6,
     description:
-      "Groq provides Llama models at zero cost through their free tier. All three models (Llama 3.1 8B, 3.3 70B, 4 Scout) are completely free. Consilium uses Groq as the automatic fallback when no paid API keys are configured.",
-    strengths: "Free, fast inference, good for prototyping and fallback",
+      "Groq provides ultra-fast inference for open-weight models including Llama 3.1 8B, Llama 3.3 70B, and OpenAI's GPT-OSS 120B/20B at zero cost through their free tier. Groq Compound and Compound Mini are agentic systems with built-in web search and code execution. Consilium uses Groq as the primary platform free-tier fallback (CONSILIUM_FREE_TIER_GROQ_KEY) when no BYOK key is configured.",
+    strengths: "Free open-weight models, fastest inference, agentic compound systems",
   },
   {
     name: "xAI",
@@ -211,16 +319,38 @@ const providerDetails = [
     maxTokens: 2000,
     judgePriority: 4,
     description:
-      "Grok models from xAI. Grok 2 is the full-capability model. Grok 2 Mini offers a compact, more affordable option. Both use the OpenAI-compatible API format.",
-    strengths: "Real-time knowledge, conversational, competitive pricing",
+      "xAI's Grok lineup launched Grok 4.20 in February 2026 with a four-agent architecture for reasoning. Grok 4.1 Fast (reasoning + non-reasoning variants) and Grok Code Fast cover the lower-cost tier. Use the OpenAI-compatible API format. Grok 2/2-mini and grok-beta are legacy and have been migrated.",
+    strengths: "Multi-agent reasoning, real-time knowledge, fast coding tasks",
+  },
+  {
+    name: "Moonshot",
+    env: "MOONSHOT_API_KEY",
+    api: "OpenAI-compatible (platform.moonshot.ai)",
+    maxTokens: 2000,
+    judgePriority: 5,
+    description:
+      "Moonshot's Kimi K2.6 (released April 2026) is a frontier-scale 1T-parameter open-source MoE model with a 262k context window, multi-turn tool calling, vision inputs, and structured outputs for agentic workloads. The API is OpenAI-compatible.",
+    strengths: "1T parameters, agentic tool use, long-context coding stability",
+  },
+  {
+    name: "OpenRouter",
+    env: "OPENROUTER_API_KEY",
+    api: "OpenAI-compatible (openrouter.ai/api/v1)",
+    maxTokens: 2000,
+    judgePriority: 7,
+    description:
+      "OpenRouter aggregates access to dozens of models behind one OpenAI-compatible endpoint, including a free tier for popular community models like Gemma 4, Qwen3 Coder, Nemotron 3 Super 120B, and Ling 2.6 1T (rate-limited at 20 req/min, 50 req/day per OpenRouter's April 2026 free-tier policy). Consilium uses OpenRouter as the secondary free-tier fallback (CONSILIUM_FREE_TIER_OPENROUTER_KEY) when Groq is unavailable.",
+    strengths: "Free tier breadth, single endpoint for many providers, easy fallback",
   },
 ];
 
 const cheapoFallbacks = [
-  { from: "gpt-4o", to: "gpt-4o-mini" },
-  { from: "gpt-4.1", to: "gpt-4o-mini" },
-  { from: "claude-sonnet-4-5", to: "claude-haiku-4-5-20251001" },
-  { from: "gemini-2.5-pro", to: "gemini-2.0-flash" },
+  { from: "gpt-5.5-pro", to: "gpt-5.4-mini" },
+  { from: "gpt-5.5", to: "gpt-5.4-mini" },
+  { from: "claude-opus-4-7", to: "claude-haiku-4-5-20251001" },
+  { from: "claude-sonnet-4-6", to: "claude-haiku-4-5-20251001" },
+  { from: "gemini-3.1-pro-preview", to: "gemini-3-flash-preview" },
+  { from: "grok-4-20", to: "grok-4-1-fast-non-reasoning" },
 ];
 
 export default function ProvidersPage() {
@@ -239,8 +369,9 @@ export default function ProvidersPage() {
             AI Providers &amp; Models
           </h1>
           <p className="text-xl text-muted-foreground">
-            5 providers, 15 models, from free to frontier. Bring your own keys
-            and mix models from different providers in the same deliberation.
+            7 providers, 25+ models, from free to frontier. Bring your own keys
+            and mix models from different providers in the same deliberation —
+            or run on Consilium&apos;s free-tier pool when you don&apos;t have keys.
           </p>
         </div>
       </section>
@@ -385,46 +516,103 @@ export default function ProvidersPage() {
                   key):
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {["Anthropic", "Google", "OpenAI", "xAI", "Groq"].map(
-                    (p, i) => (
-                      <span key={p} className="inline-flex items-center gap-1">
-                        <span className="rounded bg-indigo-500/10 px-3 py-1.5 text-sm font-medium text-indigo-400">
-                          #{i + 1} {p}
-                        </span>
-                        {i < 4 && (
-                          <span className="text-muted-foreground">→</span>
-                        )}
+                  {[
+                    "Anthropic",
+                    "Google",
+                    "OpenAI",
+                    "xAI",
+                    "Moonshot",
+                    "Groq",
+                    "OpenRouter",
+                  ].map((p, i, arr) => (
+                    <span key={p} className="inline-flex items-center gap-1">
+                      <span className="rounded bg-indigo-500/10 px-3 py-1.5 text-sm font-medium text-indigo-400">
+                        #{i + 1} {p}
                       </span>
-                    ),
-                  )}
+                      {i < arr.length - 1 && (
+                        <span className="text-muted-foreground">→</span>
+                      )}
+                    </span>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6">Free Fallback System</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              Free-Tier Fallback (BYOK Preserved)
+            </h2>
             <Card>
-              <CardContent className="pt-6 space-y-3">
+              <CardContent className="pt-6 space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  When no paid API keys are configured, Consilium automatically
-                  falls back to Groq&apos;s free tier models. This means you can
-                  use Consilium at zero cost for prototyping and testing.
+                  Consilium is BYOK-first. When you supply your own provider
+                  API key, that key is always used — no fallback occurs. When
+                  no key is set for the requested provider, Consilium routes
+                  through a platform-hosted free-tier pool so you can keep
+                  working at zero cost. Resolution order:
+                </p>
+                <ol className="list-decimal pl-6 space-y-1 text-sm text-muted-foreground">
+                  <li>
+                    <span className="font-medium text-white">Your BYOK key</span>{" "}
+                    for the requested provider (always wins)
+                  </li>
+                  <li>
+                    Self-hosted env var (e.g. <code className="font-mono text-indigo-400">OPENAI_API_KEY</code>)
+                  </li>
+                  <li>
+                    Groq free-tier pool —{" "}
+                    <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_GROQ_KEY</code>
+                  </li>
+                  <li>
+                    OpenRouter free-tier pool —{" "}
+                    <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_OPENROUTER_KEY</code>
+                  </li>
+                </ol>
+                <p className="text-sm text-muted-foreground">
+                  Tier is inferred from the requested model&apos;s catalog cost
+                  (fast / balanced / deep) and routed to a tier-equivalent free
+                  model. The CLI prints a pre-flight notice and a{" "}
+                  <code className="font-mono">routing:fallback</code> SSE event
+                  is emitted so you always know when fallback is active.
                 </p>
                 <div className="rounded-lg bg-neutral-900 p-3">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                    Free Fallback Models
+                    Tier-equivalent free models
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      llama-3.1-8b-instant
-                    </Badge>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      llama-3.3-70b-versatile
-                    </Badge>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      llama-4-scout-17b
-                    </Badge>
+                  <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Groq (preferred)
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          llama-3.1-8b-instant (fast)
+                        </Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          llama-3.3-70b-versatile (balanced)
+                        </Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          openai/gpt-oss-120b (deep)
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        OpenRouter (backup)
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          gemma-2-9b-it:free (fast)
+                        </Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          llama-3.3-70b-instruct:free (balanced)
+                        </Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                          qwen-2.5-72b-instruct:free (deep)
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

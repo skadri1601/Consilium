@@ -20,4 +20,12 @@ export class UpdateApiKeysDto {
   @IsOptional()
   @IsString()
   xaiKey?: string;
+
+  @IsOptional()
+  @IsString()
+  moonshotKey?: string;
+
+  @IsOptional()
+  @IsString()
+  openrouterKey?: string;
 }

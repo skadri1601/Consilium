@@ -12,7 +12,7 @@ import httpx
 
 API_URL = os.environ.get("CONSILIUM_API_URL", "").rstrip("/")
 MODE = os.environ.get("CONSILIUM_MODE", "redteam")
-MODELS_RAW = os.environ.get("CONSILIUM_MODELS", "claude-sonnet-4-5,gpt-4o")
+MODELS_RAW = os.environ.get("CONSILIUM_MODELS", "claude-sonnet-4-6,gpt-5.4")
 MAX_ROUNDS = int(os.environ.get("CONSILIUM_MAX_ROUNDS", "3"))
 MAX_DIFF_SIZE = int(os.environ.get("CONSILIUM_MAX_DIFF_SIZE", "12000"))
 POST_AS_REVIEW = os.environ.get("CONSILIUM_POST_AS_REVIEW", "true").lower() == "true"
@@ -169,8 +169,8 @@ def call_model(prompt: str, model: str) -> str:
 
 def resolve_model_id(model: str) -> str:
     aliases = {
-        "claude-sonnet-4-5": "claude-sonnet-4-5-20250929",
-        "claude-sonnet-4": "claude-sonnet-4-20250514",
+        "claude-sonnet-4-6": "claude-sonnet-4-6",
+        "claude-opus-4-7": "claude-opus-4-7",
         "claude-haiku-4-5": "claude-haiku-4-5-20251001",
     }
     return aliases.get(model, model)

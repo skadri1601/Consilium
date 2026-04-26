@@ -93,7 +93,7 @@ describe("DebatesService", () => {
     const userId = "user-123";
     const createDto = {
       topic: "Build a REST API with authentication",
-      models: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+      models: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
     };
 
     it("should create a debate session when user has API keys", async () => {
@@ -361,7 +361,7 @@ describe("DebatesService", () => {
       const messageData = {
         roundId: "round-123",
         agentId: "agent-1",
-        modelUsed: "gpt-4o-mini",
+        modelUsed: "gpt-5.4-mini",
         content: "Agent response",
         promptTokens: 100,
         completionTokens: 200,

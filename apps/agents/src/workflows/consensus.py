@@ -21,9 +21,13 @@ class ConsensusWorkflow:
 
     def __init__(self):
         self.weights = {
-            "gpt-4": 1.0,
+            "openai": 1.0,
             "claude": 1.0,
-            "gemini": 1.0
+            "gemini": 1.0,
+            "groq": 1.0,
+            "xai": 1.0,
+            "moonshot": 1.0,
+            "openrouter": 1.0,
         }
 
     async def synthesize(

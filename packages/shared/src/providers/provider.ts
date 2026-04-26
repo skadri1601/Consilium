@@ -1,4 +1,11 @@
-export type Provider = "openai" | "anthropic" | "google" | "groq" | "xai";
+export type Provider =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "groq"
+  | "xai"
+  | "moonshot"
+  | "openrouter";
 
 export const PROVIDER_ENV_VARS: Record<Provider, string> = {
   openai: "OPENAI_API_KEY",
@@ -6,6 +13,8 @@ export const PROVIDER_ENV_VARS: Record<Provider, string> = {
   google: "GOOGLE_API_KEY",
   groq: "GROQ_API_KEY",
   xai: "XAI_API_KEY",
+  moonshot: "MOONSHOT_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
 };
 
 export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
@@ -14,6 +23,16 @@ export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
   google: "Google",
   groq: "Groq",
   xai: "xAI",
+  moonshot: "Moonshot",
+  openrouter: "OpenRouter",
 };
 
-export const JUDGE_PRIORITY: Provider[] = ["anthropic", "google", "openai", "xai", "groq"];
+export const JUDGE_PRIORITY: Provider[] = [
+  "anthropic",
+  "google",
+  "openai",
+  "xai",
+  "moonshot",
+  "groq",
+  "openrouter",
+];

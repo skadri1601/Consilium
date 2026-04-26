@@ -82,7 +82,7 @@ describe("DebatesController (e2e)", () => {
       .post("/api/v1/debates")
       .send({
         topic: "Test debate topic",
-        models: ["gpt-4o-mini"],
+        models: ["gpt-5.4-mini"],
       })
       .expect((res) => {
         // Accept 201 (created) or 400 (validation / missing API keys).
@@ -112,7 +112,7 @@ describe("DebatesController (e2e)", () => {
       .post("/api/v1/debates/estimate")
       .send({
         topic: "Estimate test",
-        models: ["gpt-4o-mini", "claude-3-5-haiku-latest"],
+        models: ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
       })
       .expect(201)
       .expect((res) => {

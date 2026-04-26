@@ -20,8 +20,8 @@ from ..shared.config.models import get_provider_for_model
 
 logger = logging.getLogger(__name__)
 
-CHEAP_MODELS = ["gpt-4o-mini", "gemini-2.0-flash", "claude-3-5-haiku-latest"]
-STRONG_MODELS = ["claude-3-opus-latest", "gemini-2.5-pro", "gpt-4o"]
+CHEAP_MODELS = ["gpt-5.4-mini", "gemini-3-flash-preview", "claude-haiku-4-5-20251001"]
+STRONG_MODELS = ["claude-opus-4-7", "gemini-3.1-pro-preview", "gpt-5.4"]
 
 _CALL_TIMEOUT = 60
 _MAX_RETRIES = 2

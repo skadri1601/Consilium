@@ -3,6 +3,7 @@ import { style } from "../utils/visual-system.js";
 import { requireAuth } from "../utils/require-auth.js";
 import { isValidMode, getDefaultMode } from "../utils/debate-modes.js";
 import { loadWorkspaceContext } from "./debate.js";
+import { startToolBridge } from "../utils/mcp-tool-bridge.js";
 
 const st = style();
 
@@ -103,9 +104,10 @@ export interface StartDebateOptions {
   gitDiff?: boolean;
   ticket?: string;
   noContext?: boolean;
+  mcpTools?: boolean;
 }
 
-const DEFAULT_START_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
+const DEFAULT_START_MODELS = ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"];
 
 export async function startDebateCommand(
   topic: string,
@@ -125,6 +127,11 @@ export async function startDebateCommand(
     noContext: options.noContext,
   });
 
+  const bridge = await startToolBridge(client, {
+    enabled: Boolean(options.mcpTools),
+    quiet: options.json,
+  });
+
   try {
     const { id } = await client.createDebate({
       topic,
@@ -134,14 +141,18 @@ export async function startDebateCommand(
       files: wsContext?.files,
       projectFiles: wsContext?.projectFiles,
       projectContext: wsContext?.projectContext,
+      tools: bridge?.tools,
+      toolBudget: bridge?.toolBudget,
     });
     if (options.json) {
-      console.log(JSON.stringify({ id, mode, models }));
+      console.log(JSON.stringify({ id, mode, models, mcpTools: bridge?.tools.length ?? 0 }));
     } else {
       console.log(st.success(`Debate queued: ${id}`));
       console.log(st.dim(`  Attach later with: consilium debates stream ${id}`));
     }
+    await bridge?.shutdown();
   } catch (err) {
+    await bridge?.shutdown();
     if (err instanceof Error && "status" in err) {
       const status = (err as { status?: number }).status;
       if (status === 401 || status === 403) {
@@ -158,6 +169,7 @@ export async function startDebateCommand(
 
 export interface StreamDebateOptions {
   deliberation?: boolean;
+  mcpTools?: boolean;
 }
 
 export async function streamDebateCommand(
@@ -167,7 +179,23 @@ export async function streamDebateCommand(
   await requireAuth();
   const client = new ConsiliumClient();
 
+  const bridge = await startToolBridge(client, { enabled: Boolean(options.mcpTools) });
+
+  // The stream event callbacks are sync, so we can't await the
+  // bridge's async handleEvent. Attach an explicit .catch() instead of
+  // `void` so that postToolResult / registry.callTool failures
+  // surface in the user's terminal as a warning rather than silently
+  // becoming an unhandled rejection.
+  const dispatchToBridge = (event: DebateEvent | DeliberationEvent) => {
+    if (!bridge) return;
+    bridge.handleEvent(event, debateId).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(st.warning(`[mcp] tool dispatch failed: ${message}`));
+    });
+  };
+
   const onDebateEvent = (event: DebateEvent) => {
+    dispatchToBridge(event);
     const prefix = event.agent ? `[${event.agent}] ` : "";
     if (event.text) {
       process.stdout.write(prefix + event.text);
@@ -177,6 +205,7 @@ export async function streamDebateCommand(
   };
 
   const onDeliberationEvent = (event: DeliberationEvent) => {
+    dispatchToBridge(event);
     const prefix = event.agent ? `[${event.agent}] ` : "";
     if (event.text) {
       process.stdout.write(prefix + event.text);
@@ -195,7 +224,9 @@ export async function streamDebateCommand(
     }
     console.log("");
     console.log(st.success("Stream completed."));
+    await bridge?.shutdown();
   } catch (err) {
+    await bridge?.shutdown();
     console.error(st.error(`Stream failed: ${(err as Error).message}`));
     process.exitCode = 1;
   }

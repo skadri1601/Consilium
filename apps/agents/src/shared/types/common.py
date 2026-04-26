@@ -4,10 +4,14 @@ from pydantic import BaseModel
 
 
 class AgentType(str, Enum):
-    """Supported agent types."""
-    GPT4 = "gpt-4"
+    """Supported agent types (provider-keyed, not model-keyed)."""
+    OPENAI = "openai"
     CLAUDE = "claude"
     GEMINI = "gemini"
+    GROQ = "groq"
+    XAI = "xai"
+    MOONSHOT = "moonshot"
+    OPENROUTER = "openrouter"
 
 
 class ResponseStatus(str, Enum):

@@ -25,7 +25,7 @@ def _env_float(name: str, default: float) -> float:
 
 DEFAULT_DELIBERATION_TIMEOUT = _env_float("CONSILIUM_DELIBERATION_TIMEOUT", 900.0)
 
-DEFAULT_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001"]
+DEFAULT_MODELS = ["gpt-5.4-mini", "claude-haiku-4-5-20251001"]
 
 ALLOWED_MODES = frozenset(
     {"quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"}
@@ -514,6 +514,11 @@ except ImportError:
     _server = None
 
 
+_STREAMING_TOOL_NAMES = frozenset(
+    {"consilium_deliberate", "consilium_red_team", "consilium_blind_eval"}
+)
+
+
 async def _jsonrpc_handle(request: dict) -> dict:
     req_id = request.get("id")
     method = request.get("method", "")
@@ -533,7 +538,15 @@ async def _jsonrpc_handle(request: dict) -> dict:
                 "error": {"code": -32601, "message": f"Unknown tool: {name}"},
             }
         try:
-            result = await handler(arguments)
+            # Streaming tools accept an optional progress_sink as second
+            # positional. The stdio fallback has no MCP progress channel,
+            # so we pass None — the handlers will still complete and
+            # return their final result, just without intermediate
+            # progress notifications.
+            if name in _STREAMING_TOOL_NAMES:
+                result = await handler(arguments, None)
+            else:
+                result = await handler(arguments)
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
@@ -579,7 +592,25 @@ async def _run_stdio_fallback() -> None:
         sys.stdout.flush()
 
 
+def _preflight_auth_check() -> None:
+    """Warn loudly on stderr if CONSILIUM_API_KEY is missing/empty.
+
+    Without this, the user sees a confusing 401 only on the first tool
+    invocation (which can be minutes after `consilium-mcp` was spawned
+    by Claude Desktop / Cursor / etc.). Surfacing the misconfiguration
+    at startup makes the failure mode self-explanatory.
+    """
+    if not CONSILIUM_API_KEY:
+        sys.stderr.write(
+            "[consilium-mcp] CONSILIUM_API_KEY is not set; every tool call will "
+            "401 against the Consilium API. Run `consilium login` to issue a "
+            "token and set it in your MCP host config (env: CONSILIUM_API_KEY).\n"
+        )
+        sys.stderr.flush()
+
+
 def main() -> None:
+    _preflight_auth_check()
     if HAS_MCP and _server is not None:
         from mcp.server.stdio import stdio_server
 
