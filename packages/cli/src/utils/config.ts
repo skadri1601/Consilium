@@ -70,6 +70,24 @@ export function loadConfig(): Config {
   }
 }
 
+/**
+ * Write `data` to `target` atomically: write to a sibling .tmp file
+ * then rename it over `target`. Two concurrent CLI invocations doing
+ * read-modify-write through saveConfig() previously could clobber
+ * each other; with atomic rename the loser's write fails cleanly
+ * instead of producing a corrupt half-merged JSON.
+ */
+function atomicWrite(target: string, data: string, mode: number): void {
+  const tmp = `${target}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, data, { mode });
+  try {
+    fs.chmodSync(tmp, mode);
+  } catch {
+    // best-effort
+  }
+  fs.renameSync(tmp, target);
+}
+
 export function saveConfig(config: Config): void {
   if (!fs.existsSync(CONFIG_DIR)) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
@@ -81,25 +99,44 @@ export function saveConfig(config: Config): void {
     }
   }
 
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), {
-    mode: 0o600,
-  });
-  try {
-    fs.chmodSync(CONFIG_FILE, 0o600);
-  } catch {
-    // best-effort
-  }
+  atomicWrite(CONFIG_FILE, JSON.stringify(config, null, 2), 0o600);
+}
+
+// Keys the `consilium config set` CLI is allowed to mutate.
+// Anything outside this list (e.g. internal "providerKeys" / "userEmail")
+// is treated as a typo and rejected, so users can't accidentally
+// corrupt the config file schema with arbitrary keys.
+const SETTABLE_CONFIG_KEYS = [
+  "apiUrl",
+  "apiKey",
+  "webUrl",
+  "debug",
+] as const satisfies readonly (keyof Config)[];
+
+type SettableConfigKey = (typeof SETTABLE_CONFIG_KEYS)[number];
+
+function isSettableKey(key: string): key is SettableConfigKey {
+  return (SETTABLE_CONFIG_KEYS as readonly string[]).includes(key);
 }
 
 export function updateConfig(key: string, value: string): void {
+  if (!isSettableKey(key)) {
+    throw new Error(
+      `Unknown config key: ${key}. Valid keys: ${SETTABLE_CONFIG_KEYS.join(", ")}.`,
+    );
+  }
   const config = loadConfig();
-  (config as any)[key] = value;
+  if (key === "debug") {
+    config.debug = value === "true" || value === "1";
+  } else {
+    config[key] = value;
+  }
   saveConfig(config);
 }
 
 export function getConfigValue(key: string): string | undefined {
   const config = loadConfig();
-  return (config as any)[key];
+  return (config as Record<string, unknown>)[key] as string | undefined;
 }
 
 export function listConfig(): Config {

@@ -13,7 +13,7 @@ class AgentsService:
 
     def __init__(self):
         self.agents: dict[str, BaseAgent] = {
-            "gpt-4": OpenAIAgent(),
+            "openai": OpenAIAgent(),
             "claude": AnthropicAgent(),
             "gemini": GoogleAgent(),
             "groq": GroqAgent(),
@@ -21,28 +21,28 @@ class AgentsService:
         }
 
         self.agent_info = {
-            "gpt-4": {
-                "id": "gpt-4",
-                "name": "GPT-4",
+            "openai": {
+                "id": "openai",
+                "name": "GPT-5.4",
                 "provider": "OpenAI",
-                "model": "gpt-4-turbo",
-                "description": "OpenAI's most capable model for complex tasks",
+                "model": "gpt-5.4-mini",
+                "description": "OpenAI's GPT-5.4 family",
                 "is_available": True
             },
             "claude": {
                 "id": "claude",
-                "name": "Claude 3",
+                "name": "Claude Haiku 4.5",
                 "provider": "Anthropic",
-                "model": "claude-3-opus",
-                "description": "Anthropic's advanced AI assistant",
+                "model": "claude-haiku-4-5-20251001",
+                "description": "Anthropic's Claude Haiku 4.5",
                 "is_available": True
             },
             "gemini": {
                 "id": "gemini",
-                "name": "Gemini 3.0 Flash",
+                "name": "Gemini 3 Flash",
                 "provider": "Google",
                 "model": "gemini-3-flash-preview",
-                "description": "Google's latest experimental multimodal AI model",
+                "description": "Google's Gemini 3.x multimodal model",
                 "is_available": True
             },
             "groq": {
@@ -55,10 +55,10 @@ class AgentsService:
             },
             "xai": {
                 "id": "xai",
-                "name": "Grok",
+                "name": "Grok 4.20",
                 "provider": "X.AI",
-                "model": "grok-beta",
-                "description": "X.AI's Grok language model",
+                "model": "grok-4-20",
+                "description": "X.AI's Grok 4.20",
                 "is_available": True
             },
         }

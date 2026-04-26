@@ -100,6 +100,8 @@ describe("ApiKeysService", () => {
         googleKey: null,
         groqKey: null,
         xaiKey: null,
+        moonshotKey: null,
+        openrouterKey: null,
       });
 
       const dto: UpdateApiKeysDto = {
@@ -123,6 +125,8 @@ describe("ApiKeysService", () => {
         googleKey: null,
         groqKey: null,
         xaiKey: null,
+        moonshotKey: null,
+        openrouterKey: null,
       });
 
       const dto: UpdateApiKeysDto = {

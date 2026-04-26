@@ -112,6 +112,7 @@ Consilium/
 !PR-REVIEW.md
 !SKILLS.md
 !CONTRIBUTING.md
+!docs/**/*.md
 
 # Temporary test files
 test_*.js
@@ -127,6 +128,9 @@ scratch.*
 !packages/python-sdk/tests/
 !packages/python-sdk/tests/*.py
 packages/python-sdk/tests/__pycache__/
+!apps/agents/tests/
+!apps/agents/tests/**
+apps/agents/tests/**/__pycache__/
 
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md

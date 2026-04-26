@@ -163,7 +163,13 @@ export function CostDashboard({
 
   const mostExpensiveRound = useMemo(() => {
     if (data.roundCosts.length === 0) return null;
-    return data.roundCosts.reduce((max, r) => (r.totalCost > max.totalCost ? r : max));
+    // Pass the first element as the explicit seed so .reduce() never
+    // throws on an empty array (typescript:S4326 / reduce-no-initial).
+    const [first, ...rest] = data.roundCosts;
+    return rest.reduce(
+      (max, r) => (r.totalCost > max.totalCost ? r : max),
+      first,
+    );
   }, [data.roundCosts]);
 
   const spendProgress = useMemo(() => {

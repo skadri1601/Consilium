@@ -387,14 +387,14 @@ Output: { converged, score, components, recommendation }`}</code>
                     <code className="text-muted-foreground">{`{
   type: "consensus" | "dissent",
   majority: {
-    models: ["claude-sonnet-4", "gpt-4o"],
+    models: ["claude-sonnet-4-6", "gpt-5.4"],
     position_summary: "First 200 chars of largest cluster's proposal",
     key_arguments: ["extracted from claims"],
     proposals: [full proposal objects]
   },
   minority: [  // empty if consensus
     {
-      models: ["gemini-2.5-flash"],
+      models: ["gemini-3-flash-preview"],
       position_summary: "...",
       key_arguments: ["..."],
       proposals: [...]

@@ -169,7 +169,7 @@ print(f"API Status: {health.status}")
 estimate = client.estimate_cost(
     topic="Should we migrate from REST to GraphQL?",
     mode="council",
-    models=["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"]
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"]
 )
 print(f"Estimated cost: \${estimate.estimated_cost:.4f}")
 
@@ -177,7 +177,7 @@ print(f"Estimated cost: \${estimate.estimated_cost:.4f}")
 result = client.deliberate(
     topic="Should we migrate from REST to GraphQL?",
     mode="council",
-    models=["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"],
     max_rounds=3
 )
 print(f"Synthesis: {result.golden_prompt}")
@@ -187,7 +187,7 @@ print(f"Dissent: {result.dissent_report}")
 # 4. Red team assessment
 red = client.red_team(
     topic="Review this auth middleware for vulnerabilities",
-    models=["claude-haiku-4-5-20251001", "gpt-4.1"]
+    models=["claude-sonnet-4-6", "gpt-5.4"]
 )
 print(f"Vulnerabilities found: {red.vulnerability_count}")
 print(f"Overall score: {red.overall_score}")
@@ -196,7 +196,7 @@ print(f"Overall score: {red.overall_score}")
 for event in client.stream_deliberation(
     topic="Is Kubernetes overkill for our startup?",
     mode="jury",
-    models=["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"]
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"]
 ):
     if event.event == "agent:chunk":
         print(event.chunk, end="")
@@ -227,12 +227,12 @@ async def main():
             client.deliberate(
                 topic="Best database for our use case?",
                 mode="council",
-                models=["claude-haiku-4-5-20251001", "gpt-4.1"]
+                models=["claude-sonnet-4-6", "gpt-5.4"]
             ),
             client.deliberate(
                 topic="Should we add caching?",
                 mode="quick",
-                models=["gpt-4o-mini"]
+                models=["gpt-5.4-mini"]
             ),
         )
         for r in results:

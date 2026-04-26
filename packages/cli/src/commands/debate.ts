@@ -27,6 +27,7 @@ import { applyEdits, parseEditsFromSynthesis } from '../utils/apply-edits';
 import { formatEditPreview } from '../utils/diff-preview';
 import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
 import { resolveProjectRoot } from '../utils/project-root';
+import { KeyManager } from '../utils/key-manager';
 
 const st = style();
 
@@ -187,7 +188,31 @@ function onDeliberationError(event: DeliberationEvent, ctx: DeliberationStreamCt
   throw new Error(event.error || 'Deliberation error');
 }
 
+function onRoutingFallback(event: DeliberationEvent, ctx: DeliberationStreamCtx): void {
+  if (ctx.useLiveProgress) logUpdate.clear();
+  const count = event.resolutions?.length ?? 0;
+  console.log(
+    st.warning(
+      `\n  Using Consilium free tier for ${count} model(s). ` +
+        'Set your own provider API key(s) to use the originally requested models.',
+    ),
+  );
+  for (const r of event.resolutions || []) {
+    console.log(
+      st.dim(
+        `    ${r.requested_model} -> ${r.effective_provider}:${r.effective_model}` +
+          (r.fallback_reason ? `  (${r.fallback_reason})` : ''),
+      ),
+    );
+  }
+  console.log('');
+}
+
 function processDeliberationEvent(event: DeliberationEvent, ctx: DeliberationStreamCtx): void {
+  if (event.type === 'routing:fallback') {
+    onRoutingFallback(event, ctx);
+    return;
+  }
   if (event.type === 'deliberation_start') {
     onDeliberationStreamStart(ctx);
     return;
@@ -400,6 +425,23 @@ async function runClassicDebateFlow(
   return goldenPrompt;
 }
 
+function maybePrintFreeTierNotice(models: string[]): void {
+  const km = new KeyManager();
+  const resolutions = km.resolveKeysForModels(models);
+  const missing: string[] = [];
+  for (const [model, key] of resolutions.entries()) {
+    if (!key) missing.push(model);
+  }
+  if (missing.length === 0) return;
+  console.log(
+    st.dim(
+      `  No provider key set for ${missing.length}/${models.length} model(s); ` +
+        'the server will route them through Consilium\'s free tier (Groq / OpenRouter). ' +
+        'Add your key with `consilium config set <provider>` to use the original models.',
+    ),
+  );
+}
+
 export async function loadWorkspaceContext(
   options: DebateCommandOptions,
 ): Promise<WorkspaceDebateContext | null> {
@@ -457,9 +499,11 @@ export async function debateCommand(
 
   warnDebateCommandOptions(options, mode, outputFormat);
 
-  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
+  const models = options.models || ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'];
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
+
+  maybePrintFreeTierNotice(models);
 
   const wsContext = await loadWorkspaceContext(options);
 

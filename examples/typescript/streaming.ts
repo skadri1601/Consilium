@@ -23,7 +23,7 @@ async function runStreamingDeliberation(): Promise<void> {
   const eventStream = client.streamDeliberation({
     topic: debateTopic,
     mode: "council",
-    models: ["gpt-4o", "claude-sonnet-4-20250514", "gemini-2.0-flash"],
+    models: ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
     maxRounds: 3,
   });
 

@@ -212,10 +212,13 @@ export default function AboutPage() {
             </p>
 
             <p>
-              Consilium supports 15 models across 5 providers: Anthropic (Claude
-              Opus 4.6, Claude Sonnet 4.5), OpenAI (GPT-4o, GPT-o1), Google
-              (Gemini 2.0 Flash), xAI (Grok), and Groq for cost-effective
-              inference. Models debate through a LangGraph state machine with
+              Consilium supports current-generation models across 7 providers:
+              Anthropic (Claude Opus 4.7, Sonnet 4.6, Haiku 4.5), OpenAI
+              (GPT-5.5 Pro, GPT-5.4), Google (Gemini 3.1 Pro, Gemini 3 Flash),
+              xAI (Grok 4.20, Grok 4.1 Fast), Moonshot (Kimi K2.6), Groq for
+              cost-effective inference (Llama 3.x, GPT-OSS, Compound), and
+              OpenRouter for free-tier fallback. Models debate through a
+              LangGraph state machine with
               typed challenges, categorized rebuttals, confidence-weighted
               voting, and mathematical convergence detection.
             </p>

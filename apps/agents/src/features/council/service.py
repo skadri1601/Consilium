@@ -13,7 +13,7 @@ class CouncilService:
 
     def __init__(self):
         self.agents = {
-            "gpt-4": OpenAIAgent(),
+            "openai": OpenAIAgent(),
             "claude": AnthropicAgent(),
             "gemini": GoogleAgent(),
         }

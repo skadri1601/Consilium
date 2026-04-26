@@ -38,7 +38,7 @@ pnpm typecheck              # Type check all TypeScript
 consilium debate "topic" --mode council
 consilium debate "topic" --mode redteam
 consilium debate "topic" --mode blind
-consilium benchmark --benchmark mmlu --models claude-sonnet-4-5,gpt-4o --n 10
+consilium benchmark --benchmark mmlu --models claude-sonnet-4-6,gpt-5.4 --n 10
 consilium redteam "content to assess"
 consilium eval "topic" --responses file.json
 ```
@@ -46,7 +46,7 @@ consilium eval "topic" --responses file.json
 ### Benchmarks
 ```bash
 cd apps/agents
-python -m src.features.deliberation.benchmarks.runner --benchmark mmlu --models claude-sonnet-4-5,gpt-4o --mode council --n 50
+python -m src.features.deliberation.benchmarks.runner --benchmark mmlu --models claude-sonnet-4-6,gpt-5.4 --mode council --n 50
 ```
 
 ### Database

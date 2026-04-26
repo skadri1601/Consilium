@@ -67,7 +67,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"topic\": \"Build a REST API with authentication using Node.js and PostgreSQL\",\n  \"models\": [\"gpt-4o-mini\", \"claude-3-5-haiku-latest\"]\n}"
+              "raw": "{\n  \"topic\": \"Build a REST API with authentication using Node.js and PostgreSQL\",\n  \"models\": [\"gpt-5.4-mini\", \"claude-haiku-4-5-20251001\"]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/debates",

@@ -31,6 +31,8 @@ export class ApiKeysService {
           googleKey: null,
           groqKey: null,
           xaiKey: null,
+          moonshotKey: null,
+          openrouterKey: null,
         };
       }
 
@@ -40,6 +42,8 @@ export class ApiKeysService {
         googleKey?: string | null;
         groqKey?: string | null;
         xaiKey?: string | null;
+        moonshotKey?: string | null;
+        openrouterKey?: string | null;
       };
 
       return {
@@ -56,6 +60,12 @@ export class ApiKeysService {
           ? this.maskKey(userWithKeys.groqKey)
           : null,
         xaiKey: userWithKeys.xaiKey ? this.maskKey(userWithKeys.xaiKey) : null,
+        moonshotKey: userWithKeys.moonshotKey
+          ? this.maskKey(userWithKeys.moonshotKey)
+          : null,
+        openrouterKey: userWithKeys.openrouterKey
+          ? this.maskKey(userWithKeys.openrouterKey)
+          : null,
       };
     } catch (error) {
       this.logger.error("Error fetching API keys:", error);
@@ -96,6 +106,18 @@ export class ApiKeysService {
         : null;
     }
 
+    if (dto.moonshotKey !== undefined) {
+      updateData.moonshotKey = dto.moonshotKey
+        ? this.encryption.encrypt(dto.moonshotKey)
+        : null;
+    }
+
+    if (dto.openrouterKey !== undefined) {
+      updateData.openrouterKey = dto.openrouterKey
+        ? this.encryption.encrypt(dto.openrouterKey)
+        : null;
+    }
+
     let email = `${userId}@clerk.user`;
     try {
       const clerkUser = await this.clerk.users.getUser(userId);
@@ -129,15 +151,65 @@ export class ApiKeysService {
     try {
       switch (dto.provider) {
         case ApiKeyProvider.OPENAI:
-          return await this.testOpenAIKey(dto.key);
+          return await this.probe(
+            "OpenAI",
+            "https://api.openai.com/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.ANTHROPIC:
-          return await this.testAnthropicKey(dto.key);
+          return await this.probe(
+            "Anthropic",
+            "https://api.anthropic.com/v1/messages",
+            {
+              method: "POST",
+              headers: {
+                "x-api-key": dto.key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "claude-haiku-4-5-20251001",
+                max_tokens: 10,
+                messages: [{ role: "user", content: "test" }],
+              }),
+            },
+          );
         case ApiKeyProvider.GOOGLE:
-          return await this.testGoogleKey(dto.key);
+          return await this.probe(
+            "Google AI",
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${dto.key}`,
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "test" }] }],
+              }),
+            },
+          );
         case ApiKeyProvider.GROQ:
-          return await this.testGroqKey(dto.key);
+          return await this.probe(
+            "Groq",
+            "https://api.groq.com/openai/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         case ApiKeyProvider.XAI:
-          return await this.testXAIKey(dto.key);
+          return await this.probe(
+            "XAI (Grok)",
+            "https://api.x.ai/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
+        case ApiKeyProvider.MOONSHOT:
+          return await this.probe(
+            "Moonshot",
+            "https://api.moonshot.cn/v1/models",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
+        case ApiKeyProvider.OPENROUTER:
+          return await this.probe(
+            "OpenRouter",
+            "https://openrouter.ai/api/v1/auth/key",
+            { headers: { Authorization: `Bearer ${dto.key}` } },
+          );
         default:
           throw new BadRequestException("Invalid provider");
       }
@@ -149,143 +221,27 @@ export class ApiKeysService {
     }
   }
 
-  private async testOpenAIKey(
-    key: string,
+  private async probe(
+    label: string,
+    url: string,
+    init: RequestInit,
   ): Promise<{ valid: boolean; message: string }> {
     try {
-      const response = await fetch("https://api.openai.com/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
+      const response = await fetch(url, init);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
         return {
           valid: false,
-          message: `Invalid OpenAI API key: ${errorMessage}`,
+          message: `Invalid ${label} API key: ${errorMessage}`,
         };
       }
-
-      return { valid: true, message: "OpenAI API key is valid" };
+      return { valid: true, message: `${label} API key is valid` };
     } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testAnthropicKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": key,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-3-haiku-20240307",
-          max_tokens: 10,
-          messages: [{ role: "user", content: "test" }],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Anthropic API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Anthropic API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testGoogleKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "test" }] }],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Google AI API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Google AI API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testGroqKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.groq.com/openai/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid Groq API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "Groq API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
-    }
-  }
-
-  private async testXAIKey(
-    key: string,
-  ): Promise<{ valid: boolean; message: string }> {
-    try {
-      const response = await fetch("https://api.x.ai/v1/models", {
-        headers: {
-          Authorization: `Bearer ${key}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || response.statusText;
-        return {
-          valid: false,
-          message: `Invalid XAI (Grok) API key: ${errorMessage}`,
-        };
-      }
-
-      return { valid: true, message: "XAI (Grok) API key is valid" };
-    } catch (error) {
-      return { valid: false, message: `Failed to validate: ${error.message}` };
+      return {
+        valid: false,
+        message: `Failed to validate: ${error.message}`,
+      };
     }
   }
 
@@ -295,6 +251,8 @@ export class ApiKeysService {
     googleKey?: string;
     groqKey?: string;
     xaiKey?: string;
+    moonshotKey?: string;
+    openrouterKey?: string;
   }> {
     const user = await this.prisma.user.findUnique({
       where: { clerkId: userId },
@@ -307,6 +265,8 @@ export class ApiKeysService {
         googleKey: process.env.GOOGLE_API_KEY,
         groqKey: process.env.GROQ_API_KEY,
         xaiKey: process.env.XAI_API_KEY,
+        moonshotKey: process.env.MOONSHOT_API_KEY,
+        openrouterKey: process.env.OPENROUTER_API_KEY,
       };
     }
 
@@ -316,6 +276,8 @@ export class ApiKeysService {
       googleKey?: string | null;
       groqKey?: string | null;
       xaiKey?: string | null;
+      moonshotKey?: string | null;
+      openrouterKey?: string | null;
     };
 
     const keys: Record<string, string | undefined> = {};
@@ -326,6 +288,8 @@ export class ApiKeysService {
       googleKey: userWithKeys.googleKey,
       groqKey: userWithKeys.groqKey,
       xaiKey: userWithKeys.xaiKey,
+      moonshotKey: userWithKeys.moonshotKey,
+      openrouterKey: userWithKeys.openrouterKey,
     };
 
     for (const [keyName, encryptedValue] of Object.entries(keyMap)) {
@@ -337,24 +301,20 @@ export class ApiKeysService {
         }
       }
     }
-    if (!keys.openaiKey && process.env.OPENAI_API_KEY) {
-      keys.openaiKey = process.env.OPENAI_API_KEY;
-    }
 
-    if (!keys.anthropicKey && process.env.ANTHROPIC_API_KEY) {
-      keys.anthropicKey = process.env.ANTHROPIC_API_KEY;
-    }
-
-    if (!keys.googleKey && process.env.GOOGLE_API_KEY) {
-      keys.googleKey = process.env.GOOGLE_API_KEY;
-    }
-
-    if (!keys.groqKey && process.env.GROQ_API_KEY) {
-      keys.groqKey = process.env.GROQ_API_KEY;
-    }
-
-    if (!keys.xaiKey && process.env.XAI_API_KEY) {
-      keys.xaiKey = process.env.XAI_API_KEY;
+    const envFallbacks: Array<[keyof typeof keys, string | undefined]> = [
+      ["openaiKey", process.env.OPENAI_API_KEY],
+      ["anthropicKey", process.env.ANTHROPIC_API_KEY],
+      ["googleKey", process.env.GOOGLE_API_KEY],
+      ["groqKey", process.env.GROQ_API_KEY],
+      ["xaiKey", process.env.XAI_API_KEY],
+      ["moonshotKey", process.env.MOONSHOT_API_KEY],
+      ["openrouterKey", process.env.OPENROUTER_API_KEY],
+    ];
+    for (const [name, envVal] of envFallbacks) {
+      if (!keys[name] && envVal) {
+        keys[name] = envVal;
+      }
     }
 
     return keys;

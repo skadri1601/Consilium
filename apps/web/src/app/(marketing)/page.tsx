@@ -183,44 +183,47 @@ const comparisonRows = [
   },
 ];
 
-const pythonCode = `from consilium import ConsiliumClient
+const pythonCode = `from consilium import Consilium
 
-client = ConsiliumClient(api_key="your-key")
+client = Consilium(api_key="your-key")
 
 result = client.deliberate(
-    topic="Should we migrate to microservices?",
+    question="Should we migrate to microservices?",
     mode="council",
-    models=["claude-haiku-4-5-20251001",
-            "gpt-4.1", "gemini-2.5-flash"],
+    models=["claude-sonnet-4-6",
+            "gpt-5.4", "gemini-3-flash-preview"],
 )
 
-print(result.golden_prompt)
-print(result.confidence_scores)
-print(result.dissent_report)`;
+print(result.synthesis)
+print(result.confidence)
+print(result.dissenting_views)`;
 
-const typescriptCode = `import { ConsiliumClient } from "@myconsilium/sdk";
+const typescriptCode = `import { Consilium } from "@myconsilium/sdk";
 
-const client = new ConsiliumClient({ apiKey: "your-key" });
+const client = new Consilium({ apiKey: "your-key" });
 
 const result = await client.deliberate({
-  topic: "Should we migrate to microservices?",
+  question: "Should we migrate to microservices?",
   mode: "council",
-  models: ["claude-haiku-4-5-20251001",
-           "gpt-4.1", "gemini-2.5-flash"],
+  models: ["claude-sonnet-4-6",
+           "gpt-5.4", "gemini-3-flash-preview"],
 });
 
-console.log(result.goldenPrompt);
-console.log(result.confidenceScores);
-console.log(result.dissentReport);`;
+console.log(result.synthesis);
+console.log(result.confidence);
+console.log(result.dissentingViews);`;
 
-const cliCode = String.raw`# Multi-agent debate
-consilium debate "Should we migrate to microservices?" \
+const cliCode = String.raw`# Quick deliberation
+consilium deliberate \
+  --question "Should we migrate to microservices?" \
   --mode council \
-  --models claude-haiku-4-5-20251001 gpt-4.1 gemini-2.5-flash
+  --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview
 
 # Red team assessment
-consilium redteam "Is our auth system secure?" \
-  --models claude-haiku-4-5-20251001 gpt-4.1`;
+consilium deliberate \
+  --question "Is our auth system secure?" \
+  --mode redteam \
+  --output markdown`;
 
 const papers = [
   {

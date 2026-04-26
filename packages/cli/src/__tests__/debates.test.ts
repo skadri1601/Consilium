@@ -162,7 +162,7 @@ describe('startDebateCommand', () => {
     vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
     await startDebateCommand('topic', { json: true, mode: 'quick', models: ['a', 'b'] });
     const parsed = JSON.parse(logs.join('\n'));
-    expect(parsed).toEqual({ id: 'dbt_xyz', mode: 'quick', models: ['a', 'b'] });
+    expect(parsed).toMatchObject({ id: 'dbt_xyz', mode: 'quick', models: ['a', 'b'] });
   });
 
   it('falls back to default mode when given an invalid one', async () => {

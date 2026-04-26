@@ -9,9 +9,9 @@ vi.mock('../hooks/use-analytics', () => ({
 
 describe('CostBreakdown', () => {
   const mockCostData = {
-    'gpt-4o-mini': 2.45,
-    'claude-3-5-haiku': 3.21,
-    'gemini-2.0-flash': 1.89,
+    'gpt-5.4-mini': 2.45,
+    'claude-haiku-4-5-20251001': 3.21,
+    'gemini-3-flash-preview': 1.89,
   };
 
   beforeEach(() => {
@@ -82,8 +82,8 @@ describe('CostBreakdown', () => {
   it('should render empty state when total cost is zero', () => {
     vi.spyOn(analyticsHooks, 'useCostByModel').mockReturnValue({
       costByModel: {
-        'gpt-4o-mini': 0,
-        'claude-3-5-haiku': 0,
+        'gpt-5.4-mini': 0,
+        'claude-haiku-4-5-20251001': 0,
       },
       isLoading: false,
       error: undefined,
@@ -112,7 +112,7 @@ describe('CostBreakdown', () => {
 
   it('should handle single model data', () => {
     vi.spyOn(analyticsHooks, 'useCostByModel').mockReturnValue({
-      costByModel: { 'gpt-4o-mini': 5 },
+      costByModel: { 'gpt-5.4-mini': 5 },
       isLoading: false,
       error: undefined,
     });
@@ -125,12 +125,12 @@ describe('CostBreakdown', () => {
 
   it('should handle many models', () => {
     const manyModels = {
-      'gpt-4o-mini': 1,
-      'claude-3-5-haiku': 2,
-      'gemini-2.0-flash': 3,
-      'gpt-4o': 4,
-      'claude-opus-4': 5,
-      'gemini-pro': 6,
+      'gpt-5.4-mini': 1,
+      'claude-haiku-4-5-20251001': 2,
+      'gemini-3-flash-preview': 3,
+      'gpt-5.4': 4,
+      'claude-opus-4-7': 5,
+      'gemini-3.1-pro-preview': 6,
     };
 
     vi.spyOn(analyticsHooks, 'useCostByModel').mockReturnValue({

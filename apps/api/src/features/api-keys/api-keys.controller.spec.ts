@@ -61,6 +61,8 @@ describe("ApiKeysController", () => {
         googleKey: null,
         groqKey: null,
         xaiKey: null,
+        moonshotKey: null,
+        openrouterKey: null,
       };
 
       jest.spyOn(service, "getApiKeys").mockResolvedValue(mockKeys);
@@ -86,6 +88,8 @@ describe("ApiKeysController", () => {
           googleKey: null,
           groqKey: null,
           xaiKey: null,
+          moonshotKey: null,
+          openrouterKey: null,
         },
       };
 

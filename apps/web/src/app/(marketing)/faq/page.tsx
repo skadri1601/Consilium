@@ -59,7 +59,7 @@ const technicalFaqs = [
     id: "models",
     question: "Which models are supported?",
     answer:
-      "15 models across 5 providers. Anthropic: Claude Opus 4.6, Sonnet 4.5, Haiku 4.5. OpenAI: GPT-4o, GPT-4o-mini, GPT-4.1, o3-mini. Google: Gemini 2.0 Flash, Gemini 2.5 Flash, Gemini 2.5 Pro. Groq (free): Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout. xAI: Grok 2, Grok 2 Mini.",
+      "Current-generation models across 7 providers. Anthropic: Claude Opus 4.7, Opus 4.6, Sonnet 4.6, Haiku 4.5. OpenAI: GPT-5.5 Pro, GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano. Google: Gemini 3.1 Pro, Gemini 3 Flash, Gemini 3.1 Flash-Lite. Groq (free tier): Llama 3.1 8B, Llama 3.3 70B, GPT-OSS 120B/20B, Groq Compound. xAI: Grok 4.20, Grok 4.1 Fast (reasoning + non-reasoning), Grok Code Fast. Moonshot: Kimi K2.6. OpenRouter: free Llama/Gemma/Qwen tiers.",
   },
   {
     id: "voting",

@@ -2,6 +2,8 @@
 
 TypeScript SDK for the Consilium AI Council Platform.
 
+> The Consilium source repository is **private** as of April 2026. The SDK is publicly distributed via npm; the hosted API is at `https://api.myconsilium.xyz`. Bring your own LLM keys (OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter), or run without keys and Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so debates keep running at zero cost.
+
 ## Install
 
 ```bash
@@ -14,7 +16,7 @@ npm install @myconsilium/sdk
 import { ConsiliumClient } from '@myconsilium/sdk';
 
 const client = new ConsiliumClient({
-  apiUrl: 'https://api.consilium.dev',
+  apiUrl: 'https://api.myconsilium.xyz',
   apiKey: 'your-api-key',
 });
 
@@ -109,7 +111,7 @@ console.log(health.services);
 
 ```typescript
 const client = new ConsiliumClient({
-  apiUrl: 'https://api.consilium.dev',
+  apiUrl: 'https://api.myconsilium.xyz',
   apiKey: 'your-api-key',
   timeout: 60_000,
   maxRetries: 3,
@@ -142,3 +144,7 @@ try {
   }
 }
 ```
+
+## License
+
+Proprietary — © Consilium. All rights reserved. The TypeScript SDK is distributed publicly via npm; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.

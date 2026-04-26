@@ -110,7 +110,7 @@ export async function POST(req: Request) {
         const client = await clerkClient();
         await client.users.updateUser(userData.id, {
           unsafeMetadata: {
-            defaultAgents: ["gpt-4o-mini", "claude-3-5-haiku-latest", "gemini-2.0-flash"],
+            defaultAgents: ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"],
             defaultMode: "visible",
           },
         });

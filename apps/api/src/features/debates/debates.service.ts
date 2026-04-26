@@ -551,14 +551,15 @@ export class DebatesService {
       total += modelCost;
     }
 
+    const judgeModel = "gpt-5.4-mini";
     const judgePricing =
-      MODEL_PRICING["gpt-4o-mini"] || MODEL_PRICING["default"];
+      MODEL_PRICING[judgeModel] || MODEL_PRICING["default"];
     const judgeCost =
       ((avgInputTokens * models.length) / 1_000_000) *
         judgePricing.inputPerMillion +
       (avgOutputTokens / 1_000_000) * judgePricing.outputPerMillion;
     breakdown.push({
-      model: "gpt-4o-mini",
+      model: judgeModel,
       role: "judge",
       estimatedCost: parseFloat(judgeCost.toFixed(6)),
     });

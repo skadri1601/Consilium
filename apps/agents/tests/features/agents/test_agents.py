@@ -17,10 +17,10 @@ class TestAgentsRouter:
 
     def test_get_agent_info(self, client):
         """Test getting specific agent info."""
-        response = client.get("/api/v1/agents/gpt-4")
+        response = client.get("/api/v1/agents/openai")
         assert response.status_code == 200
         data = response.json()
-        assert data["id"] == "gpt-4"
+        assert data["id"] == "openai"
 
     def test_get_agent_not_found(self, client):
         """Test 404 for unknown agent."""

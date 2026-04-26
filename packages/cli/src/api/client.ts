@@ -1,6 +1,23 @@
 import EventSource from 'eventsource';
 import { DEFAULT_API_ORIGIN, loadConfig } from '../utils/config';
 
+export interface ToolSchema {
+  qualifiedName: string;
+  description?: string;
+  inputSchema: Record<string, unknown>;
+}
+
+export interface ToolBudget {
+  maxCallsPerTurn?: number;
+  maxTotalCalls?: number;
+  perCallTimeoutMs?: number;
+}
+
+export interface ToolResult {
+  content: Array<{ type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }>;
+  isError?: boolean;
+}
+
 export interface DebateOptions {
   topic: string;
   models?: string[];
@@ -11,6 +28,8 @@ export interface DebateOptions {
   projectFiles?: Array<{ path: string; content: string; category: string }>;
   projectContext?: Record<string, unknown>;
   debateSource?: 'web' | 'cli' | 'mcp';
+  tools?: ToolSchema[];
+  toolBudget?: ToolBudget;
 }
 
 export interface DeliberationOptions {
@@ -23,6 +42,8 @@ export interface DeliberationOptions {
   projectFiles?: Array<{ path: string; content: string; category: string }>;
   projectContext?: Record<string, unknown>;
   debateSource?: 'web' | 'cli' | 'mcp' | 'deliberation';
+  tools?: ToolSchema[];
+  toolBudget?: ToolBudget;
 }
 
 export interface RedTeamOptions {
@@ -31,8 +52,17 @@ export interface RedTeamOptions {
   categories?: string[];
 }
 
+export interface RoutingFallbackResolution {
+  requested_model: string;
+  requested_provider?: string | null;
+  effective_model: string;
+  effective_provider: string;
+  is_fallback: boolean;
+  fallback_reason?: string | null;
+}
+
 export interface DeliberationEvent {
-  type: 'deliberation_start' | 'phase_change' | 'model_progress' | 'convergence_update' | 'dissent_detected' | 'vote_cast' | 'cost_update' | 'deliberation_complete' | 'done' | 'error';
+  type: 'deliberation_start' | 'phase_change' | 'model_progress' | 'convergence_update' | 'dissent_detected' | 'vote_cast' | 'cost_update' | 'deliberation_complete' | 'done' | 'error' | 'tool:call_request' | 'tool:call_completed' | 'tool:call_failed' | 'routing:tools_available' | 'routing:fallback';
   phase?: string;
   agent?: string;
   text?: string;
@@ -43,14 +73,33 @@ export interface DeliberationEvent {
   dissent?: { agent: string; reason: string };
   vote?: { agent: string; position: string; confidence: number };
   cost?: { model: string; tokens: number; cost: number };
+  callId?: string;
+  seat?: string;
+  round?: number;
+  name?: string;
+  arguments?: Record<string, unknown>;
+  durationMs?: number;
+  bytes?: number;
+  reason?: string;
+  toolCount?: number;
+  message?: string;
+  resolutions?: RoutingFallbackResolution[];
 }
 
 export interface DebateEvent {
-  type: 'debate_start' | 'agent_start' | 'agent_chunk' | 'agent_complete' | 'consensus' | 'done' | 'error' | 'debate:cancelled';
+  type: 'debate_start' | 'agent_start' | 'agent_chunk' | 'agent_complete' | 'consensus' | 'done' | 'error' | 'debate:cancelled' | 'tool:call_request' | 'tool:call_completed' | 'tool:call_failed';
   agent?: string;
   text?: string;
   error?: string;
   debateId?: string;
+  callId?: string;
+  seat?: string;
+  round?: number;
+  name?: string;
+  arguments?: Record<string, unknown>;
+  durationMs?: number;
+  bytes?: number;
+  reason?: string;
 }
 
 export interface DebateSummary {
@@ -223,8 +272,17 @@ export class ConsiliumClient {
             const reason = connectionEstablished
               ? `${contextLabel} stream dropped after ${eventCount} events`
               : `${contextLabel} stream failed to connect`;
+            // 429 is technically 4xx but is a backpressure signal, not
+            // a fatal client error — treat it as transient so the
+            // caller's reconnect loop applies backoff instead of
+            // surfacing the rate-limit as an immediate failure. All
+            // other 4xx codes (401/403/404) remain fatal.
             const kind: StreamErrorKind =
-              status !== undefined && status >= 400 && status < 500 ? 'fatal' : 'transient';
+              status === 429
+                ? 'transient'
+                : status !== undefined && status >= 400 && status < 500
+                ? 'fatal'
+                : 'transient';
             this.log(`${reason}${status !== undefined ? ` (status=${status})` : ''}`);
             reject(new StreamError(reason, kind, status));
           };
@@ -265,7 +323,7 @@ export class ConsiliumClient {
     try {
       const body: Record<string, any> = {
         topic: options.topic,
-        models: options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
+        models: options.models || ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'],
       };
       if (options.mode) body.mode = options.mode;
       body.debateSource = options.debateSource ?? 'cli';
@@ -274,6 +332,8 @@ export class ConsiliumClient {
       if (options.images?.length) body.context = { ...body.context, images: options.images };
       if (options.projectFiles?.length) body.context = { ...body.context, projectFiles: options.projectFiles };
       if (options.projectContext) body.projectContext = options.projectContext;
+      if (options.tools?.length) body.tools = options.tools;
+      if (options.toolBudget) body.toolBudget = options.toolBudget;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -343,6 +403,31 @@ export class ConsiliumClient {
       }
       return {};
     }, 'Debate');
+  }
+
+  async postToolResult(
+    deliberationId: string,
+    callId: string,
+    result: ToolResult,
+  ): Promise<void> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = this.getApiKey();
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const response = await fetch(
+      `${this.apiUrl}/api/v1/deliberation/${deliberationId}/tool-results`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ callId, result }),
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+
+    if (!response.ok && response.status !== 204) {
+      const body = await response.text().catch(() => '');
+      throw new ApiError(response.status, body, `tool-result POST failed: HTTP ${response.status}`);
+    }
   }
 
   async cancelDebate(debateId: string): Promise<void> {
@@ -439,6 +524,8 @@ export class ConsiliumClient {
             }
           : {}),
         ...(options.projectContext && { projectContext: options.projectContext }),
+        ...(options.tools?.length ? { tools: options.tools } : {}),
+        ...(options.toolBudget ? { toolBudget: options.toolBudget } : {}),
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -508,6 +595,8 @@ export class ConsiliumClient {
         dissent: data['dissent'] as DeliberationEvent['dissent'],
         vote: data['vote'] as DeliberationEvent['vote'],
         cost: data['cost'] as DeliberationEvent['cost'],
+        message: str('message'),
+        resolutions: data['resolutions'] as RoutingFallbackResolution[] | undefined,
       };
       onEvent(deliberationEvent);
 

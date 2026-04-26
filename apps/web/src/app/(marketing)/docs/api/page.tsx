@@ -482,8 +482,8 @@ export default function ApiReferencePage() {
   -d '{
     "topic": "Best practices for error handling in TypeScript",
     "mode": "council",
-    "models": ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
-    "judgeModel": "claude-haiku-4-5-20251001",
+    "models": ["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"],
+    "judgeModel": "claude-sonnet-4-6",
     "maxRounds": 3,
     "apiKeys": {
       "anthropic": "sk-ant-...",
@@ -503,8 +503,8 @@ export default function ApiReferencePage() {
   "status": "processing",
   "mode": "council",
   "topic": "Best practices for error handling in TypeScript",
-  "models": ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
-  "judgeModel": "claude-haiku-4-5-20251001",
+  "models": ["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"],
+  "judgeModel": "claude-sonnet-4-6",
   "maxRounds": 3,
   "created_at": "2026-04-08T12:00:00Z",
   "stream_url": "/api/v1/deliberation/dlb_abc123/stream"
@@ -535,7 +535,7 @@ export default function ApiReferencePage() {
   -d '{
     "topic": "Microservices vs monolith for a startup",
     "mode": "council",
-    "models": ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"]
+    "models": ["claude-sonnet-4-6", "gpt-5.4", "gemini-3-flash-preview"]
   }'`}</code>
                     </pre>
                   </div>
@@ -547,9 +547,9 @@ export default function ApiReferencePage() {
                       <code className="text-muted-foreground">{`{
   "estimatedCost": 0.0847,
   "breakdown": {
-    "claude-haiku-4-5-20251001": 0.0312,
-    "gpt-4.1": 0.0285,
-    "gemini-2.5-flash": 0.0250
+    "claude-sonnet-4-6": 0.0312,
+    "gpt-5.4": 0.0285,
+    "gemini-3-flash-preview": 0.0250
   },
   "estimatedTokens": 12400,
   "estimatedDuration": "45s"
@@ -591,7 +591,7 @@ event: phase:analysis
 data: {"round":1,"phase":"independent_analysis"}
 
 event: agent:response
-data: {"agent":"claude-haiku-4-5-20251001","round":1,"content":"..."}
+data: {"agent":"claude-sonnet-4-6","round":1,"content":"..."}
 
 event: convergence:update
 data: {"score":0.72,"threshold":0.85}

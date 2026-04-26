@@ -8,58 +8,181 @@ import { Label } from "@/shared/components/ui/label";
 import { CheckCircle2, XCircle, Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
 
-interface ApiKeyStatus {
-  openai: "idle" | "testing" | "valid" | "invalid";
-  anthropic: "idle" | "testing" | "valid" | "invalid";
-  google: "idle" | "testing" | "valid" | "invalid";
-  groq: "idle" | "testing" | "valid" | "invalid";
-  xai: "idle" | "testing" | "valid" | "invalid";
+type KeyState = "idle" | "testing" | "valid" | "invalid";
+
+const PROVIDER_IDS = [
+  "openai",
+  "anthropic",
+  "google",
+  "groq",
+  "xai",
+  "moonshot",
+  "openrouter",
+] as const;
+type ProviderId = (typeof PROVIDER_IDS)[number];
+type KeyField = `${ProviderId}Key`;
+
+interface ProviderConfig {
+  id: ProviderId;
+  field: KeyField;
+  label: string;
+  consoleUrl: string;
+  placeholder: string;
+  footnote?: string;
+}
+
+const PROVIDERS: ProviderConfig[] = [
+  {
+    id: "openai",
+    field: "openaiKey",
+    label: "OpenAI API Key",
+    consoleUrl: "https://platform.openai.com/api-keys",
+    placeholder: "sk-...",
+  },
+  {
+    id: "anthropic",
+    field: "anthropicKey",
+    label: "Anthropic API Key",
+    consoleUrl: "https://console.anthropic.com",
+    placeholder: "sk-ant-...",
+  },
+  {
+    id: "google",
+    field: "googleKey",
+    label: "Google API Key",
+    consoleUrl: "https://aistudio.google.com/apikey",
+    placeholder: "AIza...",
+  },
+  {
+    id: "groq",
+    field: "groqKey",
+    label: "Groq API Key",
+    consoleUrl: "https://console.groq.com/keys",
+    placeholder: "gsk_...",
+    footnote:
+      "Groq models are free to use. No API key required for basic access. Add your own key for higher rate limits.",
+  },
+  {
+    id: "xai",
+    field: "xaiKey",
+    label: "XAI (Grok) API Key",
+    consoleUrl: "https://console.x.ai",
+    placeholder: "xai-...",
+  },
+  {
+    id: "moonshot",
+    field: "moonshotKey",
+    label: "Moonshot (Kimi) API Key",
+    consoleUrl: "https://platform.moonshot.cn",
+    placeholder: "sk-...",
+  },
+  {
+    id: "openrouter",
+    field: "openrouterKey",
+    label: "OpenRouter API Key",
+    consoleUrl: "https://openrouter.ai/keys",
+    placeholder: "sk-or-...",
+    footnote:
+      "OpenRouter unlocks 300+ models including free-tier Llama / Gemma / Qwen variants.",
+  },
+];
+
+type KeyMap = Record<KeyField, string>;
+type MaskedKeyMap = Record<KeyField, string | null>;
+type StatusMap = Record<ProviderId, KeyState>;
+
+const emptyKeys = (): KeyMap =>
+  Object.fromEntries(PROVIDERS.map((p) => [p.field, ""])) as KeyMap;
+
+const emptyMasked = (): MaskedKeyMap =>
+  Object.fromEntries(PROVIDERS.map((p) => [p.field, null])) as MaskedKeyMap;
+
+const emptyStatus = (): StatusMap =>
+  Object.fromEntries(PROVIDERS.map((p) => [p.id, "idle" as KeyState])) as StatusMap;
+
+function readMaskedKeys(data: Partial<Record<KeyField, string | null>>): MaskedKeyMap {
+  const out = emptyMasked();
+  for (const p of PROVIDERS) {
+    out[p.field] = data[p.field] ?? null;
+  }
+  return out;
+}
+
+interface KeyRowProps {
+  provider: ProviderConfig;
+  value: string;
+  masked: string | null;
+  state: KeyState;
+  onChange: (value: string) => void;
+  onTest: () => void;
+}
+
+function KeyRow({ provider, value, masked, state, onChange, onTest }: KeyRowProps) {
+  let buttonContent: React.ReactNode = "Test";
+  if (state === "testing") buttonContent = <Loader2 className="h-4 w-4 animate-spin" />;
+  else if (state === "valid") buttonContent = <CheckCircle2 className="h-4 w-4 text-green-500" />;
+  else if (state === "invalid") buttonContent = <XCircle className="h-4 w-4 text-red-500" />;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label htmlFor={provider.id}>{provider.label}</Label>
+        <a
+          href={provider.consoleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+        >
+          Get key <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
+      {masked && (
+        <p className="text-sm text-muted-foreground">Current: {masked}</p>
+      )}
+      <div className="flex gap-2">
+        <Input
+          id={provider.id}
+          type="password"
+          placeholder={provider.placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <Button variant="outline" onClick={onTest} disabled={state === "testing"}>
+          {buttonContent}
+        </Button>
+      </div>
+      {provider.footnote && (
+        <p
+          className={
+            provider.id === "groq"
+              ? "text-xs text-green-600 dark:text-green-400"
+              : "text-xs text-muted-foreground"
+          }
+        >
+          {provider.footnote}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function ApiKeysSettings() {
-  const [keys, setKeys] = useState({
-    openaiKey: "",
-    anthropicKey: "",
-    googleKey: "",
-    groqKey: "",
-    xaiKey: "",
-  });
-  const [maskedKeys, setMaskedKeys] = useState({
-    openaiKey: null as string | null,
-    anthropicKey: null as string | null,
-    googleKey: null as string | null,
-    groqKey: null as string | null,
-    xaiKey: null as string | null,
-  });
-  const [status, setStatus] = useState<ApiKeyStatus>({
-    openai: "idle",
-    anthropic: "idle",
-    google: "idle",
-    groq: "idle",
-    xai: "idle",
-  });
+  const [keys, setKeys] = useState<KeyMap>(emptyKeys);
+  const [maskedKeys, setMaskedKeys] = useState<MaskedKeyMap>(emptyMasked);
+  const [status, setStatus] = useState<StatusMap>(emptyStatus);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch current keys (masked)
     fetch("/api/api-keys")
       .then((res) => res.json())
-      .then((data) => {
-        setMaskedKeys({
-          openaiKey: data.openaiKey,
-          anthropicKey: data.anthropicKey,
-          googleKey: data.googleKey,
-          groqKey: data.groqKey,
-          xaiKey: data.xaiKey,
-        });
-      })
+      .then((data) => setMaskedKeys(readMaskedKeys(data)))
       .catch(() => {
-        // Ignore errors
+        // ignore
       });
   }, []);
 
-  const testKey = async (provider: "openai" | "anthropic" | "google" | "groq" | "xai", key: string) => {
+  const testKey = async (provider: ProviderId, key: string) => {
     if (!key) {
       toast({
         title: "Error",
@@ -75,20 +198,14 @@ export function ApiKeysSettings() {
       const response = await fetch("/api/api-keys/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider,
-          key,
-        }),
+        body: JSON.stringify({ provider, key }),
       });
 
       const data = await response.json();
 
       if (data.valid) {
         setStatus((prev) => ({ ...prev, [provider]: "valid" }));
-        toast({
-          title: "Success",
-          description: data.message,
-        });
+        toast({ title: "Success", description: data.message });
       } else {
         setStatus((prev) => ({ ...prev, [provider]: "invalid" }));
         toast({
@@ -120,25 +237,17 @@ export function ApiKeysSettings() {
         ),
       });
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "API keys saved successfully",
-        });
-        // Clear input fields
-        setKeys({ openaiKey: "", anthropicKey: "", googleKey: "", groqKey: "", xaiKey: "" });
-        // Refresh masked keys
-        const data = await fetch("/api/api-keys").then((res) => res.json());
-        setMaskedKeys({
-          openaiKey: data.openaiKey,
-          anthropicKey: data.anthropicKey,
-          googleKey: data.googleKey,
-          groqKey: data.groqKey,
-          xaiKey: data.xaiKey,
-        });
-      } else {
+      if (!response.ok) {
         throw new Error("Failed to save keys");
       }
+
+      toast({
+        title: "Success",
+        description: "API keys saved successfully",
+      });
+      setKeys(emptyKeys());
+      const data = await fetch("/api/api-keys").then((res) => res.json());
+      setMaskedKeys(readMaskedKeys(data));
     } catch {
       toast({
         title: "Error",
@@ -168,228 +277,17 @@ export function ApiKeysSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* OpenAI */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="openai">OpenAI API Key</Label>
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-              >
-                Get key <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            {maskedKeys.openaiKey && (
-              <p className="text-sm text-muted-foreground">
-                Current: {maskedKeys.openaiKey}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="openai"
-                type="password"
-                placeholder="sk-..."
-                value={keys.openaiKey}
-                onChange={(e) => setKeys({ ...keys, openaiKey: e.target.value })}
-              />
-              <Button
-                variant="outline"
-                onClick={() => testKey("openai", keys.openaiKey)}
-                disabled={status.openai === "testing"}
-              >
-                {status.openai === "testing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : status.openai === "valid" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : status.openai === "invalid" ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Anthropic */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="anthropic">Anthropic API Key</Label>
-              <a
-                href="https://console.anthropic.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-              >
-                Get key <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            {maskedKeys.anthropicKey && (
-              <p className="text-sm text-muted-foreground">
-                Current: {maskedKeys.anthropicKey}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="anthropic"
-                type="password"
-                placeholder="sk-ant-..."
-                value={keys.anthropicKey}
-                onChange={(e) => setKeys({ ...keys, anthropicKey: e.target.value })}
-              />
-              <Button
-                variant="outline"
-                onClick={() => testKey("anthropic", keys.anthropicKey)}
-                disabled={status.anthropic === "testing"}
-              >
-                {status.anthropic === "testing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : status.anthropic === "valid" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : status.anthropic === "invalid" ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Google */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="google">Google API Key</Label>
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-              >
-                Get key <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            {maskedKeys.googleKey && (
-              <p className="text-sm text-muted-foreground">
-                Current: {maskedKeys.googleKey}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="google"
-                type="password"
-                placeholder="AIza..."
-                value={keys.googleKey}
-                onChange={(e) => setKeys({ ...keys, googleKey: e.target.value })}
-              />
-              <Button
-                variant="outline"
-                onClick={() => testKey("google", keys.googleKey)}
-                disabled={status.google === "testing"}
-              >
-                {status.google === "testing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : status.google === "valid" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : status.google === "invalid" ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Groq */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="groq">Groq API Key</Label>
-              <a
-                href="https://console.groq.com/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-              >
-                Get key <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            {maskedKeys.groqKey && (
-              <p className="text-sm text-muted-foreground">
-                Current: {maskedKeys.groqKey}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="groq"
-                type="password"
-                placeholder="gsk_..."
-                value={keys.groqKey}
-                onChange={(e) => setKeys({ ...keys, groqKey: e.target.value })}
-              />
-              <Button
-                variant="outline"
-                onClick={() => testKey("groq", keys.groqKey)}
-                disabled={status.groq === "testing"}
-              >
-                {status.groq === "testing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : status.groq === "valid" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : status.groq === "invalid" ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Groq models are free to use. No API key required for basic access. Add your own key for higher rate limits.
-            </p>
-          </div>
-
-          {/* XAI (Grok) */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="xai">XAI (Grok) API Key</Label>
-              <a
-                href="https://console.x.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-              >
-                Get key <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            {maskedKeys.xaiKey && (
-              <p className="text-sm text-muted-foreground">
-                Current: {maskedKeys.xaiKey}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="xai"
-                type="password"
-                placeholder="xai-..."
-                value={keys.xaiKey}
-                onChange={(e) => setKeys({ ...keys, xaiKey: e.target.value })}
-              />
-              <Button
-                variant="outline"
-                onClick={() => testKey("xai", keys.xaiKey)}
-                disabled={status.xai === "testing"}
-              >
-                {status.xai === "testing" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : status.xai === "valid" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : status.xai === "invalid" ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-          </div>
+          {PROVIDERS.map((provider) => (
+            <KeyRow
+              key={provider.id}
+              provider={provider}
+              value={keys[provider.field]}
+              masked={maskedKeys[provider.field]}
+              state={status[provider.id]}
+              onChange={(v) => setKeys((prev) => ({ ...prev, [provider.field]: v }))}
+              onTest={() => testKey(provider.id, keys[provider.field])}
+            />
+          ))}
 
           <Button onClick={saveKeys} disabled={loading} className="w-full">
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

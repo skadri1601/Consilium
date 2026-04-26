@@ -18,7 +18,7 @@ const MOCK_DEBATE_DETAIL = {
   id: MOCK_DEBATE_ID,
   topic: REALISTIC_TOPIC,
   status: "completed",
-  modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest", "gemini-2.0-flash"],
+  modelsUsed: ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
   totalCost: 0.0456,
   goldenPrompt: "Implement a hexagonal architecture with domain-driven design for scalable microservices",
   createdAt: new Date().toISOString(),
@@ -30,7 +30,7 @@ const MOCK_DEBATE_DETAIL = {
       messages: [
         {
           id: "msg-001",
-          agentId: "gpt-4o",
+          agentId: "gpt-5.4",
           modelUsed: "GPT-4o",
           content: "For the payment processing platform, I recommend an event-sourcing pattern with CQRS",
           cost: 0.012,
@@ -38,7 +38,7 @@ const MOCK_DEBATE_DETAIL = {
         },
         {
           id: "msg-002",
-          agentId: "claude-3-5-sonnet-latest",
+          agentId: "claude-sonnet-4-6",
           modelUsed: "Claude 3.5 Sonnet",
           content: "The fraud detection subsystem should use a streaming architecture with Apache Flink",
           cost: 0.015,
@@ -92,7 +92,7 @@ function generateMockDebatesList(count: number) {
       "Architect a serverless data pipeline for real-time analytics",
     ][i % 5],
     status: ["completed", "completed", "failed", "completed", "completed"][i % 5],
-    modelsUsed: ["gpt-4o", "claude-3-5-sonnet-latest"].slice(0, (i % 2) + 2),
+    modelsUsed: ["gpt-5.4", "claude-sonnet-4-6"].slice(0, (i % 2) + 2),
     totalCost: parseFloat((0.01 + Math.random() * 0.08).toFixed(4)),
     goldenPrompt: i % 3 === 0 ? null : `Synthesized output for debate ${i}`,
     createdAt: new Date(Date.now() - i * 3600000).toISOString(),
@@ -299,8 +299,8 @@ test.describe("Long-Running Debate", () => {
     const slowEvents = [
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
-      { event: "agent:start", agentId: "gpt-4o" },
-      { event: "agent:chunk", agentId: "gpt-4o", chunk: "Analyzing architecture requirements in detail..." },
+      { event: "agent:start", agentId: "gpt-5.4" },
+      { event: "agent:chunk", agentId: "gpt-5.4", chunk: "Analyzing architecture requirements in detail..." },
     ];
 
     await mockDebateStreamEndpoint(page, slowEvents);
@@ -330,8 +330,8 @@ test.describe("Long-Running Debate", () => {
 
     const events = [
       { event: "debate:start" },
-      { event: "agent:start", agentId: "gpt-4o" },
-      { event: "agent:chunk", agentId: "gpt-4o", chunk: "Working on analysis..." },
+      { event: "agent:start", agentId: "gpt-5.4" },
+      { event: "agent:chunk", agentId: "gpt-5.4", chunk: "Working on analysis..." },
     ];
     await mockDebateStreamEndpoint(page, events);
 
@@ -535,7 +535,7 @@ test.describe("Network Failure Recovery", () => {
 
     const events = [
       { event: "debate:start" },
-      { event: "agent:start", agentId: "gpt-4o" },
+      { event: "agent:start", agentId: "gpt-5.4" },
     ];
     await mockDebateStreamEndpoint(page, events);
 

@@ -2,6 +2,8 @@
 
 Python client for the Consilium multi-AI deliberation platform.
 
+> The Consilium source repository is **private** as of April 2026. The Python SDK is publicly distributed via PyPI; the hosted API is at `https://api.myconsilium.xyz`. Bring your own LLM keys, or run without keys and Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so debates keep running at zero cost.
+
 ## Installation
 
 ```bash
@@ -14,14 +16,14 @@ pip install consilium
 from consilium import ConsiliumClient, DeliberationMode
 
 client = ConsiliumClient(
-    api_url="https://api.consilium.dev/api/v1",
+    api_url="https://api.myconsilium.xyz/api/v1",
     api_key="your-api-key",
 )
 
 result = client.deliberate(
     "Should we migrate to microservices?",
     mode=DeliberationMode.COUNCIL,
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
 )
 print(result.golden_prompt)
 print(result.confidence_scores)
@@ -47,7 +49,7 @@ print(result.confidence_scores)
 ```python
 result = client.deliberate(
     topic="Should we use Rust or Go for the backend?",
-    models=["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-pro"],
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3.1-pro-preview"],
     mode=DeliberationMode.DEEP,
     max_rounds=5,
 )
@@ -63,7 +65,7 @@ print(f"Cost: ${result.cost:.3f}")
 ```python
 result = client.red_team(
     content="Your system prompt here",
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
     categories=["injection", "jailbreak", "data_exfiltration"],
 )
 print(f"Score: {result.overall_score}/10")
@@ -81,7 +83,7 @@ result = client.blind_eval(
         "Quantum computing uses qubits...",
         "A quantum computer harnesses...",
     ],
-    models=["claude-sonnet-4-20250514"],
+    models=["claude-sonnet-4-6"],
 )
 for rank in result.rankings:
     print(f"#{rank['position']}: {rank['response_id']}")
@@ -93,7 +95,7 @@ print(result.scores)
 ```python
 stream = client.stream_deliberation(
     topic="Best database for time-series data?",
-    models=["claude-sonnet-4-20250514", "gpt-4o"],
+    models=["claude-sonnet-4-6", "gpt-5.4"],
     mode=DeliberationMode.COUNCIL,
 )
 for event in stream.events():
@@ -106,7 +108,7 @@ for event in stream.events():
 estimate = client.estimate_cost(
     topic="Complex architecture decision",
     mode=DeliberationMode.DEEP,
-    models=["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-pro"],
+    models=["claude-sonnet-4-6", "gpt-5.4", "gemini-3.1-pro-preview"],
 )
 print(f"Estimated cost: ${estimate.total:.3f}")
 print(f"Per round: ${estimate.breakdown.per_round:.3f}")
@@ -129,7 +131,7 @@ from consilium import AsyncConsiliumClient, DeliberationMode
 
 async def main():
     async with AsyncConsiliumClient(
-        api_url="https://api.consilium.dev/api/v1",
+        api_url="https://api.myconsilium.xyz/api/v1",
         api_key="your-api-key",
     ) as client:
         result = await client.deliberate(
@@ -151,7 +153,7 @@ asyncio.run(main())
 
 ```python
 client = ConsiliumClient(
-    api_url="https://api.consilium.dev/api/v1",
+    api_url="https://api.myconsilium.xyz/api/v1",
     api_key="your-api-key",
     timeout=60.0,
     max_retries=5,
@@ -188,6 +190,10 @@ except ConsiliumError as e:
     print(f"Error: {e.message}")
 ```
 
+## Providers and free-tier fallback
+
+Bring your own keys for OpenAI, Anthropic, Google, Groq, xAI, Moonshot, or OpenRouter. When no key is provided for the requested provider, Consilium routes the call through its free-tier pool (Groq's Llama / GPT-OSS, with OpenRouter as backup) and emits a `routing:fallback` event on the SSE stream so you always know when fallback is active. BYOK always wins; the free pool engages only as a backstop.
+
 ## License
 
-MIT
+Proprietary — © Consilium. All rights reserved. The Python SDK is distributed publicly via PyPI; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.
