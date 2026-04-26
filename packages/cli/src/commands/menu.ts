@@ -6,31 +6,61 @@ import { terminal } from '../utils/terminal-capabilities.js';
 
 const st = style();
 
-const MENU_ITEMS = [
-  'Start a Debate',
-  'Red Team Assessment',
-  'Blind Evaluation',
-  'Configure API Keys',
-  'View Stats',
-  'Interactive Chat',
-  'Quick Mode',
-  'Logout',
-] as const;
+interface MenuEntry {
+  num: number;
+  command: string;
+  description: string;
+  group: 'modes' | 'other';
+  /** Used when the user picks the row by number — 'topic' prompts for the
+   * topic string and runs `consilium debate <topic> --mode=<mode>`. */
+  action:
+    | { kind: 'debate'; mode: string; promptFor: 'topic' }
+    | { kind: 'redteam'; promptFor: 'content' }
+    | { kind: 'eval'; promptFor: 'topic' }
+    | { kind: 'chat' }
+    | { kind: 'stats' }
+    | { kind: 'config' }
+    | { kind: 'logout' };
+}
 
-function renderMenu(selectedIndex: number, userName?: string): string {
+const MENU: MenuEntry[] = [
+  { num: 1, command: 'consilium debate "<topic>"', description: 'Council mode — 3 rounds, default', group: 'modes', action: { kind: 'debate', mode: 'council', promptFor: 'topic' } },
+  { num: 2, command: 'consilium debate "<topic>" --mode quick', description: 'Quick — 1 round, fastest (~15s)', group: 'modes', action: { kind: 'debate', mode: 'quick', promptFor: 'topic' } },
+  { num: 3, command: 'consilium debate "<topic>" --mode deep', description: 'Deep — 5 rounds + sub-agent research', group: 'modes', action: { kind: 'debate', mode: 'deep', promptFor: 'topic' } },
+  { num: 4, command: 'consilium debate "<topic>" --mode blind', description: 'Blind — model names hidden until scored', group: 'modes', action: { kind: 'debate', mode: 'blind', promptFor: 'topic' } },
+  { num: 5, command: 'consilium debate "<topic>" --mode redteam', description: 'Redteam — attack/defend cycle for security review', group: 'modes', action: { kind: 'redteam', promptFor: 'content' } },
+  { num: 6, command: 'consilium debate "<topic>" --mode jury', description: 'Jury — ranked-choice voting (Borda + Condorcet)', group: 'modes', action: { kind: 'debate', mode: 'jury', promptFor: 'topic' } },
+  { num: 7, command: 'consilium debate "<topic>" --mode market', description: 'Market — confidence-weighted probability aggregation', group: 'modes', action: { kind: 'debate', mode: 'market', promptFor: 'topic' } },
+  { num: 8, command: 'consilium debate "<topic>" --mode auto', description: 'Auto — engine picks the best mode for your topic', group: 'modes', action: { kind: 'debate', mode: 'auto', promptFor: 'topic' } },
+  { num: 9, command: 'consilium chat', description: 'Interactive REPL with session persistence', group: 'other', action: { kind: 'chat' } },
+  { num: 10, command: 'consilium stats', description: 'Usage statistics across past debates', group: 'other', action: { kind: 'stats' } },
+  { num: 11, command: 'consilium eval "<topic>"', description: 'Blind evaluation of provided responses', group: 'other', action: { kind: 'eval', promptFor: 'topic' } },
+  { num: 12, command: 'consilium config', description: 'Open API-key and provider settings', group: 'other', action: { kind: 'config' } },
+  { num: 13, command: 'consilium logout', description: 'Clear stored credentials', group: 'other', action: { kind: 'logout' } },
+];
+
+function renderHelp(userName?: string): string {
+  // Pad command column to a stable width so descriptions align.
+  const widths = MENU.map((e) => `[${String(e.num).padStart(2, ' ')}]  ${e.command}`.length);
+  const maxWidth = Math.max(...widths);
   const lines: string[] = [];
   lines.push('');
-  lines.push(`  ${st.bold(`Welcome back, ${userName || 'user'}!`)}`);
+  lines.push(`  ${st.bold(`Welcome back, ${userName || 'user'}.`)}`);
   lines.push('');
-  lines.push(`  ${st.dim('What would you like to do?')}`);
+  lines.push(`  ${st.dim('Type a command below, or pick one by number and press Enter.')}`);
   lines.push('');
-  for (let i = 0; i < MENU_ITEMS.length; i++) {
-    const label = MENU_ITEMS[i]!;
-    if (i === selectedIndex) {
-      lines.push(`  ${st.brand('❯')} ${st.brand(label)}`);
-    } else {
-      lines.push(`    ${st.dim(label)}`);
-    }
+  lines.push(`  ${st.brand('Deliberation modes')}`);
+  for (const entry of MENU.filter((e) => e.group === 'modes')) {
+    const head = `[${String(entry.num).padStart(2, ' ')}]  ${entry.command}`;
+    const padded = head.padEnd(maxWidth, ' ');
+    lines.push(`  ${padded}   ${st.dim(entry.description)}`);
+  }
+  lines.push('');
+  lines.push(`  ${st.brand('Other')}`);
+  for (const entry of MENU.filter((e) => e.group === 'other')) {
+    const head = `[${String(entry.num).padStart(2, ' ')}]  ${entry.command}`;
+    const padded = head.padEnd(maxWidth, ' ');
+    lines.push(`  ${padded}   ${st.dim(entry.description)}`);
   }
   lines.push('');
   return lines.join('\n');
@@ -49,140 +79,108 @@ function promptInput(question: string): Promise<string> {
   });
 }
 
-async function executeAction(index: number): Promise<boolean> {
+async function executeEntry(entry: MenuEntry): Promise<boolean> {
   const config = loadConfig();
   const webUrl = config.webUrl || DEFAULT_WEB_ORIGIN;
 
-  switch (index) {
-    case 0: {
-      const topic = await promptInput(st.brand('Enter topic: '));
-      if (topic) {
-        const { debateCommand } = await import('./debate.js');
-        await debateCommand(topic, {});
-      }
+  switch (entry.action.kind) {
+    case 'debate': {
+      const topic = await promptInput(st.brand('Topic: '));
+      if (!topic) return true;
+      const { debateCommand } = await import('./debate.js');
+      await debateCommand(topic, { mode: entry.action.mode });
       return true;
     }
-    case 1: {
-      const content = await promptInput(st.brand('Enter content to assess: '));
-      if (content) {
-        const { redteamCommand } = await import('./redteam.js');
-        await redteamCommand(content, {});
-      }
+    case 'redteam': {
+      const content = await promptInput(st.brand('Content to assess: '));
+      if (!content) return true;
+      const { redteamCommand } = await import('./redteam.js');
+      await redteamCommand(content, {});
       return true;
     }
-    case 2: {
-      const topic = await promptInput(st.brand('Enter topic: '));
-      if (topic) {
-        const { evalCommand } = await import('./eval.js');
-        await evalCommand(topic, {});
-      }
+    case 'eval': {
+      const topic = await promptInput(st.brand('Topic: '));
+      if (!topic) return true;
+      const { evalCommand } = await import('./eval.js');
+      await evalCommand(topic, {});
       return true;
     }
-    case 3: {
-      openBrowser(webUrl + '/settings#api-keys');
-      console.log(st.success('Opened settings in browser'));
-      return true;
-    }
-    case 4: {
-      const { statsCommand } = await import('./stats.js');
-      await statsCommand();
-      return true;
-    }
-    case 5: {
+    case 'chat': {
       const { chatCommand } = await import('./chat.js');
       await chatCommand();
       return false;
     }
-    case 6: {
-      const topic = await promptInput(st.brand('Enter topic: '));
-      if (topic) {
-        const { debateCommand } = await import('./debate.js');
-        await debateCommand(topic, { mode: 'quick' });
-      }
+    case 'stats': {
+      const { statsCommand } = await import('./stats.js');
+      await statsCommand();
       return true;
     }
-    case 7: {
+    case 'config': {
+      openBrowser(webUrl + '/settings#api-keys');
+      console.log(st.success('Opened settings in browser.'));
+      return true;
+    }
+    case 'logout': {
       const { logoutCommand } = await import('./logout.js');
       logoutCommand();
       return false;
     }
-    default:
-      return true;
   }
+}
+
+function findEntryByInput(input: string): MenuEntry | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  // Numeric pick.
+  const asNum = Number.parseInt(trimmed, 10);
+  if (Number.isInteger(asNum)) {
+    const hit = MENU.find((e) => e.num === asNum);
+    if (hit) return hit;
+  }
+  // Loose match against the command string ('quick', 'deep', etc.).
+  const lower = trimmed.toLowerCase();
+  if (lower === 'q' || lower === 'quit' || lower === 'exit') return null;
+  return (
+    MENU.find((e) => e.command.toLowerCase().includes(` --mode ${lower}`)) ||
+    MENU.find((e) => lower.startsWith(e.command.toLowerCase().split(' ')[0]!) && e.action.kind === 'chat') ||
+    null
+  );
 }
 
 export async function showMenu(): Promise<void> {
   const config = loadConfig();
+  process.stdout.write(renderHelp(config.userName));
 
-  if (!terminal.isTTY) {
-    console.log(`\n  Welcome back, ${config.userName || 'user'}!\n`);
-    console.log('  What would you like to do?\n');
-    for (let i = 0; i < MENU_ITEMS.length; i++) {
-      console.log(`  ${i + 1}. ${MENU_ITEMS[i]}`);
+  // Non-TTY (CI, piped invocation): just print the command list and exit.
+  if (!terminal.isTTY) return;
+
+  let running = true;
+  while (running) {
+    const choice = await promptInput(`  ${st.dim('>')} `);
+    if (!choice) {
+      running = false;
+      break;
+    }
+    if (choice === 'q' || choice === 'quit' || choice === 'exit') {
+      running = false;
+      break;
+    }
+    const entry = findEntryByInput(choice);
+    if (!entry) {
+      console.log(st.warning(`  Unknown selection: "${choice}". Type a number 1–${MENU.length}, a mode name, or 'quit'.`));
+      continue;
     }
     console.log('');
-    return;
-  }
-
-  let selectedIndex = 0;
-  let running = true;
-
-  while (running) {
-    await new Promise<void>((resolve) => {
-      const output = renderMenu(selectedIndex, config.userName);
-      process.stdout.write(output);
-
-      const lineCount = output.split('\n').length;
-
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
-      process.stdin.setEncoding('utf8');
-
-      const onData = async (key: string) => {
-        if (key === '\u0003' || key === 'q') {
-          process.stdin.setRawMode(false);
-          process.stdin.pause();
-          process.stdin.removeListener('data', onData);
-          process.stdout.write(`\x1b[${lineCount}A`);
-          process.stdout.write('\x1b[0J');
-          running = false;
-          resolve();
-          return;
-        }
-
-        if (key === '\x1b[A') {
-          selectedIndex = (selectedIndex - 1 + MENU_ITEMS.length) % MENU_ITEMS.length;
-        } else if (key === '\x1b[B') {
-          selectedIndex = (selectedIndex + 1) % MENU_ITEMS.length;
-        } else if (key === '\r' || key === '\n') {
-          process.stdin.setRawMode(false);
-          process.stdin.pause();
-          process.stdin.removeListener('data', onData);
-
-          process.stdout.write(`\x1b[${lineCount}A`);
-          process.stdout.write('\x1b[0J');
-
-          console.log(st.brand(`\n  → ${MENU_ITEMS[selectedIndex]!}\n`));
-
-          try {
-            const shouldContinue = await executeAction(selectedIndex);
-            running = shouldContinue;
-          } catch (err: any) {
-            console.error(st.error(`Error: ${err.message}`));
-          }
-
-          resolve();
-          return;
-        } else {
-          return;
-        }
-
-        process.stdout.write(`\x1b[${lineCount}A`);
-        process.stdout.write('\x1b[0J');
-        process.stdout.write(renderMenu(selectedIndex, config.userName));
-      };
-
-      process.stdin.on('data', onData);
-    });
+    try {
+      const shouldContinue = await executeEntry(entry);
+      running = shouldContinue;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(st.error(`  Error: ${message}`));
+    }
+    if (running) {
+      // Re-print the menu after an action so the user can chain.
+      process.stdout.write(renderHelp(config.userName));
+    }
   }
 }
