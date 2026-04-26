@@ -316,7 +316,7 @@ export default function GettingStartedPage() {
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`consilium debate "Should we migrate from REST to GraphQL?" \\
   --mode council \\
-  --models claude-sonnet-4,gpt-4o,gemini-2.0-flash \\
+  --models claude-haiku-4-5-20251001 gpt-4.1 gemini-2.5-flash \\
   --output markdown`}</code>
                   </pre>
                   <p className="text-sm text-muted-foreground mt-3">
@@ -353,9 +353,9 @@ result = client.deliberate(
     topic="Should we migrate from REST to GraphQL?",
     mode="council",
     models=[
-        "claude-sonnet-4-20250514",
-        "gpt-4o",
-        "gemini-2.0-flash"
+        "claude-haiku-4-5-20251001",
+        "gpt-4.1",
+        "gemini-2.5-flash"
     ],
     max_rounds=3
 )
@@ -391,9 +391,9 @@ const result = await client.deliberate({
   topic: "Should we migrate from REST to GraphQL?",
   mode: "council",
   models: [
-    "claude-sonnet-4-20250514",
-    "gpt-4o",
-    "gemini-2.0-flash",
+    "claude-haiku-4-5-20251001",
+    "gpt-4.1",
+    "gemini-2.5-flash",
   ],
   maxRounds: 3,
 });

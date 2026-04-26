@@ -171,7 +171,7 @@ console.log(\`Status: \${health.status}\`);
 const estimate = await client.estimateCost({
   topic: "Should we migrate from REST to GraphQL?",
   mode: "council",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.0-flash"],
+  models: ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
 });
 console.log(\`Estimated: $\${estimate.estimatedCost.toFixed(4)}\`);
 
@@ -179,7 +179,7 @@ console.log(\`Estimated: $\${estimate.estimatedCost.toFixed(4)}\`);
 const result = await client.deliberate({
   topic: "Should we migrate from REST to GraphQL?",
   mode: "council",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.0-flash"],
+  models: ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
   maxRounds: 3,
 });
 console.log(result.goldenPrompt);
@@ -188,7 +188,7 @@ console.log(\`Cost: $\${result.cost.toFixed(4)}\`);
 // 4. Red team
 const redTeam = await client.redTeam({
   topic: "Review this auth middleware for vulnerabilities",
-  models: ["claude-sonnet-4-20250514", "gpt-4o"],
+  models: ["claude-haiku-4-5-20251001", "gpt-4.1"],
 });
 console.log(\`Vulnerabilities: \${redTeam.vulnerabilityCount}\`);
 
@@ -196,7 +196,7 @@ console.log(\`Vulnerabilities: \${redTeam.vulnerabilityCount}\`);
 for await (const event of client.streamDeliberation({
   topic: "Is Kubernetes overkill for our startup?",
   mode: "jury",
-  models: ["claude-sonnet-4-20250514", "gpt-4o", "gemini-2.5-flash"],
+  models: ["claude-haiku-4-5-20251001", "gpt-4.1", "gemini-2.5-flash"],
 })) {
   switch (event.event) {
     case "agent:chunk":
