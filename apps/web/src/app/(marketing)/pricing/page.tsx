@@ -229,6 +229,10 @@ const modelPricing = [
     provider: "Moonshot",
     models: [
       { name: "Kimi K2.6", input: "$1.20", output: "$2.50" },
+      { name: "Kimi K2.5", input: "$0.80", output: "$1.80" },
+      { name: "Kimi K2 Thinking", input: "$1.20", output: "$2.50" },
+      { name: "Kimi K2 Thinking Turbo", input: "$0.80", output: "$1.80" },
+      { name: "Kimi K2 Turbo (preview)", input: "$0.50", output: "$1.20" },
     ],
   },
   {
