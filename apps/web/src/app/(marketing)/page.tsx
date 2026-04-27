@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
-import { modelCatalog } from "@/marketing-models";
+import { AGENTS } from "@/shared/lib/constants";
 import {
   Zap,
   Shield,
@@ -283,6 +283,25 @@ consilium login
 # 3. Run your first debate
 consilium debate "What's the best way to ship this feature?" \
   --mode council`;
+
+const providerMeta: Record<string, { icon: string; blurb: string }> = {
+  Anthropic: { icon: "anthropic", blurb: "Claude 4 family — strongest reasoning and synthesis." },
+  OpenAI: { icon: "openai", blurb: "GPT-5 series — fast, mini, and pro tiers." },
+  Google: { icon: "google", blurb: "Gemini 3 — long context and fast multimodal." },
+  Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
+  xAI: { icon: "xai", blurb: "Grok 4 — code-focused and reasoning variants." },
+  Moonshot: { icon: "groq", blurb: "Kimi K2 — long-context reasoning." },
+};
+
+const providerOrder = ["Anthropic", "OpenAI", "Google", "Groq", "xAI", "Moonshot"];
+
+const modelGroups = providerOrder
+  .map((provider) => ({
+    provider,
+    meta: providerMeta[provider],
+    models: AGENTS.filter((a) => a.provider === provider),
+  }))
+  .filter((g) => g.models.length > 0);
 
 const tabs = ["Python", "TypeScript", "CLI"] as const;
 type Tab = (typeof tabs)[number];
@@ -616,53 +635,46 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-6xl lg:grid-cols-3">
-          {modelCatalog.map((group) => (
-            <Card
+          {modelGroups.map((group) => (
+            <div
               key={group.provider}
-              variant="default"
-              className="h-full"
+              className="rounded-lg border bg-background p-5 space-y-3"
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={`/brand/providers/${group.icon}.svg`}
-                    alt={group.provider}
-                    width={24}
-                    height={24}
-                    className="h-6 w-6"
-                  />
-                  <CardTitle className="text-base">{group.provider}</CardTitle>
-                </div>
-                <p className="text-xs text-muted-foreground pt-1">
-                  {group.blurb}
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {group.models.map((model) => (
-                    <li
-                      key={model.id}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium truncate">
-                          {model.label ?? model.id}
-                        </div>
-                        <code className="text-xs text-muted-foreground truncate block">
-                          {model.id}
-                        </code>
+              <div className="flex items-center gap-3">
+                <img
+                  src={`/brand/providers/${group.meta.icon}.svg`}
+                  alt={group.provider}
+                  width={24}
+                  height={24}
+                  className="h-6 w-6"
+                />
+                <span className="text-base font-semibold">{group.provider}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{group.meta.blurb}</p>
+              <ul className="space-y-2">
+                {group.models.map((model) => (
+                  <li
+                    key={model.id}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">
+                        {model.name}
                       </div>
-                      {model.free && (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-green-500/40 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
-                          <Gift className="h-3 w-3" />
-                          Free
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+                      <code className="text-xs text-muted-foreground truncate block">
+                        {model.id}
+                      </code>
+                    </div>
+                    {model.free && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-green-500/40 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                        <Gift className="h-3 w-3" />
+                        Free
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
         <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30 p-6 text-center">
