@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
-import { modelCatalog } from "./models-catalog";
+import { modelCatalog } from "@/marketing-models";
 import {
   Zap,
   Shield,
