@@ -35,6 +35,7 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({
       logger: { level: resolveFastifyLogLevel() },
+      bodyLimit: 5 * 1024 * 1024,
     }),
   );
 

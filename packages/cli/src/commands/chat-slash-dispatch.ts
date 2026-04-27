@@ -632,6 +632,29 @@ export async function dispatchSlashCommand(
       return slashGitDiff();
     case '/scope':
       return slashScope();
+    case '/new': {
+      session.reset();
+      console.log(st.success('Started a new conversation.\n'));
+      return 'continue';
+    }
+    case '/resume': {
+      const targetId = args[0];
+      if (!targetId) {
+        console.log(st.warning('Usage: /resume <session-id>'));
+        return 'continue';
+      }
+      const loaded = sessionManager.loadSession(targetId);
+      if (!loaded) {
+        console.log(st.error(`Session "${targetId}" not found.`));
+        return 'continue';
+      }
+      session.debates = loaded.debates || [];
+      session.id = loaded.id;
+      session.name = loaded.name || '';
+      console.log(st.success(`Resumed session: ${loaded.name || targetId}`));
+      console.log(st.dim(`  ${session.debates.length} previous debate(s)\n`));
+      return 'continue';
+    }
     case '/redo':
     case '/again': {
       const run = delegates.rerunLastDebateWithWorkspace;

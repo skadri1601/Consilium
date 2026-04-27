@@ -103,7 +103,7 @@ export interface StartDebateOptions {
   file?: string[];
   gitDiff?: boolean;
   ticket?: string;
-  noContext?: boolean;
+  context?: boolean;
   mcpTools?: boolean;
 }
 
@@ -124,7 +124,7 @@ export async function startDebateCommand(
     file: options.file,
     gitDiff: options.gitDiff,
     ticket: options.ticket,
-    noContext: options.noContext,
+    noContext: options.context === false,
   });
 
   const bridge = await startToolBridge(client, {

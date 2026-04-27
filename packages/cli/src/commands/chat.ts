@@ -59,7 +59,9 @@ function printHelp(): void {
   console.log(st.dim('  /save [file]    - Save synthesis to file, or session to disk'));
   console.log(st.dim('  /history        - Show conversation history'));
   console.log(st.dim('  /conversations  - List recent conversations'));
+  console.log(st.dim('  /new            - Start a new conversation'));
   console.log(st.dim('  /sessions       - List all saved sessions'));
+  console.log(st.dim('  /resume <id>    - Resume a saved session'));
   console.log(st.dim('  /search <query> - Search across all conversations'));
   console.log(st.dim('  /rename <name>  - Rename current session'));
   console.log(st.dim('  /delete <id>    - Delete a saved session'));
@@ -296,6 +298,12 @@ function runReplLoop(
       return;
     }
 
+    if (trimmed === '/') {
+      printHelp();
+      runReplLoop(rl, history, session, sessionManager);
+      return;
+    }
+
     if (trimmed.startsWith('/')) {
       if (trimmed.toLowerCase().startsWith('/delete')) {
         const parts = trimmed.split(/\s+/);
@@ -386,6 +394,23 @@ export async function chatCommand(): Promise<void> {
   }
   console.log('');
 
+  const SLASH_COMMANDS = [
+    '/ask', '/mode', '/estimate', '/output', '/file', '/image',
+    '/workspace', '/context', '/clear', '/status', '/manifest',
+    '/models', '/save', '/history', '/sessions', '/search',
+    '/api', '/keys', '/codebase', '/permissions', '/apply',
+    '/rollback', '/review', '/scope', '/gitdiff', '/help',
+    '/exit', '/new', '/rename', '/delete', '/redo',
+  ];
+
+  function completer(line: string): [string[], string] {
+    if (line.startsWith('/')) {
+      const hits = SLASH_COMMANDS.filter((c) => c.startsWith(line));
+      return [hits.length ? hits : SLASH_COMMANDS, line];
+    }
+    return [[], line];
+  }
+
   const history: string[] = [];
   const rl = readline.createInterface({
     input: process.stdin,
@@ -394,6 +419,7 @@ export async function chatCommand(): Promise<void> {
     history,
     historySize: INPUT_HISTORY_SIZE,
     removeHistoryDuplicates: true,
+    completer,
   });
   runReplLoop(rl, history, session, sessionManager);
 }

@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { randomBytes } from "node:crypto";
 
 export type EntityType =
   | "debate"
@@ -51,7 +51,7 @@ function decodeTime(encoded: string): number {
 }
 
 function encodeRandom(): string {
-  const bytes = crypto.randomBytes(10);
+  const bytes = randomBytes(10);
   const chars: string[] = new Array(16);
   let bitBuffer = 0;
   let bitsInBuffer = 0;

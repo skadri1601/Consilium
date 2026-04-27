@@ -98,10 +98,10 @@ describe('saveConfig / updateConfig / getConfigValue', () => {
 
   it('updateConfig merges with existing config', () => {
     writeConfig({ apiKey: 'consilium_old1234567' });
-    updateConfig('userName', 'Alice');
+    updateConfig('webUrl', 'https://example.com');
     const cfg = loadConfig();
     expect(cfg.apiKey).toBe('consilium_old1234567');
-    expect(cfg.userName).toBe('Alice');
+    expect(cfg.webUrl).toBe('https://example.com');
   });
 });
 

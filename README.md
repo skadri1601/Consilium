@@ -158,21 +158,6 @@ const result = await client.streamDeliberation(
 );
 ```
 
-### Option 4: Self-Hosted (Docker)
-
-Self-hosting is available to source-licensed customers. After provisioning, the bundle ships as a tarball; extract and run:
-
-```bash
-tar -xzf consilium-selfhost-<version>.tar.gz
-cd consilium-selfhost
-cp .env.example .env.local
-# Add your LLM API keys
-
-docker compose -f docker-compose.selfhost.yml up -d
-```
-
-This starts PostgreSQL, Redis, the API server (port 4000), AI agents (port 8000), and the web app (port 3000). Contact <support@myconsilium.xyz> to request a self-host license.
-
 ## CLI Reference
 
 ```
@@ -307,7 +292,7 @@ Consilium/
 | Dissent reports | Yes | No | No | No |
 | Real-time SSE streaming | Yes | No | No | No |
 | BYOK (no markup) | Yes | Yes | Yes | Yes |
-| Self-hostable | Yes | Yes | Partial | Yes |
+| Formal voting (Condorcet/Borda) | Yes | No | No | No |
 
 ## Research References
 
@@ -318,24 +303,10 @@ Consilium's deliberation protocol draws from peer-reviewed research on multi-age
 - Irving et al. (2018). ["AI Safety via Debate."](https://arxiv.org/abs/1805.00899) Anthropic/OpenAI. Proposed debate as a scalable alignment mechanism where adversarial interaction surfaces deceptive or incorrect reasoning.
 - Liang et al. (2023). ["Encouraging Divergent Thinking in Large Language Models through Multi-Agent Debate."](https://arxiv.org/abs/2305.19118) Found that multi-agent debate encourages more diverse and creative problem-solving.
 
-## Development
+## Links
 
-The Consilium repository is private. Internal contributors with access:
-
-```bash
-# After cloning the private repo (auth required)
-cp .env.example .env.local
-# Add your API keys to .env.local
-
-./run.sh
-```
-
-`run.sh` handles everything: checks prerequisites, installs dependencies, generates Prisma client, and starts all services (web on `:3000`, API on `:4000`, agents on `:8000`). Press `Ctrl+C` to stop all.
-
-## Contributing
-
-Source contributions are limited to internal team members. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the in-tree workflow. External feedback, bug reports, and feature requests are welcome at <support@myconsilium.xyz>.
-
-## License
-
-Proprietary — © Consilium. All rights reserved. See [LICENSE](./LICENSE) for permitted use.
+- [Website](https://myconsilium.xyz)
+- [Documentation](https://myconsilium.xyz/docs)
+- [CLI on npm](https://www.npmjs.com/package/@myconsilium/cli)
+- [SDK on npm](https://www.npmjs.com/package/@myconsilium/sdk)
+- [Python SDK on PyPI](https://pypi.org/project/consilium/)

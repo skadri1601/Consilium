@@ -38,7 +38,7 @@ export interface DebateCommandOptions {
   scan?: boolean;
   gitDiff?: boolean;
   ticket?: string;
-  noContext?: boolean;
+  context?: boolean;
   apply?: boolean;
   file?: string[];
 }
@@ -446,7 +446,7 @@ export async function loadWorkspaceContext(
   options: DebateCommandOptions,
 ): Promise<WorkspaceDebateContext | null> {
   const ctx = await loadWorkspaceDebateContext({
-    noContext: options.noContext,
+    noContext: options.context === false,
     gitDiff: options.gitDiff,
     ticket: options.ticket,
   });
@@ -509,14 +509,8 @@ export async function debateCommand(
 
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
-  const useDeliberation = ['redteam', 'jury', 'market'].includes(mode);
-
   let synthesis = '';
-  if (useDeliberation) {
-    synthesis = await runDeliberation(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
-  } else {
-    synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
-  }
+  synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
 
   if (options.apply) {
     await maybeApplySynthesisEdits(synthesis, wsContext?.rootPath || resolveProjectRoot(process.cwd()).root);

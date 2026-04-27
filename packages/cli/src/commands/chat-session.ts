@@ -74,6 +74,20 @@ export class ChatSession {
     this.updatedAt = new Date().toISOString();
   }
 
+  reset(): void {
+    this.debates = [];
+    this.id = undefined;
+    this.name = '';
+    this.conversationId = undefined;
+    this.lastGoldenPrompt = undefined;
+    this.decisionLog = new DecisionLog();
+    this.contextFilePaths = [];
+    this.contextImagePaths = [];
+    this.contextManager.clear();
+    this.createdAt = new Date().toISOString();
+    this.updatedAt = new Date().toISOString();
+  }
+
   private buildFollowUpContext(): string {
     const previous = this.debates.filter((d) => d.goldenPrompt);
     if (previous.length === 0) return '';
