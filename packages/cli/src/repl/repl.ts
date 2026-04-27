@@ -8,7 +8,7 @@ import {
 } from "./palette.js";
 import { loadConfig } from "../utils/config.js";
 
-const PALETTE_PALETTE_MAX_VISIBLE = 8;
+const PALETTE_MAX_VISIBLE = 8;
 import { style } from "../utils/visual-system.js";
 import { terminal } from "../utils/terminal-capabilities.js";
 
@@ -125,9 +125,7 @@ export async function runRepl(): Promise<void> {
     releaseStdin();
 
     const originalExit = process.exit;
-    let exitCalled = false;
     (process as any).exit = ((code?: number) => {
-      exitCalled = true;
       throw Object.assign(new Error(`process.exit(${code ?? 0})`), { __replExit: true, code });
     }) as never;
 
@@ -143,7 +141,9 @@ export async function runRepl(): Promise<void> {
       }
     } catch (err: any) {
       if (err?.__replExit) {
-        console.error(st.error(`Command exited with code ${err.code ?? 1}`));
+        if (err.code !== 0) {
+          console.error(st.error(`Command exited with code ${err.code ?? 1}`));
+        }
       } else {
         console.error(st.error(`Command failed: ${(err as Error).message}`));
       }
@@ -287,6 +287,8 @@ export async function runRepl(): Promise<void> {
       }
       return;
     }
+
+    if (input.length > 1 && input[0] === "\x1b") return;
 
     let typed = "";
     for (const ch of input) {
