@@ -1,3 +1,10 @@
+# Local docs (not committed)
+docs/applications/
+docs/blog/
+docs/guides/
+docs/strategy/
+docs/superpowers/
+
 # Dependencies
 node_modules/
 .pnpm-store/

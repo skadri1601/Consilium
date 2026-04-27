@@ -2,7 +2,7 @@
   "name": "@myconsilium/sdk",
   "version": "0.2.0",
   "description": "TypeScript SDK for the Consilium AI Council Platform",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",

@@ -328,12 +328,18 @@ export class ConsiliumClient {
       if (options.mode) body.mode = options.mode;
       body.debateSource = options.debateSource ?? 'cli';
       if (options.conversationId) body.conversationId = options.conversationId;
-      if (options.files?.length) body.context = { ...body.context, files: options.files };
-      if (options.images?.length) body.context = { ...body.context, images: options.images };
-      if (options.projectFiles?.length) body.context = { ...body.context, projectFiles: options.projectFiles };
-      if (options.projectContext) body.projectContext = options.projectContext;
+      const pc: Record<string, any> = options.projectContext ? { ...options.projectContext } : {};
+      if (options.files?.length) pc.files = options.files.map((f: any) => ({ name: f.name, content: f.content.slice(0, 8192) }));
+      if (options.images?.length) pc.images = options.images;
+      if (Object.keys(pc).length > 0) body.projectContext = pc;
       if (options.tools?.length) body.tools = options.tools;
       if (options.toolBudget) body.toolBudget = options.toolBudget;
+
+      if (process.env.CONSILIUM_DEBUG) {
+        const fileNames = pc.files?.map((f: any) => f.name) || [];
+        this.log(`Sending ${fileNames.length} context files, body size: ${JSON.stringify(body).length} bytes`);
+        this.log(`First 10 files: ${fileNames.slice(0, 10).join(', ')}`);
+      }
 
       const response = await fetch(url, {
         method: 'POST',

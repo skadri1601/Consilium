@@ -46,10 +46,32 @@ export async function loadWorkspaceDebateContext(
   const workspace = detectWorkspace(rootInfo.root);
   const scanResult = scanProject(rootInfo.root);
   const projectFiles = scanResult.files;
-  const files: Array<{ name: string; content: string }> = projectFiles.map((f) => ({
-    name: f.path,
-    content: f.content,
-  }));
+
+  const HIGH_PRIORITY = new Set([
+    'package.json', 'tsconfig.json', 'pyproject.toml', 'Cargo.toml',
+    'schema.prisma', '.env.example', 'docker-compose.yml', 'Dockerfile',
+  ]);
+  const priorityScore = (p: string): number => {
+    const base = p.split(/[/\\]/).pop() || '';
+    if (HIGH_PRIORITY.has(base)) return 0;
+    if (base.endsWith('.prisma')) return 1;
+    if (p.includes('/src/') || p.includes('\\src\\')) return 2;
+    if (p.startsWith('.github/')) return 8;
+    if (p.includes('/docs/') || p.includes('\\docs\\')) return 7;
+    if (p.includes('/test') || p.includes('\\test') || p.includes('.test.') || p.includes('.spec.')) return 6;
+    return 4;
+  };
+  const sortedFiles = [...projectFiles].sort((a, b) => priorityScore(a.path) - priorityScore(b.path));
+
+  const PAYLOAD_BUDGET = 512 * 1024;
+  let totalBytes = 0;
+  const files: Array<{ name: string; content: string }> = [];
+  for (const f of sortedFiles) {
+    const size = Buffer.byteLength(f.content, 'utf-8');
+    if (totalBytes + size > PAYLOAD_BUDGET) break;
+    totalBytes += size;
+    files.push({ name: f.path, content: f.content });
+  }
 
   const envMeta = extractEnvMetadata(rootInfo.root);
 
@@ -95,11 +117,12 @@ export async function loadWorkspaceDebateContext(
   }
 
   if (files.length > 0) {
+    const sentKB = (totalBytes / 1024).toFixed(1);
+    const scannedKB = (scanResult.manifest.loadedBytes / 1024).toFixed(1);
+    const trimmed = files.length < projectFiles.length;
     console.log(
       st.dim(
-        `  Loaded ${scanResult.manifest.loaded} context files (${(
-          scanResult.manifest.loadedBytes / 1024
-        ).toFixed(1)} KB)`,
+        `  Loaded ${files.length} context files (${sentKB} KB)${trimmed ? ` — trimmed from ${projectFiles.length} scanned (${scannedKB} KB)` : ''}`,
       ),
     );
     console.log(
@@ -114,9 +137,11 @@ export async function loadWorkspaceDebateContext(
     console.log(st.dim(`  Detected integrations: ${envMeta.integrations.join(', ')}`));
   }
 
+  const budgetedProjectFiles = projectFiles.slice(0, files.length);
+
   return {
     files,
-    projectFiles,
+    projectFiles: budgetedProjectFiles,
     projectContext,
     gitContextPrefix,
     ticketPrefix,

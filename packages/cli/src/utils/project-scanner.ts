@@ -22,9 +22,9 @@ const SKIP_DIRS = new Set([
   'target',
 ]);
 
-const DEFAULT_MAX_FILES = Number(process.env.CONSILIUM_CONTEXT_MAX_FILES || 2000);
-const DEFAULT_MAX_BYTES = Number(process.env.CONSILIUM_CONTEXT_MAX_BYTES || 12 * 1024 * 1024);
-const DEFAULT_MAX_DEPTH = Number(process.env.CONSILIUM_CONTEXT_MAX_DEPTH || 18);
+const DEFAULT_MAX_FILES = Number(process.env.CONSILIUM_CONTEXT_MAX_FILES || 500);
+const DEFAULT_MAX_BYTES = Number(process.env.CONSILIUM_CONTEXT_MAX_BYTES || 2 * 1024 * 1024);
+const DEFAULT_MAX_DEPTH = Number(process.env.CONSILIUM_CONTEXT_MAX_DEPTH || 12);
 
 type SkipReason = 'secret' | 'binary' | 'skip-rule' | 'payload-limit' | 'read-error' | 'max-files';
 

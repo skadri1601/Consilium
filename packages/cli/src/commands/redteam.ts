@@ -131,11 +131,14 @@ export async function redteamCommand(
     process.exit(1);
   }
 
+  const models = options.models || ['gpt-4o-mini', 'claude-haiku-4-5-20251001', 'gemini-2.0-flash'];
   let assessment: { id: string };
   try {
-    assessment = await client.createRedTeam(content, {
-      models: options.models,
-      categories: options.categories,
+    assessment = await client.createDebate({
+      topic: content,
+      models,
+      mode: 'redteam',
+      debateSource: 'cli',
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Create failed';
@@ -155,8 +158,8 @@ export async function redteamCommand(
   };
 
   try {
-    await client.streamDeliberation(assessment.id, (event: DeliberationEvent) => {
-      processRedteamEvent(event, ctx);
+    await client.streamDebate(assessment.id, (event) => {
+      processRedteamEvent(event as DeliberationEvent, ctx);
     });
   } catch (error: unknown) {
     if (useLiveProgress) logUpdate.clear();
