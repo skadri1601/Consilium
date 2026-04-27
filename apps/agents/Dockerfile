@@ -11,8 +11,8 @@ RUN pip install --no-cache-dir .
 FROM python:3.15-rc-alpine3.23 AS runner
 WORKDIR /app
 
-RUN groupadd --system --gid 1001 appuser && \
-    useradd --system --uid 1001 --gid appuser appuser
+RUN addgroup -S -g 1001 appuser && \
+    adduser -S -u 1001 -G appuser appuser
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
