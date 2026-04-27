@@ -85,7 +85,7 @@
 - [ ] **Task 1.1.9:** Deploy to Vercel
   - Connect GitHub repository
   - Configure environment variables
-  - Set up custom domain (consiliumai.com or similar)
+  - Set up custom domain (myconsilium.xyz)
   - Configure SSL and DNS
 
 ### 📝 Content Tasks
@@ -1147,7 +1147,7 @@
 - [ ] **Task 3.3.4:** Configure Railway networking
   - Set up internal URLs for service-to-service communication
   - Configure external URL for backend API
-  - Set up custom domain (api.consiliumai.com)
+  - Set up custom domain (api.myconsilium.xyz)
 
 - [ ] **Task 3.3.5:** Set up Neon PostgreSQL production
   - Upgrade to Launch tier ($19/mo)
@@ -1166,7 +1166,7 @@
 - [ ] **Task 3.3.7:** Deploy to Vercel
   - Connect GitHub repository to Vercel
   - Configure environment variables
-  - Set up custom domain (app.consiliumai.com)
+  - Set up custom domain (myconsilium.xyz)
   - Enable Vercel Analytics
 
 - [ ] **Task 3.3.8:** Configure production build
@@ -1269,7 +1269,7 @@
 ### 🔧 Support Setup
 
 - [ ] **Task 3.4.7:** Set up support email
-  - Create support@consiliumai.com
+  - Create support@myconsilium.xyz
   - Set up auto-responder
   - Create email templates for common issues
   - Forward to personal email

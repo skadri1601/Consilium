@@ -10,7 +10,7 @@ Consilium is a structured deliberation platform where AI models engage in advers
 - **8 Deliberation Modes**: Quick (1 round, ~15s), Council (3 rounds with cross-examination, ~45s), Deep (5 rounds with sub-agent research, ~90s), Blind (hidden model identities to prevent anchoring, ~45s), Red Team (adversarial attack/defense cycles, ~120s), Jury (ranked-choice voting, ~60s), Market (prediction market confidence aggregation, ~90s), Auto (intelligent mode selection).
 - **Multi-Model Orchestration**: 5 LLM providers (OpenAI, Anthropic, Google, Groq, xAI) can debate within a single session. The engine handles concurrent API calls, response normalization, and structured argument extraction across heterogeneous model outputs.
 - **Production Infrastructure**: Next.js 15 web app, NestJS 11 API with BullMQ async processing, Prisma/Neon PostgreSQL, Redis (Upstash) for queuing and sessions, real-time SSE streaming, Clerk auth, and Stripe billing.
-- **Developer Ecosystem**: CLI (`npx @consilium/cli deliberate`), Python SDK, TypeScript SDK, Swagger API documentation.
+- **Developer Ecosystem**: CLI (`npx @myconsilium/cli deliberate`), Python SDK, TypeScript SDK, Swagger API documentation.
 
 ## What We Need from NVIDIA Inception
 

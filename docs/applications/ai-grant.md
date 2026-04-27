@@ -29,7 +29,7 @@ Everything. This is a working platform, not a prototype:
 - **Deliberation engine:** 13 Python modules implementing 8 modes (Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto) with round management, convergence detection, and 5-phase judge synthesis
 - **Formal voting:** Condorcet method, Ranked Pairs (Tideman's algorithm), Borda count, Copeland scores. Confidence weights from Kendall tau correlation between successive rounds
 - **Dissent reports:** Minority positions preserved, not discarded
-- **3 SDKs:** TypeScript (`@consilium/sdk`), Python (`pip install consilium`), CLI (`npx @consilium/cli`)
+- **3 SDKs:** TypeScript (`@myconsilium/sdk`), Python (`pip install consilium`), CLI (`npx @myconsilium/cli`)
 - **Web app:** Next.js 15 with real-time SSE streaming, auth, billing
 - **API:** NestJS 11 on Fastify, BullMQ async processing, Prisma ORM
 - **Self-hosted Docker:** One-command deployment

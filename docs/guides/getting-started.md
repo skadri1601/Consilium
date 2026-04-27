@@ -10,7 +10,7 @@ Consilium is a platform that orchestrates multiple AI models (GPT-4o, Claude, Ge
 
 ### 1. Sign Up
 
-1. Visit the [Consilium homepage](https://consiliumai.com)
+1. Visit the [Consilium homepage](https://myconsilium.xyz)
 2. Click "Get Started" or "Sign Up"
 3. Sign in with Google, GitHub, or email
 
@@ -97,6 +97,6 @@ A final "Golden Prompt" is synthesized that combines the best elements from all 
 ## Need Help?
 
 - Visit the [FAQ](./faq.md)
-- Open an issue on [GitHub](https://github.com/yourusername/consilium)
+- Open an issue on [GitHub](https://github.com/skadri1601/Consilium)
 - Check the [API Documentation](../apps/api/README.md) for developers
 

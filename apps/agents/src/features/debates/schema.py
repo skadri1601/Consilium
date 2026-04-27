@@ -43,6 +43,10 @@ class DebateStartRequest(BaseModel):
         default="web",
         description="Source of the debate request: 'web', 'api', 'cli'",
     )
+    project_context: Optional[dict] = Field(
+        None,
+        description="Codebase context metadata and files from CLI",
+    )
 
 
 class DebateStartResponse(BaseModel):

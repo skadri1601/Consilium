@@ -7,6 +7,8 @@ import {
   visibleMatches,
 } from "./palette.js";
 import { loadConfig } from "../utils/config.js";
+
+const PALETTE_PALETTE_MAX_VISIBLE = 8;
 import { style } from "../utils/visual-system.js";
 import { terminal } from "../utils/terminal-capabilities.js";
 
@@ -51,9 +53,8 @@ function writeBanner(): void {
 }
 
 function isPrintable(ch: string): boolean {
-  if (ch.length !== 1) return false;
-  const code = ch.charCodeAt(0);
-  return code >= 0x20 && code !== 0x7f;
+  const code = ch.codePointAt(0);
+  return code !== undefined && code >= 0x20 && code !== 0x7f && code !== 0xfeff;
 }
 
 interface ParsedInput {
@@ -122,17 +123,32 @@ export async function runRepl(): Promise<void> {
   const executeCommand = async (cmd: SlashCommand, args: string): Promise<void> => {
     finalizeFrame();
     releaseStdin();
+
+    const originalExit = process.exit;
+    let exitCalled = false;
+    (process as any).exit = ((code?: number) => {
+      exitCalled = true;
+      throw Object.assign(new Error(`process.exit(${code ?? 0})`), { __replExit: true, code });
+    }) as never;
+
     try {
       const result = await cmd.run(args);
       if (result?.exit) {
         running = false;
+        (process as any).exit = originalExit;
         return;
       }
       if (result?.cleared) {
         process.stdout.write("\x1b[2J\x1b[H");
       }
-    } catch (err) {
-      console.error(st.error(`Command failed: ${(err as Error).message}`));
+    } catch (err: any) {
+      if (err?.__replExit) {
+        console.error(st.error(`Command exited with code ${err.code ?? 1}`));
+      } else {
+        console.error(st.error(`Command failed: ${(err as Error).message}`));
+      }
+    } finally {
+      (process as any).exit = originalExit;
     }
     if (running) {
       process.stdout.write("\n");
@@ -221,9 +237,9 @@ export async function runRepl(): Promise<void> {
     if (input === KEY.ARROW_UP) {
       if (isPaletteOpen(state.buffer)) {
         const matches = visibleMatches(state.buffer);
-        if (matches.length > 0) {
-          state.paletteIndex =
-            (state.paletteIndex - 1 + matches.length) % matches.length;
+        const cap = Math.min(matches.length, PALETTE_MAX_VISIBLE);
+        if (cap > 0) {
+          state.paletteIndex = (state.paletteIndex - 1 + cap) % cap;
           drawFrame();
         }
       }
@@ -233,8 +249,9 @@ export async function runRepl(): Promise<void> {
     if (input === KEY.ARROW_DOWN) {
       if (isPaletteOpen(state.buffer)) {
         const matches = visibleMatches(state.buffer);
-        if (matches.length > 0) {
-          state.paletteIndex = (state.paletteIndex + 1) % matches.length;
+        const cap = Math.min(matches.length, PALETTE_MAX_VISIBLE);
+        if (cap > 0) {
+          state.paletteIndex = (state.paletteIndex + 1) % cap;
           drawFrame();
         }
       }
@@ -283,6 +300,7 @@ export async function runRepl(): Promise<void> {
   }
 
   captureStdin();
+  process.on("exit", () => { try { process.stdin.setRawMode?.(false); } catch {} });
   drawFrame();
 
   await new Promise<void>((resolve) => {

@@ -15,7 +15,7 @@ Consilium is open source and can be self-hosted on your own infrastructure. This
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/consilium.git
+git clone https://github.com/skadri1601/Consilium.git
 cd consilium
 ```
 
@@ -177,8 +177,8 @@ docker stack deploy -c docker-compose.prod.yml consilium
    ```
 
 2. **Set up reverse proxy** (Nginx/Traefik):
-   - Frontend: `app.consiliumai.com`
-   - API: `api.consiliumai.com`
+   - Frontend: `myconsilium.xyz`
+   - API: `api.myconsilium.xyz`
    - AI Workers: Internal only
 
 3. **Configure SSL** with Let's Encrypt
@@ -354,7 +354,7 @@ If using persistence:
 ## Support
 
 For self-hosting issues:
-- Check [GitHub Issues](https://github.com/yourusername/consilium/issues)
+- Check [GitHub Issues](https://github.com/skadri1601/Consilium/issues)
 - Review [Troubleshooting Guide](./troubleshooting.md)
 - Open a discussion on GitHub
 

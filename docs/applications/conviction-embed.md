@@ -32,7 +32,7 @@ A complete platform, built solo:
 - **Formal voting:** Condorcet method finds candidates that win every pairwise comparison. Ranked Pairs (Tideman's algorithm) handles cycles. Borda count provides continuous scoring. Copeland scores measure overall dominance. Confidence weights derived from Kendall tau correlation -- models that hold stable positions get upweighted, models that flip-flop get downweighted
 - **Dissent preservation:** Every deliberation produces a dissent report surfacing minority clusters. Minority positions are often correct -- the dissenting model may have identified an edge case the majority missed
 - **5-phase judge synthesis:** Claim extraction, cross-reference, dispute resolution, rubric scoring (correctness 30%, reasoning 25%, completeness 20%, actionability 15%, conciseness 10%), final verdict
-- **3 SDKs + CLI:** TypeScript, Python, CLI. `pip install consilium` or `npx @consilium/cli`
+- **3 SDKs + CLI:** TypeScript, Python, CLI. `pip install consilium` or `npx @myconsilium/cli`
 - **Full infrastructure:** Next.js 15 web app, NestJS 11 API on Fastify, Python FastAPI deliberation engine, Neon PostgreSQL, Upstash Redis, Docker self-hosting, GitHub Actions CI/CD with security scanning
 - **MIT open source.** 5 LLM providers (OpenAI, Anthropic, Google, Groq, xAI), BYOK pricing
 

@@ -45,7 +45,7 @@ Orchestration gives you the average of N models. Deliberation gives you the outp
 The full platform is working:
 
 - **Deliberation engine:** 13 Python modules implementing all 8 modes with round management, convergence detection, and 5-phase judge synthesis (claim extraction, cross-reference, dispute resolution, rubric scoring, final synthesis)
-- **3 SDKs:** TypeScript SDK (`@consilium/sdk`), Python SDK (`pip install consilium`), CLI (`npx @consilium/cli`)
+- **3 SDKs:** TypeScript SDK (`@myconsilium/sdk`), Python SDK (`pip install consilium`), CLI (`npx @myconsilium/cli`)
 - **Web app:** Next.js 15 with real-time SSE streaming, Clerk auth, Stripe billing
 - **API:** NestJS 11 on Fastify with BullMQ async processing, Prisma ORM, Swagger docs
 - **Infrastructure:** Neon PostgreSQL, Upstash Redis, GitHub Actions CI/CD (lint, typecheck, security scanning with CodeQL/bandit/gitleaks), automated code review

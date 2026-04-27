@@ -77,7 +77,7 @@ The pattern across all three papers: structured disagreement between models prod
 CLI:
 
 ```bash
-npx @consilium/cli deliberate "Should we use microservices or a monolith?"
+npx @myconsilium/cli deliberate "Should we use microservices or a monolith?"
 ```
 
 Python:
@@ -95,7 +95,7 @@ print(result.verdict)
 print(result.dissent_report)
 ```
 
-Install via `pip install consilium` or `npm install -g @consilium/cli`.
+Install via `pip install consilium` or `npm install -g @myconsilium/cli`.
 
 Source: [github.com/skadri1601/Consilium](https://github.com/skadri1601/Consilium)
 

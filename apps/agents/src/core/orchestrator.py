@@ -484,9 +484,36 @@ class DebateOrchestrator:
         round_count: int = 3,
         system_prompt: str | None = None,
         sub_agents: bool = False,
+        project_context: dict | None = None,
     ) -> AsyncGenerator[str, None]:
         self._debate_start_time = time.time()
         self._event_counter = 0
+
+        if project_context:
+            ctx_parts = ["=== PROJECT CONTEXT ==="]
+            meta = project_context
+            if meta.get("projectType"):
+                ctx_parts.append(f"Project: {meta['projectType']} ({meta.get('language', 'unknown')})")
+            if meta.get("framework") and meta["framework"] != "none":
+                ctx_parts.append(f"Framework: {meta['framework']}")
+            if meta.get("integrations"):
+                ctx_parts.append(f"Integrations: {', '.join(meta['integrations'])}")
+            files = meta.get("files", [])
+            if files:
+                ctx_parts.append("")
+                ctx_budget = 4000
+                for f in files:
+                    name = f.get("name", "unknown")
+                    file_content = f.get("content", "")
+                    snippet = file_content[:1500]
+                    if ctx_budget <= 0:
+                        break
+                    ctx_parts.append(f"--- FILE: {name} ---")
+                    ctx_parts.append(snippet)
+                    ctx_parts.append(f"--- END FILE ---")
+                    ctx_budget -= len(snippet)
+            ctx_parts.append("=== END PROJECT CONTEXT ===")
+            topic = chr(10).join(ctx_parts) + chr(10) + chr(10) + topic
 
         if not _has_any_user_key(api_keys):
             model_ids = get_free_fallback_models(count=max(len(model_ids), 2))

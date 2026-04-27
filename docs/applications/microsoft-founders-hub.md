@@ -11,7 +11,7 @@ Consilium is a structured deliberation platform where AI models engage in advers
 - **NestJS 11 API**: TypeScript backend on Fastify with BullMQ for async debate processing, Prisma ORM, Swagger documentation, and SSE streaming for real-time debate updates.
 - **Next.js 15 Web App**: React frontend with Clerk authentication, Stripe billing, shadcn/ui components, and real-time streaming of debate rounds.
 - **GitHub Actions CI/CD**: Automated lint, typecheck, security scanning (CodeQL, pip-audit, bandit, gitleaks), and Claude Code automated PR review on every push and pull request.
-- **Developer Tools**: CLI published on npm (`@consilium/cli`), Python SDK on PyPI (`consilium`), TypeScript SDK -- all with streaming support.
+- **Developer Tools**: CLI published on npm (`@myconsilium/cli`), Python SDK on PyPI (`consilium`), TypeScript SDK -- all with streaming support.
 - **Bot Infrastructure**: Slack bot with 3 Redis-backed workers, monitoring agent polling Sentry/SonarQube, Linear integration for project management.
 
 ## What We Already Use from Microsoft's Ecosystem

@@ -179,7 +179,7 @@ If you're self-hosting, ensure:
 ### Where can I get help?
 
 - **Documentation**: Check these docs and the [README](../README.md)
-- **GitHub Issues**: Report bugs or ask questions on [GitHub](https://github.com/yourusername/consilium)
+- **GitHub Issues**: Report bugs or ask questions on [GitHub](https://github.com/skadri1601/Consilium)
 - **Community**: Join discussions on GitHub Discussions
 
 ### How do I report a bug?

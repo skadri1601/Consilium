@@ -36,7 +36,6 @@ const MODE_ORDER: DebateMode[] = [
   "council",
   "deep",
   "blind",
-  "redteam",
   "jury",
   "market",
 ];

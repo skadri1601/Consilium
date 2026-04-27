@@ -24,7 +24,7 @@ The product is live, open source, and fully functional.
 - **8 deliberation modes:** Quick (single round, ~15s), Council (3-round cross-examination), Deep (5 rounds with sub-agent research), Blind (identity-stripped to prevent anchoring bias), Red Team (adversarial attack/defense cycles), Jury (ranked-choice voting panel), Market (prediction market confidence aggregation), Auto (automatic mode selection)
 - **Formal voting system:** Condorcet method, Borda count, Ranked Pairs (Tideman's algorithm), and Copeland scores with confidence weighting derived from Kendall tau correlation
 - **5-phase judge synthesis:** Claim extraction, cross-reference, dispute resolution, rubric scoring, final synthesis with minority dissent reports
-- **3 SDKs:** TypeScript (`@consilium/sdk`), Python (`pip install consilium`), CLI (`npx @consilium/cli`)
+- **3 SDKs:** TypeScript (`@myconsilium/sdk`), Python (`pip install consilium`), CLI (`npx @myconsilium/cli`)
 - **Full-stack platform:** Next.js 15 web app with real-time SSE streaming, NestJS 11 API with BullMQ async processing, Python FastAPI deliberation engine
 - **5 LLM providers:** OpenAI, Anthropic, Google, Groq, xAI -- BYOK with zero markup on inference costs
 - **Self-hosted Docker deployment:** One-command setup with `docker compose`
@@ -72,7 +72,7 @@ Beyond capital: a16z's network for enterprise design partnerships, introductions
 ## Traction
 
 - **Open source:** MIT-licensed, published on GitHub with full CI/CD (lint, typecheck, security scanning)
-- **Published SDKs:** CLI on npm (`@consilium/cli`), TypeScript SDK (`@consilium/sdk`), Python SDK on PyPI (`consilium`)
+- **Published SDKs:** CLI on npm (`@myconsilium/cli`), TypeScript SDK (`@myconsilium/sdk`), Python SDK on PyPI (`consilium`)
 - **Working product:** Full stack deployed -- web app on Vercel, API on Render, agents on Render/DigitalOcean
 - **Benchmark framework:** Evaluation runner built for MMLU-Pro, TruthfulQA, HumanEval, GSM8K with research-calibrated improvement estimates validated against Du et al. and Chen et al.
 - **Self-hosted deployment:** Docker Compose one-command setup for enterprise evaluation
