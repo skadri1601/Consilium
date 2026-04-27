@@ -13,7 +13,7 @@ concurrency:
 jobs:
   changes:
     name: Detect Changes
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     # dorny/paths-filter queries the GitHub API for the PR diff; without
     # pull-requests: read the action can't see the base ref and fails.
     permissions:
@@ -49,7 +49,7 @@ jobs:
 
   lint-and-typecheck:
     name: Lint & Type Check
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: changes
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -73,7 +73,7 @@ jobs:
 
   test-api:
     name: Test API
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: changes
     if: needs.changes.outputs.api == 'true' || needs.changes.outputs.packages == 'true' || needs.changes.outputs.config == 'true'
     services:
@@ -128,7 +128,7 @@ jobs:
 
   test-web:
     name: Test Web
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: changes
     if: needs.changes.outputs.web == 'true' || needs.changes.outputs.packages == 'true' || needs.changes.outputs.config == 'true'
     steps:
@@ -154,7 +154,7 @@ jobs:
 
   test-agents:
     name: Test Agents
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: changes
     if: needs.changes.outputs.agents == 'true'
     steps:
@@ -187,7 +187,7 @@ jobs:
 
   build:
     name: Build All
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [lint-and-typecheck, test-api, test-web, test-agents]
     if: always() && !failure() && !cancelled()
     steps:
@@ -223,7 +223,7 @@ jobs:
 
   ci-status:
     name: CI Status
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [changes, lint-and-typecheck, test-api, test-web, test-agents, build]
     if: always()
     steps:

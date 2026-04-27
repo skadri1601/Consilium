@@ -7,7 +7,7 @@ on:
 jobs:
   pr-title:
     name: Validate PR Title
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: write
@@ -41,7 +41,7 @@ jobs:
 
   pr-size:
     name: Label PR by Size
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: write
@@ -63,7 +63,7 @@ jobs:
 
   labeler:
     name: Auto-label Changed Files
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: write
