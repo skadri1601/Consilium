@@ -308,16 +308,9 @@ export default function PricingPage() {
                   : ""
               }
             >
-              {tier.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1 text-xs font-semibold text-white">
-                    Most Popular
-                  </span>
-                </div>
-              )}
               {tier.comingSoon && (
-                <div className="absolute top-3 right-3">
-                  <span className="rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold text-amber-400 uppercase tracking-wider">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold text-amber-400 uppercase tracking-wider">
                     Coming Soon
                   </span>
                 </div>

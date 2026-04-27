@@ -10,8 +10,19 @@ export const NOTION_DOCS: Record<string, string> = {
   "what-is-consilium": "33f2627d-d545-8151-bb04-c6fe20d3e59f",
   faq: "33f2627d-d545-8172-8b9d-ece326c70eba",
   security: "33f2627d-d545-8138-bc68-db494408c80f",
-  cli: "33f2627d-d545-8194-ac79-e95cc3a604d0",
-  modes: "33f2627d-d545-81d8-8f2f-e22543ad0684",
+  cli: "33f2627d-d545-8103-b481-dad525cefccd",
+  modes: "33f2627d-d545-8110-9fbd-c29abf78181f",
+  research: "33f2627d-d545-81b2-b3f2-cc1e9dc2ec19",
+  "product-tour": "33f2627d-d545-81da-90a0-f6409cd4fd1b",
+  "typescript-sdk": "33f2627d-d545-81e7-b8f1-ee6994f0a2bf",
+  "python-sdk": "33f2627d-d545-8195-828d-db1de175aad9",
+  mcp: "33f2627d-d545-8140-a116-dd847ebf325b",
+  "models-providers": "33f2627d-d545-81f4-aee0-e3a5cf29a0bc",
+  "platforms-docker": "33f2627d-d545-8163-aff8-f3fce2eefaa5",
+  authentication: "33f2627d-d545-81e6-bd89-e0210747384f",
+  "deliberation-engine": "33f2627d-d545-8102-9ed7-c27ea9790a1c",
+  "api-docs": "33f2627d-d545-8177-a492-eeae13406392",
+  "api-servers": "33f2627d-d545-816d-ba41-e8e7c580f660",
 };
 
 function renderRichText(richText: RichTextItemResponse[]): string {

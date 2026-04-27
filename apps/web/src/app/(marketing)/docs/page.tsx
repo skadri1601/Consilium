@@ -14,6 +14,12 @@ import {
   Users,
   Globe,
   Shield,
+  Play,
+  Key,
+  Server,
+  Settings,
+  Zap,
+  Database,
 } from "lucide-react";
 import {
   Card,
@@ -135,21 +141,75 @@ const notionDocs = [
   },
   {
     icon: Globe,
-    title: "Research",
+    title: "Research & Benchmarks",
     description: "Peer-reviewed papers behind each mode",
     href: "/docs/notion/research",
   },
   {
+    icon: Play,
+    title: "Product Tour",
+    description: "Visual walkthrough for non-technical visitors",
+    href: "/docs/notion/product-tour",
+  },
+  {
     icon: Terminal,
-    title: "CLI Reference (Notion)",
-    description: "Commands, flags, and usage from the docs hub",
+    title: "Getting Started — CLI",
+    description: "Install, authenticate, and run your first debate",
     href: "/docs/notion/cli",
   },
   {
+    icon: Code,
+    title: "Getting Started — TypeScript SDK",
+    description: "npm install and quickstart examples",
+    href: "/docs/notion/typescript-sdk",
+  },
+  {
+    icon: Code,
+    title: "Getting Started — Python SDK",
+    description: "pip install and async/sync usage",
+    href: "/docs/notion/python-sdk",
+  },
+  {
+    icon: Zap,
+    title: "Getting Started — MCP",
+    description: "Cursor and Claude Code integration",
+    href: "/docs/notion/mcp",
+  },
+  {
     icon: Layers,
-    title: "Deliberation Modes (Notion)",
-    description: "Deep dive into each mode's protocol",
+    title: "Deliberation Modes",
+    description: "All 8 modes explained with protocols",
     href: "/docs/notion/modes",
+  },
+  {
+    icon: Cpu,
+    title: "Models & Providers",
+    description: "Supported models, pricing, and free tier",
+    href: "/docs/notion/models-providers",
+  },
+  {
+    icon: Key,
+    title: "Authentication",
+    description: "CLI tokens, Clerk JWT, API auth matrix",
+    href: "/docs/notion/authentication",
+  },
+  {
+    icon: Settings,
+    title: "Deliberation Engine",
+    description: "Technical deep dive for engineers",
+    href: "/docs/notion/deliberation-engine",
+  },
+  {
+    icon: Server,
+    title: "API Reference",
+    description: "Endpoints, SSE streaming, server URLs",
+    href: "/docs/notion/api-docs",
+  },
+  {
+    icon: Database,
+    title: "Platforms & Docker",
+    description: "Cloud deployment and self-hosting",
+    href: "/docs/notion/platforms-docker",
   },
 ];
 
