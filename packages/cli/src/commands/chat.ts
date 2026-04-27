@@ -421,7 +421,10 @@ export async function chatCommand(): Promise<void> {
     removeHistoryDuplicates: true,
     completer,
   });
-  runReplLoop(rl, history, session, sessionManager);
+  await new Promise<void>((resolve) => {
+    rl.on('close', resolve);
+    runReplLoop(rl, history, session, sessionManager);
+  });
 }
 
 export async function chatResumeCommand(sessionId: string): Promise<void> {

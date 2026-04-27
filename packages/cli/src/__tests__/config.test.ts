@@ -98,10 +98,15 @@ describe('saveConfig / updateConfig / getConfigValue', () => {
 
   it('updateConfig merges with existing config', () => {
     writeConfig({ apiKey: 'consilium_old1234567' });
-    updateConfig('webUrl', 'https://example.com');
+    updateConfig('apiUrl', 'https://example.com');
     const cfg = loadConfig();
     expect(cfg.apiKey).toBe('consilium_old1234567');
-    expect(cfg.webUrl).toBe('https://example.com');
+    expect(cfg.apiUrl).toBe('https://example.com');
+  });
+
+  it('updateConfig rejects keys outside the allowlist', () => {
+    writeConfig({ apiKey: 'consilium_old1234567' });
+    expect(() => updateConfig('userName', 'Alice')).toThrow(/Unknown config key/);
   });
 });
 

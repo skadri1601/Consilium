@@ -74,15 +74,14 @@ const isOneShot =
 async function main(): Promise<void> {
   if (isDefaultRepl) {
     const { isLoggedIn } = await import("./utils/config.js");
+    const { runRepl } = await import("./repl/index.js");
     if (isLoggedIn()) {
-      const { showMenu } = await import("./commands/menu.js");
-      await showMenu();
+      await runRepl();
     } else {
       const { loginFlow } = await import("./commands/login.js");
       const ok = await loginFlow();
       if (ok) {
-        const { showMenu } = await import("./commands/menu.js");
-        await showMenu();
+        await runRepl();
       }
     }
     return;

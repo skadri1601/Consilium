@@ -48,6 +48,7 @@ class DebatesService:
             "round_count": request.round_count,
             "sub_agents": sub_agents,
             "debate_source": request.debate_source,
+            "project_context": request.project_context,
             "status": "pending",
         }
 
@@ -134,6 +135,7 @@ class DebatesService:
                 round_count=effective_rounds,
                 system_prompt=system_prompt,
                 sub_agents=sub_agents,
+                project_context=debate_data.get("project_context"),
             ):
                 yield event
         except Exception as exc:
