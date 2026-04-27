@@ -106,7 +106,9 @@ apps/agents/src/
 - Web returns HTTP 500 without a valid `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`. The dev server still runs and compiles correctly.
 - Agents report "degraded" health without LLM API keys — this is expected, not an error.
 - Poetry must be on PATH: `export PATH="$HOME/.local/bin:$PATH"`.
-- `.env` at repo root is read by all services. Copy from `.env.example`. Prisma reads from `../../.env` relative to `packages/database/`.
+- Both `.env` and `.env.local` at repo root are needed. The NestJS API reads `.env`/`.env.local` via `@nestjs/config`. The FastAPI agents' pydantic settings reads from `.env.local`. Next.js reads `.env.local`. Copy `.env.example` to both `.env` and `.env.local`.
+- When starting FastAPI agents, source the env file first so `os.getenv()` calls in health checks work: `set -a && source /workspace/.env.local && set +a && poetry run uvicorn ...`.
+- Do not quote values in `.env.local` — Next.js and pydantic-settings read the quotes literally.
 
 ### Lint / Test / Build
 
