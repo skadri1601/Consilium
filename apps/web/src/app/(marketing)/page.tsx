@@ -284,18 +284,16 @@ consilium login
 consilium debate "What's the best way to ship this feature?" \
   --mode council`;
 
-const providerMeta: Record<string, { icon: string; blurb: string }> = {
+const providerMeta: Record<string, { icon?: string; blurb: string }> = {
   Anthropic: { icon: "anthropic", blurb: "Claude 4 family — strongest reasoning and synthesis." },
   OpenAI: { icon: "openai", blurb: "GPT-5 series — fast, mini, and pro tiers." },
   Google: { icon: "google", blurb: "Gemini 3 — long context and fast multimodal." },
   Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
   xAI: { icon: "xai", blurb: "Grok 4 — code-focused and reasoning variants." },
-  Moonshot: { icon: "groq", blurb: "Kimi K2 — long-context reasoning." },
+  Moonshot: { blurb: "Kimi K2 — long-context reasoning." },
 };
 
-const providerOrder = ["Anthropic", "OpenAI", "Google", "Groq", "xAI", "Moonshot"];
-
-const modelGroups = providerOrder
+const modelGroups = Object.keys(providerMeta)
   .map((provider) => ({
     provider,
     meta: providerMeta[provider],
@@ -641,13 +639,22 @@ export default function LandingPage() {
               className="rounded-lg border bg-background p-5 space-y-3"
             >
               <div className="flex items-center gap-3">
-                <img
-                  src={`/brand/providers/${group.meta.icon}.svg`}
-                  alt={group.provider}
-                  width={24}
-                  height={24}
-                  className="h-6 w-6"
-                />
+                {group.meta.icon ? (
+                  <img
+                    src={`/brand/providers/${group.meta.icon}.svg`}
+                    alt={group.provider}
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
+                  >
+                    {group.provider.charAt(0)}
+                  </span>
+                )}
                 <span className="text-base font-semibold">{group.provider}</span>
               </div>
               <p className="text-xs text-muted-foreground">{group.meta.blurb}</p>
