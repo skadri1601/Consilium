@@ -205,13 +205,7 @@ Run `consilium mcp` for a copy-paste stdio config. The Python module `consilium.
 
 commander ^12.1.0, chalk ^5, ora ^8, eventsource ^2, zod ^3, dotenv, open
 
-## License
-
-Proprietary — © Consilium. All rights reserved. The CLI is distributed publicly via npm; the source repository is private. See LICENSE shipped in the package for permitted use.
-
 ## Links
 
-- [Web app](https://myconsilium.xyz)
-- [API docs](https://myconsilium.xyz/docs/api)
-- [Provider catalog](https://myconsilium.xyz/docs/providers)
-- Support: <support@myconsilium.xyz>
+- [Website](https://myconsilium.xyz)
+- [Documentation](https://myconsilium.xyz/docs)

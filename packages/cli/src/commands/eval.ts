@@ -21,15 +21,15 @@ interface EvalStreamCtx {
   resultText: string;
 }
 
-function readResponsesJsonFile(filePath: string): Record<string, unknown> {
+function readResponsesJsonFile(filePath: string): unknown[] | Record<string, unknown> {
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw) as unknown;
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-      console.log(st.error("Responses file must contain a JSON object"));
+    if (parsed === null || typeof parsed !== "object") {
+      console.log(st.error("Responses file must contain a JSON array or object"));
       process.exit(1);
     }
-    return parsed as Record<string, unknown>;
+    return parsed as unknown[] | Record<string, unknown>;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.log(st.error(`Failed to read responses file: ${msg}`));
@@ -149,12 +149,11 @@ export async function evalCommand(
 ): Promise<void> {
   await requireAuth();
 
-  if (!options.responses) {
-    console.log(st.error("--responses <file.json> is required"));
-    process.exit(1);
-  }
-  const responsesPayload = readResponsesJsonFile(options.responses);
+  const responsesPayload = options.responses
+    ? readResponsesJsonFile(options.responses)
+    : undefined;
 
+  const models = options.models ?? ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   const startTime = Date.now();
@@ -167,14 +166,16 @@ export async function evalCommand(
     process.exit(1);
   }
 
-  let deliberation: { id: string };
+  let debate: { id: string };
   try {
-    deliberation = await client.createDeliberation(topic, {
+    const body: Record<string, unknown> = {
+      topic,
+      models,
       mode: "blind",
-      models: options.models ?? ["gpt-5.4-mini", "claude-haiku-4-5-20251001"],
-      responses: responsesPayload,
       debateSource: "cli",
-    });
+    };
+    if (responsesPayload) body.responses = responsesPayload;
+    debate = await client.createDebate(body as any);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Create failed";
     log("ERROR", "eval_failed", { error: msg });
@@ -182,7 +183,7 @@ export async function evalCommand(
     process.exit(1);
   }
 
-  log("INFO", "eval_started", { debateId: deliberation.id });
+  log("INFO", "eval_started", { debateId: debate.id });
 
   const ctx: EvalStreamCtx = {
     useLiveProgress,
@@ -193,14 +194,14 @@ export async function evalCommand(
   };
 
   try {
-    await client.streamDeliberation(deliberation.id, (event: DeliberationEvent) => {
-      processEvalEvent(event, ctx);
+    await client.streamDebate(debate.id, (event) => {
+      processEvalEvent(event as DeliberationEvent, ctx);
     });
   } catch (error: unknown) {
     if (useLiveProgress) logUpdate.clear();
     const msg = error instanceof Error ? error.message : "Unknown error";
     log("ERROR", "eval_failed", {
-      debateId: deliberation.id,
+      debateId: debate.id,
       error: msg,
       durationMs: Date.now() - startTime,
     });
@@ -209,7 +210,7 @@ export async function evalCommand(
   }
 
   log("INFO", "eval_completed", {
-    debateId: deliberation.id,
+    debateId: debate.id,
     durationMs: Date.now() - startTime,
   });
 

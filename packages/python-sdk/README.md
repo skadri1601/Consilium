@@ -194,6 +194,7 @@ except ConsiliumError as e:
 
 Bring your own keys for OpenAI, Anthropic, Google, Groq, xAI, Moonshot, or OpenRouter. When no key is provided for the requested provider, Consilium routes the call through its free-tier pool (Groq's Llama / GPT-OSS, with OpenRouter as backup) and emits a `routing:fallback` event on the SSE stream so you always know when fallback is active. BYOK always wins; the free pool engages only as a backstop.
 
-## License
+## Links
 
-Proprietary — © Consilium. All rights reserved. The Python SDK is distributed publicly via PyPI; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.
+- [Website](https://myconsilium.xyz)
+- [Documentation](https://myconsilium.xyz/docs)

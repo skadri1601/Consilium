@@ -7,7 +7,7 @@ const st = style();
 
 function pythonMcpModulePath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  return path.normalize(path.join(here, "..", "..", "..", "python-sdk", "consilium", "mcp.py"));
+  return path.normalize(path.join(here, "..", "..", "..", "packages", "python-sdk", "consilium", "mcp.py"));
 }
 
 export function mcpCommand(options: { json?: boolean }): void {
@@ -16,9 +16,14 @@ export function mcpCommand(options: { json?: boolean }): void {
   const webUrl = (config.webUrl || DEFAULT_WEB_ORIGIN).replace(/\/$/, "");
   const mcpPy = pythonMcpModulePath();
 
+  const rawKey = config.apiKey || "";
+  const maskedKey = rawKey.length > 12
+    ? rawKey.slice(0, 10) + "..." + rawKey.slice(-4)
+    : rawKey || "<run consilium login first>";
+
   const envBlock = {
     CONSILIUM_API_URL: apiUrl,
-    CONSILIUM_API_KEY: config.apiKey || "<run consilium login first>",
+    CONSILIUM_API_KEY: maskedKey,
   };
 
   if (options.json) {

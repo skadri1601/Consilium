@@ -361,12 +361,13 @@ export async function benchmarkCommand(
   if (options.local) console.log(st.dim(`  Execution:  local`));
   console.log('');
 
-  if (options.local) {
-    await runLocalBenchmark(options.benchmark, models, mode, n, options.output, useLiveProgress, startTime);
-    return;
+  if (!options.local) {
+    console.log(st.warning('Remote benchmarks are not yet available. Use --local to run via the Python agent.\n'));
+    console.log(st.dim('  Example: consilium benchmark --benchmark mmlu -n 10 --local\n'));
+    process.exit(1);
   }
 
-  await runRemoteBenchmark(options, models, mode, n, useLiveProgress, startTime);
+  await runLocalBenchmark(options.benchmark, models, mode, n, options.output, useLiveProgress, startTime);
 }
 
 async function runLocalBenchmark(

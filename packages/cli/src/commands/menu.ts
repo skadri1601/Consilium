@@ -11,13 +11,12 @@ interface MenuEntry {
   command: string;
   description: string;
   group: 'modes' | 'other';
-  /** Used when the user picks the row by number — 'topic' prompts for the
-   * topic string and runs `consilium debate <topic> --mode=<mode>`. */
   action:
     | { kind: 'debate'; mode: string; promptFor: 'topic' }
     | { kind: 'redteam'; promptFor: 'content' }
     | { kind: 'eval'; promptFor: 'topic' }
     | { kind: 'chat' }
+    | { kind: 'resume' }
     | { kind: 'stats' }
     | { kind: 'config' }
     | { kind: 'logout' };
@@ -33,10 +32,11 @@ const MENU: MenuEntry[] = [
   { num: 7, command: 'consilium debate "<topic>" --mode market', description: 'Market — confidence-weighted probability aggregation', group: 'modes', action: { kind: 'debate', mode: 'market', promptFor: 'topic' } },
   { num: 8, command: 'consilium debate "<topic>" --mode auto', description: 'Auto — engine picks the best mode for your topic', group: 'modes', action: { kind: 'debate', mode: 'auto', promptFor: 'topic' } },
   { num: 9, command: 'consilium chat', description: 'Interactive REPL with session persistence', group: 'other', action: { kind: 'chat' } },
-  { num: 10, command: 'consilium stats', description: 'Usage statistics across past debates', group: 'other', action: { kind: 'stats' } },
-  { num: 11, command: 'consilium eval "<topic>"', description: 'Blind evaluation of provided responses', group: 'other', action: { kind: 'eval', promptFor: 'topic' } },
-  { num: 12, command: 'consilium config', description: 'Open API-key and provider settings', group: 'other', action: { kind: 'config' } },
-  { num: 13, command: 'consilium logout', description: 'Clear stored credentials', group: 'other', action: { kind: 'logout' } },
+  { num: 10, command: 'consilium sessions resume', description: 'Resume a saved chat session', group: 'other', action: { kind: 'resume' } },
+  { num: 11, command: 'consilium stats', description: 'Usage statistics across past debates', group: 'other', action: { kind: 'stats' } },
+  { num: 12, command: 'consilium eval "<topic>"', description: 'Blind evaluation of provided responses', group: 'other', action: { kind: 'eval', promptFor: 'topic' } },
+  { num: 13, command: 'consilium config', description: 'Open API-key and provider settings', group: 'other', action: { kind: 'config' } },
+  { num: 14, command: 'consilium logout', description: 'Clear stored credentials', group: 'other', action: { kind: 'logout' } },
 ];
 
 function renderHelp(userName?: string): string {
@@ -109,6 +109,23 @@ async function executeEntry(entry: MenuEntry): Promise<boolean> {
       const { chatCommand } = await import('./chat.js');
       await chatCommand();
       return false;
+    }
+    case 'resume': {
+      const { SessionManager } = await import('../utils/session-manager.js');
+      const sm = new SessionManager();
+      const sessions = sm.listSessions();
+      if (sessions.length === 0) {
+        console.log(st.dim('\n  No saved sessions.\n'));
+        return true;
+      }
+      console.log(st.bold('\n  Saved Sessions:\n'));
+      for (let i = 0; i < Math.min(sessions.length, 10); i++) {
+        const s = sessions[i];
+        console.log(`  ${i + 1}. ${s.name || 'Untitled'} (${s.debateCount} debates)`);
+        console.log(st.dim(`     ID: ${s.id}\n`));
+      }
+      console.log(st.dim('  Resume: consilium sessions resume <id>\n'));
+      return true;
     }
     case 'stats': {
       const { statsCommand } = await import('./stats.js');

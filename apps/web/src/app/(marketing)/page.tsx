@@ -183,47 +183,55 @@ const comparisonRows = [
   },
 ];
 
-const pythonCode = `from consilium import Consilium
+const pythonCode = `from consilium import ConsiliumClient, DeliberationMode
 
-client = Consilium(api_key="your-key")
-
-result = client.deliberate(
-    question="Should we migrate to microservices?",
-    mode="council",
-    models=["claude-sonnet-4-6",
-            "gpt-5.4", "gemini-3-flash-preview"],
+client = ConsiliumClient(
+    api_url="https://api.myconsilium.xyz",
+    api_key="your-key",
 )
 
-print(result.synthesis)
-print(result.confidence)
-print(result.dissenting_views)`;
+result = client.deliberate(
+    "Should we migrate to microservices?",
+    mode=DeliberationMode.COUNCIL,
+    models=["claude-sonnet-4-20250514",
+            "gpt-4o", "gemini-2.0-flash"],
+)
 
-const typescriptCode = `import { Consilium } from "@myconsilium/sdk";
+print(result.golden_prompt)
+print(result.confidence_scores)
+print(result.dissent_report)`;
 
-const client = new Consilium({ apiKey: "your-key" });
+const typescriptCode = `import { ConsiliumClient } from "@myconsilium/sdk";
+
+const client = new ConsiliumClient({
+  apiUrl: "https://api.myconsilium.xyz",
+  apiKey: "your-key",
+});
 
 const result = await client.deliberate({
-  question: "Should we migrate to microservices?",
+  topic: "Should we migrate to microservices?",
   mode: "council",
   models: ["claude-sonnet-4-6",
            "gpt-5.4", "gemini-3-flash-preview"],
 });
 
-console.log(result.synthesis);
-console.log(result.confidence);
-console.log(result.dissentingViews);`;
+console.log(result.goldenPrompt);
+console.log(result.confidenceScores);
+console.log(result.dissentReport);`;
 
 const cliCode = String.raw`# Quick deliberation
-consilium deliberate \
-  --question "Should we migrate to microservices?" \
+consilium debate "Should we migrate to microservices?" \
   --mode council \
-  --models claude-sonnet-4-6,gpt-5.4,gemini-3-flash-preview
+  --models claude-sonnet-4-20250514 gpt-4o gemini-2.0-flash
 
 # Red team assessment
-consilium deliberate \
-  --question "Is our auth system secure?" \
+consilium debate "Is our auth system secure?" \
   --mode redteam \
-  --output markdown`;
+  --output markdown
+
+# Codebase-aware debate with file context
+consilium debate "Review this architecture" \
+  --file src/auth.ts --git-diff`;
 
 const papers = [
   {
