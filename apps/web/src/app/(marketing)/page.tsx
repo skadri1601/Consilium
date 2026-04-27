@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
+import { AGENTS } from "@/shared/lib/constants";
 import {
   Zap,
   Shield,
@@ -30,6 +31,9 @@ import {
   History,
   Search,
   Send,
+  Terminal,
+  Cpu,
+  Gift,
 } from "lucide-react";
 
 const steps = [
@@ -193,8 +197,8 @@ client = ConsiliumClient(
 result = client.deliberate(
     "Should we migrate to microservices?",
     mode=DeliberationMode.COUNCIL,
-    models=["claude-sonnet-4-20250514",
-            "gpt-4o", "gemini-2.0-flash"],
+    models=["claude-sonnet-4-6",
+            "gpt-5.4", "gemini-3-flash-preview"],
 )
 
 print(result.golden_prompt)
@@ -222,7 +226,12 @@ console.log(result.dissentReport);`;
 const cliCode = String.raw`# Quick deliberation
 consilium debate "Should we migrate to microservices?" \
   --mode council \
-  --models claude-sonnet-4-20250514 gpt-4o gemini-2.0-flash
+  --models claude-sonnet-4-6 gpt-5.4 gemini-3-flash-preview
+
+# Free-tier (no API keys required)
+consilium debate "Pick a database for our SaaS" \
+  --mode council \
+  --models llama-3.3-70b-versatile openai/gpt-oss-120b
 
 # Red team assessment
 consilium debate "Is our auth system secure?" \
@@ -264,6 +273,33 @@ const papers = [
       "Debate between AI systems provides a scalable mechanism for aligning AI behavior with human values.",
   },
 ];
+
+const installSnippet = String.raw`# 1. Install the CLI globally
+npm install -g @myconsilium/cli
+
+# 2. Sign in (or run on the free tier with no key)
+consilium login
+
+# 3. Run your first debate
+consilium debate "What's the best way to ship this feature?" \
+  --mode council`;
+
+const providerMeta: Record<string, { icon?: string; blurb: string }> = {
+  Anthropic: { icon: "anthropic", blurb: "Claude 4 family — strongest reasoning and synthesis." },
+  OpenAI: { icon: "openai", blurb: "GPT-5 series — fast, mini, and pro tiers." },
+  Google: { icon: "google", blurb: "Gemini 3 — long context and fast multimodal." },
+  Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
+  xAI: { icon: "xai", blurb: "Grok 4 — code-focused and reasoning variants." },
+  Moonshot: { blurb: "Kimi K2 — long-context reasoning." },
+};
+
+const modelGroups = Object.keys(providerMeta)
+  .map((provider) => ({
+    provider,
+    meta: providerMeta[provider],
+    models: AGENTS.filter((a) => a.provider === provider),
+  }))
+  .filter((g) => g.models.length > 0);
 
 const tabs = ["Python", "TypeScript", "CLI"] as const;
 type Tab = (typeof tabs)[number];
@@ -469,6 +505,44 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section
+        id="install"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <div className="flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
+            <Terminal className="h-3.5 w-3.5" />
+            One command to get started
+          </div>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Install the CLI
+          </h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Run debates from your terminal — pipe in files, diffs, or stdin and
+            stream the deliberation live.
+          </p>
+        </div>
+        <div className="mx-auto max-w-3xl space-y-4">
+          <CodeBlock code={installSnippet} />
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/docs/cli"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              CLI Docs
+              <ArrowRight className="ml-2 h-3.5 w-3.5" />
+            </Link>
+            <Link
+              href="https://www.npmjs.com/package/@myconsilium/cli"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
+              View on npm
+              <ExternalLink className="ml-2 h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section id="sdk" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">SDK Examples</h2>
@@ -534,6 +608,89 @@ export default function LandingPage() {
               <span className="text-sm font-medium">{provider.name}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section
+        id="models"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <div className="flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
+            <Cpu className="h-3.5 w-3.5" />
+            Available in the CLI and Web app
+          </div>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Models on the Council
+          </h2>
+          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+            Mix any combination across providers. Models marked{" "}
+            <span className="inline-flex items-center gap-1 rounded-full border border-green-500/40 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+              <Gift className="h-3 w-3" />
+              Free
+            </span>{" "}
+            run on the no-key-required free tier.
+          </p>
+        </div>
+        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-6xl lg:grid-cols-3">
+          {modelGroups.map((group) => (
+            <div
+              key={group.provider}
+              className="rounded-lg border bg-background p-5 space-y-3"
+            >
+              <div className="flex items-center gap-3">
+                {group.meta.icon ? (
+                  <img
+                    src={`/brand/providers/${group.meta.icon}.svg`}
+                    alt={group.provider}
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
+                  >
+                    {group.provider.charAt(0)}
+                  </span>
+                )}
+                <span className="text-base font-semibold">{group.provider}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{group.meta.blurb}</p>
+              <ul className="space-y-2">
+                {group.models.map((model) => (
+                  <li
+                    key={model.id}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">
+                        {model.name}
+                      </div>
+                      <code className="text-xs text-muted-foreground truncate block">
+                        {model.id}
+                      </code>
+                    </div>
+                    {model.free && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-green-500/40 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                        <Gift className="h-3 w-3" />
+                        Free
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30 p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">No key, no problem.</span>{" "}
+            Start a debate with zero setup — Consilium routes free-tier requests
+            through Groq and OpenRouter automatically. Bring your own keys
+            anytime for premium models.
+          </p>
         </div>
       </section>
 
