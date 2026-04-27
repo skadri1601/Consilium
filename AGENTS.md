@@ -73,3 +73,48 @@ apps/agents/src/
 - Judge: non-participant model required in blind mode
 - Circuit breaker: provider unavailable for 60s after 3 failures
 - Model registry: apps/agents/src/shared/config/models.py (includes aliases for dated IDs)
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Port | Dev command | Health check |
+|---------|------|-------------|--------------|
+| PostgreSQL | 5432 | `sudo docker compose up postgres redis -d` | `sudo docker compose ps` |
+| Redis | 6379 | (started with postgres above) | (same) |
+| NestJS API | 4000 | `pnpm --filter @consilium/api dev` | `curl http://localhost:4000/health` |
+| Next.js Web | 3000 | `pnpm --filter @consilium/web dev` | `curl http://localhost:3000` |
+| FastAPI Agents | 8000 | `poetry run uvicorn src.main:app --reload --port 8000` (from `apps/agents/`) | `curl http://localhost:8000/health` |
+
+### Startup sequence
+
+1. Start Docker daemon: `sudo dockerd &>/tmp/dockerd.log &` (wait ~5s)
+2. Start containers: `sudo docker compose up postgres redis -d` (from repo root)
+3. Generate Prisma client: `pnpm db:generate`
+4. Push DB schema (first time): `pnpm db:push`
+5. Build shared types: `pnpm --filter @consilium/shared build` (required before API starts)
+6. Start API: `pnpm --filter @consilium/api dev`
+7. Start Web: `pnpm --filter @consilium/web dev`
+8. Start Agents: `cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000`
+
+### Gotchas
+
+- The NestJS API requires `@swc/cli` and `@swc/core` as dev dependencies (already in `apps/api/package.json`). Without them, `nest start --watch` fails immediately.
+- The `@consilium/shared` package must be built (`pnpm --filter @consilium/shared build`) before the API will compile, as the API imports from `@consilium/shared/dist/`.
+- The API health endpoint is at `/health` (not `/api/v1/health`); most other endpoints are under `/api/v1/`.
+- The API Swagger docs are at `http://localhost:4000/api/docs`.
+- The FastAPI agents docs are at `http://localhost:8000/docs`.
+- Web app returns HTTP 500 without valid Clerk keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`). The server still runs and compiles correctly.
+- Agents show "degraded" health without LLM API keys — this is expected behavior, not an error.
+- Poetry must be on PATH: `export PATH="$HOME/.local/bin:$PATH"`.
+- `.env` file at repo root is used by all services. Copy from `.env.example` for defaults. Prisma commands read from `../../.env` relative to `packages/database/`.
+
+### Lint / Test / Build
+
+- **TS lint**: `pnpm lint` (runs ESLint across web, api, and ui packages)
+- **Python lint**: `cd apps/agents && poetry run ruff check src/` (319 pre-existing warnings)
+- **API tests**: `pnpm --filter @consilium/api test` (Jest; 70/79 pass — 9 failures need real Clerk/API keys)
+- **Web tests**: `pnpm --filter @consilium/web test -- --run` (Vitest; 34/34 pass, 1 suite fails on Clerk import)
+- **Agent tests**: `cd apps/agents && poetry run pytest tests/` (61/72 pass — pre-existing mock/assertion issues)
+- **Type check**: `pnpm type-check`
+- **Build all**: `pnpm build`
