@@ -139,6 +139,18 @@ const notionDocs = [
     description: "Peer-reviewed papers behind each mode",
     href: "/docs/notion/research",
   },
+  {
+    icon: Terminal,
+    title: "CLI Reference (Notion)",
+    description: "Commands, flags, and usage from the docs hub",
+    href: "/docs/notion/cli",
+  },
+  {
+    icon: Layers,
+    title: "Deliberation Modes (Notion)",
+    description: "Deep dive into each mode's protocol",
+    href: "/docs/notion/modes",
+  },
 ];
 
 const quickLinks = [

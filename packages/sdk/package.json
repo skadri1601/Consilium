@@ -1,6 +1,6 @@
 {
   "name": "@myconsilium/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TypeScript SDK for the Consilium AI Council Platform",
   "license": "UNLICENSED",
   "type": "module",
@@ -26,7 +26,7 @@
     "build": "npm run build:esm && npm run build:cjs && node -e \"require('fs').writeFileSync('dist/cjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\"",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run clean && npm run build"
   },

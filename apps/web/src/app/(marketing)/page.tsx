@@ -346,6 +346,41 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="border-y bg-muted/50 py-12 md:py-16">
+        <div className="container max-w-4xl">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1 space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
+                <Code className="h-3 w-3" /> CLI — our flagship product
+              </div>
+              <h2 className="text-2xl font-bold sm:text-3xl">Start debating in seconds</h2>
+              <p className="text-muted-foreground">
+                Install the CLI, bring your own API keys, and run multi-model debates from any terminal. Codebase-aware context, 8 deliberation modes, streaming output.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <Link href="/docs/cli" className={cn(buttonVariants({ size: "sm" }))}>
+                  CLI Reference <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+                <Link href="/docs/getting-started" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                  Getting Started
+                </Link>
+              </div>
+            </div>
+            <div className="flex-1 w-full">
+              <div className="rounded-lg border bg-black p-4 font-mono text-sm text-green-400 space-y-2">
+                <div className="text-zinc-500 text-xs">$ Install globally</div>
+                <div>npm install -g @myconsilium/cli</div>
+                <div className="text-zinc-500 text-xs pt-2">$ Login and run</div>
+                <div>consilium login</div>
+                <div>consilium debate &quot;Should we use microservices?&quot;</div>
+                <div className="text-zinc-500 text-xs pt-2">$ Or try without installing</div>
+                <div>npx @myconsilium/cli debate &quot;Review my auth&quot;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section
         id="how-it-works"
         className="container space-y-6 py-8 md:py-12 lg:py-24"
