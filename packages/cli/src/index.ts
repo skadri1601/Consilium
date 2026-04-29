@@ -23,6 +23,7 @@ import { logoutCommand } from "./commands/logout.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
+import { upgradeCommand } from "./commands/upgrade.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { modelsCommand } from "./commands/models.js";
 import {
@@ -59,6 +60,7 @@ const KNOWN_SUBCOMMANDS = [
   "benchmark",
   "mcp",
   "models",
+  "upgrade",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -198,6 +200,12 @@ async function main(): Promise<void> {
     .command("stats")
     .description("Show model performance dashboard")
     .action(statsCommand);
+
+  program
+    .command("upgrade")
+    .description("Update Consilium CLI to the latest version (auto-detects pnpm/npm/yarn/bun)")
+    .option("--check", "Only check for a newer version, do not install")
+    .action((options: { check?: boolean }) => upgradeCommand(options));
 
   const mcp = program
     .command("mcp")
