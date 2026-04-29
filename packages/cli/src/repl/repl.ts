@@ -1,4 +1,5 @@
-import { findCommand, type SlashCommand } from "./commands.js";
+import readline from "node:readline";
+import { findCommand, filterCommands, type SlashCommand } from "./commands.js";
 import {
   clampPaletteIndex,
   createState,
@@ -76,12 +77,85 @@ function parseBuffer(buffer: string): ParsedInput {
   return { command: cmd, args };
 }
 
+async function runReplFallback(): Promise<void> {
+  // Non-TTY: skip raw-mode keystroke capture, the palette UI, and the
+  // ANSI redraw cycle. Drop to a line-buffered readline so the REPL
+  // still works in IDE consoles, docker exec without -t, recording
+  // tools, etc. — the surface a user sees is "type a command per line,
+  // press enter, repeat".
+  const cfg = loadConfig();
+  const userName = cfg.userName || "you";
+  console.log("");
+  console.log(`  ${st.bold("Consilium")} ${st.dim("· non-interactive mode")}`);
+  console.log(`  ${st.dim(`Welcome, ${userName}.`)}`);
+  console.log("");
+  console.log(
+    `  ${st.dim("Type a command (e.g.")} ${st.brand("/help")}${st.dim(", ")}${st.brand("/quick <topic>")}${st.dim(") or type a topic to debate.")}`,
+  );
+  console.log(
+    `  ${st.dim("Tip: a real terminal (TTY) gets the slash-command palette and arrow-key navigation.")}`,
+  );
+  console.log("");
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false,
+  });
+
+  const askLine = (): Promise<string | null> =>
+    new Promise((resolve) => {
+      rl.question("consilium > ", (answer) => resolve(answer));
+      rl.once("close", () => resolve(null));
+    });
+
+  let running = true;
+  while (running) {
+    const line = await askLine();
+    if (line === null) break;
+    const parsed = parseBuffer(line);
+    if (!parsed.command && !parsed.args) continue;
+
+    if (parsed.unknown) {
+      console.log(st.warning(`Unknown command: /${parsed.unknown}`));
+      const suggestions = filterCommands(parsed.unknown).slice(0, 5);
+      if (suggestions.length > 0) {
+        console.log(st.dim("  Did you mean:"));
+        for (const s of suggestions) {
+          console.log(st.dim(`    ${s.usage ?? `/${s.name}`} — ${s.summary}`));
+        }
+      } else {
+        console.log(st.dim("  Type /help to list all commands."));
+      }
+      continue;
+    }
+
+    const cmd = parsed.command ?? findCommand("auto");
+    if (!cmd) {
+      console.log(st.warning("No command available — set a default with /help."));
+      continue;
+    }
+
+    try {
+      const result = await cmd.run(parsed.args);
+      if (result?.exit) {
+        running = false;
+        break;
+      }
+      if (result?.cleared) {
+        process.stdout.write("\x1b[2J\x1b[H");
+      }
+    } catch (err) {
+      console.error(st.error(`Command failed: ${(err as Error).message}`));
+    }
+  }
+
+  rl.close();
+}
+
 export async function runRepl(): Promise<void> {
   if (!terminal.isTTY) {
-    console.log(st.dim("Consilium REPL requires an interactive terminal."));
-    console.log(
-      st.dim('Run a single command instead, e.g. consilium debate "<topic>"'),
-    );
+    await runReplFallback();
     return;
   }
 
