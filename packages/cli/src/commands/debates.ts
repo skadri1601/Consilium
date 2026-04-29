@@ -104,7 +104,10 @@ export interface StartDebateOptions {
   gitDiff?: boolean;
   ticket?: string;
   context?: boolean;
+  /** Legacy alias — agent tools are now on by default. */
   mcpTools?: boolean;
+  /** Commander negation — present and false when --no-tools is passed. */
+  tools?: boolean;
 }
 
 const DEFAULT_START_MODELS = ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"];
@@ -128,7 +131,10 @@ export async function startDebateCommand(
   });
 
   const bridge = await startToolBridge(client, {
-    enabled: Boolean(options.mcpTools),
+    // Tools default to ON; --no-tools (Commander -> options.tools === false)
+    // is the explicit opt-out. The legacy --mcp-tools flag is preserved as
+    // a no-op alias since on-by-default makes it redundant.
+    enabled: options.tools !== false,
     quiet: options.json,
   });
 
@@ -169,7 +175,10 @@ export async function startDebateCommand(
 
 export interface StreamDebateOptions {
   deliberation?: boolean;
+  /** Legacy alias — agent tools are now on by default. */
   mcpTools?: boolean;
+  /** Commander negation — present and false when --no-tools is passed. */
+  tools?: boolean;
 }
 
 export async function streamDebateCommand(
@@ -179,7 +188,7 @@ export async function streamDebateCommand(
   await requireAuth();
   const client = new ConsiliumClient();
 
-  const bridge = await startToolBridge(client, { enabled: Boolean(options.mcpTools) });
+  const bridge = await startToolBridge(client, { enabled: options.tools !== false });
 
   // The stream event callbacks are sync, so we can't await the
   // bridge's async handleEvent. Attach an explicit .catch() instead of
