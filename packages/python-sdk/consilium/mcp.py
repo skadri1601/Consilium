@@ -367,7 +367,8 @@ async def handle_deliberate(arguments: dict[str, Any], progress_sink: Optional[A
     created = await _post_json("/api/v1/deliberation", body)
     sid = _require_sid(created, "/api/v1/deliberation")
     final = await _stream_deliberation(sid, on_event=progress_sink)
-    return json.dumps(final, indent=2, default=str)
+    from .mcp_formatting import format_deliberation_markdown
+    return format_deliberation_markdown(final)
 
 
 async def handle_list_debates(arguments: dict[str, Any]) -> str:
@@ -395,7 +396,8 @@ async def handle_list_debates(arguments: dict[str, Any]) -> str:
     data = await _get_json(path)
     if isinstance(data, dict) and "items" in data:
         data = data["items"]
-    return json.dumps(data, indent=2, default=str)
+    from .mcp_formatting import format_debate_list_markdown
+    return format_debate_list_markdown(data)
 
 
 async def handle_cancel_debate(arguments: dict[str, Any]) -> str:
@@ -422,7 +424,8 @@ async def handle_red_team(arguments: dict[str, Any], progress_sink: Optional[Any
     created = await _post_json("/api/v1/deliberation/redteam", body)
     sid = _require_sid(created, "/api/v1/deliberation/redteam")
     final = await _stream_deliberation(sid, on_event=progress_sink)
-    return json.dumps(final, indent=2, default=str)
+    from .mcp_formatting import format_redteam_markdown
+    return format_redteam_markdown(final)
 
 
 async def handle_blind_eval(arguments: dict[str, Any], progress_sink: Optional[Any] = None) -> str:
@@ -439,7 +442,8 @@ async def handle_blind_eval(arguments: dict[str, Any], progress_sink: Optional[A
     created = await _post_json("/api/v1/deliberation/blind", body)
     sid = _require_sid(created, "/api/v1/deliberation/blind")
     final = await _stream_deliberation(sid, on_event=progress_sink)
-    return json.dumps(final, indent=2, default=str)
+    from .mcp_formatting import format_blind_eval_markdown
+    return format_blind_eval_markdown(final)
 
 
 TOOL_HANDLERS = {
@@ -484,7 +488,8 @@ try:
 
         async def _sink(event: dict[str, Any]) -> None:
             try:
-                message = event.get("event") or "progress"
+                from .mcp_formatting import readable_progress_message
+                message = readable_progress_message(event)
                 await send(progress_token=token, progress=0, total=None, message=message)
             except Exception:
                 pass
