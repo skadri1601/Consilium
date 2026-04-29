@@ -52,7 +52,7 @@ describe("startToolBridge", () => {
   it("returns null when no tools are available and shuts down the registry", async () => {
     mockRegistryStartAll.mockResolvedValue({ started: [], failed: [] });
     mockRegistryListTools.mockReturnValue([]);
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     expect(bridge).toBeNull();
     expect(mockRegistryStopAll).toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe("startToolBridge", () => {
         tool: { name: "read_file", description: "Reads", inputSchema: { type: "object" } },
       },
     ]);
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     expect(bridge).not.toBeNull();
     expect(bridge!.tools).toHaveLength(1);
     expect(bridge!.tools[0]!.qualifiedName).toBe("filesystem.read_file");
@@ -88,7 +88,7 @@ describe("startToolBridge", () => {
       isError: false,
     });
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     await bridge!.handleEvent(
       {
         type: "tool:call_request",
@@ -118,7 +118,7 @@ describe("startToolBridge", () => {
     ]);
     mockRegistryCallTool.mockRejectedValue(new Error("permission denied"));
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     await bridge!.handleEvent(
       { type: "tool:call_request", callId: "call_2", name: "fs.read", arguments: {} },
       "dlb_1",
@@ -142,7 +142,7 @@ describe("startToolBridge", () => {
       },
     ]);
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     await bridge!.handleEvent({ type: "agent_chunk", text: "x" }, "dlb_1");
     expect(mockRegistryCallTool).not.toHaveBeenCalled();
     expect(fakeClient.postToolResult).not.toHaveBeenCalled();
@@ -156,7 +156,7 @@ describe("startToolBridge", () => {
     ]);
     mockRegistryCallTool.mockResolvedValue({ content: [{ type: "text", text: "ok" }] });
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true });
+    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
     for (let i = 0; i < 51; i++) {
       await bridge!.handleEvent(
         { type: "tool:call_request", callId: `call_${i}`, name: "fs.x", arguments: {} },

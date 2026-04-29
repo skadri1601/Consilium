@@ -1,6 +1,12 @@
 import { ConsiliumClient, DeliberationEvent, DebateEvent, ToolSchema } from "../api/client";
 import { McpRegistry } from "./mcp-client/registry";
 import { style } from "./visual-system";
+import {
+  BUILTIN_TOOLS,
+  callBuiltinTool,
+  isBuiltinTool,
+  type ToolContext,
+} from "../tools/builtin-tools.js";
 
 const st = style();
 
@@ -13,6 +19,20 @@ const DEFAULT_BUDGET = {
 export interface ToolBridgeOptions {
   enabled: boolean;
   quiet?: boolean;
+  /**
+   * If true, advertise the in-process Consilium tool suite (Read, Edit,
+   * Write, Glob, Grep, GitDiff, Bash). Defaults to true so agents can
+   * reach the codebase without any MCP server setup.
+   */
+  builtinsEnabled?: boolean;
+  /**
+   * Run the local file/exec tools in read-only mode (Edit/Write/Bash refuse).
+   */
+  readOnly?: boolean;
+  /**
+   * Project root for built-in tool calls. Defaults to process.cwd().
+   */
+  cwd?: string;
 }
 
 export interface ToolBridgeHandle {
@@ -28,6 +48,10 @@ export async function startToolBridge(
 ): Promise<ToolBridgeHandle | null> {
   if (!options.enabled) return null;
 
+  const builtinsEnabled = options.builtinsEnabled !== false;
+  const cwd = options.cwd ?? process.cwd();
+  const toolCtx: ToolContext = { cwd, readOnly: options.readOnly };
+
   const registry = new McpRegistry();
   const { started, failed } = await registry.startAll();
 
@@ -41,11 +65,21 @@ export async function startToolBridge(
   }
 
   const registered = registry.listTools();
-  const tools: ToolSchema[] = registered.map((t) => ({
+  const externalTools: ToolSchema[] = registered.map((t) => ({
     qualifiedName: t.qualifiedName,
     description: t.tool.description,
     inputSchema: t.tool.inputSchema,
   }));
+
+  const builtinSchemas: ToolSchema[] = builtinsEnabled
+    ? BUILTIN_TOOLS.map((t) => ({
+        qualifiedName: t.name,
+        description: t.description,
+        inputSchema: t.inputSchema,
+      }))
+    : [];
+
+  const tools: ToolSchema[] = [...builtinSchemas, ...externalTools];
 
   if (tools.length === 0) {
     await registry.stopAll();
@@ -53,6 +87,14 @@ export async function startToolBridge(
       console.log(st.dim("[mcp] no tools available — continuing without tool access"));
     }
     return null;
+  }
+
+  if (!options.quiet && builtinsEnabled) {
+    console.log(
+      st.dim(
+        `[tools] ${builtinSchemas.length} built-in (read/edit/grep/...) + ${externalTools.length} from MCP servers`,
+      ),
+    );
   }
 
   // Per-deliberation tool-call counters. The budget message says
@@ -126,10 +168,15 @@ export async function startToolBridge(
       }
 
       if (!options.quiet) {
-        console.log(st.dim(`[mcp] ${name}(${JSON.stringify(args ?? {}).slice(0, 80)})`));
+        console.log(st.dim(`[tools] ${name}(${JSON.stringify(args ?? {}).slice(0, 80)})`));
       }
 
       try {
+        if (builtinsEnabled && isBuiltinTool(name)) {
+          const result = await callBuiltinTool(name, args ?? {}, toolCtx);
+          await postResultSafely(deliberationId, callId, result);
+          return;
+        }
         const result = await registry.callTool(name, args ?? {});
         await postResultSafely(deliberationId, callId, result);
       } catch (err) {
