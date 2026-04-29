@@ -487,6 +487,35 @@ export class DebatesService {
     });
   }
 
+  async recordUsage(
+    sessionId: string,
+    tokens: number,
+    cost: number,
+  ): Promise<void> {
+    if (!Number.isFinite(tokens) || !Number.isFinite(cost)) return;
+    if (tokens <= 0 && cost <= 0) return;
+
+    const debate = await this.prisma.debateSession.findUnique({
+      where: { id: sessionId },
+      select: { userId: true },
+    });
+    if (!debate) return;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: debate.userId },
+      select: { tenantId: true },
+    });
+    if (!user) return;
+
+    await this.prisma.usageRecord.create({
+      data: {
+        tenantId: user.tenantId,
+        tokens: Math.max(0, Math.round(tokens)),
+        cost: Math.max(0, cost),
+      },
+    });
+  }
+
   async cancelDebate(id: string, clerkId: string) {
     const user = await this.prisma.user.findUnique({
       where: { clerkId },
