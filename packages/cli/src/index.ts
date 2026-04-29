@@ -23,6 +23,12 @@ import { logoutCommand } from "./commands/logout.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
+import {
+  debatePrCommand,
+  debateIssueCommand,
+  debateFailingCommand,
+  debateStagedCommand,
+} from "./commands/debate-shortcuts.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { modelsCommand } from "./commands/models.js";
 import {
@@ -59,6 +65,10 @@ const KNOWN_SUBCOMMANDS = [
   "benchmark",
   "mcp",
   "models",
+  "debate-pr",
+  "debate-issue",
+  "debate-failing",
+  "debate-staged",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -198,6 +208,40 @@ async function main(): Promise<void> {
     .command("stats")
     .description("Show model performance dashboard")
     .action(statsCommand);
+
+  program
+    .command("debate-pr")
+    .description("Fetch a GitHub PR via gh and debate it (review, design, security)")
+    .argument("<pr>", "PR number or URL (e.g. 123, https://github.com/o/r/pull/123)")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .option("--apply", "Apply structured edits from synthesis directly to files")
+    .action(debatePrCommand);
+
+  program
+    .command("debate-issue")
+    .description("Fetch a GitHub issue (gh) or Linear ticket (MYC-…) and debate the spec")
+    .argument("<id>", "GitHub issue number/URL or Linear ticket id (e.g. 42, MYC-123)")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action(debateIssueCommand);
+
+  program
+    .command("debate-failing")
+    .description("Auto-detect test runner, run tests, debate the failure if any")
+    .option("--command <cmd>", "Override the auto-detected test command (e.g. \"vitest run --no-coverage\")")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action((options: { command?: string; models?: string[]; mode?: string }) =>
+      debateFailingCommand(options),
+    );
+
+  program
+    .command("debate-staged")
+    .description("Review currently-staged git changes before commit")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action(debateStagedCommand);
 
   const mcp = program
     .command("mcp")
