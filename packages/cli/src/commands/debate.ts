@@ -28,6 +28,7 @@ import { formatEditPreview } from '../utils/diff-preview';
 import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
 import { resolveProjectRoot } from '../utils/project-root';
 import { KeyManager } from '../utils/key-manager';
+import { appendProjectMemory } from '../utils/project-memory';
 
 const st = style();
 
@@ -355,7 +356,11 @@ async function runClassicDebateFlow(
   const debateStartTime = Date.now();
   let debate: { id: string };
   try {
-    const contextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const contextParts = [
+      wsContext?.memoryPrefix,
+      wsContext?.ticketPrefix,
+      wsContext?.gitContextPrefix,
+    ].filter(Boolean).join('');
     const effectiveTopic = contextParts ? contextParts + topic : topic;
     const debateOpts: DebateOptions = {
       topic: effectiveTopic,
@@ -419,6 +424,22 @@ async function runClassicDebateFlow(
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });
 
+  // Persist this debate to project memory so subsequent debates in the
+  // same project can build on the conclusion. Best-effort — never fail
+  // the debate over a memory write error.
+  if (wsContext && goldenPrompt) {
+    try {
+      appendProjectMemory(wsContext.rootPath, {
+        topic,
+        mode,
+        summary: goldenPrompt,
+        debateId: debate.id,
+      });
+    } catch (err) {
+      log('WARN', 'memory_write_failed', { error: (err as Error).message });
+    }
+  }
+
   writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id);
 
   console.log(st.success('Debate complete.\n'));
@@ -477,6 +498,7 @@ export async function loadWorkspaceContext(
     projectContext: {},
     gitContextPrefix: '',
     ticketPrefix: '',
+    memoryPrefix: '',
     rootPath: process.cwd(),
     contextManifest: {
       root: process.cwd(),
@@ -568,7 +590,11 @@ async function runDeliberation(
 
   let deliberation: { id: string };
   try {
-    const delibContextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const delibContextParts = [
+      wsContext?.memoryPrefix,
+      wsContext?.ticketPrefix,
+      wsContext?.gitContextPrefix,
+    ].filter(Boolean).join('');
     const effectiveDelibTopic = delibContextParts ? delibContextParts + topic : topic;
     deliberation = await client.createDeliberation(effectiveDelibTopic, {
       models,
@@ -615,6 +641,19 @@ async function runDeliberation(
   }
 
   log('INFO', 'deliberation_completed', { debateId: deliberation.id, durationMs: Date.now() - startTime });
+
+  if (wsContext && ctx.resultText) {
+    try {
+      appendProjectMemory(wsContext.rootPath, {
+        topic,
+        mode,
+        summary: ctx.resultText,
+        debateId: deliberation.id,
+      });
+    } catch (err) {
+      log('WARN', 'memory_write_failed', { error: (err as Error).message });
+    }
+  }
 
   if (ctx.dissents.length > 0) {
     console.log(st.warning('\n  Dissent report:'));

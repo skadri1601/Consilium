@@ -5,6 +5,7 @@ import { collectGitContext, formatGitContextForPrompt } from './git-context';
 import { fetchTicket, formatTicketForPrompt } from './linear-client';
 import { scanProject, type ScanManifest, type ScannedFile } from './project-scanner';
 import { resolveProjectRoot } from './project-root';
+import { formatMemoryForPrompt, loadProjectMemory } from './project-memory';
 import { style } from './visual-system';
 
 const st = style();
@@ -21,6 +22,8 @@ export interface WorkspaceDebateContext {
   projectContext: Record<string, unknown>;
   gitContextPrefix: string;
   ticketPrefix: string;
+  /** Markdown summary of recent past debates in this project — prepended to the topic. */
+  memoryPrefix: string;
   rootPath: string;
   contextManifest: ScanManifest;
 }
@@ -101,6 +104,19 @@ export async function loadWorkspaceDebateContext(
     }
   }
 
+  // Project memory: surface what the council previously decided here so
+  // a follow-up debate can build on prior conclusions instead of re-deriving.
+  // Reads .consilium/memory.md; empty string when no entries.
+  const memoryPrefix = formatMemoryForPrompt(rootInfo.root);
+  if (memoryPrefix) {
+    const entryCount = loadProjectMemory(rootInfo.root).length;
+    console.log(
+      st.dim(
+        `  Loaded project memory (${entryCount} prior debate${entryCount === 1 ? '' : 's'} in .consilium/memory.md)`,
+      ),
+    );
+  }
+
   let ticketPrefix = '';
   if (options.ticket) {
     try {
@@ -145,6 +161,7 @@ export async function loadWorkspaceDebateContext(
     projectContext,
     gitContextPrefix,
     ticketPrefix,
+    memoryPrefix,
     rootPath: rootInfo.root,
     contextManifest: scanResult.manifest,
   };
