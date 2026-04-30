@@ -234,6 +234,17 @@ const utilityCommands: SlashCommand[] = [
     },
   },
   {
+    name: "upgrade",
+    category: "system",
+    summary: "Update Consilium CLI to the latest version",
+    usage: "/upgrade [--check]",
+    run: async (rawArgs) => {
+      const { upgradeCommand } = await import("../commands/upgrade.js");
+      const checkOnly = rawArgs.trim() === "--check";
+      await upgradeCommand({ check: checkOnly });
+    },
+  },
+  {
     name: "login",
     category: "system",
     summary: "Sign in via the web (refresh CLI token)",
@@ -252,6 +263,241 @@ const utilityCommands: SlashCommand[] = [
       const { logoutCommand } = await import("../commands/logout.js");
       logoutCommand();
       return { exit: true };
+    },
+  },
+  {
+    name: "read",
+    category: "session",
+    summary: "Read a file from the project (with line numbers)",
+    usage: "/read <path>",
+    run: async (rawArgs) => {
+      const relPath = rawArgs.trim();
+      if (!relPath) {
+        const { default: chalk } = await import("chalk");
+        console.log(chalk.hex("#9ca3af")("Usage: /read <path>"));
+        return;
+      }
+      const { handleRead } = await import("../tools/builtin-tools.js");
+      const result = await handleRead({ path: relPath }, { cwd: process.cwd() });
+      const { style } = await import("../utils/visual-system.js");
+      const st = style();
+      const text = result.content[0]?.text ?? "";
+      if (result.isError) console.log(st.error(text));
+      else console.log(text);
+    },
+  },
+  {
+    name: "grep",
+    category: "session",
+    summary: "Search file contents in the project (regex)",
+    usage: "/grep <pattern> [glob]",
+    run: async (rawArgs) => {
+      const trimmed = rawArgs.trim();
+      if (!trimmed) {
+        const { default: chalk } = await import("chalk");
+        console.log(chalk.hex("#9ca3af")("Usage: /grep <regex> [glob]"));
+        return;
+      }
+      const parts = trimmed.split(/\s+/);
+      const last = parts[parts.length - 1];
+      const hasGlob = last && (last.includes("*") || last.includes("?") || last.startsWith("**"));
+      const pattern = hasGlob ? parts.slice(0, -1).join(" ") : trimmed;
+      const glob = hasGlob ? last : undefined;
+      const { handleGrep } = await import("../tools/builtin-tools.js");
+      const result = await handleGrep({ pattern, glob }, { cwd: process.cwd() });
+      const { style } = await import("../utils/visual-system.js");
+      const st = style();
+      const text = result.content[0]?.text ?? "";
+      if (result.isError) console.log(st.error(text));
+      else console.log(text);
+    },
+  },
+  {
+    name: "find",
+    category: "session",
+    summary: "Find files by glob pattern",
+    usage: "/find <glob>",
+    run: async (rawArgs) => {
+      const pattern = rawArgs.trim();
+      if (!pattern) {
+        const { default: chalk } = await import("chalk");
+        console.log(chalk.hex("#9ca3af")("Usage: /find <glob>"));
+        return;
+      }
+      const { handleGlob } = await import("../tools/builtin-tools.js");
+      const result = await handleGlob({ pattern }, { cwd: process.cwd() });
+      const { style } = await import("../utils/visual-system.js");
+      const st = style();
+      const text = result.content[0]?.text ?? "";
+      if (result.isError) console.log(st.error(text));
+      else console.log(text);
+    },
+  },
+  {
+    name: "diff",
+    category: "session",
+    summary: "Show uncommitted git diff",
+    usage: "/diff [path]",
+    run: async (rawArgs) => {
+      const subPath = rawArgs.trim() || undefined;
+      const { handleGitDiff } = await import("../tools/builtin-tools.js");
+      const result = await handleGitDiff(subPath ? { path: subPath } : {}, { cwd: process.cwd() });
+      const { style } = await import("../utils/visual-system.js");
+      const st = style();
+      const text = result.content[0]?.text ?? "";
+      if (result.isError) console.log(st.error(text));
+      else console.log(text);
+    },
+  },
+  {
+    name: "preview",
+    category: "session",
+    summary: "Preview the structured edits the latest debate proposed",
+    usage: "/preview",
+    run: async () => {
+      const { style } = await import("../utils/visual-system.js");
+      const { resolveProjectRoot } = await import("../utils/project-root.js");
+      const { parseEditsFromSynthesis } = await import("../utils/apply-edits.js");
+      const { formatEditPreview } = await import("../utils/diff-preview.js");
+      const { SessionManager } = await import("../utils/session-manager.js");
+      const st = style();
+
+      const sm = new SessionManager();
+      const sessions = sm.listSessions();
+      if (sessions.length === 0) {
+        console.log(st.dim("No saved sessions yet. Run a debate first."));
+        return;
+      }
+      const latest = sessions[0]!;
+      let synthesis: string | undefined;
+      try {
+        const loaded = sm.loadSession(latest.id);
+        synthesis = loaded.debates[loaded.debates.length - 1]?.goldenPrompt;
+      } catch (err) {
+        console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
+        return;
+      }
+      if (!synthesis) {
+        console.log(st.dim("Latest session has no synthesis yet."));
+        return;
+      }
+      const root = resolveProjectRoot(process.cwd()).root;
+      const parsed = parseEditsFromSynthesis(synthesis, root);
+      if (parsed.edits.length === 0) {
+        console.log(st.dim("No structured edits found in latest synthesis."));
+        console.log(
+          st.dim(
+            "Tip: ask the council to emit edits as ```consilium-edits JSON or ```consilium-edit:<path> with SEARCH/REPLACE blocks.",
+          ),
+        );
+        return;
+      }
+      console.log(st.bold("\nPlanned edits (latest synthesis):\n"));
+      console.log(formatEditPreview(parsed.preview));
+      console.log("");
+      console.log(st.dim("  Run /apply to apply, /rollback to undo a previous apply."));
+    },
+  },
+  {
+    name: "apply",
+    category: "session",
+    summary: "Apply structured edits from latest debate synthesis (with permission prompt)",
+    usage: "/apply",
+    run: async () => {
+      const { style } = await import("../utils/visual-system.js");
+      const { resolveProjectRoot } = await import("../utils/project-root.js");
+      const { parseEditsFromSynthesis, applyEdits } = await import("../utils/apply-edits.js");
+      const { formatEditPreview } = await import("../utils/diff-preview.js");
+      const { SessionManager } = await import("../utils/session-manager.js");
+      const { requestWritePermission, consumeWritePermission } = await import("../utils/codebase-permissions.js");
+      const st = style();
+
+      const sm = new SessionManager();
+      const sessions = sm.listSessions();
+      if (sessions.length === 0) {
+        console.log(st.dim("No saved sessions yet."));
+        return;
+      }
+      const latest = sessions[0]!;
+      let synthesis: string | undefined;
+      try {
+        const loaded = sm.loadSession(latest.id);
+        synthesis = loaded.debates[loaded.debates.length - 1]?.goldenPrompt;
+      } catch (err) {
+        console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
+        return;
+      }
+      if (!synthesis) {
+        console.log(st.dim("Latest session has no synthesis to apply."));
+        return;
+      }
+      const root = resolveProjectRoot(process.cwd()).root;
+      const parsed = parseEditsFromSynthesis(synthesis, root);
+      if (parsed.edits.length === 0) {
+        console.log(st.warning("No structured edits found in latest synthesis."));
+        return;
+      }
+
+      console.log(st.bold("\nPlanned edits:\n"));
+      console.log(formatEditPreview(parsed.preview));
+      console.log("");
+
+      const level = await requestWritePermission(root);
+      if (level === "deny" || !consumeWritePermission(root)) {
+        console.log(st.warning("Write permission denied. No files were changed."));
+        return;
+      }
+
+      try {
+        const result = applyEdits(root, parsed.edits);
+        console.log(st.success(`Applied ${result.applied} edit(s).`));
+        console.log(st.dim(`  Snapshot: ${result.snapshot.id}`));
+        console.log(st.dim("  Run /rollback to restore."));
+      } catch (err) {
+        console.log(st.error(`Apply failed: ${(err as Error).message}`));
+      }
+    },
+  },
+  {
+    name: "rollback",
+    category: "session",
+    summary: "Restore the most recent apply snapshot",
+    usage: "/rollback",
+    run: async () => {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const os = await import("node:os");
+      const { restoreRollbackSnapshot } = await import("../utils/rollback.js");
+      const { style } = await import("../utils/visual-system.js");
+      const st = style();
+
+      const historyDir = path.join(os.homedir(), ".consilium", "edit-history");
+      if (!fs.existsSync(historyDir)) {
+        console.log(st.dim("No edit history yet."));
+        return;
+      }
+      const entries = fs
+        .readdirSync(historyDir)
+        .filter((name) => name.startsWith("edit_"))
+        .sort()
+        .reverse();
+      if (entries.length === 0) {
+        console.log(st.dim("No edit snapshots to roll back."));
+        return;
+      }
+      const latest = entries[0]!;
+      const snapshotPath = path.join(historyDir, latest, "snapshot.json");
+      if (!fs.existsSync(snapshotPath)) {
+        console.log(st.error(`Snapshot file missing for ${latest}.`));
+        return;
+      }
+      try {
+        const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf-8"));
+        restoreRollbackSnapshot(snapshot);
+        console.log(st.success(`Restored snapshot ${latest} (${snapshot.files?.length ?? 0} files).`));
+      } catch (err) {
+        console.log(st.error(`Rollback failed: ${(err as Error).message}`));
+      }
     },
   },
   {
