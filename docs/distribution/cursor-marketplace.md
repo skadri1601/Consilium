@@ -30,7 +30,7 @@ Suggested `consilium.json` entry shape (matches Smithery + Cursor conventions):
   "description": "Multi-provider AI debate on your codebase. OpenAI + Anthropic + Google + Groq + xAI + Moonshot + OpenRouter, all in one council, with read/edit/grep/bash tools.",
   "categories": ["code-review", "multi-agent", "debugging", "security"],
   "homepage": "https://myconsilium.xyz",
-  "repository": "https://github.com/skadri1601/Consilium",
+  "repository": "https://myconsilium.xyz",
   "install": {
     "type": "stdio",
     "command": "consilium-mcp",
@@ -87,7 +87,7 @@ Why list it:
 Distribution:
 - PyPI: pip install consilium → consilium-mcp
 - npm: @myconsilium/cli (also published as a CLI)
-- GitHub: https://github.com/skadri1601/Consilium
+- Homepage: https://myconsilium.xyz
 
 Smithery listing (in flight): https://smithery.ai/server/consilium
 Repo + docs: https://myconsilium.xyz

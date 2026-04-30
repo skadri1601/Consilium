@@ -28,7 +28,7 @@ categories:
   - security
 
 homepage: https://myconsilium.xyz
-repository: https://github.com/skadri1601/Consilium
+repository: https://myconsilium.xyz
 
 # Free to use — Bring Your Own Keys (BYOK) for any provider, or fall
 # back to the Consilium-managed free-tier pool when no keys are set.

@@ -25,7 +25,7 @@ docs-and-PR task.
 Add this single line to the Community Servers list, alphabetically (between any "C…" entries):
 
 ```markdown
-- **[Consilium](https://github.com/skadri1601/Consilium)** - Multi-AI council that debates across OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter for code review, design questions, and red-team assessments. Full codebase access via MCP tools.
+- **[Consilium](https://myconsilium.xyz)** - Multi-AI council that debates across OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter for code review, design questions, and red-team assessments. Full codebase access via MCP tools.
 ```
 
 ---
@@ -35,7 +35,7 @@ Add this single line to the Community Servers list, alphabetically (between any 
 ```markdown
 ## Adding the Consilium MCP server
 
-**Repo:** https://github.com/skadri1601/Consilium
+**Homepage:** https://myconsilium.xyz
 **Published as:** `pip install consilium` → `consilium-mcp` (PyPI)
 **License:** Source private. CLI / SDK / MCP server published under permissive distribution.
 
@@ -84,7 +84,7 @@ Get a free API key at https://myconsilium.xyz/sign-up.
 
 ### Verification
 
-- Source: https://github.com/skadri1601/Consilium
+- Homepage: https://myconsilium.xyz
 - PyPI: https://pypi.org/project/consilium/
 - Docs: https://myconsilium.xyz/docs
 

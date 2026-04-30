@@ -1,8 +1,0 @@
-{"version": 2, "width": 100, "height": 30, "timestamp": 1745000000, "title": "Consilium council placeholder", "env": {"SHELL": "/bin/zsh", "TERM": "xterm-256color"}}
-[0.0, "o", "$ "]
-[0.4, "o", "consilium debate \"Should we use Postgres or Neon?\"\r\n"]
-[1.2, "o", "\r\n  [1mConsilium[0m [2m· multi-agent council[0m\r\n  [2mLoaded 47 context files (412 KB)[0m\r\n  [2mAttached git context (branch: main — no uncommitted changes)[0m\r\n  [2mLoaded project memory (3 prior debates)[0m\r\n\r\n"]
-[2.0, "o", "  [1mClaude Sonnet 4.6[0m  [2manalyzing…[0m\r\n  [1mGPT-5.4[0m  [2manalyzing…[0m\r\n  [1mGemini 3.1 Pro[0m  [2manalyzing…[0m\r\n"]
-[5.5, "o", "\r\n  ✓ Round 1 complete (3 proposals)\r\n  ✓ Cross-examination (convergence 67%)\r\n  ✓ Synthesis\r\n\r\n"]
-[7.0, "o", "  [1mGolden prompt:[0m\r\n  Use Neon for serverless scaling and zero ops overhead.\r\n  Trade-off: vendor lock-in and a moderate per-query latency\r\n  penalty vs self-hosted Postgres on the same VPC.\r\n\r\n"]
-[8.5, "o", "  ✓ Debate complete. [2m$0.0431 · 5,421 tokens[0m\r\n\r\n$ "]
