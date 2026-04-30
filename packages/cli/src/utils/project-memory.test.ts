@@ -27,7 +27,7 @@ describe('project-memory', () => {
     created.push(root);
     expect(memoryFileExists(root)).toBe(false);
     expect(loadProjectMemory(root)).toEqual([]);
-    expect(formatMemoryForPrompt(root)).toBe('');
+    expect(formatMemoryForPrompt(root)).toEqual({ text: '', count: 0 });
   });
 
   it('appends a single entry and round-trips it', () => {
@@ -84,7 +84,8 @@ describe('project-memory', () => {
         summary: `Decision ${i}`,
       });
     }
-    const prefix = formatMemoryForPrompt(root, 3);
+    const { text: prefix, count } = formatMemoryForPrompt(root, 3);
+    expect(count).toBe(8);
     expect(prefix).toContain('Prior Council Decisions');
     expect(prefix).toContain('Topic 5');
     expect(prefix).toContain('Topic 6');
@@ -107,6 +108,6 @@ describe('project-memory', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'memory.md'), 'not a valid memory file at all');
     expect(loadProjectMemory(root)).toEqual([]);
-    expect(formatMemoryForPrompt(root)).toBe('');
+    expect(formatMemoryForPrompt(root)).toEqual({ text: '', count: 0 });
   });
 });

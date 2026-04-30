@@ -32,6 +32,26 @@ import { appendProjectMemory } from '../utils/project-memory';
 
 const st = style();
 
+function writeDebateMemory(
+  wsContext: WorkspaceDebateContext | null,
+  topic: string,
+  mode: string,
+  resultText: string | undefined,
+  debateId: string,
+): void {
+  if (!wsContext || !resultText) return;
+  try {
+    appendProjectMemory(wsContext.rootPath, {
+      topic,
+      mode,
+      summary: resultText,
+      debateId,
+    });
+  } catch (err) {
+    log('WARN', 'memory_write_failed', { error: (err as Error).message });
+  }
+}
+
 export interface DebateCommandOptions {
   models?: string[];
   output?: string;
@@ -424,21 +444,7 @@ async function runClassicDebateFlow(
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });
 
-  // Persist this debate to project memory so subsequent debates in the
-  // same project can build on the conclusion. Best-effort — never fail
-  // the debate over a memory write error.
-  if (wsContext && goldenPrompt) {
-    try {
-      appendProjectMemory(wsContext.rootPath, {
-        topic,
-        mode,
-        summary: goldenPrompt,
-        debateId: debate.id,
-      });
-    } catch (err) {
-      log('WARN', 'memory_write_failed', { error: (err as Error).message });
-    }
-  }
+  writeDebateMemory(wsContext, topic, mode, goldenPrompt, debate.id);
 
   writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id);
 
@@ -642,18 +648,7 @@ async function runDeliberation(
 
   log('INFO', 'deliberation_completed', { debateId: deliberation.id, durationMs: Date.now() - startTime });
 
-  if (wsContext && ctx.resultText) {
-    try {
-      appendProjectMemory(wsContext.rootPath, {
-        topic,
-        mode,
-        summary: ctx.resultText,
-        debateId: deliberation.id,
-      });
-    } catch (err) {
-      log('WARN', 'memory_write_failed', { error: (err as Error).message });
-    }
-  }
+  writeDebateMemory(wsContext, topic, mode, ctx.resultText, deliberation.id);
 
   if (ctx.dissents.length > 0) {
     console.log(st.warning('\n  Dissent report:'));

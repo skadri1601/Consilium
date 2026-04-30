@@ -134,16 +134,16 @@ export function appendProjectMemory(rootPath: string, entry: Omit<MemoryEntry, '
  * prepended to the next debate's topic. Returns empty string when no
  * memory exists so callers don't have to special-case.
  */
-export function formatMemoryForPrompt(rootPath: string, limit = MAX_ENTRIES_IN_PROMPT): string {
+export function formatMemoryForPrompt(rootPath: string, limit = MAX_ENTRIES_IN_PROMPT): { text: string; count: number } {
   const entries = loadProjectMemory(rootPath);
-  if (entries.length === 0) return '';
+  if (entries.length === 0) return { text: '', count: 0 };
   const recent = entries.slice(-limit);
   const lines: string[] = ['', '## Prior Council Decisions in This Project', ''];
   for (const e of recent) {
     lines.push(`- **[${e.mode}] ${e.topic}** — ${e.summary.slice(0, 240)}`);
   }
   lines.push('', '_(End of prior decisions. Use them to stay consistent unless the new request explicitly contradicts.)_', '', '');
-  return lines.join('\n');
+  return { text: lines.join('\n'), count: entries.length };
 }
 
 export function memoryFileExists(rootPath: string): boolean {
