@@ -28,36 +28,84 @@ function extractFencedBlocks(text: string): FencedBlock[] {
   return blocks;
 }
 
+// SEARCH/REPLACE block markers. Anchored to start-of-line so the parser
+// is linear in the body length: indexOf scans ahead to the next marker
+// rather than letting a [\s\S]*? lazily backtrack across the whole text
+// (Sonar S5852 ReDoS). Markers must be at line starts and use 5+ chars.
+const SR_SEARCH = /^<{5,}\s*SEARCH\s*$/m;
+const SR_DIVIDER = /^={5,}\s*$/m;
+const SR_REPLACE = /^>{5,}\s*REPLACE\s*$/m;
+
+interface SearchReplaceBlock {
+  pathLine: string | null;
+  oldString: string;
+  newString: string;
+  endIndex: number;
+}
+
+function findNextSearchReplace(body: string, fromIndex: number): SearchReplaceBlock | null {
+  const slice = body.slice(fromIndex);
+  const searchMatch = SR_SEARCH.exec(slice);
+  if (!searchMatch) return null;
+
+  const searchStart = fromIndex + searchMatch.index;
+  const searchEnd = searchStart + searchMatch[0].length;
+
+  const afterSearch = body.slice(searchEnd);
+  const divMatch = SR_DIVIDER.exec(afterSearch);
+  if (!divMatch) return null;
+  const divStart = searchEnd + divMatch.index;
+  const divEnd = divStart + divMatch[0].length;
+
+  const afterDiv = body.slice(divEnd);
+  const repMatch = SR_REPLACE.exec(afterDiv);
+  if (!repMatch) return null;
+  const repStart = divEnd + repMatch.index;
+  const repEnd = repStart + repMatch[0].length;
+
+  const oldString = body.slice(searchEnd, divStart).replace(/^\n/, "").replace(/\n$/, "");
+  const newString = body.slice(divEnd, repStart).replace(/^\n/, "").replace(/\n$/, "");
+
+  // Look back for an inline path on the line just before the SEARCH marker.
+  const before = body.slice(fromIndex, searchStart);
+  const lastNewline = before.lastIndexOf("\n", before.length - 2);
+  const lineStart = lastNewline >= 0 ? lastNewline + 1 : 0;
+  const lineRaw = before.slice(lineStart).replace(/\n$/, "").trim();
+  const pathLine = lineRaw.length > 0 ? lineRaw : null;
+
+  return { pathLine, oldString, newString, endIndex: repEnd };
+}
+
 function parseSearchReplaceBody(body: string, fallbackPath: string | null): EditAction[] {
   const actions: EditAction[] = [];
-  const blockRe =
-    /(?:^|\n)([^\n]+?)\n<{5,}\s*SEARCH\s*\n([\s\S]*?)\n={5,}\s*\n([\s\S]*?)\n>{5,}\s*REPLACE\s*(?=\n|$)/g;
-  let match: RegExpExecArray | null;
-  while ((match = blockRe.exec(body)) !== null) {
-    const filePath = (match[1] || "").trim();
-    const oldString = match[2] ?? "";
-    const newString = match[3] ?? "";
-    if (filePath) {
-      actions.push({ kind: "edit", path: filePath, oldString, newString });
-    } else if (fallbackPath) {
-      actions.push({ kind: "edit", path: fallbackPath, oldString, newString });
+  let cursor = 0;
+  while (cursor < body.length) {
+    const block = findNextSearchReplace(body, cursor);
+    if (!block) break;
+    const targetPath = block.pathLine ?? fallbackPath;
+    if (targetPath) {
+      actions.push({
+        kind: "edit",
+        path: targetPath,
+        oldString: block.oldString,
+        newString: block.newString,
+      });
     }
-  }
-  if (actions.length > 0) return actions;
-
-  const headlessRe =
-    /<{5,}\s*SEARCH\s*\n([\s\S]*?)\n={5,}\s*\n([\s\S]*?)\n>{5,}\s*REPLACE/g;
-  let headless: RegExpExecArray | null;
-  while ((headless = headlessRe.exec(body)) !== null) {
-    if (!fallbackPath) continue;
-    actions.push({
-      kind: "edit",
-      path: fallbackPath,
-      oldString: headless[1] ?? "",
-      newString: headless[2] ?? "",
-    });
+    cursor = block.endIndex;
   }
   return actions;
+}
+
+function pickString(obj: Record<string, unknown>, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === "string") return value;
+  }
+  return "";
+}
+
+function isEditShape(obj: Record<string, unknown>, kind: string | undefined): boolean {
+  return kind === "edit" || obj.old_string !== undefined || obj.oldString !== undefined;
 }
 
 function coerceJsonEdit(item: unknown): EditAction | null {
@@ -65,22 +113,19 @@ function coerceJsonEdit(item: unknown): EditAction | null {
   const obj = item as Record<string, unknown>;
   const path = typeof obj.path === "string" ? obj.path : "";
   if (!path) return null;
+
   const kind = typeof obj.kind === "string" ? obj.kind : undefined;
 
   if (kind === "delete") {
     return { kind: "delete", path };
   }
-  if (kind === "edit" || obj.old_string !== undefined || obj.oldString !== undefined) {
-    const oldString =
-      typeof obj.old_string === "string" ? obj.old_string :
-      typeof obj.oldString === "string" ? obj.oldString : "";
-    const newString =
-      typeof obj.new_string === "string" ? obj.new_string :
-      typeof obj.newString === "string" ? obj.newString : "";
+  if (isEditShape(obj, kind)) {
+    const oldString = pickString(obj, "old_string", "oldString");
+    const newString = pickString(obj, "new_string", "newString");
     const replaceAll = Boolean(obj.replace_all ?? obj.replaceAll ?? false);
     return { kind: "edit", path, oldString, newString, replaceAll };
   }
-  // Default: whole-file write (back-compat with { path, content })
+  // Default: whole-file write (back-compat with { path, content }).
   if (typeof obj.content === "string") {
     return { kind: "write", path, content: obj.content };
   }

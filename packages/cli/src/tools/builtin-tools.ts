@@ -50,6 +50,20 @@ function normalizeInsideRoot(cwd: string, relPath: string): string {
   return abs;
 }
 
+/**
+ * Coerce an unknown tool argument to a safe string. Falls back to "" when
+ * the value is null/undefined or anything other than a primitive string-like
+ * (avoids the "[object Object]" stringification trap when callers pass
+ * structured payloads through MCP).
+ */
+function stringArg(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return String(value);
+  }
+  return "";
+}
+
 function ok(text: string): ToolResult {
   return { content: [{ type: "text", text }] };
 }
@@ -93,7 +107,7 @@ export const READ_SCHEMA: ToolSchemaJson = {
 
 export async function handleRead(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
-  const relPath = String(args.path ?? "");
+  const relPath = stringArg(args.path);
   if (!relPath) return fail("path is required");
   const abs = normalizeInsideRoot(ctx.cwd, relPath);
   if (!fs.existsSync(abs)) return fail(`File not found: ${relPath}`);
@@ -133,9 +147,9 @@ export const EDIT_SCHEMA: ToolSchemaJson = {
 export async function handleEdit(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Edit refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
-  const relPath = String(args.path ?? "");
-  const oldString = String(args.old_string ?? "");
-  const newString = String(args.new_string ?? "");
+  const relPath = stringArg(args.path);
+  const oldString = stringArg(args.old_string);
+  const newString = stringArg(args.new_string);
   const replaceAll = Boolean(args.replace_all ?? false);
   if (!relPath) return fail("path is required");
 
@@ -173,8 +187,8 @@ export const WRITE_SCHEMA: ToolSchemaJson = {
 export async function handleWrite(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Write refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
-  const relPath = String(args.path ?? "");
-  const content = String(args.content ?? "");
+  const relPath = stringArg(args.path);
+  const content = stringArg(args.content);
   if (!relPath) return fail("path is required");
 
   const action: EditAction = { kind: "write", path: relPath, content };
@@ -202,30 +216,54 @@ export const GLOB_SCHEMA: ToolSchemaJson = {
   },
 };
 
+// Characters that need to be escaped when copied verbatim into a regex
+// produced by `compileGlob`. Kept as a Set for O(1) membership checks
+// (and to sidestep template-literal escaping pitfalls).
+const GLOB_REGEX_META = new Set([".", "+", "^", "$", "(", ")", "|", "[", "]", "\\"]);
+const GLOB_ALT_META_RE = /[.+^$()|[\]\\]/g;
+
+function escapeGlobAlt(literal: string): string {
+  return literal.replaceAll(GLOB_ALT_META_RE, "\\$&");
+}
+
+function compileGlobAlternation(pattern: string, start: number): { regex: string; nextIndex: number } {
+  const end = pattern.indexOf("}", start);
+  if (end === -1) {
+    return { regex: "\\{", nextIndex: start };
+  }
+  const opts = pattern
+    .slice(start + 1, end)
+    .split(",")
+    .map((s) => escapeGlobAlt(s.trim()));
+  return { regex: `(?:${opts.join("|")})`, nextIndex: end };
+}
+
+function compileGlobStar(pattern: string, index: number): { regex: string; nextIndex: number } {
+  if (pattern[index + 1] === "*") {
+    const after = pattern[index + 2] === "/" ? index + 3 : index + 2;
+    return { regex: ".*", nextIndex: after };
+  }
+  return { regex: "[^/]*", nextIndex: index + 1 };
+}
+
 function compileGlob(pattern: string): RegExp {
   let re = "";
   let i = 0;
   while (i < pattern.length) {
-    const ch = pattern[i];
+    const ch = pattern[i] ?? "";
     if (ch === "*") {
-      if (pattern[i + 1] === "*") {
-        re += ".*";
-        i += 2;
-        if (pattern[i] === "/") i++;
-        continue;
-      }
-      re += "[^/]*";
-    } else if (ch === "?") {
+      const star = compileGlobStar(pattern, i);
+      re += star.regex;
+      i = star.nextIndex;
+      continue;
+    }
+    if (ch === "?") {
       re += "[^/]";
     } else if (ch === "{") {
-      const end = pattern.indexOf("}", i);
-      if (end === -1) re += "\\{";
-      else {
-        const opts = pattern.slice(i + 1, end).split(",").map((s) => s.trim());
-        re += `(?:${opts.map((o) => o.replace(/[.+^$()|[\]\\]/g, "\\$&")).join("|")})`;
-        i = end;
-      }
-    } else if (".+^$()|[]\\".includes(ch ?? "")) {
+      const alt = compileGlobAlternation(pattern, i);
+      re += alt.regex;
+      i = alt.nextIndex;
+    } else if (GLOB_REGEX_META.has(ch)) {
       re += "\\" + ch;
     } else {
       re += ch;
@@ -258,9 +296,10 @@ function walkFiles(root: string, base: string, out: string[]): void {
 
 export async function handleGlob(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
-  const pattern = String(args.pattern ?? "");
+  const pattern = stringArg(args.pattern);
   if (!pattern) return fail("pattern is required");
-  const subdir = args.cwd ? normalizeInsideRoot(ctx.cwd, String(args.cwd)) : ctx.cwd;
+  const cwdArg = stringArg(args.cwd);
+  const subdir = cwdArg ? normalizeInsideRoot(ctx.cwd, cwdArg) : ctx.cwd;
   const re = compileGlob(pattern);
   const all: string[] = [];
   walkFiles(ctx.cwd, subdir, all);
@@ -299,9 +338,36 @@ export const GREP_SCHEMA: ToolSchemaJson = {
   },
 };
 
+function readFileForGrep(abs: string): string | null {
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(abs);
+  } catch {
+    return null;
+  }
+  if (stat.size > MAX_FILE_BYTES) return null;
+  try {
+    return fs.readFileSync(abs, "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+function collectMatchesInFile(rel: string, content: string, regex: RegExp, matches: string[]): void {
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    if (matches.length >= MAX_GREP_RESULTS) break;
+    regex.lastIndex = 0;
+    const line = lines[i] ?? "";
+    if (regex.test(line)) {
+      matches.push(`${rel}:${i + 1}: ${line.slice(0, 200)}`);
+    }
+  }
+}
+
 export async function handleGrep(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
-  const pattern = String(args.pattern ?? "");
+  const pattern = stringArg(args.pattern);
   if (!pattern) return fail("pattern is required");
   const ignoreCase = Boolean(args.ignore_case ?? false);
   let regex: RegExp;
@@ -311,7 +377,8 @@ export async function handleGrep(args: Record<string, unknown>, ctx: ToolContext
     return fail(`Invalid regex: ${(err as Error).message}`);
   }
 
-  const fileGlob = args.glob ? compileGlob(String(args.glob)) : null;
+  const globArg = stringArg(args.glob);
+  const fileGlob = globArg ? compileGlob(globArg) : null;
   const all: string[] = [];
   walkFiles(ctx.cwd, ctx.cwd, all);
   const candidates = fileGlob ? all.filter((p) => fileGlob.test(p)) : all;
@@ -319,28 +386,9 @@ export async function handleGrep(args: Record<string, unknown>, ctx: ToolContext
   const matches: string[] = [];
   for (const rel of candidates) {
     if (matches.length >= MAX_GREP_RESULTS) break;
-    const abs = path.join(ctx.cwd, rel);
-    let stat: fs.Stats;
-    try {
-      stat = fs.statSync(abs);
-    } catch {
-      continue;
-    }
-    if (stat.size > MAX_FILE_BYTES) continue;
-    let content: string;
-    try {
-      content = fs.readFileSync(abs, "utf-8");
-    } catch {
-      continue;
-    }
-    const lines = content.split("\n");
-    for (let i = 0; i < lines.length; i++) {
-      if (matches.length >= MAX_GREP_RESULTS) break;
-      regex.lastIndex = 0;
-      if (regex.test(lines[i] ?? "")) {
-        matches.push(`${rel}:${i + 1}: ${(lines[i] ?? "").slice(0, 200)}`);
-      }
-    }
+    const content = readFileForGrep(path.join(ctx.cwd, rel));
+    if (content === null) continue;
+    collectMatchesInFile(rel, content, regex, matches);
   }
   if (matches.length === 0) return ok(`No matches for /${pattern}/`);
   return ok(matches.join("\n"));
@@ -364,7 +412,7 @@ export const GIT_DIFF_SCHEMA: ToolSchemaJson = {
 export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
   const staged = Boolean(args.staged ?? false);
-  const subPath = args.path ? String(args.path) : undefined;
+  const subPath = stringArg(args.path) || undefined;
   const argv = ["diff", ...(staged ? ["--staged"] : []), ...(subPath ? ["--", subPath] : [])];
   try {
     const { stdout } = await execFileAsync("git", argv, {
@@ -381,16 +429,27 @@ export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolCont
 
 // ───────── Bash (gated) ─────────
 
-const BASH_DENY_PATTERNS = [
-  /\brm\s+-rf?\s+\//,
-  /\bsudo\b/,
-  /\bcurl\b.*\|.*\bsh\b/,
-  /\bwget\b.*\|.*\bsh\b/,
-  /\b:\s*\(\s*\)\s*\{/,  // fork bomb
-  /\bdd\s+if=\/dev\/(zero|random)/,
-  /\bmkfs\b/,
-  /\bshutdown\b/,
-  /\breboot\b/,
+// Naive accident protection only. A regex denylist over arbitrary shell
+// input cannot be relied on for sandboxing: anything routed through
+// /bin/sh -c can trivially evade these patterns (case folding, alternate
+// flags, indirection through node/python/find, etc.). The real safety
+// boundaries are ensureWriteAllowed (per-session permission), the 30s
+// timeout, and the 64 KB output cap. These checks just refuse the
+// most obvious accidental footguns. Patterns are anchored and bounded
+// to avoid super-linear regex backtracking (Sonar S5852).
+const BASH_DENY_PATTERNS: ReadonlyArray<{ re: RegExp; label: string }> = [
+  // rm with recursive flags targeting the filesystem root. Each flag token
+  // (-rf, -fR, --recursive, ...) is consumed with its trailing whitespace.
+  { re: /(^|[\s;&|`(])rm(\s+(-[a-zA-Z]{1,8}|--[a-z-]{1,32}))+\s+\/(\s|$)/, label: "rm -rf /" },
+  { re: /(^|[\s;&|`(])sudo(\s|$)/, label: "sudo" },
+  { re: /(^|[\s;&|`(])(curl|wget)\b[^|]{0,200}\|\s*(sh|bash|zsh)(\s|$)/, label: "curl|sh" },
+  { re: /:\s*\(\s*\)\s*\{[^}]{0,40}:\s*\|\s*:\s*&\s*\}\s*;\s*:/, label: "fork bomb" },
+  { re: /(^|[\s;&|`(])dd\s+[^|]{0,100}if=\/dev\/(zero|random|urandom)\b/, label: "dd if=/dev/zero" },
+  { re: /(^|[\s;&|`(])mkfs(\.[a-z0-9]{1,8})?\b/, label: "mkfs" },
+  { re: /(^|[\s;&|`(])shutdown(\s|$)/, label: "shutdown" },
+  { re: /(^|[\s;&|`(])reboot(\s|$)/, label: "reboot" },
+  { re: /(^|[\s;&|`(])halt(\s|$)/, label: "halt" },
+  { re: /(^|[\s;&|`(])poweroff(\s|$)/, label: "poweroff" },
 ];
 
 export const BASH_SCHEMA: ToolSchemaJson = {
@@ -410,12 +469,15 @@ export const BASH_SCHEMA: ToolSchemaJson = {
 export async function handleBash(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Bash refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
-  const command = String(args.command ?? "").trim();
+  const command = stringArg(args.command).trim();
   if (!command) return fail("command is required");
 
+  // Apply denylist case-insensitively against a lowercased copy. We don't
+  // use the /i flag on the regexes themselves to keep them simple to audit.
+  const lowered = command.toLowerCase();
   for (const deny of BASH_DENY_PATTERNS) {
-    if (deny.test(command)) {
-      return fail(`Blocked dangerous command pattern: ${deny.source}`);
+    if (deny.re.test(lowered)) {
+      return fail(`Blocked dangerous command pattern: ${deny.label}`);
     }
   }
 
@@ -435,7 +497,8 @@ export async function handleBash(args: Record<string, unknown>, ctx: ToolContext
     const e = err as { message?: string; stdout?: string; stderr?: string; code?: number };
     const summary = `exit ${e.code ?? "?"}: ${e.message ?? "unknown"}`;
     const tail = (e.stderr || e.stdout || "").slice(-2000);
-    return fail(`${summary}${tail ? `\n${tail}` : ""}`);
+    const suffix = tail ? "\n" + tail : "";
+    return fail(summary + suffix);
   }
 }
 

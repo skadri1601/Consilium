@@ -1,9 +1,46 @@
 import { DEBATE_MODES, type DebateMode } from "@consilium/shared";
+import type { ToolResult } from "../tools/builtin-tools.js";
 
 export type SlashRunResult = {
   exit?: boolean;
   cleared?: boolean;
 };
+
+async function logToolResult(result: ToolResult): Promise<void> {
+  const { style } = await import("../utils/visual-system.js");
+  const st = style();
+  const text = result.content[0]?.text ?? "";
+  if (result.isError) console.log(st.error(text));
+  else console.log(text);
+}
+
+async function logUsage(message: string): Promise<void> {
+  const { default: chalk } = await import("chalk");
+  console.log(chalk.hex("#9ca3af")(message));
+}
+
+/**
+ * Parse `/grep` arguments. Honours simple double quotes so the pattern can
+ * legitimately contain spaces or end in a wildcard without being eaten by a
+ * trailing-glob heuristic.
+ */
+function parseGrepArgs(rawArgs: string): { pattern: string; glob?: string } {
+  const trimmed = rawArgs.trim();
+  if (!trimmed) return { pattern: "" };
+
+  // Tokenize while respecting "..." quoting.
+  const tokens: string[] = [];
+  const tokenRe = /"([^"]*)"|(\S+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = tokenRe.exec(trimmed)) !== null) {
+    tokens.push(m[1] ?? m[2] ?? "");
+  }
+  if (tokens.length === 0) return { pattern: "" };
+
+  const [pattern, ...rest] = tokens;
+  const glob = rest.length > 0 ? rest.join(" ") : undefined;
+  return { pattern: pattern ?? "", glob };
+}
 
 export interface SlashCommand {
   name: string;
@@ -208,18 +245,9 @@ const utilityCommands: SlashCommand[] = [
     usage: "/read <path>",
     run: async (rawArgs) => {
       const relPath = rawArgs.trim();
-      if (!relPath) {
-        const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("Usage: /read <path>"));
-        return;
-      }
+      if (!relPath) return logUsage("Usage: /read <path>");
       const { handleRead } = await import("../tools/builtin-tools.js");
-      const result = await handleRead({ path: relPath }, { cwd: process.cwd() });
-      const { style } = await import("../utils/visual-system.js");
-      const st = style();
-      const text = result.content[0]?.text ?? "";
-      if (result.isError) console.log(st.error(text));
-      else console.log(text);
+      await logToolResult(await handleRead({ path: relPath }, { cwd: process.cwd() }));
     },
   },
   {
@@ -228,24 +256,14 @@ const utilityCommands: SlashCommand[] = [
     summary: "Search file contents in the project (regex)",
     usage: "/grep <pattern> [glob]",
     run: async (rawArgs) => {
-      const trimmed = rawArgs.trim();
-      if (!trimmed) {
-        const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("Usage: /grep <regex> [glob]"));
-        return;
-      }
-      const parts = trimmed.split(/\s+/);
-      const last = parts[parts.length - 1];
-      const hasGlob = last && (last.includes("*") || last.includes("?") || last.startsWith("**"));
-      const pattern = hasGlob ? parts.slice(0, -1).join(" ") : trimmed;
-      const glob = hasGlob ? last : undefined;
+      // Quoted-pattern friendly parser: `/grep "foo.*" "**/*.ts"` and
+      // `/grep foo.* **/*.ts` both work. The glob is opt-in via a
+      // second argument; we no longer pluck a wildcard token off the end
+      // of the pattern, which used to break regexes ending in `*`.
+      const { pattern, glob } = parseGrepArgs(rawArgs);
+      if (!pattern) return logUsage("Usage: /grep <regex> [glob]");
       const { handleGrep } = await import("../tools/builtin-tools.js");
-      const result = await handleGrep({ pattern, glob }, { cwd: process.cwd() });
-      const { style } = await import("../utils/visual-system.js");
-      const st = style();
-      const text = result.content[0]?.text ?? "";
-      if (result.isError) console.log(st.error(text));
-      else console.log(text);
+      await logToolResult(await handleGrep({ pattern, glob }, { cwd: process.cwd() }));
     },
   },
   {
@@ -255,18 +273,9 @@ const utilityCommands: SlashCommand[] = [
     usage: "/find <glob>",
     run: async (rawArgs) => {
       const pattern = rawArgs.trim();
-      if (!pattern) {
-        const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("Usage: /find <glob>"));
-        return;
-      }
+      if (!pattern) return logUsage("Usage: /find <glob>");
       const { handleGlob } = await import("../tools/builtin-tools.js");
-      const result = await handleGlob({ pattern }, { cwd: process.cwd() });
-      const { style } = await import("../utils/visual-system.js");
-      const st = style();
-      const text = result.content[0]?.text ?? "";
-      if (result.isError) console.log(st.error(text));
-      else console.log(text);
+      await logToolResult(await handleGlob({ pattern }, { cwd: process.cwd() }));
     },
   },
   {
@@ -277,12 +286,9 @@ const utilityCommands: SlashCommand[] = [
     run: async (rawArgs) => {
       const subPath = rawArgs.trim() || undefined;
       const { handleGitDiff } = await import("../tools/builtin-tools.js");
-      const result = await handleGitDiff(subPath ? { path: subPath } : {}, { cwd: process.cwd() });
-      const { style } = await import("../utils/visual-system.js");
-      const st = style();
-      const text = result.content[0]?.text ?? "";
-      if (result.isError) console.log(st.error(text));
-      else console.log(text);
+      await logToolResult(
+        await handleGitDiff(subPath ? { path: subPath } : {}, { cwd: process.cwd() }),
+      );
     },
   },
   {
@@ -308,7 +314,7 @@ const utilityCommands: SlashCommand[] = [
       let synthesis: string | undefined;
       try {
         const loaded = sm.loadSession(latest.id);
-        synthesis = loaded.debates[loaded.debates.length - 1]?.goldenPrompt;
+        synthesis = loaded.debates.at(-1)?.goldenPrompt;
       } catch (err) {
         console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
         return;
@@ -358,7 +364,7 @@ const utilityCommands: SlashCommand[] = [
       let synthesis: string | undefined;
       try {
         const loaded = sm.loadSession(latest.id);
-        synthesis = loaded.debates[loaded.debates.length - 1]?.goldenPrompt;
+        synthesis = loaded.debates.at(-1)?.goldenPrompt;
       } catch (err) {
         console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
         return;
