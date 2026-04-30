@@ -586,13 +586,15 @@ export default function LandingPage() {
             providers.
           </p>
         </div>
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-8">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6">
           {[
             { name: "Anthropic", icon: "anthropic" },
             { name: "OpenAI", icon: "openai" },
             { name: "Google", icon: "google" },
             { name: "Groq", icon: "groq" },
             { name: "xAI", icon: "xai" },
+            { name: "Moonshot", icon: "moonshot" },
+            { name: "OpenRouter", icon: "openrouter" },
           ].map((provider) => (
             <div
               key={provider.name}
