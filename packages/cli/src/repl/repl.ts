@@ -159,6 +159,13 @@ export async function runRepl(): Promise<void> {
     return;
   }
 
+  // First-run onboarding: detect the project, prompt for codebase
+  // consent, show the one-screen "what is this and how do I try it"
+  // pitch. Self-marks done in ~/.consilium/onboarded.json so the user
+  // sees this exactly once. Safe no-op on subsequent runs.
+  const { runOnboarding } = await import("./onboarding.js");
+  await runOnboarding();
+
   writeBanner();
 
   const state = createState();

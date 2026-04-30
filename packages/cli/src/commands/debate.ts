@@ -28,9 +28,30 @@ import { formatEditPreview } from '../utils/diff-preview';
 import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
 import { resolveProjectRoot } from '../utils/project-root';
 import { KeyManager } from '../utils/key-manager';
+import { appendProjectMemory } from '../utils/project-memory';
 import { startToolBridge, type ToolBridgeHandle } from '../utils/mcp-tool-bridge';
 
 const st = style();
+
+function writeDebateMemory(
+  wsContext: WorkspaceDebateContext | null,
+  topic: string,
+  mode: string,
+  resultText: string | undefined,
+  debateId: string,
+): void {
+  if (!wsContext || !resultText) return;
+  try {
+    appendProjectMemory(wsContext.rootPath, {
+      topic,
+      mode,
+      summary: resultText,
+      debateId,
+    });
+  } catch (err) {
+    log('WARN', 'memory_write_failed', { error: (err as Error).message });
+  }
+}
 
 export interface DebateCommandOptions {
   models?: string[];
@@ -377,7 +398,11 @@ async function runClassicDebateFlow(
   const debateStartTime = Date.now();
   let debate: { id: string };
   try {
-    const contextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const contextParts = [
+      wsContext?.memoryPrefix,
+      wsContext?.ticketPrefix,
+      wsContext?.gitContextPrefix,
+    ].filter(Boolean).join('');
     const effectiveTopic = contextParts ? contextParts + topic : topic;
     const debateOpts: DebateOptions = {
       topic: effectiveTopic,
@@ -458,6 +483,8 @@ async function runClassicDebateFlow(
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });
 
+  writeDebateMemory(wsContext, topic, mode, goldenPrompt, debate.id);
+
   writeFormattedDebateOutput(goldenPrompt, outputFormat, topic, models, mode, debate.id);
 
   console.log(st.success('Debate complete.\n'));
@@ -520,6 +547,7 @@ export async function loadWorkspaceContext(
     projectContext: {},
     gitContextPrefix: '',
     ticketPrefix: '',
+    memoryPrefix: '',
     rootPath: process.cwd(),
     contextManifest: {
       root: process.cwd(),
@@ -611,7 +639,11 @@ async function runDeliberation(
 
   let deliberation: { id: string };
   try {
-    const delibContextParts = [wsContext?.ticketPrefix, wsContext?.gitContextPrefix].filter(Boolean).join('');
+    const delibContextParts = [
+      wsContext?.memoryPrefix,
+      wsContext?.ticketPrefix,
+      wsContext?.gitContextPrefix,
+    ].filter(Boolean).join('');
     const effectiveDelibTopic = delibContextParts ? delibContextParts + topic : topic;
     deliberation = await client.createDeliberation(effectiveDelibTopic, {
       models,
@@ -658,6 +690,8 @@ async function runDeliberation(
   }
 
   log('INFO', 'deliberation_completed', { debateId: deliberation.id, durationMs: Date.now() - startTime });
+
+  writeDebateMemory(wsContext, topic, mode, ctx.resultText, deliberation.id);
 
   if (ctx.dissents.length > 0) {
     console.log(st.warning('\n  Dissent report:'));
