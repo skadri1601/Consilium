@@ -8,6 +8,12 @@
  *   { type: "reset" }
  */
 
+import debateCss from "./debate.css";
+
+const styleEl = document.createElement("style");
+styleEl.textContent = debateCss;
+document.head.appendChild(styleEl);
+
 interface VsCodeApi {
   postMessage(message: unknown): void;
   setState(state: unknown): void;

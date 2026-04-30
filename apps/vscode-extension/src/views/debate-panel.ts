@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 import * as crypto from "node:crypto";
-import * as fs from "node:fs";
-import * as path from "node:path";
 
 /**
  * Webview view rendered in the Consilium activity-bar container. Hosts
@@ -80,26 +78,13 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
         "debate.js",
       ),
     );
-    const cssPath = path.join(
-      this.context.extensionPath,
-      "src",
-      "webview",
-      "debate.css",
-    );
-    let css = "";
-    try {
-      css = fs.readFileSync(cssPath, "utf-8");
-    } catch {
-      // CSS is optional — fall back to inline minimal styles.
-    }
     const nonce = makeNonce();
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:;">
   <title>Consilium Council</title>
-  <style nonce="${nonce}">${css}</style>
 </head>
 <body>
   <div id="app">
