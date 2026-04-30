@@ -1,24 +1,26 @@
 import * as vscode from "vscode";
 import type { ConsiliumApiClient, DebateSummary } from "../api-client";
 
+function iconForStatus(status: string | undefined): string {
+  if (status === "completed") return "check";
+  if (status === "failed") return "error";
+  if (status === "processing") return "loading~spin";
+  return "comment-discussion";
+}
+
+function labelFor(topic: string | undefined): string {
+  const raw = topic ?? "(no topic)";
+  const truncated = topic && topic.length > 80 ? "…" : "";
+  return raw.slice(0, 80) + truncated;
+}
+
 class DebateNode extends vscode.TreeItem {
   constructor(public readonly summary: DebateSummary) {
-    const label =
-      (summary.topic ?? "(no topic)").slice(0, 80) +
-      (summary.topic && summary.topic.length > 80 ? "…" : "");
-    super(label, vscode.TreeItemCollapsibleState.None);
+    super(labelFor(summary.topic), vscode.TreeItemCollapsibleState.None);
     this.id = summary.id;
     this.description = `${summary.mode ?? "?"} · ${summary.status ?? "?"}`;
     this.tooltip = `${summary.topic ?? ""}\n${summary.id}\n${summary.createdAt ?? ""}`;
-    this.iconPath = new vscode.ThemeIcon(
-      summary.status === "completed"
-        ? "check"
-        : summary.status === "failed"
-          ? "error"
-          : summary.status === "processing"
-            ? "loading~spin"
-            : "comment-discussion",
-    );
+    this.iconPath = new vscode.ThemeIcon(iconForStatus(summary.status));
     this.contextValue = "consilium.debate";
     this.command = {
       command: "consilium.openDebate",

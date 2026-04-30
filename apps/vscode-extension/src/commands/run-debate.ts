@@ -5,7 +5,6 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import type {
   ConsiliumApiClient,
-  DebateEvent,
   DebateMode,
   DebateOptions,
 } from "../api-client";
@@ -29,10 +28,38 @@ export async function runDebate(
   panel: DebatePanelProvider,
 ): Promise<void> {
   const cfg = vscode.workspace.getConfiguration("consilium");
-  const mode =
-    input.mode ?? (cfg.get<string>("defaultMode") as DebateMode | undefined) ?? "auto";
-  const models = cfg.get<string[]>("defaultModels") ?? [];
   const toolsEnabled = cfg.get<boolean>("toolsEnabled") ?? true;
+  const opts = await buildDebateOptions(input, cfg, toolsEnabled);
+
+  panel.reset();
+  panel.reveal();
+  panel.postEvent({ type: "debate_start", topic: input.topic, mode: opts.mode });
+
+  const debate = await tryCreateDebate(client, panel, opts);
+  if (!debate) return;
+
+  panel.postEvent({ type: "debate_id", id: debate.id });
+
+  const ac = new AbortController();
+  const cancelDisposable = registerCancelButton(() => ac.abort());
+
+  try {
+    await streamAndDispatch(client, panel, debate.id, ac, toolsEnabled);
+  } finally {
+    cancelDisposable.dispose();
+  }
+}
+
+async function buildDebateOptions(
+  input: RunDebateInput,
+  cfg: vscode.WorkspaceConfiguration,
+  toolsEnabled: boolean,
+): Promise<DebateOptions> {
+  const mode =
+    input.mode ??
+    (cfg.get<string>("defaultMode") as DebateMode | undefined) ??
+    "auto";
+  const models = cfg.get<string[]>("defaultModels") ?? [];
   const autoGit = cfg.get<boolean>("autoAttachGitContext") ?? true;
 
   const projectContext: Record<string, unknown> = { ...(input.context ?? {}) };
@@ -53,68 +80,91 @@ export async function runDebate(
     debateSource: "vscode",
     files: input.files,
     projectContext,
-    ...(toolsEnabled
-      ? {
-          tools: BUILTIN_TOOL_SCHEMAS,
-          toolBudget: { maxCallsPerTurn: 5, maxTotalCalls: 50, perCallTimeoutMs: 30000 },
-        }
-      : {}),
   };
+  if (toolsEnabled) {
+    opts.tools = BUILTIN_TOOL_SCHEMAS;
+    opts.toolBudget = {
+      maxCallsPerTurn: 5,
+      maxTotalCalls: 50,
+      perCallTimeoutMs: 30000,
+    };
+  }
+  return opts;
+}
 
-  panel.reset();
-  panel.reveal();
-  panel.postEvent({ type: "debate_start", topic: input.topic, mode });
-
-  let debate: { id: string };
+async function tryCreateDebate(
+  client: ConsiliumApiClient,
+  panel: DebatePanelProvider,
+  opts: DebateOptions,
+): Promise<{ id: string } | null> {
   try {
-    debate = await client.createDebate(opts);
+    return await client.createDebate(opts);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     panel.postEvent({ type: "error", error: msg });
     vscode.window.showErrorMessage(`Consilium: ${msg}`);
-    return;
+    return null;
   }
+}
 
-  panel.postEvent({ type: "debate_id", id: debate.id });
-
-  const ac = new AbortController();
-  const cancelDisposable = registerCancelButton(() => ac.abort());
-
+async function streamAndDispatch(
+  client: ConsiliumApiClient,
+  panel: DebatePanelProvider,
+  debateId: string,
+  ac: AbortController,
+  toolsEnabled: boolean,
+): Promise<void> {
   try {
-    for await (const event of client.streamDebate(debate.id, ac.signal)) {
+    for await (const event of client.streamDebate(debateId, ac.signal)) {
       panel.postEvent(event);
       if (toolsEnabled && event.type === "tool:call_request") {
-        // Tool execution is intentionally NOT auto-run from the extension
-        // host yet — surfaced to the panel so the user sees the request,
-        // but the engine times out the call and the model continues.
-        // Wiring full local tool execution is a follow-up (see PR body).
-        await client.postToolResult(debate.id, event.callId ?? "", {
-          content: [
-            {
-              type: "text",
-              text: "Tool execution from VS Code extension is gated to a follow-up release. Use the CLI for tool-enabled debates today.",
-            },
-          ],
-          isError: true,
-        });
+        await respondNotImplemented(client, debateId, event.callId);
       }
     }
   } catch (err) {
-    if (ac.signal.aborted) {
-      panel.postEvent({ type: "cancelled" });
-      try {
-        await client.cancelDebate(debate.id);
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-    const msg = err instanceof Error ? err.message : String(err);
-    panel.postEvent({ type: "error", error: msg });
-    vscode.window.showErrorMessage(`Consilium: ${msg}`);
-  } finally {
-    cancelDisposable.dispose();
+    await handleStreamError(client, panel, debateId, ac, err);
   }
+}
+
+async function respondNotImplemented(
+  client: ConsiliumApiClient,
+  debateId: string,
+  callId: string | undefined,
+): Promise<void> {
+  // Tool execution is intentionally NOT auto-run from the extension
+  // host yet. Surface the request to the panel so the user sees it,
+  // and post a stub result so the model continues without hanging.
+  // Wiring full local tool execution is a follow-up (see PR body).
+  await client.postToolResult(debateId, callId ?? "", {
+    content: [
+      {
+        type: "text",
+        text: "Tool execution from VS Code extension is gated to a follow-up release. Use the CLI for tool-enabled debates today.",
+      },
+    ],
+    isError: true,
+  });
+}
+
+async function handleStreamError(
+  client: ConsiliumApiClient,
+  panel: DebatePanelProvider,
+  debateId: string,
+  ac: AbortController,
+  err: unknown,
+): Promise<void> {
+  if (ac.signal.aborted) {
+    panel.postEvent({ type: "cancelled" });
+    try {
+      await client.cancelDebate(debateId);
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  panel.postEvent({ type: "error", error: msg });
+  vscode.window.showErrorMessage(`Consilium: ${msg}`);
 }
 
 function registerCancelButton(onCancel: () => void): vscode.Disposable {

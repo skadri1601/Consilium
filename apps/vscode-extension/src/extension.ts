@@ -25,8 +25,6 @@ export function activate(context: vscode.ExtensionContext): void {
       DebatePanelProvider.viewId,
       panel,
     ),
-  );
-  context.subscriptions.push(
     vscode.window.registerTreeDataProvider("consilium.history", history),
   );
 

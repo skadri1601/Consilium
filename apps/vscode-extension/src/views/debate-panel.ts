@@ -28,28 +28,29 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.renderHtml(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage((msg) => {
-      if (msg && typeof msg === "object" && "type" in msg) {
-        const m = msg as { type: string };
-        if (m.type === "ready") {
-          // Replay any events buffered before the webview attached.
-          for (const ev of this.pendingEvents) {
-            void webviewView.webview.postMessage({ type: "event", event: ev });
-          }
-          this.pendingEvents = [];
+      if (!msg || typeof msg !== "object" || !("type" in msg)) return;
+      const m = msg as { type: string };
+      if (m.type === "ready") {
+        // Replay any events buffered before the webview attached.
+        for (const ev of this.pendingEvents) {
+          ignore(webviewView.webview.postMessage({ type: "event", event: ev }));
         }
-        if (m.type === "command" && "command" in msg) {
-          void vscode.commands.executeCommand(
+        this.pendingEvents = [];
+      }
+      if (m.type === "command" && "command" in msg) {
+        ignore(
+          vscode.commands.executeCommand(
             (msg as { command: string }).command,
             ...((msg as { args?: unknown[] }).args ?? []),
-          );
-        }
+          ),
+        );
       }
     });
   }
 
   postEvent(event: unknown): void {
     if (this.view) {
-      void this.view.webview.postMessage({ type: "event", event });
+      ignore(this.view.webview.postMessage({ type: "event", event }));
     } else {
       this.pendingEvents.push(event);
     }
@@ -57,7 +58,7 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
 
   reset(): void {
     if (this.view) {
-      void this.view.webview.postMessage({ type: "reset" });
+      ignore(this.view.webview.postMessage({ type: "reset" }));
     }
     this.pendingEvents = [];
   }
@@ -66,7 +67,7 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
     if (this.view) {
       this.view.show(true);
     } else {
-      void vscode.commands.executeCommand("consilium.debatePanel.focus");
+      ignore(vscode.commands.executeCommand("consilium.debatePanel.focus"));
     }
   }
 
@@ -129,6 +130,13 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
 </body>
 </html>`;
   }
+}
+
+// Fire-and-forget helper for thenables we intentionally don't await.
+// The `void` operator triggers Sonar S3735 in this codebase; this
+// keeps the intent explicit without that warning.
+function ignore<T>(_promise: Thenable<T>): void {
+  /* intentionally not awaited */
 }
 
 function makeNonce(): string {

@@ -110,17 +110,23 @@ function render(): void {
   }
 
   els.status.textContent = state.status || "";
-  if (state.totalCost !== undefined || state.totalTokens !== undefined) {
-    const cost =
-      state.totalCost !== undefined ? `$${state.totalCost.toFixed(4)}` : "";
-    const tok =
-      state.totalTokens !== undefined
-        ? `${state.totalTokens.toLocaleString()} tokens`
-        : "";
-    els.cost.textContent = [cost, tok].filter(Boolean).join(" · ");
-  } else {
+  if (state.totalCost === undefined && state.totalTokens === undefined) {
     els.cost.textContent = "";
+    return;
   }
+  const cost =
+    state.totalCost === undefined ? "" : `$${state.totalCost.toFixed(4)}`;
+  const tok =
+    state.totalTokens === undefined
+      ? ""
+      : `${state.totalTokens.toLocaleString()} tokens`;
+  els.cost.textContent = [cost, tok].filter(Boolean).join(" · ");
+}
+
+function dotForStatus(status: AgentCard["status"]): string {
+  if (status === "done") return "✓";
+  if (status === "errored") return "✗";
+  return "·";
 }
 
 function renderCard(card: AgentCard): HTMLElement {
@@ -132,12 +138,7 @@ function renderCard(card: AgentCard): HTMLElement {
 
   const dot = document.createElement("span");
   dot.className = "agent-dot";
-  dot.textContent =
-    card.status === "done"
-      ? "✓"
-      : card.status === "errored"
-        ? "✗"
-        : "·";
+  dot.textContent = dotForStatus(card.status);
   header.appendChild(dot);
 
   const name = document.createElement("span");
@@ -145,18 +146,15 @@ function renderCard(card: AgentCard): HTMLElement {
   name.textContent = card.name;
   header.appendChild(name);
 
-  if (card.durationMs !== undefined) {
-    const duration = document.createElement("span");
-    duration.className = "agent-duration";
-    duration.textContent = `${(card.durationMs / 1000).toFixed(1)}s`;
-    header.appendChild(duration);
-  } else {
+  const duration = document.createElement("span");
+  duration.className = "agent-duration";
+  if (card.durationMs === undefined) {
     const elapsed = Math.floor((Date.now() - card.startTime) / 1000);
-    const duration = document.createElement("span");
-    duration.className = "agent-duration";
     duration.textContent = `${elapsed}s`;
-    header.appendChild(duration);
+  } else {
+    duration.textContent = `${(card.durationMs / 1000).toFixed(1)}s`;
   }
+  header.appendChild(duration);
 
   wrap.appendChild(header);
 
@@ -167,79 +165,87 @@ function renderCard(card: AgentCard): HTMLElement {
   return wrap;
 }
 
+// Each handler updates `state` for one event type. Splitting them
+// out keeps `handleEvent` itself flat (Sonar S3776 cognitive
+// complexity).
+const HANDLERS: Record<string, (event: DebateEvent) => void> = {
+  debate_start(event) {
+    state.topic = event.topic ?? state.topic ?? "(running…)";
+    state.mode = event.mode ?? state.mode;
+    state.status = "Council started";
+  },
+  debate_id() {
+    // Optional. Could surface the id for the open-in-web button.
+  },
+  agent_start(event) {
+    const name = event.agent ?? "agent";
+    state.agents.set(name, {
+      name,
+      status: "thinking",
+      content: "",
+      startTime: Date.now(),
+    });
+    state.status = `${name} thinking…`;
+  },
+  agent_chunk(event) {
+    const name = event.agent ?? Array.from(state.agents.keys()).pop() ?? "";
+    const card = state.agents.get(name);
+    if (card && event.text) card.content += event.text;
+  },
+  agent_complete(event) {
+    const name = event.agent ?? Array.from(state.agents.keys()).pop() ?? "";
+    const card = state.agents.get(name);
+    if (card) {
+      card.status = "done";
+      card.durationMs = Date.now() - card.startTime;
+    }
+    state.status = `${name} finished`;
+  },
+  consensus(event) {
+    if (event.text) state.consensus = event.text;
+  },
+  done(event) {
+    state.status = "Done";
+    if (event.total_cost !== undefined) state.totalCost = event.total_cost;
+    if (event.total_tokens !== undefined) state.totalTokens = event.total_tokens;
+    const golden = event.golden_prompt ?? event.goldenPrompt;
+    if (golden && !state.consensus) state.consensus = golden;
+  },
+  cancelled() {
+    state.status = "Cancelled";
+  },
+  error(event) {
+    state.status = `Error: ${event.error ?? "unknown"}`;
+  },
+  "routing:fallback"(event) {
+    state.status = `Routing ${event.resolutions?.length ?? 0} model(s) to free tier`;
+  },
+  "tool:call_request"(event) {
+    const name = typeof event.name === "string" ? event.name : "(unknown)";
+    state.status = `Tool requested: ${name}`;
+  },
+};
+
 function handleEvent(event: DebateEvent): void {
   const type = event.type ?? event.event;
-  switch (type) {
-    case "debate_start":
-      state.topic = event.topic ?? state.topic ?? "(running…)";
-      state.mode = event.mode ?? state.mode;
-      state.status = "Council started";
-      break;
-    case "debate_id":
-      // Optional — could surface the id for the open-in-web button
-      break;
-    case "agent_start": {
-      const name = event.agent ?? "agent";
-      state.agents.set(name, {
-        name,
-        status: "thinking",
-        content: "",
-        startTime: Date.now(),
-      });
-      state.status = `${name} thinking…`;
-      break;
-    }
-    case "agent_chunk": {
-      const name = event.agent ?? Array.from(state.agents.keys()).pop() ?? "";
-      const card = state.agents.get(name);
-      if (card && event.text) card.content += event.text;
-      break;
-    }
-    case "agent_complete": {
-      const name = event.agent ?? Array.from(state.agents.keys()).pop() ?? "";
-      const card = state.agents.get(name);
-      if (card) {
-        card.status = "done";
-        card.durationMs = Date.now() - card.startTime;
-      }
-      state.status = `${name} finished`;
-      break;
-    }
-    case "consensus":
-      if (event.text) state.consensus = event.text;
-      break;
-    case "done":
-      state.status = "Done";
-      if (event.total_cost !== undefined) state.totalCost = event.total_cost;
-      if (event.total_tokens !== undefined)
-        state.totalTokens = event.total_tokens;
-      if (event.golden_prompt && !state.consensus)
-        state.consensus = event.golden_prompt;
-      if (event.goldenPrompt && !state.consensus)
-        state.consensus = event.goldenPrompt;
-      break;
-    case "cancelled":
-      state.status = "Cancelled";
-      break;
-    case "error":
-      state.status = `Error: ${event.error ?? "unknown"}`;
-      break;
-    case "routing:fallback":
-      state.status = `Routing ${event.resolutions?.length ?? 0} model(s) to free tier`;
-      break;
-    case "tool:call_request":
-      state.status = `Tool requested: ${event.name ?? "(unknown)"}`;
-      break;
-    default:
-      // Unknown event types are surfaced as status hints.
-      if (typeof type === "string") {
-        state.status = type.replace(/_/g, " ");
-      }
+  const handler = type ? HANDLERS[type] : undefined;
+  if (handler) {
+    handler(event);
+  } else if (typeof type === "string") {
+    // Unknown event types are surfaced as status hints.
+    state.status = type.replaceAll("_", " ");
   }
   render();
 }
 
+// VS Code webview origin allowlist. The extension host delivers
+// postMessage events via the webview's own `vscode-webview://...`
+// origin (matches `window.location.origin`); any other origin is a
+// cross-document message we do not trust and must reject (S2819).
+const WEBVIEW_ORIGIN = window.location.origin;
+
 window.addEventListener("message", (msg) => {
+  if (msg.origin !== WEBVIEW_ORIGIN) return;
   const data = msg.data as { type?: string; event?: DebateEvent };
   if (!data || typeof data !== "object") return;
   if (data.type === "reset") {

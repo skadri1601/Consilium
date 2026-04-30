@@ -184,39 +184,68 @@ export class ConsiliumApiClient {
       },
     );
     if (!res.ok || !res.body) throw await asError(res, "streamDebate");
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    let currentEvent: string | null = null;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) return;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split("\n");
-      buf = lines.pop() ?? "";
-      for (const line of lines) {
-        if (line.startsWith("event: ")) {
-          currentEvent = line.slice(7).trim();
-          continue;
-        }
-        if (!line.startsWith("data: ")) {
-          if (line.trim() === "") currentEvent = null;
-          continue;
-        }
-        const dataStr = line.slice(6);
-        let parsed: DebateEvent;
-        try {
-          parsed = JSON.parse(dataStr) as DebateEvent;
-        } catch {
-          parsed = { type: "agent_chunk", text: dataStr } as DebateEvent;
-        }
-        if (currentEvent && !parsed.type) {
-          parsed.type = currentEvent as DebateEvent["type"];
-        }
-        if (currentEvent) parsed.event = currentEvent;
-        yield parsed;
-        if (parsed.type === "done" || currentEvent === "done") return;
-        currentEvent = null;
+    yield* parseSseStream(res.body);
+  }
+}
+
+interface SseFrame {
+  event: DebateEvent;
+  isDone: boolean;
+}
+
+function parseSseLine(line: string, currentEvent: string | null): {
+  nextEvent: string | null;
+  frame?: SseFrame;
+} {
+  if (line.startsWith("event: ")) {
+    return { nextEvent: line.slice(7).trim() };
+  }
+  if (!line.startsWith("data: ")) {
+    // Blank line resets the current event name; everything else (e.g.
+    // SSE comments starting with ":") is ignored.
+    return { nextEvent: line.trim() === "" ? null : currentEvent };
+  }
+  const parsed = parseSseDataLine(line.slice(6), currentEvent);
+  const isDone = parsed.type === "done" || currentEvent === "done";
+  return { nextEvent: null, frame: { event: parsed, isDone } };
+}
+
+function parseSseDataLine(
+  dataStr: string,
+  currentEvent: string | null,
+): DebateEvent {
+  let parsed: DebateEvent;
+  try {
+    parsed = JSON.parse(dataStr) as DebateEvent;
+  } catch {
+    parsed = { type: "agent_chunk", text: dataStr } as DebateEvent;
+  }
+  if (currentEvent && !parsed.type) {
+    parsed.type = currentEvent as DebateEvent["type"];
+  }
+  if (currentEvent) parsed.event = currentEvent;
+  return parsed;
+}
+
+async function* parseSseStream(
+  body: ReadableStream<Uint8Array>,
+): AsyncGenerator<DebateEvent, void, void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let currentEvent: string | null = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) return;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      const result = parseSseLine(line, currentEvent);
+      currentEvent = result.nextEvent;
+      if (result.frame) {
+        yield result.frame.event;
+        if (result.frame.isDone) return;
       }
     }
   }
@@ -232,9 +261,8 @@ async function asError(res: Response, op: string): Promise<Error> {
   if (res.status === 429) {
     return new Error(`${op}: rate limited (429). Try again shortly.`);
   }
-  return new Error(
-    `${op}: HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`,
-  );
+  const detail = text ? `: ${text.slice(0, 200)}` : "";
+  return new Error(`${op}: HTTP ${res.status}${detail}`);
 }
 
 export function getApiClient(

@@ -35,7 +35,7 @@ const webviewConfig = {
   loader: { ".css": "text" },
 };
 
-async function run() {
+try {
   if (isWatch) {
     const ctx1 = await esbuild.context(extensionConfig);
     const ctx2 = await esbuild.context(webviewConfig);
@@ -48,9 +48,7 @@ async function run() {
     ]);
     console.log("[esbuild] build complete.");
   }
-}
-
-run().catch((err) => {
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}
