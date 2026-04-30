@@ -59,7 +59,7 @@ function fail(text: string): ToolResult {
 }
 
 function ensureReadAllowed(cwd: string): void {
-  if (hasCodebasePermission(cwd) === false) {
+  if (hasCodebasePermission(cwd) !== true) {
     throw new Error(`Codebase read denied for ${cwd}. Run /codebase allow.`);
   }
 }
@@ -381,7 +381,7 @@ export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolCont
 
 // ───────── Bash (gated) ─────────
 
-const BASH_DENY_PATTERNS = [
+const BASH_ACCIDENTAL_DESTRUCTIVE_PATTERNS = [
   /\brm\s+-rf?\s+\//,
   /\bsudo\b/,
   /\bcurl\b.*\|.*\bsh\b/,
@@ -413,7 +413,7 @@ export async function handleBash(args: Record<string, unknown>, ctx: ToolContext
   const command = String(args.command ?? "").trim();
   if (!command) return fail("command is required");
 
-  for (const deny of BASH_DENY_PATTERNS) {
+  for (const deny of BASH_ACCIDENTAL_DESTRUCTIVE_PATTERNS) {
     if (deny.test(command)) {
       return fail(`Blocked dangerous command pattern: ${deny.source}`);
     }
@@ -421,7 +421,9 @@ export async function handleBash(args: Record<string, unknown>, ctx: ToolContext
 
   const timeoutMs = Math.min(BASH_TIMEOUT_MS, Math.max(1000, Number(args.timeout_ms ?? BASH_TIMEOUT_MS)));
   try {
-    const { stdout, stderr } = await execFileAsync("/bin/sh", ["-c", command], {
+    const shell = process.platform === "win32" ? "cmd" : "/bin/sh";
+    const shellArgs = process.platform === "win32" ? ["/c", command] : ["-c", command];
+    const { stdout, stderr } = await execFileAsync(shell, shellArgs, {
       cwd: ctx.cwd,
       timeout: timeoutMs,
       maxBuffer: BASH_MAX_OUTPUT * 2,
