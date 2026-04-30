@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -131,11 +132,10 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
 }
 
 function makeNonce(): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let out = "";
-  for (let i = 0; i < 32; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return out;
+  // CSP nonces must be cryptographically unpredictable — Math.random
+  // is a PRNG that can be modeled, which would let an attacker who
+  // controls any injected content guess the nonce and bypass the CSP.
+  // randomBytes(16) gives 128 bits of entropy; base64url keeps the
+  // value in the CSP-safe character set.
+  return crypto.randomBytes(16).toString("base64url");
 }
