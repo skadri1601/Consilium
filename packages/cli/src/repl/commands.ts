@@ -124,6 +124,59 @@ const utilityCommands: SlashCommand[] = [
     },
   },
   {
+    name: "debate-pr",
+    category: "mode",
+    summary: "Fetch a GitHub PR via gh and have the council review it",
+    usage: "/debate-pr <number-or-url>",
+    run: async (rawArgs) => {
+      const ref = rawArgs.trim();
+      if (!ref) {
+        const { default: chalk } = await import("chalk");
+        console.log(chalk.hex("#9ca3af")("Usage: /debate-pr <number-or-url>"));
+        return;
+      }
+      const { debatePrCommand } = await import("../commands/debate-shortcuts.js");
+      await debatePrCommand(ref, {});
+    },
+  },
+  {
+    name: "debate-issue",
+    category: "mode",
+    summary: "Debate a GitHub issue or Linear ticket as an implementation plan",
+    usage: "/debate-issue <number-or-MYC-id>",
+    run: async (rawArgs) => {
+      const ref = rawArgs.trim();
+      if (!ref) {
+        const { default: chalk } = await import("chalk");
+        console.log(chalk.hex("#9ca3af")("Usage: /debate-issue <number-or-MYC-id>"));
+        return;
+      }
+      const { debateIssueCommand } = await import("../commands/debate-shortcuts.js");
+      await debateIssueCommand(ref, {});
+    },
+  },
+  {
+    name: "debate-failing",
+    category: "mode",
+    summary: "Run tests, debate any failure",
+    usage: "/debate-failing [test-command]",
+    run: async (rawArgs) => {
+      const cmd = rawArgs.trim() || undefined;
+      const { debateFailingCommand } = await import("../commands/debate-shortcuts.js");
+      await debateFailingCommand(cmd ? { command: cmd } : {});
+    },
+  },
+  {
+    name: "debate-staged",
+    category: "mode",
+    summary: "Review the currently-staged git changes before commit",
+    usage: "/debate-staged",
+    run: async () => {
+      const { debateStagedCommand } = await import("../commands/debate-shortcuts.js");
+      await debateStagedCommand({});
+    },
+  },
+  {
     name: "debug",
     category: "session",
     summary: "Show full debug trace for a debate",
