@@ -4,20 +4,44 @@ Command-line interface for Consilium -- a multi-model debate platform that lets 
 
 ## Installation
 
+### One-line installer (recommended)
+
 ```bash
-npm install -g @myconsilium/cli
+curl -fsSL https://install.myconsilium.xyz | sh
 ```
 
-Or run without installing:
+Auto-detects pnpm / npm / yarn / bun if present, otherwise downloads a
+standalone binary for your platform. Pass `--binary` to force the
+binary path even when Node is installed.
+
+### Homebrew (macOS / Linux)
 
 ```bash
-npx @myconsilium/cli debate "your question"
+brew tap skadri1601/tap
+brew install consilium
+```
+
+### npm / pnpm / yarn / bun
+
+```bash
+npm  install -g @myconsilium/cli
+pnpm add -g     @myconsilium/cli
+yarn global add @myconsilium/cli
+bun  add -g     @myconsilium/cli
+```
+
+### Self-update
+
+```bash
+consilium upgrade           # detect install method, upgrade to latest
+consilium upgrade --check   # check only, don't install
 ```
 
 ## Requirements
 
-- Node.js >= 20.0.0
-- A running Consilium backend (or access to a hosted instance)
+- Standalone binary: no Node required
+- Package-manager install: Node.js >= 20.0.0
+- A Consilium account (free) or self-hosted backend
 
 ## Quick Start
 

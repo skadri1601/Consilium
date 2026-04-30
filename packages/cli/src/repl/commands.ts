@@ -181,6 +181,17 @@ const utilityCommands: SlashCommand[] = [
     },
   },
   {
+    name: "upgrade",
+    category: "system",
+    summary: "Update Consilium CLI to the latest version",
+    usage: "/upgrade [--check]",
+    run: async (rawArgs) => {
+      const { upgradeCommand } = await import("../commands/upgrade.js");
+      const checkOnly = rawArgs.trim() === "--check";
+      await upgradeCommand({ check: checkOnly });
+    },
+  },
+  {
     name: "login",
     category: "system",
     summary: "Sign in via the web (refresh CLI token)",
