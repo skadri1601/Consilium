@@ -62,7 +62,9 @@ async function buildDebateOptions(
   const models = cfg.get<string[]>("defaultModels") ?? [];
   const autoGit = cfg.get<boolean>("autoAttachGitContext") ?? true;
 
-  const projectContext: Record<string, unknown> = { ...(input.context ?? {}) };
+  const projectContext: Record<string, unknown> = input.context
+    ? { ...input.context }
+    : {};
   const wsFolder = vscode.workspace.workspaceFolders?.[0];
   if (wsFolder) {
     projectContext.rootPath = wsFolder.uri.fsPath;

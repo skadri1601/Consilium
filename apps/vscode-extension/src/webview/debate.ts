@@ -240,11 +240,11 @@ function handleEvent(event: DebateEvent): void {
 
 // VS Code webview origin allowlist. The extension host delivers
 // postMessage events via the webview's own `vscode-webview://...`
-// origin (matches `window.location.origin`); any other origin is a
-// cross-document message we do not trust and must reject (S2819).
-const WEBVIEW_ORIGIN = window.location.origin;
+// origin (matches `globalThis.location.origin`); any other origin is
+// a cross-document message we do not trust and must reject (S2819).
+const WEBVIEW_ORIGIN = globalThis.location.origin;
 
-window.addEventListener("message", (msg) => {
+globalThis.addEventListener("message", (msg) => {
   if (msg.origin !== WEBVIEW_ORIGIN) return;
   const data = msg.data as { type?: string; event?: DebateEvent };
   if (!data || typeof data !== "object") return;
