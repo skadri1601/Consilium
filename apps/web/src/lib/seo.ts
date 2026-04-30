@@ -8,7 +8,7 @@ export const SITE_TAGLINE = "The AI Council";
 export const SITE_DESCRIPTION =
   "Consilium is a multi-AI council that debates, critiques, and synthesizes consensus answers. Pit GPT, Claude, Gemini, Llama, and Grok against each other and get the best recommendation.";
 export const SITE_TWITTER = "@consiliumai";
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/brand/consilium-logo.svg`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og.png`;
 
 export type PageSeo = {
   title?: string;
