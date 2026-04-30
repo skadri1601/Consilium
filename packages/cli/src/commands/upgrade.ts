@@ -19,6 +19,16 @@ interface UpgradeResult {
 
 const PACKAGE = '@myconsilium/cli';
 
+function isUpToDate(current: string, latest: string): boolean {
+  const c = current.replace(/^v/, '').split('.').map(Number);
+  const l = latest.replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(c.length, l.length); i++) {
+    if ((c[i] || 0) < (l[i] || 0)) return false;
+    if ((c[i] || 0) > (l[i] || 0)) return true;
+  }
+  return true;
+}
+
 function readCurrentVersion(): string {
   try {
     const require = createRequire(import.meta.url);
@@ -95,7 +105,7 @@ export async function upgradeCommand(options: UpgradeOptions = {}): Promise<void
     return;
   }
 
-  if (currentVersion === latestVersion) {
+  if (isUpToDate(currentVersion, latestVersion)) {
     console.log(st.success(`  Already on the latest version (${latestVersion}).`));
     return;
   }
@@ -130,6 +140,6 @@ export async function upgradeCommand(options: UpgradeOptions = {}): Promise<void
   } catch (err) {
     console.log(st.error(`  Upgrade failed: ${(err as Error).message}`));
     console.log(st.dim('  You can retry manually:'));
-    console.log(st.dim(`    pnpm add -g ${PACKAGE}@latest`));
+    console.log(st.dim(`    ${manager} ${manager === 'yarn' ? 'global add' : 'add -g'} ${PACKAGE}@latest`));
   }
 }

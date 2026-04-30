@@ -55,7 +55,7 @@ class Consilium < Formula
                   else
                     "consilium-linux-x64"
                   end
-    bin.install Dir["consilium-*"].first => "consilium"
+    bin.install binary_name => "consilium"
   end
 
   test do
