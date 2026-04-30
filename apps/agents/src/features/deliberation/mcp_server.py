@@ -3,18 +3,15 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
-from dataclasses import asdict
-from typing import Any
 
-from src.features.deliberation.blind_eval import evaluate_blind
-from src.features.deliberation.deliberation_graph import DeliberationEngine
+from src.features.deliberation.deliberation_graph import (
+    DeliberationEngine,
+    _call_model_via_factory,
+)
 from src.features.deliberation.red_team import format_red_team_report, run_red_team
 from src.features.deliberation.types import (
     AttackCategory,
-    Claim,
     DeliberationMode,
-    Proposal,
-    DEFAULT_RUBRIC,
 )
 
 TOOLS = [
@@ -70,8 +67,10 @@ TOOLS = [
     {
         "name": "consilium_blind_eval",
         "description": (
-            "Run a blind evaluation of multiple responses. "
-            "Returns rankings and scores with bias mitigation."
+            "DEPRECATED in the in-engine MCP server: returns a structured error directing "
+            "callers to the published consilium-mcp (PyPI) which routes to the API's "
+            "/api/v1/deliberation/blind endpoint and runs the full engine. The in-engine "
+            "path cannot run an async LLM-backed judge synchronously."
         ),
         "inputSchema": {
             "type": "object",
@@ -97,18 +96,6 @@ TOOLS = [
 
 DEFAULT_MODELS = ["gpt-5.4", "claude-sonnet-4-6", "gemini-3.1-pro-preview"]
 DEFAULT_JUDGE = "gpt-5.4-mini"
-
-
-async def llm_stub(model: str, prompt: str, api_keys: dict) -> str:
-    if "Evaluate" in prompt and "Scoring Rubric" in prompt:
-        return json.dumps({
-            "rankings": [
-                {"model_id": "Response A", "rank": 1, "scores": {"correctness": 8, "completeness": 7, "reasoning_quality": 7, "actionability": 6, "conciseness": 8}},
-                {"model_id": "Response B", "rank": 2, "scores": {"correctness": 6, "completeness": 6, "reasoning_quality": 5, "actionability": 5, "conciseness": 6}},
-            ],
-            "reasoning": "stub evaluation",
-        })
-    return f"[stub response from {model}]"
 
 
 async def handle_deliberate(arguments: dict) -> str:
@@ -150,58 +137,50 @@ async def handle_red_team(arguments: dict) -> str:
     if category_strs:
         categories = [AttackCategory(c) for c in category_strs]
 
+    # Real LLM calls via AgentFactory; api_keys={} falls back to free-tier
+    # env vars (CONSILIUM_FREE_TIER_GROQ_KEY / CONSILIUM_FREE_TIER_OPENROUTER_KEY)
+    # if no provider keys are configured.
     report = await run_red_team(
         target_content=content,
         attacker_model=DEFAULT_MODELS[0],
         defender_model=DEFAULT_MODELS[-1],
         judge_model=DEFAULT_JUDGE,
         api_keys={},
-        call_fn=llm_stub,
+        call_fn=_call_model_via_factory,
         categories=categories,
     )
     return format_red_team_report(report)
 
 
 async def handle_blind_eval(arguments: dict) -> str:
-    responses = arguments["responses"]
-
-    proposals = []
-    for resp in responses:
-        proposals.append(
-            Proposal(
-                model_id=resp["model_id"],
-                content=resp["content"],
-                reasoning_chain=[],
-                claims=[
-                    Claim(
-                        id="auto",
-                        statement=resp["content"][:100],
-                        evidence=[],
-                        confidence=0.5,
-                        assumptions=[],
-                        limitations=[],
-                    )
-                ],
-                raw_confidence=0.5,
-            )
-        )
-
-    model_ids = [p.model_id for p in proposals]
-    judge = DEFAULT_JUDGE
-    if judge in model_ids:
-        judge = "claude-sonnet-4-6" if judge != "claude-sonnet-4-6" else "gpt-5.4"
-
-    def judge_func(ordering):
-        return {p.model_id: 5.0 for p in ordering}
-
-    scores = evaluate_blind(proposals, judge, judge_func)
-
-    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    result = {
-        "rankings": [{"model_id": m, "score": s, "rank": i + 1} for i, (m, s) in enumerate(ranked)],
-        "scores": scores,
-    }
-    return json.dumps(result, indent=2, default=str)
+    # The in-engine MCP server is intended for development and the
+    # mcp_http router; the production path for ranking pre-existing
+    # responses is the published consilium-mcp (PyPI) which POSTs to
+    # /api/v1/deliberation/blind and runs the full deliberation engine.
+    #
+    # The previous in-engine implementation called a synchronous
+    # judge_func that returned flat 5.0 scores for every model — i.e.
+    # it produced ranking output that looked plausible but contained
+    # no real evaluation. We refuse here so callers don't accidentally
+    # ship results derived from a no-op judge.
+    return json.dumps(
+        {
+            "error": "blind_eval is not supported in the in-engine MCP server.",
+            "reason": (
+                "This entry point cannot run an LLM-backed judge synchronously; "
+                "the prior implementation returned flat 5.0 scores."
+            ),
+            "use_instead": (
+                "Install `pip install consilium`, then run `consilium-mcp` (the published "
+                "MCP server). It posts to /api/v1/deliberation/blind where the full engine "
+                "performs the blind evaluation."
+            ),
+            "topic": arguments.get("topic", ""),
+            "responses_received": len(arguments.get("responses") or []),
+        },
+        indent=2,
+        default=str,
+    )
 
 
 TOOL_HANDLERS = {

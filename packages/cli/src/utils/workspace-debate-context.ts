@@ -12,6 +12,13 @@ const st = style();
 
 export interface WorkspaceDebateContextOptions {
   noContext?: boolean;
+  /**
+   * Opt out of auto-attaching git diff/branch/recent commits.
+   * Defaults to false — every debate inside a git repo includes
+   * git context so the council can reason about WIP.
+   */
+  noGit?: boolean;
+  /** Legacy alias for default-on git context. Kept for back-compat. */
   gitDiff?: boolean;
   ticket?: string;
 }
@@ -96,11 +103,19 @@ export async function loadWorkspaceDebateContext(
   }
 
   let gitContextPrefix = '';
-  if (options.gitDiff) {
+  // Auto-attach git context when inside a repo. The previous default
+  // forced developers to remember --git-diff, which meant most debates
+  // happened without the WIP / branch / recent-commits the council needs
+  // to reason about "why is this failing?" or "is this a regression?"
+  // questions. Now: on by default; pass --no-git to opt out.
+  const shouldCollectGit = !options.noGit && rootInfo.isGitRepo;
+  if (shouldCollectGit) {
     const gitCtx = collectGitContext(rootInfo.root);
-    if (gitCtx?.diff) {
+    if (gitCtx?.diff || gitCtx?.branch) {
       gitContextPrefix = formatGitContextForPrompt(gitCtx);
-      console.log(st.dim(`  Loaded git diff (branch: ${gitCtx.branch || 'unknown'})`));
+      const branch = gitCtx.branch || 'unknown';
+      const diffNote = gitCtx.diff ? '' : ' — no uncommitted changes';
+      console.log(st.dim(`  Attached git context (branch: ${branch}${diffNote})`));
     }
   }
 

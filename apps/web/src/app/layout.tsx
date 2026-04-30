@@ -80,7 +80,12 @@ export const metadata: Metadata = {
     images: [DEFAULT_OG_IMAGE],
   },
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖</text></svg>",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/brand/consilium-icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/brand/consilium-icon.svg",
+    apple: "/brand/consilium-icon.svg",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,

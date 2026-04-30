@@ -29,6 +29,7 @@ import { consumeWritePermission, requestWritePermission } from '../utils/codebas
 import { resolveProjectRoot } from '../utils/project-root';
 import { KeyManager } from '../utils/key-manager';
 import { appendProjectMemory } from '../utils/project-memory';
+import { startToolBridge, type ToolBridgeHandle } from '../utils/mcp-tool-bridge';
 
 const st = style();
 
@@ -57,11 +58,16 @@ export interface DebateCommandOptions {
   output?: string;
   mode?: string;
   scan?: boolean;
+  /** Legacy alias for the new default-on git context. Kept for back-compat. */
   gitDiff?: boolean;
+  /** Commander negation: present and false when --no-git is passed. Default ON. */
+  git?: boolean;
   ticket?: string;
   context?: boolean;
   apply?: boolean;
   file?: string[];
+  /** Commander negation: present and false when --no-tools is passed. Default ON. */
+  tools?: boolean;
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -373,6 +379,22 @@ async function runClassicDebateFlow(
   tracker.start('createDebate');
   renderProgress();
 
+  // Start the agent toolkit bridge by default (--no-tools opts out).
+  // Vision: Consilium debates the codebase; making file/grep/edit tools
+  // opt-in meant most debates ran blind.
+  const toolsEnabled = options.tools !== false;
+  let bridge: ToolBridgeHandle | null = null;
+  if (toolsEnabled) {
+    try {
+      bridge = await startToolBridge(client, { enabled: true, quiet: false });
+    } catch (err) {
+      // Bridge startup failure is non-fatal — fall through to a tool-less debate
+      // so the user still gets an answer instead of a hard exit.
+      console.log(st.warning(`  Could not start tool bridge: ${(err as Error).message}`));
+      console.log(st.dim('  Continuing without agent file tools.'));
+    }
+  }
+
   const debateStartTime = Date.now();
   let debate: { id: string };
   try {
@@ -392,6 +414,10 @@ async function runClassicDebateFlow(
       debateOpts.files = wsContext.files;
       debateOpts.projectFiles = wsContext.projectFiles;
       debateOpts.projectContext = wsContext.projectContext;
+    }
+    if (bridge) {
+      debateOpts.tools = bridge.tools;
+      debateOpts.toolBudget = bridge.toolBudget;
     }
     debate = await client.createDebate(debateOpts);
   } catch (err: unknown) {
@@ -429,6 +455,16 @@ async function runClassicDebateFlow(
         if (useLiveProgress) logUpdate.clear();
       }
       if (event.type === 'consensus' && event.text) goldenPrompt = event.text;
+      // Route tool:call_request events to the bridge so the agents'
+      // Read/Edit/Grep/etc. calls are answered locally. Fire-and-forget;
+      // the bridge handles its own errors and posts results back to the
+      // engine via postToolResult.
+      if (bridge && event.type === 'tool:call_request') {
+        bridge.handleEvent(event, debate.id).catch((err) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(st.warning(`[mcp] tool dispatch failed: ${msg}`));
+        });
+      }
       handleEvent(event);
     });
   } catch (error: unknown) {
@@ -440,6 +476,9 @@ async function runClassicDebateFlow(
     process.exit(1);
   } finally {
     process.removeListener('SIGINT', sigintHandler);
+    if (bridge) {
+      await bridge.shutdown().catch(() => {/* swallow shutdown errors */});
+    }
   }
 
   log('INFO', 'debate_completed', { debateId: debate.id, durationMs: Date.now() - debateStartTime });
@@ -474,6 +513,10 @@ export async function loadWorkspaceContext(
 ): Promise<WorkspaceDebateContext | null> {
   const ctx = await loadWorkspaceDebateContext({
     noContext: options.context === false,
+    // git context is now default-on; --no-git (Commander -> options.git === false)
+    // is the explicit opt-out. The legacy --git-diff flag is preserved as a
+    // no-op alias since auto-collection makes it redundant.
+    noGit: options.git === false,
     gitDiff: options.gitDiff,
     ticket: options.ticket,
   });
