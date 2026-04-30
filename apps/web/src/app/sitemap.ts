@@ -33,6 +33,14 @@ const MARKETING_ROUTES: Route[] = [
   { path: "/terms", changeFrequency: "yearly", priority: 0.3, lastModified: "2026-01-15" },
 ];
 
+const COMPARISON_ROUTES: Route[] = [
+  { path: "/vs-cursor", changeFrequency: "monthly", priority: 0.8, lastModified: "2026-04-30" },
+  { path: "/vs-aider", changeFrequency: "monthly", priority: 0.8, lastModified: "2026-04-30" },
+  { path: "/vs-cline", changeFrequency: "monthly", priority: 0.8, lastModified: "2026-04-30" },
+  { path: "/vs-claude-code", changeFrequency: "monthly", priority: 0.8, lastModified: "2026-04-30" },
+  { path: "/vs-copilot", changeFrequency: "monthly", priority: 0.8, lastModified: "2026-04-30" },
+];
+
 const DOCS_ROUTES: Route[] = [
   { path: "/docs", changeFrequency: "weekly", priority: 0.9, lastModified: SITE_LAST_REVIEWED },
   { path: "/docs/getting-started", changeFrequency: "weekly", priority: 0.9, lastModified: SITE_LAST_REVIEWED },
@@ -69,6 +77,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const fallback = new Date(SITE_LAST_REVIEWED);
   return [
     ...MARKETING_ROUTES,
+    ...COMPARISON_ROUTES,
     ...DOCS_ROUTES,
     ...blogRoutes(),
     ...notionDocRoutes(),
