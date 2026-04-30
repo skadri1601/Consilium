@@ -105,8 +105,12 @@ async function runReplFallback(): Promise<void> {
 
   const askLine = (): Promise<string | null> =>
     new Promise((resolve) => {
-      rl.question("consilium > ", (answer) => resolve(answer));
-      rl.once("close", () => resolve(null));
+      const onClose = () => resolve(null);
+      rl.once("close", onClose);
+      rl.question("consilium > ", (answer) => {
+        rl.removeListener("close", onClose);
+        resolve(answer);
+      });
     });
 
   let running = true;
