@@ -126,6 +126,7 @@ export async function startDebateCommand(
   const wsContext = await loadWorkspaceContext({
     file: options.file,
     gitDiff: options.gitDiff,
+    noGit: options.git === false,
     ticket: options.ticket,
     noContext: options.context === false,
   });

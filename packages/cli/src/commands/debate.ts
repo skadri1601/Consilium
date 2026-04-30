@@ -435,7 +435,10 @@ async function runClassicDebateFlow(
       // the bridge handles its own errors and posts results back to the
       // engine via postToolResult.
       if (bridge && event.type === 'tool:call_request') {
-        void bridge.handleEvent(event, debate.id);
+        bridge.handleEvent(event, debate.id).catch((err) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(st.warning(`[mcp] tool dispatch failed: ${msg}`));
+        });
       }
       handleEvent(event);
     });
