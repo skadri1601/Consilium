@@ -81,11 +81,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
       { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/brand/consilium-icon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/brand/consilium-icon.svg",
-    apple: "/brand/consilium-icon.svg",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
