@@ -212,36 +212,39 @@ export interface DebateFailingOptions extends DebateCommandOptions {
   command?: string;
 }
 
-const TEST_RUNNER_CANDIDATES: Array<{ probe: () => Promise<boolean>; cmd: string; args: string[] }> = [
-  {
-    probe: async () => fs.existsSync('package.json') && /pnpm/.test((await tryExec('pnpm', ['-v']))?.stdout ?? ''),
-    cmd: 'pnpm',
-    args: ['test'],
-  },
-  {
-    probe: async () => fs.existsSync('package.json'),
-    cmd: 'npm',
-    args: ['test'],
-  },
-  {
-    probe: async () => fs.existsSync('pyproject.toml') || fs.existsSync('pytest.ini') || fs.existsSync('tests'),
-    cmd: 'pytest',
-    args: ['-x', '--tb=short'],
-  },
-  {
-    probe: async () => fs.existsSync('Cargo.toml'),
-    cmd: 'cargo',
-    args: ['test'],
-  },
-  {
-    probe: async () => fs.existsSync('go.mod'),
-    cmd: 'go',
-    args: ['test', './...'],
-  },
-];
+function testRunnerCandidates(root: string): Array<{ probe: () => Promise<boolean>; cmd: string; args: string[] }> {
+  const has = (f: string) => fs.existsSync(path.join(root, f));
+  return [
+    {
+      probe: async () => has('package.json') && /pnpm/.test((await tryExec('pnpm', ['-v']))?.stdout ?? ''),
+      cmd: 'pnpm',
+      args: ['test'],
+    },
+    {
+      probe: async () => has('package.json'),
+      cmd: 'npm',
+      args: ['test'],
+    },
+    {
+      probe: async () => has('pyproject.toml') || has('pytest.ini') || has('tests'),
+      cmd: 'pytest',
+      args: ['-x', '--tb=short'],
+    },
+    {
+      probe: async () => has('Cargo.toml'),
+      cmd: 'cargo',
+      args: ['test'],
+    },
+    {
+      probe: async () => has('go.mod'),
+      cmd: 'go',
+      args: ['test', './...'],
+    },
+  ];
+}
 
-async function detectTestCommand(): Promise<{ cmd: string; args: string[] } | null> {
-  for (const c of TEST_RUNNER_CANDIDATES) {
+async function detectTestCommand(root: string): Promise<{ cmd: string; args: string[] } | null> {
+  for (const c of testRunnerCandidates(root)) {
     try {
       if (await c.probe()) return { cmd: c.cmd, args: c.args };
     } catch {
@@ -263,7 +266,7 @@ export async function debateFailingCommand(options: DebateFailingOptions = {}): 
     }
     command = { cmd: parts[0]!, args: parts.slice(1) };
   } else {
-    const detected = await detectTestCommand();
+    const detected = await detectTestCommand(root);
     if (!detected) {
       console.log(st.error('Could not detect a test runner.'));
       console.log(st.dim('  Use --command "<your test command>" to override.'));
