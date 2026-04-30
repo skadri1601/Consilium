@@ -223,13 +223,13 @@ const GLOB_REGEX_META = new Set([".", "+", "^", "$", "(", ")", "|", "[", "]", "\
 const GLOB_ALT_META_RE = /[.+^$()|[\]\\]/g;
 
 function escapeGlobAlt(literal: string): string {
-  return literal.replaceAll(GLOB_ALT_META_RE, "\\$&");
+  return literal.replaceAll(GLOB_ALT_META_RE, String.raw`\$&`);
 }
 
 function compileGlobAlternation(pattern: string, start: number): { regex: string; nextIndex: number } {
   const end = pattern.indexOf("}", start);
   if (end === -1) {
-    return { regex: "\\{", nextIndex: start };
+    return { regex: String.raw`\{`, nextIndex: start };
   }
   const opts = pattern
     .slice(start + 1, end)
