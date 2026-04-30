@@ -16,6 +16,22 @@ function countLines(content: string): number {
   return content.split('\n').length;
 }
 
+// Simulate a surgical edit so the preview can report an accurate line delta
+// without touching disk. Mirrors applySurgicalEdit's matching rules.
+function simulateSurgicalEdit(
+  oldContent: string,
+  exists: boolean,
+  edit: Extract<EditAction, { kind: 'edit' }>,
+): string {
+  if (!exists) return '';
+  if (edit.replaceAll) {
+    return oldContent.split(edit.oldString).join(edit.newString);
+  }
+  const idx = oldContent.indexOf(edit.oldString);
+  if (idx === -1) return oldContent;
+  return oldContent.slice(0, idx) + edit.newString + oldContent.slice(idx + edit.oldString.length);
+}
+
 function previewWriteOrEdit(rootPath: string, edit: EditAction): EditPreview {
   const fullPath = path.resolve(rootPath, edit.path);
   const exists = fs.existsSync(fullPath);
@@ -33,24 +49,10 @@ function previewWriteOrEdit(rootPath: string, edit: EditAction): EditPreview {
     };
   }
 
-  let newContent: string;
-  if (edit.kind === 'write') {
-    newContent = edit.content;
-  } else {
-    // surgical edit — simulate the result so the line delta is accurate
-    if (!exists) {
-      newContent = '';
-    } else if (edit.replaceAll) {
-      newContent = oldContent.split(edit.oldString).join(edit.newString);
-    } else {
-      const idx = oldContent.indexOf(edit.oldString);
-      if (idx === -1) {
-        newContent = oldContent;
-      } else {
-        newContent = oldContent.slice(0, idx) + edit.newString + oldContent.slice(idx + edit.oldString.length);
-      }
-    }
-  }
+  const newContent: string =
+    edit.kind === 'write'
+      ? edit.content
+      : simulateSurgicalEdit(oldContent, exists, edit);
   const newLines = countLines(newContent);
   return {
     path: edit.path,
