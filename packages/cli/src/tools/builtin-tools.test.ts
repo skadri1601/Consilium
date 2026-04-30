@@ -27,8 +27,10 @@ function grantWritePermissionForTest(directory: string): void {
     store = { version: 2, projects: {} };
   }
   const normalized = path.resolve(directory);
+  // Spreading `undefined` into an object literal is a no-op, so we can
+  // splat the existing entry directly without the redundant `?? {}` fallback.
   store.projects[normalized] = {
-    ...(store.projects[normalized] ?? {}),
+    ...store.projects[normalized],
     readCodebase: "always",
     writeFiles: "always",
     updatedAt: new Date().toISOString(),
