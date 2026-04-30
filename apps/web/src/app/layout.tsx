@@ -89,6 +89,14 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: {
+      ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+        ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+        : {}),
+      ...(process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION
+        ? { "yandex-verification": process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION }
+        : {}),
+    },
   },
 };
 
@@ -113,10 +121,35 @@ const softwareJsonLd = {
   "@type": "SoftwareApplication",
   name: SITE_NAME,
   applicationCategory: "DeveloperApplication",
-  operatingSystem: "Web",
+  applicationSubCategory: "AI Council / Multi-Agent Deliberation",
+  operatingSystem: "Web, macOS, Linux, Windows",
   description: SITE_DESCRIPTION,
   url: SITE_URL,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  image: `${SITE_URL}/og.png`,
+  screenshot: `${SITE_URL}/og.png`,
+  softwareVersion: "0.4.0",
+  downloadUrl: "https://www.npmjs.com/package/@myconsilium/cli",
+  installUrl: `${SITE_URL}/docs/getting-started`,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    description: "Free tier with BYOK or managed pool",
+    url: `${SITE_URL}/pricing`,
+  },
+  featureList: [
+    "Multi-AI debate across 7 LLM providers",
+    "8 deliberation modes (council, deep, blind, redteam, jury, market, quick, auto)",
+    "Codebase-aware tool calls (Read, Edit, Grep, Glob, GitDiff, Bash)",
+    "MCP server for Cursor / Claude Desktop / Claude Code",
+    "TypeScript SDK + Python SDK + CLI",
+    "Atomic edit application with rollback snapshots",
+  ],
+  publisher: {
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+  },
 };
 
 const websiteJsonLd = {

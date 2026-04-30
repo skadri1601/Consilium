@@ -17,6 +17,8 @@ import {
   Linkedin,
   Globe,
 } from "lucide-react";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbList, personSchema } from "@/lib/structured-data";
 import {
   Card,
   CardContent,
@@ -101,8 +103,25 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const founderSchema = personSchema({
+    name: "Saad Kadri",
+    jobTitle: "Founder & Engineer",
+    url: "https://saadkadri.dev",
+    worksForName: "Consilium",
+    image: "/team/saad-kadri.jpg",
+    sameAs: [
+      "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
+      "https://saadkadri.dev",
+    ],
+  });
+  const aboutBreadcrumbs = breadcrumbList([
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+  ]);
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-founder" data={founderSchema} />
+      <JsonLd id="ld-about-breadcrumbs" data={aboutBreadcrumbs} />
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         <video
           autoPlay
