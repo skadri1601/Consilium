@@ -29,7 +29,6 @@ const MARKETING_ROUTES: Route[] = [
   { path: "/research", changeFrequency: "monthly", priority: 0.7, lastModified: "2026-04-10" },
   { path: "/contact", changeFrequency: "yearly", priority: 0.5, lastModified: "2026-01-15" },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8, lastModified: SITE_LAST_REVIEWED },
-  { path: "/cli", changeFrequency: "monthly", priority: 0.7, lastModified: SITE_LAST_REVIEWED },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3, lastModified: "2026-01-15" },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3, lastModified: "2026-01-15" },
 ];
