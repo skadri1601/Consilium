@@ -48,7 +48,7 @@ export class DebatesService {
     private aiWorkersClient: AiWorkersClient,
     private personasService: PersonasService,
     private configService: ConfigService,
-    private authService: AuthService,
+    private readonly authService: AuthService,
     @Inject(forwardRef(() => DebateQueueService))
     private debateQueueService: DebateQueueService,
     @InjectRedis() private readonly redis: Redis,

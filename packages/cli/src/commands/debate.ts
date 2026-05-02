@@ -347,6 +347,11 @@ function writeFormattedDebateOutput(
   }
 }
 
+interface ClassicDebateFlowOptions {
+  tools?: boolean;
+  wsContext?: WorkspaceDebateContext | null;
+}
+
 async function runClassicDebateFlow(
   client: ConsiliumClient,
   topic: string,
@@ -354,9 +359,9 @@ async function runClassicDebateFlow(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
-  wsContext?: WorkspaceDebateContext | null,
-  options?: { tools?: boolean },
+  options?: ClassicDebateFlowOptions,
 ): Promise<string> {
+  const wsContext = options?.wsContext;
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
 
@@ -582,7 +587,7 @@ export async function debateCommand(
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   let synthesis = '';
-  synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext, options);
+  synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, { ...options, wsContext });
 
   if (options.apply) {
     await maybeApplySynthesisEdits(synthesis, wsContext?.rootPath || resolveProjectRoot(process.cwd()).root);
@@ -620,7 +625,7 @@ async function offerFollowUp(
     if (useDeliberation) {
       synthesis = await runDeliberation(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext);
     } else {
-      synthesis = await runClassicDebateFlow(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext, options);
+      synthesis = await runClassicDebateFlow(client, contextualTopic, mode, models, outputFormat, useLiveProgress, { ...options, wsContext });
     }
     previousSynthesis = synthesis;
   }

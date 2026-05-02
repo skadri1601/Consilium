@@ -76,7 +76,7 @@ describe("ClerkWebhooksController integration + stress", () => {
     const res = await app.getHttpAdapter().getInstance().inject({
       method: "POST",
       url: opts.path ?? "/api/v1/webhooks/clerk",
-      headers: { "content-type": "application/json", ...(opts.headers ?? {}) },
+      headers: { "content-type": "application/json", ...opts.headers },
       payload: opts.payload ? JSON.stringify(opts.payload) : undefined,
     });
     let body: unknown;
@@ -220,19 +220,19 @@ describe("ClerkWebhooksController integration + stress", () => {
   describe("concurrency stress", () => {
     it("1000 unauthenticated requests in parallel — all 401, zero invocations", async () => {
       const N = 1000;
-      const variants = [
-        () => ({}),
-        () => ({ "x-webhook-secret": "" }),
-        () => ({ "x-webhook-secret": "wrong" }),
-        () => ({
-          "x-webhook-secret": "X".repeat(VALID_SECRET.length),
-        }),
+      const variants: Array<Record<string, string>> = [
+        {},
+        { "x-webhook-secret": "" },
+        { "x-webhook-secret": "wrong" },
+        { "x-webhook-secret": "X".repeat(VALID_SECRET.length) },
       ];
+      const pickHeaders = (i: number): Record<string, string> =>
+        variants[i % variants.length] ?? {};
 
       const responses = await Promise.all(
         Array.from({ length: N }, (_, i) =>
           inject({
-            headers: variants[i % variants.length]!(),
+            headers: pickHeaders(i),
             payload: {
               action: "create",
               clerkId: `attacker_${i}`,

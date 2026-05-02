@@ -78,7 +78,7 @@ function parseRoutes(file: string): RouteEntry[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? "";
     const httpDecMatch = new RegExp(
-      `^\\s*@(${HTTP_METHOD_DECORATORS.join("|")})\\s*\\(`,
+      String.raw`^\s*@(${HTTP_METHOD_DECORATORS.join("|")})\s*\(`,
     ).exec(line);
     if (!httpDecMatch) continue;
 
@@ -131,10 +131,9 @@ describe("API route auth coverage", () => {
       if (r.methodHasGuard) continue;
       if (PUBLIC_CONTROLLER_PATHS.has(r.controllerPath)) continue;
       if (PUBLIC_METHOD_NAMES.has(r.method)) continue;
-      violations.push(
-        `${r.controllerPath ? `/${r.controllerPath}` : "(root)"}.${r.method}` +
-          ` in ${r.file.replace(__dirname + "/", "")}`,
-      );
+      const controller = r.controllerPath ? `/${r.controllerPath}` : "(root)";
+      const relPath = r.file.replace(__dirname + "/", "");
+      violations.push(`${controller}.${r.method} in ${relPath}`);
     }
     if (violations.length > 0) {
       throw new Error(
