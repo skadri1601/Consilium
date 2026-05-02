@@ -34,47 +34,75 @@ Consilium already ships six domain templates
 `DEFAULT_MODELS`, `MAX_ROUNDS`, `REQUIRE_DISSENT`, `RUBRIC`,
 `SYSTEM_PROMPT`, `build_template(topic)`.
 
-A `startup_validation` template would map the five prompts onto five
-**personas** that each defend their lens of the validation, with the Judge
-synthesising a Go / Pivot / Kill verdict. The audience is concrete (founders),
-the use case is repeat (every idea anyone validates), and it's an obvious
-top-of-funnel demo for "why would I need an AI council instead of just one
-LLM."
+A `startup_validation` template would have a single system prompt that
+enumerates the five validation lenses, with the Judge synthesising a Go /
+Pivot / Kill verdict. The audience is concrete (founders), the use case is
+repeat (every idea anyone validates), and it's an obvious top-of-funnel demo
+for "why would I need an AI council instead of just one LLM."
+
+**Persona model — v1 uses a single enumerated `SYSTEM_PROMPT`, not per-agent
+personas.** Every existing template ships exactly one `SYSTEM_PROMPT` and
+returns `system_prompts: {"default": SYSTEM_PROMPT}` from `build_template`;
+the deliberation engine only consumes `"default"` today. A per-agent persona
+dict would require teaching `deliberation_graph.py` to assign one persona per
+agent slot, which is a real engine change and would push this past "just add
+a template." Instead, we lean on the council's existing diversity (different
+providers per agent — Claude / GPT-5 / Gemini) to produce the disagreement,
+and the single prompt enumerates all five lenses so each agent considers
+them. If Judge synthesis comes out muddy, v2 can split into per-agent
+personas as a separate engine PR.
+
+**Defaults match the existing convention.** `DEFAULT_MODELS = 3` (not 5) —
+five agents × three rounds is ~18-20 LLM calls per debate vs ~9-12 for the
+existing templates, and the lenses come from the prompt structure, not from
+five separate agents.
+
+**Intake.** v1 takes the founder's idea as the `topic` string, matching how
+`healthcare.build_template(clinical_presentation)` passes its input. No new
+pre-step. If the user underspecifies, the prompt's "Step 1: ask for X" lines
+let the council request more context on the first round.
 
 Sketch (do not implement yet — for review):
 
 ```python
 TEMPLATE_NAME = "startup_validation"
 MODE = DeliberationMode.COUNCIL
-DEFAULT_MODELS = 5
+DEFAULT_MODELS = 3
 MAX_ROUNDS = 3
 REQUIRE_DISSENT = True
 REQUIRE_CITATIONS = False
 
-PERSONAS = {
-    "pressure_tester":  "Paul Graham–style YC evaluator; finds fatal flaws ranked by severity.",
-    "problem_validator": "Customer-discovery specialist; vitamin vs painkiller verdict.",
-    "competition_mapper": "Competitive-intelligence analyst; surfaces invisible competitors and current behavior.",
-    "traction_specialist": "Early-traction operator; designs the manual path to the first 10 paying customers.",
-    "mvp_architect": "MVP architect; cuts scope to the single riskiest assumption testable in 2 weeks.",
-}
+SYSTEM_PROMPT = (
+    "You are a startup validation specialist participating in a council "
+    "deliberation. Evaluate the founder's idea across five lenses, applying "
+    "Paul Graham's frameworks to each:\n"
+    "  1. Pressure test — find fatal flaws, ranked by severity.\n"
+    "  2. Problem validation — vitamin or painkiller, with explicit verdict.\n"
+    "  3. Competition map — direct, indirect, and the current-behavior competitor.\n"
+    "  4. First 10 customers — the manual, unscaled path to real demand.\n"
+    "  5. MVP scope — the single riskiest assumption, testable in 2 weeks.\n"
+    "Surface disagreement explicitly. Never say 'we have no competition' "
+    "without flagging it as a red flag. Land on Go, Pivot, or Kill."
+)
 
 RUBRIC = Rubric(dimensions=[
-    RubricDimension("problem_realness", 0.30, ...),
-    RubricDimension("differentiation",   0.20, ...),
-    RubricDimension("traction_path",     0.20, ...),
-    RubricDimension("mvp_feasibility",   0.15, ...),
-    RubricDimension("founder_market_fit", 0.15, ...),
+    RubricDimension("problem_realness",  0.30, ...),
+    RubricDimension("differentiation",    0.20, ...),
+    RubricDimension("traction_path",      0.25, ...),
+    RubricDimension("mvp_feasibility",    0.15, ...),
+    RubricDimension("founder_market_fit", 0.10, ...),
 ])
 ```
 
-The Judge's synthesis lands on one of: **Strong → build it**, **Weak →
-pivot specified axis**, or **Kill → here's the fatal flaw**.
+Founder-market fit is weighted lowest because, unlike the other dimensions,
+it's about the user not the idea — different providers won't really
+*disagree* on it. Kept as a Judge-visible signal but not load-bearing.
+
+The Judge's synthesis lands on one of: **Go → build it**, **Pivot →
+on this specified axis**, or **Kill → here's the fatal flaw**.
 
 Open questions for review:
 
-- Should each persona run on a different provider (Claude vs GPT-5 vs Gemini) so disagreement is real, not stylistic?
-- Do we want a "founder interview" pre-step that asks for the idea, target customer, and current traction before the personas weigh in? The source prompts all have a "Step 1: ask for X (skip if already provided)" pattern — that maps cleanly to a structured intake.
 - Marketing surface: a `(marketing)/templates/startup-validation/` page with an embedded demo would also hit the SEO/AEO/GEO research from PR #55 (long-tail comparison-style queries: "should I build X startup", "validate startup idea AI").
 
 ### B. Internal — adopt the XML scaffolding pattern for our own personas
@@ -105,11 +133,19 @@ Cheap experiment, no scope creep: pick one existing template (suggest
 small A/B over 20 debates, compare rubric-weighted Judge scores. If it
 moves the needle, roll the pattern out to the other five templates.
 
+**Important — keep the A/B clean.** The `startup_validation` implementation
+PR (step 2 below) must ship with a plain prose `SYSTEM_PROMPT`, not the XML
+scaffold. If the new template adopts the XML format before the A/B has run,
+the experiment is contaminated by domain differences and we can't attribute
+any score change to the format.
+
 ## What "do this" looks like, in order
 
 1. (this PR) — research doc + proposal, no code.
-2. PR: add `startup_validation.py` + register it, plus one Vitest
-   integration test that runs a fake debate end-to-end.
+2. PR: add `startup_validation.py` + register it in `registry.py`
+   (`TEMPLATES` dict and `DESCRIPTIONS` map), plus one Vitest integration
+   test that runs a fake debate end-to-end. Plain prose `SYSTEM_PROMPT`,
+   no XML scaffold (see §B).
 3. PR: marketing page at `(marketing)/templates/startup-validation/` with
    structured-data + the lead-with-the-answer pattern from the SEO research.
 4. PR (separate, parallel): refactor `code_review.py` system prompt to XML
