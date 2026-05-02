@@ -159,16 +159,20 @@
   });
 
   window.addEventListener("message", (event) => {
-    // Verify the origin of incoming messages (SonarQube S2819).
-    // VS Code dispatches extension messages from the parent workbench frame,
-    // which targets this webview's own origin. Reject anything from a foreign
-    // origin or unexpected source as defense-in-depth on top of the strict CSP.
-    const trustedOrigin =
-      !event.origin ||
-      event.origin === window.origin ||
-      event.origin === "null" ||
-      /^vscode-/.test(event.origin);
-    if (!trustedOrigin) return;
+    // Verify the origin of incoming messages (SonarQube javascript:S2819).
+    // VS Code webview messages arrive from the workbench parent frame and
+    // carry a vscode-webview:// origin (or "null"/empty under some sandbox
+    // contexts). Reject anything else as defense-in-depth on top of the
+    // strict CSP we set on the panel HTML.
+    const origin = event.origin || "";
+    if (
+      origin !== "" &&
+      origin !== "null" &&
+      origin !== window.origin &&
+      !origin.startsWith("vscode-")
+    ) {
+      return;
+    }
     if (event.source !== window.parent && event.source !== window) return;
     const msg = event.data;
     if (!msg || typeof msg !== "object") return;
