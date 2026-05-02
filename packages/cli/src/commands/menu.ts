@@ -121,6 +121,7 @@ async function executeEntry(entry: MenuEntry): Promise<boolean> {
       console.log(st.bold('\n  Saved Sessions:\n'));
       for (let i = 0; i < Math.min(sessions.length, 10); i++) {
         const s = sessions[i];
+        if (!s) continue;
         console.log(`  ${i + 1}. ${s.name || 'Untitled'} (${s.debateCount} debates)`);
         console.log(st.dim(`     ID: ${s.id}\n`));
       }

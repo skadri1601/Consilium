@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
 import { EmailService } from "./email.service";
 
 const mockSend = jest.fn();
@@ -8,6 +9,10 @@ jest.mock("resend", () => ({
     emails: { send: mockSend },
   })),
 }));
+
+const envConfigService = {
+  get: <T>(key: string): T | undefined => process.env[key] as T | undefined,
+};
 
 describe("EmailService", () => {
   let service: EmailService;
@@ -24,7 +29,10 @@ describe("EmailService", () => {
       delete process.env.APP_URL;
 
       const module: TestingModule = await Test.createTestingModule({
-        providers: [EmailService],
+        providers: [
+          EmailService,
+          { provide: ConfigService, useValue: envConfigService },
+        ],
       }).compile();
 
       service = module.get<EmailService>(EmailService);
@@ -57,7 +65,10 @@ describe("EmailService", () => {
       process.env.RESEND_FROM_ADDRESS = "other@example.com";
 
       const module: TestingModule = await Test.createTestingModule({
-        providers: [EmailService],
+        providers: [
+          EmailService,
+          { provide: ConfigService, useValue: envConfigService },
+        ],
       }).compile();
       const overriddenService = module.get<EmailService>(EmailService);
 
@@ -111,7 +122,10 @@ describe("EmailService", () => {
       delete process.env.RESEND_API_KEY;
 
       const module: TestingModule = await Test.createTestingModule({
-        providers: [EmailService],
+        providers: [
+          EmailService,
+          { provide: ConfigService, useValue: envConfigService },
+        ],
       }).compile();
 
       service = module.get<EmailService>(EmailService);

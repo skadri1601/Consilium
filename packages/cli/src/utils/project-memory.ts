@@ -96,7 +96,7 @@ export function loadProjectMemory(rootPath: string): MemoryEntry[] {
     const mode = headerMatch[2] ?? '';
     const topicMatch = /\*\*Topic:\*\*\s+([^\n]+)/.exec(body);
     const topic = topicMatch?.[1]?.trim() ?? '';
-    const idMatch = /_id:\s+([^\s_]+)_/.exec(body);
+    const idMatch = /_id:\s+(\S+?)_(?=\s|$)/m.exec(body);
     const summaryStart = body.indexOf('**Topic:**');
     const summaryAfterTopic = summaryStart >= 0 ? body.slice(summaryStart) : body;
     const blankIdx = summaryAfterTopic.indexOf('\n\n');
