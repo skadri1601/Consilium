@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import * as vscode from "vscode";
 import type { ConsiliumClient } from "../api/client";
 import type {
@@ -372,11 +373,6 @@ function isValidMode(mode: string): mode is CreateDebateRequest["mode"] & string
 }
 
 function makeNonce(): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let out = "";
-  for (let i = 0; i < 32; i++) {
-    out += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return out;
+  // CSP nonce must be unpredictable; use a cryptographically secure RNG.
+  return randomBytes(24).toString("base64url");
 }
