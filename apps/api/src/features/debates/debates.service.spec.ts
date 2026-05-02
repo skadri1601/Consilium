@@ -6,6 +6,7 @@ import { PrismaService } from "../../shared/database/prisma.service";
 import { ApiKeysService } from "../api-keys/api-keys.service";
 import { AiWorkersClient } from "./ai-workers.client";
 import { PersonasService } from "../personas/personas.service";
+import { AuthService } from "../auth/auth.service";
 import { DebateQueueService } from "../../shared/queue/debate-queue.service";
 
 describe("DebatesService", () => {
@@ -73,6 +74,7 @@ describe("DebatesService", () => {
         { provide: ApiKeysService, useValue: mockApiKeysService },
         { provide: AiWorkersClient, useValue: mockAiWorkersClient },
         { provide: PersonasService, useValue: { findOne: jest.fn() } },
+        { provide: AuthService, useValue: { getUser: jest.fn() } },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: DebateQueueService, useValue: mockDebateQueueService },
         {

@@ -203,8 +203,8 @@ export class ClerkAuthGuard implements CanActivate {
     try {
       await this.ensureUserExists(session.sub);
     } catch (err) {
-      this.logger.debug(
-        `User sync skipped: ${err instanceof Error ? err.message : "Unknown"}`,
+      this.logger.warn(
+        `JIT user sync failed for ${session.sub}: ${err instanceof Error ? err.message : "Unknown"}`,
       );
     }
 
@@ -253,12 +253,18 @@ export class ClerkAuthGuard implements CanActivate {
     if (existing) return;
 
     const clerkUser = await this.authService.getUser(clerkId);
-    if (!clerkUser) return;
+    if (!clerkUser) {
+      this.logger.warn(
+        `JIT user sync: Clerk getUser(${clerkId}) returned null. Check CLERK_SECRET_KEY and Clerk SDK status.`,
+      );
+      return;
+    }
 
     const email =
       clerkUser.emailAddresses?.[0]?.emailAddress || `${clerkId}@clerk.local`;
-    await this.prisma.user.create({
-      data: {
+    await this.prisma.user.upsert({
+      where: { clerkId },
+      create: {
         clerkId,
         email,
         firstName: clerkUser.firstName ?? undefined,
@@ -266,6 +272,7 @@ export class ClerkAuthGuard implements CanActivate {
         imageUrl: clerkUser.imageUrl ?? undefined,
         tenantId: clerkId,
       },
+      update: {},
     });
     this.logger.log(`Auto-synced Clerk user ${clerkId}`);
   }
