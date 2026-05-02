@@ -60,10 +60,10 @@ function extractControllerPath(src: string): string | null {
 }
 
 function controllerHasClerkGuard(src: string): boolean {
-  const m = /@Controller\([\s\S]*?\)\s*([\s\S]*?)export class/.exec(src);
-  if (!m) return false;
-  const decoratorBlock = m[1] ?? "";
-  return /UseGuards\([^)]*ClerkAuthGuard[^)]*\)/.test(decoratorBlock);
+  const exportClassIdx = src.indexOf("export class");
+  if (exportClassIdx < 0) return false;
+  const decoratorBlock = src.slice(0, exportClassIdx);
+  return /UseGuards\([^)]*ClerkAuthGuard\b[^)]*\)/.test(decoratorBlock);
 }
 
 function parseRoutes(file: string): RouteEntry[] {
