@@ -191,7 +191,7 @@ export class SseProxyService {
     debateId: string,
     goldenPrompt?: string,
     totalCost?: number,
-    _totalTokens?: number,
+    totalTokens?: number,
   ): Promise<void> {
     try {
       this.sseVerbose(
@@ -204,6 +204,13 @@ export class SseProxyService {
       );
       if (totalCost !== undefined) {
         await this.debatesService.updateTotalCost(debateId, totalCost);
+      }
+      if (totalCost !== undefined || totalTokens !== undefined) {
+        await this.debatesService.recordUsage(
+          debateId,
+          totalTokens ?? 0,
+          totalCost ?? 0,
+        );
       }
     } catch (error) {
       this.logger.error(`[SSE PROXY] Failed to update debate status: ${error}`);
