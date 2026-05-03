@@ -201,24 +201,26 @@
     },
   };
 
-  globalThis.addEventListener("message", (event) => {
+  self.addEventListener("message", (event) => {
     // Verify the origin of incoming messages (SonarQube javascript:S2819).
     // VS Code webview messages arrive from the workbench parent frame and
     // carry a vscode-webview:// origin (or "null"/empty under some sandbox
     // contexts). Reject anything else as defense-in-depth on top of the
     // strict CSP we set on the panel HTML.
     if (
-      event.origin !== globalThis.origin &&
+      event.origin !== self.origin &&
       event.origin !== "null" &&
       event.origin !== "" &&
       !event.origin.startsWith("vscode-")
     ) {
       return;
     }
-    if (event.source !== globalThis.parent && event.source !== globalThis) return;
+    if (event.source !== self.parent && event.source !== self) return;
     const msg = event.data;
     if (!msg || typeof msg !== "object") return;
-    const handler = messageHandlers[msg.type];
+    const handler = Object.hasOwn(messageHandlers, msg.type)
+      ? messageHandlers[msg.type]
+      : undefined;
     if (handler) handler(msg);
   });
 
@@ -352,7 +354,9 @@
   function handleEvent(ev) {
     if (!ev || typeof ev !== "object") return;
     const eventType = ev.event || ev.type;
-    const handler = eventHandlers[eventType];
+    const handler = Object.hasOwn(eventHandlers, eventType)
+      ? eventHandlers[eventType]
+      : undefined;
     if (handler) {
       handler(ev);
     } else if (eventType) {
