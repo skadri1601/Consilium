@@ -164,12 +164,11 @@
     // carry a vscode-webview:// origin (or "null"/empty under some sandbox
     // contexts). Reject anything else as defense-in-depth on top of the
     // strict CSP we set on the panel HTML.
-    const origin = event.origin || "";
     if (
-      origin !== "" &&
-      origin !== "null" &&
-      origin !== window.origin &&
-      !origin.startsWith("vscode-")
+      event.origin !== window.origin &&
+      event.origin !== "null" &&
+      event.origin !== "" &&
+      !/^vscode-/.test(event.origin)
     ) {
       return;
     }
