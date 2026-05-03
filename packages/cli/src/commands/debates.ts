@@ -102,6 +102,8 @@ export interface StartDebateOptions {
   json?: boolean;
   file?: string[];
   gitDiff?: boolean;
+  /** Commander negation — present and false when --no-git is passed. Default ON. */
+  git?: boolean;
   ticket?: string;
   context?: boolean;
   /** Legacy alias — agent tools are now on by default. */
@@ -126,9 +128,9 @@ export async function startDebateCommand(
   const wsContext = await loadWorkspaceContext({
     file: options.file,
     gitDiff: options.gitDiff,
-    noGit: options.git === false,
+    git: options.git,
     ticket: options.ticket,
-    noContext: options.context === false,
+    context: options.context,
   });
 
   const bridge = await startToolBridge(client, {

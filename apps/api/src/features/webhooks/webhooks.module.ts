@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ClerkWebhooksController } from "./clerk-webhooks.controller";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
+import { WebhookSecretGuard } from "./guards/webhook-secret.guard";
 import { PrismaModule } from "../../shared/database";
 import { AuditLoggerService } from "../../shared/services/audit-logger.service";
 import { SessionService } from "../../shared/services/session.service";
@@ -16,6 +17,7 @@ import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
     SessionService,
     EmailService,
     RateLimitGuard,
+    WebhookSecretGuard,
   ],
   exports: [ClerkWebhooksService],
 })

@@ -17,18 +17,34 @@ function formatCost(cost: number | undefined): string {
   return `$${cost.toFixed(4)}`;
 }
 
-async function fetchStats(client: ConsiliumClient): Promise<StatsResponse | null> {
+type FetchStatsResult =
+  | { ok: true; data: StatsResponse }
+  | { ok: false; reason: 'unauthorized' | 'unreachable' | 'server_error'; status?: number; detail?: string };
+
+async function fetchStats(client: ConsiliumClient): Promise<FetchStatsResult> {
+  const apiUrl = client.getApiUrl();
+  const apiKey = client.getApiKey();
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
   try {
-    const apiUrl = client.getApiUrl();
     const response = await fetch(`${apiUrl}/api/v1/analytics/stats`, {
       method: 'GET',
+      headers,
       signal: AbortSignal.timeout(10000),
     });
-    if (!response.ok) return null;
-    return response.json() as Promise<StatsResponse>;
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, reason: 'unauthorized', status: response.status };
+    }
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      return { ok: false, reason: 'server_error', status: response.status, detail };
+    }
+    const data = (await response.json()) as StatsResponse;
+    return { ok: true, data };
   } catch (err: unknown) {
-    console.error(st.dim(`Stats fetch error: ${err instanceof Error ? err.message : String(err)}`));
-    return null;
+    const detail = err instanceof Error ? err.message : String(err);
+    return { ok: false, reason: 'unreachable', detail };
   }
 }
 
@@ -36,13 +52,26 @@ export async function statsCommand(): Promise<void> {
   await requireAuth();
 
   const client = new ConsiliumClient();
-  const stats = await fetchStats(client);
+  const result = await fetchStats(client);
 
-  if (!stats) {
-    console.log(st.error('Failed to fetch stats from API.'));
-    console.log(st.dim('Make sure the API is running and accessible.'));
+  if (!result.ok) {
+    if (result.reason === 'unauthorized') {
+      console.log(st.error('Stats unavailable: not authorized.'));
+      console.log(st.dim('  Run `consilium login` to refresh your CLI token.'));
+      return;
+    }
+    if (result.reason === 'unreachable') {
+      console.log(st.error('Stats unavailable: API not reachable.'));
+      console.log(st.dim(`  ${result.detail ?? ''}`));
+      console.log(st.dim('  Check `consilium config get apiUrl` and that the API is up.'));
+      return;
+    }
+    console.log(st.error(`Stats unavailable: API returned ${result.status}.`));
+    if (result.detail) console.log(st.dim(`  ${result.detail}`));
     return;
   }
+
+  const stats = result.data;
 
   console.log(border('Model Performance Dashboard'));
   console.log(contentLine(`Total Debates:     ${stats.totalDebates}`));

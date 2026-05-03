@@ -34,7 +34,7 @@ import { startToolBridge, type ToolBridgeHandle } from '../utils/mcp-tool-bridge
 const st = style();
 
 function writeDebateMemory(
-  wsContext: WorkspaceDebateContext | null,
+  wsContext: WorkspaceDebateContext | null | undefined,
   topic: string,
   mode: string,
   resultText: string | undefined,
@@ -347,6 +347,11 @@ function writeFormattedDebateOutput(
   }
 }
 
+interface ClassicDebateFlowOptions {
+  tools?: boolean;
+  wsContext?: WorkspaceDebateContext | null;
+}
+
 async function runClassicDebateFlow(
   client: ConsiliumClient,
   topic: string,
@@ -354,8 +359,9 @@ async function runClassicDebateFlow(
   models: string[],
   outputFormat: OutputFormat,
   useLiveProgress: boolean,
-  wsContext?: WorkspaceDebateContext | null,
+  options?: ClassicDebateFlowOptions,
 ): Promise<string> {
+  const wsContext = options?.wsContext;
   const stepIds: string[] = ['health', 'createDebate', 'startStream'];
   const tracker = createStepTracker(stepIds, STEP_LABELS);
 
@@ -382,7 +388,7 @@ async function runClassicDebateFlow(
   // Start the agent toolkit bridge by default (--no-tools opts out).
   // Vision: Consilium debates the codebase; making file/grep/edit tools
   // opt-in meant most debates ran blind.
-  const toolsEnabled = options.tools !== false;
+  const toolsEnabled = options?.tools !== false;
   let bridge: ToolBridgeHandle | null = null;
   if (toolsEnabled) {
     try {
@@ -581,14 +587,14 @@ export async function debateCommand(
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   let synthesis = '';
-  synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, wsContext);
+  synthesis = await runClassicDebateFlow(client, topic, mode, models, outputFormat, useLiveProgress, { ...options, wsContext });
 
   if (options.apply) {
     await maybeApplySynthesisEdits(synthesis, wsContext?.rootPath || resolveProjectRoot(process.cwd()).root);
   }
 
   if (terminal.isTTY && !options.apply) {
-    await offerFollowUp(client, synthesis, mode, models, outputFormat, wsContext);
+    await offerFollowUp(client, synthesis, mode, models, outputFormat, wsContext, options);
   }
 }
 
@@ -599,6 +605,7 @@ async function offerFollowUp(
   models: string[],
   outputFormat: OutputFormat,
   wsContext?: WorkspaceDebateContext | null,
+  options?: { tools?: boolean },
 ): Promise<void> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = (q: string): Promise<string> => new Promise((r) => rl.question(q, r));
@@ -618,7 +625,7 @@ async function offerFollowUp(
     if (useDeliberation) {
       synthesis = await runDeliberation(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext);
     } else {
-      synthesis = await runClassicDebateFlow(client, contextualTopic, mode, models, outputFormat, useLiveProgress, wsContext);
+      synthesis = await runClassicDebateFlow(client, contextualTopic, mode, models, outputFormat, useLiveProgress, { ...options, wsContext });
     }
     previousSynthesis = synthesis;
   }
