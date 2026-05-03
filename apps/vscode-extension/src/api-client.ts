@@ -87,7 +87,7 @@ export class ConsiliumApiClient {
     private readonly getToken: () => Promise<string | undefined>,
   ) {}
 
-  private async headers(extra: Record<string, string> = {}): Promise<HeadersInit> {
+  private async headers(extra: Record<string, string> = {}): Promise<Record<string, string>> {
     const token = await this.getToken();
     const h: Record<string, string> = {
       "Content-Type": "application/json",

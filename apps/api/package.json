@@ -22,7 +22,8 @@
     "prisma:push": "pnpm -C ../../packages/database db:push",
     "prisma:studio": "pnpm -C ../../packages/database db:studio",
     "db:push": "pnpm prisma:push",
-    "db:generate": "pnpm prisma:generate"
+    "db:generate": "pnpm prisma:generate",
+    "backfill:clerk-users": "tsx src/scripts/backfill-clerk-users.ts"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.0.0",

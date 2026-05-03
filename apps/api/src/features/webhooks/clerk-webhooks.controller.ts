@@ -2,17 +2,15 @@ import {
   Controller,
   Post,
   Body,
-  Headers,
   HttpCode,
   HttpStatus,
   UseGuards,
-  UnauthorizedException,
   Logger,
 } from "@nestjs/common";
-import { timingSafeEqual } from "node:crypto";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 import { RateLimit } from "../../shared/decorators/rate-limit.decorator";
+import { WebhookSecretGuard } from "./guards/webhook-secret.guard";
 
 interface ClerkUserWebhookPayload {
   action: "create" | "update" | "delete";
@@ -28,8 +26,8 @@ interface SessionEndedPayload {
   sessionId: string;
 }
 
-@Controller("api/v1/webhooks/clerk")
-@UseGuards(RateLimitGuard)
+@Controller("webhooks/clerk")
+@UseGuards(WebhookSecretGuard, RateLimitGuard)
 @RateLimit(50, 60)
 export class ClerkWebhooksController {
   private readonly logger = new Logger(ClerkWebhooksController.name);
@@ -38,12 +36,7 @@ export class ClerkWebhooksController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async handleUserWebhook(
-    @Headers("x-webhook-secret") secret: string,
-    @Body() payload: ClerkUserWebhookPayload,
-  ) {
-    this.verifyWebhookSecret(secret);
-
+  async handleUserWebhook(@Body() payload: ClerkUserWebhookPayload) {
     this.logger.log(
       `Processing Clerk user webhook: ${payload.action} for ${payload.clerkId}`,
     );
@@ -63,36 +56,12 @@ export class ClerkWebhooksController {
 
   @Post("session-ended")
   @HttpCode(HttpStatus.OK)
-  async handleSessionEnded(
-    @Headers("x-webhook-secret") secret: string,
-    @Body() payload: SessionEndedPayload,
-  ) {
-    this.verifyWebhookSecret(secret);
-
+  async handleSessionEnded(@Body() payload: SessionEndedPayload) {
     this.logger.log(`Processing session ended for user: ${payload.userId}`);
 
     return this.webhooksService.handleSessionEnded(
       payload.userId,
       payload.sessionId,
     );
-  }
-
-  private verifyWebhookSecret(secret: string): void {
-    const expectedSecret = process.env.INTERNAL_WEBHOOK_SECRET;
-
-    if (!expectedSecret) {
-      this.logger.error("INTERNAL_WEBHOOK_SECRET not configured");
-      throw new UnauthorizedException("Webhook endpoint not configured");
-    }
-
-    if (typeof secret !== "string") {
-      throw new UnauthorizedException("Invalid webhook secret");
-    }
-
-    const a = Buffer.from(secret, "utf8");
-    const b = Buffer.from(expectedSecret, "utf8");
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      throw new UnauthorizedException("Invalid webhook secret");
-    }
   }
 }

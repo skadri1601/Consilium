@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  Logger,
   forwardRef,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -15,9 +16,10 @@ import { DEBATE_MODES } from "@consilium/shared";
 import { ApiKeysService } from "../api-keys/api-keys.service";
 import { AiWorkersClient } from "./ai-workers.client";
 import { PersonasService } from "../personas/personas.service";
+import { AuthService } from "../auth/auth.service";
 import { MODEL_PRICING, FREE_FALLBACK_MODELS } from "./model-pricing";
 import { DebateQueueService } from "../../shared/queue/debate-queue.service";
-import type { DebateSession } from "@consilium/database";
+import type { DebateSession, User } from "@consilium/database";
 
 interface ResolvedApiKeys {
   openaiKey?: string;
@@ -38,30 +40,63 @@ interface PreparedDebate {
 
 @Injectable()
 export class DebatesService {
+  private readonly logger = new Logger(DebatesService.name);
+
   constructor(
     private prisma: PrismaService,
     private apiKeysService: ApiKeysService,
     private aiWorkersClient: AiWorkersClient,
     private personasService: PersonasService,
     private configService: ConfigService,
+    private readonly authService: AuthService,
     @Inject(forwardRef(() => DebateQueueService))
     private debateQueueService: DebateQueueService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  private async _prepareDebate(
-    userId: string,
-    dto: CreateDebateDto,
-  ): Promise<PreparedDebate> {
-    const user = await this.prisma.user.findUnique({
-      where: { clerkId: userId },
+  private async resolveUser(clerkId: string): Promise<User> {
+    const existing = await this.prisma.user.findUnique({
+      where: { clerkId },
     });
+    if (existing) return existing;
 
-    if (!user) {
+    this.logger.warn(
+      `User row missing for clerkId=${clerkId}; attempting inline self-heal.`,
+    );
+
+    const clerkUser = await this.authService.getUser(clerkId);
+    if (!clerkUser) {
+      this.logger.error(
+        `Self-heal failed: Clerk getUser(${clerkId}) returned null. Token verifies but Clerk user lookup is failing — verify CLERK_SECRET_KEY.`,
+      );
       throw new NotFoundException(
         "User not found. Please ensure your account is synced.",
       );
     }
+
+    const email =
+      clerkUser.emailAddresses?.[0]?.emailAddress || `${clerkId}@clerk.local`;
+    const created = await this.prisma.user.upsert({
+      where: { clerkId },
+      create: {
+        clerkId,
+        email,
+        firstName: clerkUser.firstName ?? undefined,
+        lastName: clerkUser.lastName ?? undefined,
+        imageUrl: clerkUser.imageUrl ?? undefined,
+        tenantId: clerkId,
+      },
+      update: {},
+    });
+    this.logger.log(`Self-healed user row for clerkId=${clerkId}`);
+    return created;
+  }
+
+  private async _prepareDebate(
+    userId: string,
+    dto: CreateDebateDto,
+  ): Promise<PreparedDebate> {
+    const user = await this.resolveUser(userId);
 
     const apiKeys = await this.apiKeysService.getUserApiKeys(userId);
 

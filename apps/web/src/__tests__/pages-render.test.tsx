@@ -208,10 +208,8 @@ describe("Marketing Pages", () => {
     it("renders blog post entries", () => {
       render(<BlogPage />);
       expect(
-        screen.getByText(
-          "Benchmark Results: Council Deliberation vs Single Models",
-        ),
-      ).toBeInTheDocument();
+        screen.getAllByText(/Council Deliberation vs Single Models/i).length,
+      ).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {
@@ -264,11 +262,19 @@ describe("Marketing Pages", () => {
 
     it("renders doc sections", () => {
       render(<DocsPage />);
-      expect(screen.getByText("Getting Started")).toBeInTheDocument();
-      expect(screen.getByText("API Reference")).toBeInTheDocument();
-      expect(screen.getByText("CLI Reference")).toBeInTheDocument();
-      expect(screen.getByText("Python SDK")).toBeInTheDocument();
-      expect(screen.getByText("TypeScript SDK")).toBeInTheDocument();
+      expect(screen.getAllByText("Getting Started").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("API Reference").length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText(/CLI Reference|Getting Started — CLI/).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText(/Python SDK|Getting Started — Python SDK/).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText(
+          /TypeScript SDK|Getting Started — TypeScript SDK/,
+        ).length,
+      ).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {

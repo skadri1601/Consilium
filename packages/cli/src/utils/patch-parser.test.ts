@@ -20,14 +20,14 @@ describe('parseEditActions', () => {
     });
   });
 
-  it('parses ```file:<path> as whole-file write', () => {
+  it('parses ```file:<path> as whole-file write (preserves trailing newline)', () => {
     const input = ['```file:src/b.ts', 'export const b = 2;', '```'].join('\n');
     const edits = parseEditActions(input);
     expect(edits).toHaveLength(1);
     expect(edits[0]).toMatchObject({
       kind: 'write',
       path: 'src/b.ts',
-      content: 'export const b = 2;',
+      content: 'export const b = 2;\n',
     });
   });
 
