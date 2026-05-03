@@ -32,8 +32,8 @@
   }
 
   function clearEmpty() {
-    if (empty && empty.parentNode === transcript) {
-      transcript.removeChild(empty);
+    if (empty?.parentNode === transcript) {
+      empty.remove();
     }
   }
 
@@ -158,181 +158,205 @@
     }
   });
 
-  window.addEventListener("message", (event) => {
+  const messageHandlers = {
+    init: (msg) => {
+      if (msg.workspaceContext) {
+        contextHint.textContent = `Workspace context: ${msg.workspaceContext.sent}/${msg.workspaceContext.scanned} files`;
+      }
+    },
+    auth: (msg) => {
+      if (msg.authenticated) {
+        setStatus("Idle");
+        submit.disabled = false;
+      } else {
+        setStatus("Signed out", "error");
+        submit.disabled = true;
+        appendSystem("Sign in to start a debate. Run: Consilium: Sign In.");
+      }
+    },
+    started: (msg) => {
+      clearTranscript();
+      appendUser(msg.topic, msg.mode);
+      setStatus(`Running · ${msg.mode}`, "running");
+      setActive(true);
+    },
+    event: (msg) => handleEvent(msg.event),
+    completed: () => {
+      setStatus("Completed", "done");
+      setActive(false);
+    },
+    error: (msg) => {
+      appendError(msg.message);
+      setStatus("Error", "error");
+      setActive(false);
+    },
+    cancelled: () => {
+      appendSystem("Debate cancelled.");
+      setStatus("Cancelled");
+      setActive(false);
+    },
+    clear: () => {
+      clearTranscript();
+      setStatus("Idle");
+    },
+  };
+
+  globalThis.addEventListener("message", (event) => {
     // Verify the origin of incoming messages (SonarQube javascript:S2819).
     // VS Code webview messages arrive from the workbench parent frame and
     // carry a vscode-webview:// origin (or "null"/empty under some sandbox
     // contexts). Reject anything else as defense-in-depth on top of the
     // strict CSP we set on the panel HTML.
     if (
-      event.origin !== window.origin &&
+      event.origin !== globalThis.origin &&
       event.origin !== "null" &&
       event.origin !== "" &&
-      !/^vscode-/.test(event.origin)
+      !event.origin.startsWith("vscode-")
     ) {
       return;
     }
-    if (event.source !== window.parent && event.source !== window) return;
+    if (event.source !== globalThis.parent && event.source !== globalThis) return;
     const msg = event.data;
     if (!msg || typeof msg !== "object") return;
-    switch (msg.type) {
-      case "init":
-        if (msg.workspaceContext) {
-          contextHint.textContent = `Workspace context: ${msg.workspaceContext.sent}/${msg.workspaceContext.scanned} files`;
-        }
-        return;
-      case "auth":
-        if (msg.authenticated) {
-          setStatus("Idle");
-          submit.disabled = false;
-        } else {
-          setStatus("Signed out", "error");
-          submit.disabled = true;
-          appendSystem("Sign in to start a debate. Run: Consilium: Sign In.");
-        }
-        return;
-      case "started":
-        clearTranscript();
-        appendUser(msg.topic, msg.mode);
-        setStatus(`Running · ${msg.mode}`, "running");
-        setActive(true);
-        return;
-      case "event":
-        handleEvent(msg.event);
-        return;
-      case "completed":
-        setStatus("Completed", "done");
-        setActive(false);
-        return;
-      case "error":
-        appendError(msg.message);
-        setStatus("Error", "error");
-        setActive(false);
-        return;
-      case "cancelled":
-        appendSystem("Debate cancelled.");
-        setStatus("Cancelled");
-        setActive(false);
-        return;
-      case "clear":
-        clearTranscript();
-        setStatus("Idle");
-        return;
-    }
+    const handler = messageHandlers[msg.type];
+    if (handler) handler(msg);
   });
+
+  function appendDebateStart(ev) {
+    appendSystem(`Started · models: ${(ev.models || []).join(", ") || "—"}`);
+  }
+
+  function appendRoundStart(ev) {
+    appendSystem(`Round ${ev.round}: ${ev.description || ""}`);
+  }
+
+  function handleAgentStart(ev) {
+    const node = getOrCreateAgentNode(ev.agentId || "agent");
+    if (node.meta && ev.roundNumber !== undefined) {
+      node.meta.textContent = `Round ${ev.roundNumber}`;
+    }
+  }
+
+  function handleAgentChunk(ev) {
+    const node = getOrCreateAgentNode(ev.agentId || "agent");
+    node.body.textContent += ev.chunk || "";
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  function handleAgentComplete(ev) {
+    const node = getOrCreateAgentNode(ev.agentId || "agent");
+    if (!node.meta) return;
+    const cost = typeof ev.cost === "number" ? `$${ev.cost.toFixed(3)}` : "";
+    const tokens = typeof ev.tokens === "number" ? `${ev.tokens} tok` : "";
+    node.meta.textContent = [tokens, cost].filter(Boolean).join(" · ");
+  }
+
+  function appendConvergence(ev) {
+    const similarity = ev.similarity ? ev.similarity.toFixed(2) : "?";
+    const skipping = ev.skippingRounds ? " · skipping rounds" : "";
+    appendSystem(`Convergence detected · similarity ${similarity}${skipping}`);
+  }
+
+  function appendPhaseChange(ev) {
+    appendSystem(`Phase: ${ev.phase || "?"}`);
+  }
+
+  function appendVoteCast(ev) {
+    const modelId = ev.vote?.modelId || "?";
+    const choice = ev.vote?.choice || "?";
+    appendSystem(`Vote cast: ${modelId} → ${choice}`);
+  }
+
+  function appendDissentDetected(ev) {
+    const summary = ev.dissent?.summary || "—";
+    appendSystem(`Dissent detected: ${summary}`);
+  }
+
+  function applyCostUpdate(ev) {
+    if (typeof ev.totalCost === "number") {
+      status.textContent = `Running · $${ev.totalCost.toFixed(3)}`;
+    }
+  }
+
+  function appendJudgeStart(ev) {
+    const judgeSuffix = ev.judgeModel ? ` · ${ev.judgeModel}` : "";
+    appendSystem(`Judge starting${judgeSuffix}`);
+  }
+
+  function appendConsensusEvent(ev) {
+    appendConsensus(ev.goldenPrompt, ev.totalCost);
+  }
+
+  function appendRoutingFallback(ev) {
+    const detail = ev.resolutions ? ` · ${JSON.stringify(ev.resolutions)}` : "";
+    appendSystem(`Routing fallback applied${detail}`);
+  }
+
+  function appendToolRequest(ev) {
+    appendSystem(`Tool call requested: ${ev.name || "?"}`);
+  }
+
+  function appendToolCompleted(ev) {
+    appendSystem(`Tool call completed: ${ev.name || "?"}`);
+  }
+
+  function appendToolFailed(ev) {
+    appendSystem(`Tool call failed: ${ev.name || "?"} — ${ev.message || "?"}`);
+  }
+
+  function appendDone(ev) {
+    const costSuffix =
+      typeof ev.totalCost === "number" ? ` · $${ev.totalCost.toFixed(3)}` : "";
+    appendSystem(`Done · status: ${ev.status || "?"}${costSuffix}`);
+    if (ev.goldenPrompt && !document.querySelector(".cn-msg.consensus")) {
+      appendConsensus(ev.goldenPrompt, ev.totalCost);
+    }
+  }
+
+  function appendErrorEvent(ev) {
+    appendError(ev.message || "Unknown error");
+  }
+
+  function appendDebateCancelled(ev) {
+    appendSystem(`Cancelled: ${ev.reason || "user request"}`);
+  }
+
+  function noop() {}
+
+  const eventHandlers = {
+    debate_start: appendDebateStart,
+    deliberation_start: appendDebateStart,
+    round_start: appendRoundStart,
+    agent_start: handleAgentStart,
+    agent_chunk: handleAgentChunk,
+    agent_complete: handleAgentComplete,
+    convergence_detected: appendConvergence,
+    phase_change: appendPhaseChange,
+    vote_cast: appendVoteCast,
+    dissent_detected: appendDissentDetected,
+    cost_update: applyCostUpdate,
+    judge_start: appendJudgeStart,
+    consensus: appendConsensusEvent,
+    "routing:fallback": appendRoutingFallback,
+    "tool:call_request": appendToolRequest,
+    "tool:call_completed": appendToolCompleted,
+    "tool:call_failed": appendToolFailed,
+    done: appendDone,
+    deliberation_complete: appendDone,
+    error: appendErrorEvent,
+    "debate:cancelled": appendDebateCancelled,
+    keepalive: noop,
+    timeout: noop,
+  };
 
   function handleEvent(ev) {
     if (!ev || typeof ev !== "object") return;
     const eventType = ev.event || ev.type;
-    switch (eventType) {
-      case "debate_start":
-      case "deliberation_start":
-        appendSystem(
-          `Started · models: ${(ev.models || []).join(", ") || "—"}`,
-        );
-        return;
-      case "round_start":
-        appendSystem(`Round ${ev.round}: ${ev.description || ""}`);
-        return;
-      case "agent_start": {
-        const node = getOrCreateAgentNode(ev.agentId || "agent");
-        if (node.meta && ev.roundNumber !== undefined) {
-          node.meta.textContent = `Round ${ev.roundNumber}`;
-        }
-        return;
-      }
-      case "agent_chunk": {
-        const node = getOrCreateAgentNode(ev.agentId || "agent");
-        node.body.textContent += ev.chunk || "";
-        transcript.scrollTop = transcript.scrollHeight;
-        return;
-      }
-      case "agent_complete": {
-        const node = getOrCreateAgentNode(ev.agentId || "agent");
-        if (node.meta) {
-          const cost =
-            typeof ev.cost === "number" ? `$${ev.cost.toFixed(3)}` : "";
-          const tokens =
-            typeof ev.tokens === "number" ? `${ev.tokens} tok` : "";
-          node.meta.textContent = [tokens, cost].filter(Boolean).join(" · ");
-        }
-        return;
-      }
-      case "convergence_detected":
-        appendSystem(
-          `Convergence detected · similarity ${
-            ev.similarity ? ev.similarity.toFixed(2) : "?"
-          }${ev.skippingRounds ? " · skipping rounds" : ""}`,
-        );
-        return;
-      case "phase_change":
-        appendSystem(`Phase: ${ev.phase || "?"}`);
-        return;
-      case "vote_cast":
-        appendSystem(
-          `Vote cast: ${(ev.vote && ev.vote.modelId) || "?"} → ${(ev.vote && ev.vote.choice) || "?"}`,
-        );
-        return;
-      case "dissent_detected":
-        appendSystem(
-          `Dissent detected: ${(ev.dissent && ev.dissent.summary) || "—"}`,
-        );
-        return;
-      case "cost_update":
-        if (typeof ev.totalCost === "number") {
-          status.textContent = `Running · $${ev.totalCost.toFixed(3)}`;
-        }
-        return;
-      case "judge_start":
-        appendSystem(`Judge starting${ev.judgeModel ? ` · ${ev.judgeModel}` : ""}`);
-        return;
-      case "consensus":
-        appendConsensus(ev.goldenPrompt, ev.totalCost);
-        return;
-      case "routing:fallback":
-        appendSystem(
-          `Routing fallback applied${
-            ev.resolutions
-              ? ` · ${JSON.stringify(ev.resolutions)}`
-              : ""
-          }`,
-        );
-        return;
-      case "tool:call_request":
-        appendSystem(`Tool call requested: ${ev.name || "?"}`);
-        return;
-      case "tool:call_completed":
-        appendSystem(`Tool call completed: ${ev.name || "?"}`);
-        return;
-      case "tool:call_failed":
-        appendSystem(`Tool call failed: ${ev.name || "?"} — ${ev.message || "?"}`);
-        return;
-      case "done":
-      case "deliberation_complete":
-        appendSystem(
-          `Done · status: ${ev.status || "?"}${
-            typeof ev.totalCost === "number"
-              ? ` · $${ev.totalCost.toFixed(3)}`
-              : ""
-          }`,
-        );
-        if (ev.goldenPrompt && !document.querySelector(".cn-msg.consensus")) {
-          appendConsensus(ev.goldenPrompt, ev.totalCost);
-        }
-        return;
-      case "error":
-        appendError(ev.message || "Unknown error");
-        return;
-      case "debate:cancelled":
-        appendSystem(`Cancelled: ${ev.reason || "user request"}`);
-        return;
-      case "keepalive":
-      case "timeout":
-        return;
-      default:
-        if (eventType) {
-          appendSystem(`[${eventType}]`);
-        }
+    const handler = eventHandlers[eventType];
+    if (handler) {
+      handler(ev);
+    } else if (eventType) {
+      appendSystem(`[${eventType}]`);
     }
   }
 

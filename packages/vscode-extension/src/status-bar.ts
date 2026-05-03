@@ -9,7 +9,7 @@ export type SessionState =
   | { kind: "error"; message: string };
 
 export class StatusBarController {
-  private item: vscode.StatusBarItem;
+  private readonly item: vscode.StatusBarItem;
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(

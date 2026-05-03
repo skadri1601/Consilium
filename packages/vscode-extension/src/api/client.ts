@@ -80,7 +80,7 @@ export class ConsiliumClient {
         method,
         headers: this.headers(),
         signal: controller.signal,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: body === undefined ? undefined : JSON.stringify(body),
         ...init,
       });
 
@@ -90,7 +90,7 @@ export class ConsiliumClient {
       if (res.status === 429) {
         const retryAfter = res.headers.get("Retry-After");
         throw new RateLimitError(
-          retryAfter ? parseInt(retryAfter, 10) : undefined,
+          retryAfter ? Number.parseInt(retryAfter, 10) : undefined,
         );
       }
       if (!res.ok) {
@@ -237,52 +237,8 @@ export class ConsiliumClient {
 
     const done = (async () => {
       try {
-        const res = await fetch(url, {
-          method: "GET",
-          headers: this.headers({ Accept: "text/event-stream" }),
-          signal: controller.signal,
-        });
-
-        if (res.status === 401) {
-          throw new AuthenticationError();
-        }
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new ConsiliumApiError(
-            text || `Stream failed with status ${res.status}`,
-            res.status,
-            text,
-          );
-        }
-        if (!res.body) {
-          throw new ConsiliumApiError("SSE response body is null");
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-          const { done: streamDone, value } = await reader.read();
-          if (streamDone) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            const trimmed = line.replace(/\r$/, "");
-            if (!trimmed.startsWith("data:")) continue;
-            const raw = trimmed.slice(5).trim();
-            if (!raw || raw === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(raw) as SseEnvelope;
-              onEvent(parsed);
-            } catch {
-              // skip malformed payload
-            }
-          }
-        }
+        const res = await this.fetchSseResponse(url, controller.signal);
+        await this.consumeSseStream(res.body!, onEvent);
       } catch (err) {
         if (
           err instanceof DOMException &&
@@ -298,5 +254,66 @@ export class ConsiliumClient {
       cancel: () => controller.abort(),
       done,
     };
+  }
+
+  private async fetchSseResponse(
+    url: string,
+    signal: AbortSignal,
+  ): Promise<Response> {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: this.headers({ Accept: "text/event-stream" }),
+      signal,
+    });
+    if (res.status === 401) {
+      throw new AuthenticationError();
+    }
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new ConsiliumApiError(
+        text || `Stream failed with status ${res.status}`,
+        res.status,
+        text,
+      );
+    }
+    if (!res.body) {
+      throw new ConsiliumApiError("SSE response body is null");
+    }
+    return res;
+  }
+
+  private async consumeSseStream(
+    body: ReadableStream<Uint8Array>,
+    onEvent: (event: SseEnvelope) => void,
+  ): Promise<void> {
+    const reader = body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done: streamDone, value } = await reader.read();
+      if (streamDone) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        dispatchSseLine(line, onEvent);
+      }
+    }
+  }
+}
+
+function dispatchSseLine(
+  line: string,
+  onEvent: (event: SseEnvelope) => void,
+): void {
+  const trimmed = line.replace(/\r$/, "");
+  if (!trimmed.startsWith("data:")) return;
+  const raw = trimmed.slice(5).trim();
+  if (!raw || raw === "[DONE]") return;
+  try {
+    onEvent(JSON.parse(raw) as SseEnvelope);
+  } catch {
+    // skip malformed payload
   }
 }

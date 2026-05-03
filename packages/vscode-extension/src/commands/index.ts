@@ -92,9 +92,10 @@ export function registerCommands(
       );
       return;
     }
+    const noteSuffix = note ? `: ${note}` : "";
     await panel.startDeliberation({
       kind: "redteam",
-      topic: `Red-team review of ${fileLabel}${note ? `: ${note}` : ""}`,
+      topic: `Red-team review of ${fileLabel}${noteSuffix}`,
       models,
       content: selected,
       categories: note ? note.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
@@ -275,13 +276,14 @@ function formatDebateMarkdown(detail: {
   goldenPrompt?: string | null;
   rounds?: Array<Record<string, unknown>>;
 }): string {
-  const lines: string[] = [];
-  lines.push(`# ${detail.topic}`);
-  lines.push("");
-  lines.push(`- **ID**: \`${detail.id}\``);
-  lines.push(`- **Mode**: ${detail.mode}`);
-  lines.push(`- **Status**: ${detail.status}`);
-  lines.push(`- **Created**: ${new Date(detail.createdAt).toLocaleString()}`);
+  const lines: string[] = [
+    `# ${detail.topic}`,
+    "",
+    `- **ID**: \`${detail.id}\``,
+    `- **Mode**: ${detail.mode}`,
+    `- **Status**: ${detail.status}`,
+    `- **Created**: ${new Date(detail.createdAt).toLocaleString()}`,
+  ];
   if (typeof detail.totalCost === "number") {
     lines.push(`- **Total cost**: $${detail.totalCost.toFixed(4)}`);
   }
@@ -293,22 +295,20 @@ function formatDebateMarkdown(detail: {
   }
   lines.push("");
   if (detail.goldenPrompt) {
-    lines.push("## Golden Prompt");
-    lines.push("");
-    lines.push(detail.goldenPrompt);
-    lines.push("");
+    lines.push("## Golden Prompt", "", detail.goldenPrompt, "");
   }
   if (detail.rounds?.length) {
-    lines.push("## Rounds");
-    lines.push("");
+    lines.push("## Rounds", "");
     for (let i = 0; i < detail.rounds.length; i++) {
       const round = detail.rounds[i] as Record<string, unknown>;
-      lines.push(`### Round ${i + 1}`);
-      lines.push("");
-      lines.push("```json");
-      lines.push(JSON.stringify(round, null, 2));
-      lines.push("```");
-      lines.push("");
+      lines.push(
+        `### Round ${i + 1}`,
+        "",
+        "```json",
+        JSON.stringify(round, null, 2),
+        "```",
+        "",
+      );
     }
   }
   return lines.join("\n");

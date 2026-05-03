@@ -33,6 +33,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   };
   await refreshToken();
 
+  const statusBar = new StatusBarController();
+  const sessionsProvider = new SessionsTreeProvider(client);
+  const modelsProvider = new ModelsTreeProvider();
+  const chatProvider = new ChatPanelProvider(
+    context.extensionUri,
+    client,
+    secrets,
+    statusBar,
+    () => sessionsProvider.refresh(),
+  );
+
   context.subscriptions.push(
     context.secrets.onDidChange(async (e) => {
       if (e.key === "consilium.apiToken") {
@@ -41,9 +52,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         sessionsProvider.refresh();
       }
     }),
-  );
-
-  context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("consilium.apiUrl")) {
         // Recreate client URL by mutating closure-bound URL through new instance.
@@ -60,29 +68,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           });
       }
     }),
-  );
-
-  const statusBar = new StatusBarController();
-  context.subscriptions.push(statusBar);
-
-  const sessionsProvider = new SessionsTreeProvider(client);
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("consilium.sessions", sessionsProvider),
-  );
-
-  const modelsProvider = new ModelsTreeProvider();
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("consilium.models", modelsProvider),
-  );
-
-  const chatProvider = new ChatPanelProvider(
-    context.extensionUri,
-    client,
-    secrets,
     statusBar,
-    () => sessionsProvider.refresh(),
-  );
-  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider("consilium.sessions", sessionsProvider),
+    vscode.window.registerTreeDataProvider("consilium.models", modelsProvider),
     vscode.window.registerWebviewViewProvider(
       ChatPanelProvider.viewType,
       chatProvider,
@@ -95,16 +83,21 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   statusBar.update(cachedToken ? { kind: "idle" } : { kind: "signed-out" });
 
   if (!cachedToken) {
-    void vscode.window
+    vscode.window
       .showInformationMessage(
         "Consilium is installed. Sign in to start running debates.",
         "Sign In",
       )
       .then((choice) => {
         if (choice === "Sign In") {
-          void vscode.commands.executeCommand("consilium.login");
+          return vscode.commands.executeCommand("consilium.login");
         }
-      });
+        return undefined;
+      })
+      .then(
+        () => undefined,
+        () => undefined,
+      );
   }
 }
 

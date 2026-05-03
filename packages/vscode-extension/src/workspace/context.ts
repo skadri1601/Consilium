@@ -103,7 +103,7 @@ function priorityScore(absPath: string): number {
   if (absPath.includes("/docs/") || absPath.includes("\\docs\\")) return 7;
   if (
     absPath.includes("/test") ||
-    absPath.includes("\\test") ||
+    absPath.includes(String.raw`\test`) ||
     absPath.includes(".test.") ||
     absPath.includes(".spec.")
   )
@@ -138,17 +138,7 @@ async function detectMetadata(root: vscode.Uri): Promise<Record<string, unknown>
       has(".git"),
     ]);
 
-  const language = hasPkg
-    ? "typescript"
-    : hasPy
-      ? "python"
-      : hasCargo
-        ? "rust"
-        : hasGo
-          ? "go"
-          : "unknown";
-
-  ctx.language = language;
+  ctx.language = detectLanguage({ hasPkg, hasPy, hasCargo, hasGo });
   ctx.hasDocker = hasDocker;
   ctx.hasCI = hasCi;
   ctx.hasTests = hasTests;
@@ -172,6 +162,19 @@ async function detectMetadata(root: vscode.Uri): Promise<Record<string, unknown>
   }
 
   return ctx;
+}
+
+function detectLanguage(flags: {
+  hasPkg: boolean;
+  hasPy: boolean;
+  hasCargo: boolean;
+  hasGo: boolean;
+}): string {
+  if (flags.hasPkg) return "typescript";
+  if (flags.hasPy) return "python";
+  if (flags.hasCargo) return "rust";
+  if (flags.hasGo) return "go";
+  return "unknown";
 }
 
 function guessFramework(deps: Record<string, string>): string {

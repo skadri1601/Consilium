@@ -51,7 +51,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   }
 
   reveal(): void {
-    void vscode.commands.executeCommand("consilium.chat.focus");
+    vscode.commands.executeCommand("consilium.chat.focus").then(
+      () => undefined,
+      () => undefined,
+    );
   }
 
   hasActiveSession(): boolean {
@@ -87,53 +90,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       );
       return;
     }
-    const token = await this.secrets.getApiToken();
-    if (!token) {
-      const action = await vscode.window.showWarningMessage(
-        "You need to sign in to Consilium first.",
-        "Sign In",
-      );
-      if (action === "Sign In") {
-        await vscode.commands.executeCommand("consilium.login");
-      }
-      return;
-    }
+    const models = await this.ensureReadyToDebate();
+    if (!models) return;
 
-    const cfg = vscode.workspace.getConfiguration("consilium");
-    const models = cfg.get<string[]>("defaultModels") ?? [];
-    if (models.length < 2) {
-      vscode.window.showErrorMessage(
-        "Configure at least two models in `consilium.defaultModels`.",
-      );
-      return;
-    }
-
-    const includeContext = cfg.get<boolean>("includeWorkspaceContext", true);
-    const budgetKB = cfg.get<number>("contextBudgetKB", 512);
-
-    let projectContext: Record<string, unknown> | undefined;
-    if (includeContext) {
-      try {
-        const ctx = await collectWorkspaceContext(budgetKB * 1024);
-        if (ctx) {
-          projectContext = {
-            ...ctx.projectContext,
-            files: ctx.files,
-            stats: {
-              scanned: ctx.scanned,
-              sent: ctx.sent,
-              skipped: ctx.skipped,
-            },
-          };
-          this.post({
-            type: "init",
-            workspaceContext: { scanned: ctx.scanned, sent: ctx.sent },
-          });
-        }
-      } catch (err) {
-        console.warn("Failed to collect workspace context", err);
-      }
-    }
+    const projectContext = await this.gatherProjectContext();
 
     const payload: CreateDebateRequest = {
       topic,
@@ -163,7 +123,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     const stream = this.client.streamDebate(created.id, (event) => {
       this.handleStreamEvent(event);
-      const eventType = (event.event ?? event.type) as string | undefined;
+      const eventType = event.event ?? event.type;
       if (eventType === "round_start" && typeof event.round === "number") {
         currentRound = event.round;
       }
@@ -216,7 +176,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     const providerKeys: ProviderApiKeys = await this.collectProviderKeys();
     const body: CreateDeliberationRequest = {
       ...payload,
-      apiKeys: { ...providerKeys, ...(payload.apiKeys ?? {}) },
+      apiKeys: { ...providerKeys, ...payload.apiKeys },
     };
 
     this.statusBar.update({ kind: "starting", mode: payload.mode ?? "council" });
@@ -247,7 +207,7 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
 
     const stream = this.client.streamDeliberation(created.id, (event) => {
       this.handleStreamEvent(event);
-      const eventType = (event.event ?? event.type) as string | undefined;
+      const eventType = event.event ?? event.type;
       if (eventType === "cost_update" && typeof event.totalCost === "number") {
         this.statusBar.update({
           kind: "running",
@@ -285,6 +245,52 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     this.statusBar.update(token ? { kind: "idle" } : { kind: "signed-out" });
   }
 
+  private async ensureReadyToDebate(): Promise<string[] | undefined> {
+    const token = await this.secrets.getApiToken();
+    if (!token) {
+      const action = await vscode.window.showWarningMessage(
+        "You need to sign in to Consilium first.",
+        "Sign In",
+      );
+      if (action === "Sign In") {
+        await vscode.commands.executeCommand("consilium.login");
+      }
+      return undefined;
+    }
+
+    const cfg = vscode.workspace.getConfiguration("consilium");
+    const models = cfg.get<string[]>("defaultModels") ?? [];
+    if (models.length < 2) {
+      vscode.window.showErrorMessage(
+        "Configure at least two models in `consilium.defaultModels`.",
+      );
+      return undefined;
+    }
+    return models;
+  }
+
+  private async gatherProjectContext(): Promise<Record<string, unknown> | undefined> {
+    const cfg = vscode.workspace.getConfiguration("consilium");
+    if (!cfg.get<boolean>("includeWorkspaceContext", true)) return undefined;
+    const budgetKB = cfg.get<number>("contextBudgetKB", 512);
+    try {
+      const ctx = await collectWorkspaceContext(budgetKB * 1024);
+      if (!ctx) return undefined;
+      this.post({
+        type: "init",
+        workspaceContext: { scanned: ctx.scanned, sent: ctx.sent },
+      });
+      return {
+        ...ctx.projectContext,
+        files: ctx.files,
+        stats: { scanned: ctx.scanned, sent: ctx.sent, skipped: ctx.skipped },
+      };
+    } catch (err) {
+      console.warn("Failed to collect workspace context", err);
+      return undefined;
+    }
+  }
+
   private async collectProviderKeys(): Promise<ProviderApiKeys> {
     const all = await this.secrets.getAllProviderKeys();
     return {
@@ -311,7 +317,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
         return;
       case "submit":
         if (typeof message.topic !== "string") return;
-        await this.startDebate(message.topic, String(message.mode ?? "council"));
+        await this.startDebate(
+          message.topic,
+          typeof message.mode === "string" ? message.mode : "council",
+        );
         return;
       case "cancel":
         await this.cancelActive();
