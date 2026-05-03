@@ -1,34 +1,45 @@
 import {
   Controller,
   Post,
-  Body,
   Headers,
   HttpCode,
   HttpStatus,
   UseGuards,
   UnauthorizedException,
   Logger,
+  Req,
 } from "@nestjs/common";
-import { timingSafeEqual } from "node:crypto";
+import { Webhook } from "svix";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 import { RateLimit } from "../../shared/decorators/rate-limit.decorator";
+import type { FastifyRequest } from "fastify";
 
-interface ClerkUserWebhookPayload {
-  action: "create" | "update" | "delete";
-  clerkId: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
+interface ClerkEmailAddress {
+  id: string;
+  email_address: string;
 }
 
-interface SessionEndedPayload {
-  userId: string;
-  sessionId: string;
+interface ClerkUserData {
+  id: string;
+  email_addresses: ClerkEmailAddress[];
+  primary_email_address_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  image_url: string | null;
 }
 
-@Controller("api/v1/webhooks/clerk")
+interface ClerkSessionData {
+  user_id: string;
+  id: string;
+}
+
+interface ClerkWebhookEvent {
+  type: string;
+  data: ClerkUserData | ClerkSessionData;
+}
+
+@Controller("webhooks/clerk")
 @UseGuards(RateLimitGuard)
 @RateLimit(50, 60)
 export class ClerkWebhooksController {
@@ -38,61 +49,86 @@ export class ClerkWebhooksController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async handleUserWebhook(
-    @Headers("x-webhook-secret") secret: string,
-    @Body() payload: ClerkUserWebhookPayload,
+  async handleWebhook(
+    @Headers("svix-id") svixId: string,
+    @Headers("svix-timestamp") svixTimestamp: string,
+    @Headers("svix-signature") svixSignature: string,
+    @Req() req: FastifyRequest,
   ) {
-    this.verifyWebhookSecret(secret);
+    const event = this.verifyAndParse(req, svixId, svixTimestamp, svixSignature);
 
-    this.logger.log(
-      `Processing Clerk user webhook: ${payload.action} for ${payload.clerkId}`,
-    );
+    this.logger.log(`Processing Clerk webhook: ${event.type}`);
 
-    switch (payload.action) {
-      case "create":
-        return this.webhooksService.createUser(payload);
-      case "update":
+    switch (event.type) {
+      case "user.created":
+      case "user.updated": {
+        const data = event.data as ClerkUserData;
+        const primaryEmail = data.email_addresses.find(
+          (e) => e.id === data.primary_email_address_id,
+        );
+        const payload = {
+          clerkId: data.id,
+          email: primaryEmail?.email_address,
+          firstName: data.first_name ?? undefined,
+          lastName: data.last_name ?? undefined,
+          imageUrl: data.image_url ?? undefined,
+        };
+
+        if (event.type === "user.created") {
+          return this.webhooksService.createUser(payload);
+        }
         return this.webhooksService.updateUser(payload);
-      case "delete":
-        return this.webhooksService.deleteUser(payload.clerkId);
+      }
+
+      case "user.deleted": {
+        const data = event.data as ClerkUserData;
+        return this.webhooksService.deleteUser(data.id);
+      }
+
+      case "session.ended":
+      case "session.removed":
+      case "session.revoked": {
+        const data = event.data as ClerkSessionData;
+        return this.webhooksService.handleSessionEnded(
+          data.user_id,
+          data.id,
+        );
+      }
+
       default:
-        this.logger.warn(`Unknown action: ${payload.action}`);
+        this.logger.warn(`Unhandled Clerk event: ${event.type}`);
         return { received: true };
     }
   }
 
-  @Post("session-ended")
-  @HttpCode(HttpStatus.OK)
-  async handleSessionEnded(
-    @Headers("x-webhook-secret") secret: string,
-    @Body() payload: SessionEndedPayload,
-  ) {
-    this.verifyWebhookSecret(secret);
+  private verifyAndParse(
+    req: FastifyRequest,
+    svixId: string,
+    svixTimestamp: string,
+    svixSignature: string,
+  ): ClerkWebhookEvent {
+    const secret = process.env.CLERK_WEBHOOK_SECRET;
 
-    this.logger.log(`Processing session ended for user: ${payload.userId}`);
-
-    return this.webhooksService.handleSessionEnded(
-      payload.userId,
-      payload.sessionId,
-    );
-  }
-
-  private verifyWebhookSecret(secret: string): void {
-    const expectedSecret = process.env.INTERNAL_WEBHOOK_SECRET;
-
-    if (!expectedSecret) {
-      this.logger.error("INTERNAL_WEBHOOK_SECRET not configured");
+    if (!secret) {
+      this.logger.error("CLERK_WEBHOOK_SECRET not configured");
       throw new UnauthorizedException("Webhook endpoint not configured");
     }
 
-    if (typeof secret !== "string") {
-      throw new UnauthorizedException("Invalid webhook secret");
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      throw new UnauthorizedException("Missing Svix headers");
     }
 
-    const a = Buffer.from(secret, "utf8");
-    const b = Buffer.from(expectedSecret, "utf8");
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      throw new UnauthorizedException("Invalid webhook secret");
+    const wh = new Webhook(secret);
+    const body = JSON.stringify(req.body);
+
+    try {
+      return wh.verify(body, {
+        "svix-id": svixId,
+        "svix-timestamp": svixTimestamp,
+        "svix-signature": svixSignature,
+      }) as ClerkWebhookEvent;
+    } catch {
+      throw new UnauthorizedException("Invalid webhook signature");
     }
   }
 }

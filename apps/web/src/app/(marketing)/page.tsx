@@ -326,7 +326,7 @@ export default function LandingPage() {
           disablePictureInPicture
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         >
-          <source src="/api/video/consilium-prod.mp4" type="video/mp4" />
+          <source src="/brand/consilium-prod.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
         <button
