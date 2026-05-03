@@ -80,10 +80,25 @@ export const metadata: Metadata = {
     images: [DEFAULT_OG_IMAGE],
   },
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖</text></svg>",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: {
+      ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+        ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+        : {}),
+      ...(process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION
+        ? { "yandex-verification": process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION }
+        : {}),
+    },
   },
 };
 
@@ -108,10 +123,35 @@ const softwareJsonLd = {
   "@type": "SoftwareApplication",
   name: SITE_NAME,
   applicationCategory: "DeveloperApplication",
-  operatingSystem: "Web",
+  applicationSubCategory: "AI Council / Multi-Agent Deliberation",
+  operatingSystem: "Web, macOS, Linux, Windows",
   description: SITE_DESCRIPTION,
   url: SITE_URL,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  image: `${SITE_URL}/og.png`,
+  screenshot: `${SITE_URL}/og.png`,
+  softwareVersion: "0.4.0",
+  downloadUrl: "https://www.npmjs.com/package/@myconsilium/cli",
+  installUrl: `${SITE_URL}/docs/getting-started`,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    description: "Free tier with BYOK or managed pool",
+    url: `${SITE_URL}/pricing`,
+  },
+  featureList: [
+    "Multi-AI debate across 7 LLM providers",
+    "8 deliberation modes (council, deep, blind, redteam, jury, market, quick, auto)",
+    "Codebase-aware tool calls (Read, Edit, Grep, Glob, GitDiff, Bash)",
+    "MCP server for Cursor / Claude Desktop / Claude Code",
+    "TypeScript SDK + Python SDK + CLI",
+    "Atomic edit application with rollback snapshots",
+  ],
+  publisher: {
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+  },
 };
 
 const websiteJsonLd = {

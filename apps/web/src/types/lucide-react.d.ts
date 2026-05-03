@@ -134,6 +134,8 @@ declare module "lucide-react" {
   export const Cpu: LucideIcon;
   export const Wrench: LucideIcon;
   export const Globe: LucideIcon;
+  export const Compass: LucideIcon;
   export const ListOrdered: LucideIcon;
   export const Gift: LucideIcon;
+  export const Minus: LucideIcon;
 }

@@ -5,12 +5,20 @@ import { collectGitContext, formatGitContextForPrompt } from './git-context';
 import { fetchTicket, formatTicketForPrompt } from './linear-client';
 import { scanProject, type ScanManifest, type ScannedFile } from './project-scanner';
 import { resolveProjectRoot } from './project-root';
+import { formatMemoryForPrompt } from './project-memory';
 import { style } from './visual-system';
 
 const st = style();
 
 export interface WorkspaceDebateContextOptions {
   noContext?: boolean;
+  /**
+   * Opt out of auto-attaching git diff/branch/recent commits.
+   * Defaults to false — every debate inside a git repo includes
+   * git context so the council can reason about WIP.
+   */
+  noGit?: boolean;
+  /** Legacy alias for default-on git context. Kept for back-compat. */
   gitDiff?: boolean;
   ticket?: string;
 }
@@ -21,6 +29,8 @@ export interface WorkspaceDebateContext {
   projectContext: Record<string, unknown>;
   gitContextPrefix: string;
   ticketPrefix: string;
+  /** Markdown summary of recent past debates in this project — prepended to the topic. */
+  memoryPrefix: string;
   rootPath: string;
   contextManifest: ScanManifest;
 }
@@ -93,12 +103,32 @@ export async function loadWorkspaceDebateContext(
   }
 
   let gitContextPrefix = '';
-  if (options.gitDiff) {
+  // Auto-attach git context when inside a repo. The previous default
+  // forced developers to remember --git-diff, which meant most debates
+  // happened without the WIP / branch / recent-commits the council needs
+  // to reason about "why is this failing?" or "is this a regression?"
+  // questions. Now: on by default; pass --no-git to opt out.
+  const shouldCollectGit = !options.noGit && rootInfo.isGitRepo;
+  if (shouldCollectGit) {
     const gitCtx = collectGitContext(rootInfo.root);
-    if (gitCtx?.diff) {
+    if (gitCtx?.diff || gitCtx?.branch) {
       gitContextPrefix = formatGitContextForPrompt(gitCtx);
-      console.log(st.dim(`  Loaded git diff (branch: ${gitCtx.branch || 'unknown'})`));
+      const branch = gitCtx.branch || 'unknown';
+      const diffNote = gitCtx.diff ? '' : ' — no uncommitted changes';
+      console.log(st.dim(`  Attached git context (branch: ${branch}${diffNote})`));
     }
+  }
+
+  // Project memory: surface what the council previously decided here so
+  // a follow-up debate can build on prior conclusions instead of re-deriving.
+  // Reads .consilium/memory.md; empty string when no entries.
+  const { text: memoryPrefix, count: entryCount } = formatMemoryForPrompt(rootInfo.root);
+  if (memoryPrefix) {
+    console.log(
+      st.dim(
+        `  Loaded project memory (${entryCount} prior debate${entryCount === 1 ? '' : 's'} in .consilium/memory.md)`,
+      ),
+    );
   }
 
   let ticketPrefix = '';
@@ -145,6 +175,7 @@ export async function loadWorkspaceDebateContext(
     projectContext,
     gitContextPrefix,
     ticketPrefix,
+    memoryPrefix,
     rootPath: rootInfo.root,
     contextManifest: scanResult.manifest,
   };

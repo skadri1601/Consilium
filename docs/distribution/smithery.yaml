@@ -1,0 +1,75 @@
+# Smithery (https://smithery.ai) manifest for the Consilium MCP server.
+#
+# To submit:
+#   1. Visit https://smithery.ai/server/new
+#   2. Authenticate with the GitHub account that owns this repo
+#   3. Point the form at this manifest path:
+#        https://raw.githubusercontent.com/skadri1601/Consilium/main/docs/distribution/smithery.yaml
+#   4. Smithery will autopopulate name/description/install instructions
+#   5. After it lands, share the smithery.ai/server/<id> link in the Cursor /
+#      Claude Desktop docs so users can install with one click.
+#
+# Schema reference: https://smithery.ai/docs/manifest
+
+name: consilium
+displayName: Consilium - Multi-AI Council
+description: >
+  Run multi-AI debates across providers (OpenAI, Anthropic, Google, Groq,
+  xAI, Moonshot, OpenRouter) for code review, design questions, bug
+  hunts, and red-team assessments. The council debates with full read
+  access to your codebase via MCP tools. Use it from Cursor, Claude
+  Desktop, or any MCP-compatible host.
+
+categories:
+  - code-review
+  - multi-agent
+  - llm-orchestration
+  - debugging
+  - security
+
+homepage: https://myconsilium.xyz
+repository: https://myconsilium.xyz
+
+# Free to use — Bring Your Own Keys (BYOK) for any provider, or fall
+# back to the Consilium-managed free-tier pool when no keys are set.
+license: free
+authentication:
+  required: false
+  type: api_key
+  envVar: CONSILIUM_API_KEY
+  description: >
+    Optional. Get one with `consilium login` from https://myconsilium.xyz
+    to use the free-tier pool, or set provider keys (OPENAI_API_KEY,
+    ANTHROPIC_API_KEY, etc.) to bring your own.
+
+install:
+  command: pip
+  package: consilium
+  binary: consilium-mcp
+
+# stdio configuration (Claude Desktop / Cursor MCP format)
+config:
+  mcpServers:
+    consilium:
+      command: consilium-mcp
+      env:
+        CONSILIUM_API_KEY: ""
+        CONSILIUM_API_URL: "https://api.myconsilium.xyz"
+
+tools:
+  - name: consilium_deliberate
+    description: >
+      Run a multi-model debate on a topic. Returns the council's final
+      synthesis with mode, convergence, cost, and dissent breakdown.
+  - name: consilium_red_team
+    description: Adversarial assessment of a snippet of content (jailbreaks, prompt injection, factual gaps, etc.)
+  - name: consilium_blind_eval
+    description: Blind evaluation of N pre-existing responses with bias mitigation.
+  - name: consilium_list_debates
+    description: List the user's recent debate sessions.
+  - name: consilium_cancel_debate
+    description: Cancel an in-progress debate or deliberation.
+
+requirements:
+  - Python >= 3.10
+  - pip install consilium

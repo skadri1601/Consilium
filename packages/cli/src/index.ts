@@ -23,6 +23,13 @@ import { logoutCommand } from "./commands/logout.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
+import {
+  debatePrCommand,
+  debateIssueCommand,
+  debateFailingCommand,
+  debateStagedCommand,
+} from "./commands/debate-shortcuts.js";
+import { upgradeCommand } from "./commands/upgrade.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { modelsCommand } from "./commands/models.js";
 import {
@@ -59,6 +66,11 @@ const KNOWN_SUBCOMMANDS = [
   "benchmark",
   "mcp",
   "models",
+  "debate-pr",
+  "debate-issue",
+  "debate-failing",
+  "debate-staged",
+  "upgrade",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -114,7 +126,9 @@ async function main(): Promise<void> {
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json (default: pretty-print)",
     )
-    .option("--git-diff", "Include git diff in context")
+    .option("--git-diff", "(legacy alias — git context is now on by default)")
+    .option("--no-git", "Don't auto-attach git diff/branch/recent commits")
+    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools to the council")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
     .option("--apply", "Apply structured edits from synthesis directly to files")
@@ -131,7 +145,9 @@ async function main(): Promise<void> {
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json",
     )
-    .option("--git-diff", "Include git diff in context")
+    .option("--git-diff", "(legacy alias — git context is now on by default)")
+    .option("--no-git", "Don't auto-attach git diff/branch/recent commits")
+    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools to the council")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
     .option("--apply", "Apply structured edits from synthesis directly to files")
@@ -198,6 +214,46 @@ async function main(): Promise<void> {
     .command("stats")
     .description("Show model performance dashboard")
     .action(statsCommand);
+
+  program
+    .command("debate-pr")
+    .description("Fetch a GitHub PR via gh and debate it (review, design, security)")
+    .argument("<pr>", "PR number or URL (e.g. 123, https://github.com/o/r/pull/123)")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .option("--apply", "Apply structured edits from synthesis directly to files")
+    .action(debatePrCommand);
+
+  program
+    .command("debate-issue")
+    .description("Fetch a GitHub issue (gh) or Linear ticket (MYC-…) and debate the spec")
+    .argument("<id>", "GitHub issue number/URL or Linear ticket id (e.g. 42, MYC-123)")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action(debateIssueCommand);
+
+  program
+    .command("debate-failing")
+    .description("Auto-detect test runner, run tests, debate the failure if any")
+    .option("--command <cmd>", "Override the auto-detected test command (e.g. \"vitest run --no-coverage\")")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action((options: { command?: string; models?: string[]; mode?: string }) =>
+      debateFailingCommand(options),
+    );
+
+  program
+    .command("debate-staged")
+    .description("Review currently-staged git changes before commit")
+    .option("-m, --models <models...>", "Models to use")
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .action(debateStagedCommand);
+
+  program
+    .command("upgrade")
+    .description("Update Consilium CLI to the latest version (auto-detects pnpm/npm/yarn/bun)")
+    .option("--check", "Only check for a newer version, do not install")
+    .action((options: { check?: boolean }) => upgradeCommand(options));
 
   const mcp = program
     .command("mcp")
@@ -280,10 +336,12 @@ async function main(): Promise<void> {
     )
     .option("--json", "Output result as JSON")
     .option("--file <paths...>", "Files to attach as context")
-    .option("--git-diff", "Include git diff in context")
+    .option("--git-diff", "(legacy alias — git context is now on by default)")
+    .option("--no-git", "Don't auto-attach git diff/branch/recent commits")
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context")
-    .option("--mcp-tools", "Expose configured MCP servers' tools to the council (experimental)")
+    .option("--mcp-tools", "(legacy alias — agent tools are now on by default)")
+    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools or MCP server tools to the council")
     .action(startDebateCommand);
 
   debates
@@ -291,7 +349,8 @@ async function main(): Promise<void> {
     .description("Attach to a running debate's SSE stream")
     .argument("<debateId>", "Debate or deliberation ID")
     .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
-    .option("--mcp-tools", "Handle tool:call_request events via local MCP servers (experimental)")
+    .option("--mcp-tools", "(legacy alias — agent tools are now on by default)")
+    .option("--no-tools", "Don't handle tool:call_request events with local Consilium tools / MCP servers")
     .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");

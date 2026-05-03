@@ -126,6 +126,9 @@ test_*.js
 debug_*.js
 scratch.*
 
+# API tests
+apps/api/test/
+
 # Test files
 **/test_*.py
 **/tests/

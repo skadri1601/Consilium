@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import {
   Shield,
   MessageSquare,
@@ -9,7 +10,15 @@ import {
   FileSearch,
   Key,
   Zap,
+  Compass,
+  Heart,
+  Layers,
+  Mail,
+  Linkedin,
+  Globe,
 } from "lucide-react";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbList, personSchema } from "@/lib/structured-data";
 import {
   Card,
   CardContent,
@@ -94,8 +103,25 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const founderSchema = personSchema({
+    name: "Saad Kadri",
+    jobTitle: "Founder & Engineer",
+    url: "https://saadkadri.dev",
+    worksForName: "Consilium",
+    image: "/team/saad-kadri.jpg",
+    sameAs: [
+      "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
+      "https://saadkadri.dev",
+    ],
+  });
+  const aboutBreadcrumbs = breadcrumbList([
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+  ]);
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-founder" data={founderSchema} />
+      <JsonLd id="ld-about-breadcrumbs" data={aboutBreadcrumbs} />
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         <video
           autoPlay
@@ -254,6 +280,163 @@ Voting: Condorcet → Borda Count → Ranked Pairs → Copeland
 Convergence: Kendall τ + Jaccard + Concession Tracking (threshold: 0.85)
 Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
             </pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="founder" className="container mx-auto px-4 py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <Badge variant="outline" className="mb-4">
+              Founder
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+              Meet the Founder
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Why one developer is building the multi-AI council for everyone
+              else.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-[280px,1fr] gap-10 items-start">
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="relative w-[240px] h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border">
+                <Image
+                  src="/team/saad-kadri.jpg"
+                  alt="Saad Kadri, Founder of Consilium"
+                  fill
+                  sizes="240px"
+                  className="object-cover"
+                  priority={false}
+                />
+                <div className="absolute inset-0 flex items-center justify-center text-6xl font-bold text-indigo-300/40 -z-10">
+                  SK
+                </div>
+              </div>
+              <div className="text-center md:text-left">
+                <div className="text-lg font-semibold">Saad Kadri</div>
+                <div className="text-sm text-muted-foreground">
+                  Founder & Engineer
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <a
+                  href="https://saadkadri.dev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Personal site"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Globe className="h-5 w-5" />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/saad-kadri-58b8bb205/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+                <a
+                  href="mailto:saad@myconsilium.xyz"
+                  aria-label="Email"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Mail className="h-5 w-5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Hi, I&apos;m Saad.</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  I build software for a living and got tired of the same
+                  pattern: ask one AI a hard question, get an answer that&apos;s{" "}
+                  <em>almost</em> right, lose two hours discovering the wrong
+                  half. The fix isn&apos;t a smarter single model — it&apos;s a
+                  room of models that argue, challenge each other, and only
+                  agree when they&apos;ve really agreed. That&apos;s
+                  Consilium.
+                </p>
+              </div>
+
+              <Card className="border-indigo-500/30 bg-indigo-500/5">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <Compass className="h-5 w-5 text-indigo-400" />
+                    <CardTitle className="text-base">Mission</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Make multi-AI deliberation the default for high-stakes
+                    engineering decisions. No more single-model guesses. No
+                    more provider lock-in. The council reads your code,
+                    debates the problem, and shows its work — so you can
+                    trust the answer or push back on it.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3">What I value</h3>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div className="rounded-lg border bg-card p-4">
+                    <Layers className="h-5 w-5 text-indigo-400 mb-2" />
+                    <div className="text-sm font-semibold mb-1">
+                      Provider neutrality
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Seven providers, zero lock-in. BYOK or run on the free
+                      tier.
+                    </div>
+                  </div>
+                  <div className="rounded-lg border bg-card p-4">
+                    <FileSearch className="h-5 w-5 text-indigo-400 mb-2" />
+                    <div className="text-sm font-semibold mb-1">
+                      Codebase-aware
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      The council reads your files. No more guessing at
+                      structure or stack.
+                    </div>
+                  </div>
+                  <div className="rounded-lg border bg-card p-4">
+                    <Heart className="h-5 w-5 text-indigo-400 mb-2" />
+                    <div className="text-sm font-semibold mb-1">
+                      Show the work
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Every claim is auditable. Dissent is preserved, not
+                      hidden.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-2">
+                  Why I built Consilium
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Every existing AI coding tool is a single model with a
+                  pretty wrapper. Cursor uses Claude. Copilot uses GPT.
+                  Gemini Code uses Gemini. Each one has blind spots, and
+                  pretending otherwise is how you ship subtly broken code.
+                </p>
+                <p className="text-muted-foreground leading-relaxed mt-3">
+                  Consilium puts seven of them in the same room — OpenAI,
+                  Anthropic, Google, Groq, xAI, Moonshot, OpenRouter — and
+                  makes them argue with each other on <em>your</em> codebase.
+                  When they disagree, you see the disagreement. When they
+                  converge, you know it&apos;s real, not a single model&apos;s
+                  preference. That&apos;s the tool I wanted, so I built it.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
