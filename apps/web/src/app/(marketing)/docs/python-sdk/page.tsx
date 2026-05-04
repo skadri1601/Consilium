@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Python SDK",
   description:
-    "The official Consilium Python SDK — start debates, stream rounds, manage personas, and integrate multi-AI deliberation into your Python app.",
+    "The official Consilium Python SDK - start debates, stream rounds, manage personas, and integrate multi-AI deliberation into your Python app.",
   path: "/docs/python-sdk",
   keywords: ["consilium python sdk", "ai debate python", "llm council python"],
 });
@@ -138,13 +138,13 @@ async with AsyncConsiliumClient(...) as client:
             <CardContent className="space-y-3">
               <div className="grid gap-2">
                 <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Exponential backoff</span> — <code className="text-xs bg-black/30 px-1 py-0.5 rounded">min(BASE * 2^attempt, 30s)</code> between retries</p>
+                  <p className="text-sm"><span className="text-indigo-400 font-medium">Exponential backoff</span> - <code className="text-xs bg-black/30 px-1 py-0.5 rounded">min(BASE * 2^attempt, 30s)</code> between retries</p>
                 </div>
                 <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Automatic retries</span> — On 5xx server errors and 429 rate limit responses</p>
+                  <p className="text-sm"><span className="text-indigo-400 font-medium">Automatic retries</span> - On 5xx server errors and 429 rate limit responses</p>
                 </div>
                 <div className="rounded-lg bg-neutral-900 p-3">
-                  <p className="text-sm"><span className="text-indigo-400 font-medium">Connection pooling</span> — HTTP connections managed by httpx for efficiency</p>
+                  <p className="text-sm"><span className="text-indigo-400 font-medium">Connection pooling</span> - HTTP connections managed by httpx for efficiency</p>
                 </div>
               </div>
             </CardContent>

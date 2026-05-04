@@ -22,27 +22,27 @@ const data: CompetitorComparison = {
     hook:
       "GitHub Copilot is the dominant inline-autocomplete and chat product. Consilium is built around a different operation: structured multi-provider deliberation for moments when one model is not enough.",
     intro: [
-      "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself — repos, PRs, issues, Actions — is unique and hard to match.",
+      "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself - repos, PRs, issues, Actions - is unique and hard to match.",
       "Copilot is also fundamentally a single-model product per request. You can choose between GPT, Claude, Gemini, or Grok in the model picker, but each request gets one model. Microsoft's proxy controls which models you can route to and at what price. There's no architectural way to ask all of them in parallel and have them argue.",
       "Consilium starts from the parallel-debate premise. Three to five models from different providers (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter) generate independent answers, cross-examine each other with typed challenges, and converge on a synthesized result with mathematical convergence detection.",
-      "These are different operations, not interchangeable products. Copilot autocompletes faster than you can think. Consilium runs a multi-model deliberation that catches what one model misses. The right architecture is to use Copilot for inline typing and Consilium for the moments when you want a council — design choices, security review, regulatory writeups, anything where shipping the wrong answer is expensive.",
+      "These are different operations, not interchangeable products. Copilot autocompletes faster than you can think. Consilium runs a multi-model deliberation that catches what one model misses. The right architecture is to use Copilot for inline typing and Consilium for the moments when you want a council - design choices, security review, regulatory writeups, anything where shipping the wrong answer is expensive.",
     ],
   },
   competitorStrengths: [
-    "Best inline autocomplete in the industry — ghost-text completions are a daily-driver experience.",
+    "Best inline autocomplete in the industry - ghost-text completions are a daily-driver experience.",
     "Tight GitHub integration: PR summaries, issue triage, Actions debugging, repo-aware context.",
-    "Massive ecosystem reach — ships in VS Code, JetBrains, Visual Studio, Vim/Neovim, and the GitHub web UI.",
+    "Massive ecosystem reach - ships in VS Code, JetBrains, Visual Studio, Vim/Neovim, and the GitHub web UI.",
     "Predictable per-seat pricing through GitHub billing; covered by many enterprise agreements already in place.",
     "Excellent for everyday completion, comment generation, and quick chat questions where speed beats deliberation.",
   ],
   consiliumWins: [
     {
       title: "Multi-provider deliberation, not single-model selection",
-      body: "Copilot lets you pick a model per request. Consilium runs three to five models in parallel and makes them argue. The two operations produce fundamentally different signal — one gives you a model's best guess, the other gives you a council's debated synthesis with documented dissent.",
+      body: "Copilot lets you pick a model per request. Consilium runs three to five models in parallel and makes them argue. The two operations produce fundamentally different signal - one gives you a model's best guess, the other gives you a council's debated synthesis with documented dissent.",
     },
     {
       title: "Eight modes built for different stakes",
-      body: "Quick mode for fast checks. Council for design. Red Team for security review with adversarial typed challenges. Jury for risk assessment with mandatory dissent. Healthcare/legal/finance modes ship with required citations and forced dissent. Copilot has chat, agent, and inline completion — all single-voice.",
+      body: "Quick mode for fast checks. Council for design. Red Team for security review with adversarial typed challenges. Jury for risk assessment with mandatory dissent. Healthcare/legal/finance modes ship with required citations and forced dissent. Copilot has chat, agent, and inline completion - all single-voice.",
     },
     {
       title: "Real audit trail",
@@ -50,7 +50,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Provider portability",
-      body: "Copilot routes through Microsoft's proxy. If GitHub changes their pricing, model availability, or content policies, you adjust. Consilium uses BYOK — your keys, your terms, with the seven adapters as direct integrations and OpenRouter as escape hatch. The economics and control surface are different.",
+      body: "Copilot routes through Microsoft's proxy. If GitHub changes their pricing, model availability, or content policies, you adjust. Consilium uses BYOK - your keys, your terms, with the seven adapters as direct integrations and OpenRouter as escape hatch. The economics and control surface are different.",
     },
     {
       title: "Works outside the GitHub ecosystem",
@@ -60,7 +60,7 @@ const data: CompetitorComparison = {
   matrix: [
     {
       feature: "Inline autocomplete",
-      consilium: "Not a focus — use Copilot for this",
+      consilium: "Not a focus - use Copilot for this",
       competitor: "Industry-leading",
       consiliumHas: false,
       competitorHas: true,
@@ -103,7 +103,7 @@ const data: CompetitorComparison = {
     {
       feature: "GitHub PR / issue integration",
       consilium: "Via gh CLI helpers (debate pr, debate issue)",
-      competitor: "First-class — native to the platform",
+      competitor: "First-class - native to the platform",
       consiliumHas: true,
       competitorHas: true,
     },
@@ -116,7 +116,7 @@ const data: CompetitorComparison = {
     },
     {
       feature: "BYOK",
-      consilium: "Yes — keys local in ~/.consilium",
+      consilium: "Yes - keys local in ~/.consilium",
       competitor: "Microsoft-proxied",
       consiliumHas: true,
       competitorHas: false,
@@ -130,7 +130,7 @@ const data: CompetitorComparison = {
     },
     {
       feature: "MCP server",
-      consilium: "Yes — exposes deliberation as MCP tool",
+      consilium: "Yes - exposes deliberation as MCP tool",
       competitor: "No",
       consiliumHas: true,
       competitorHas: false,
@@ -158,7 +158,7 @@ const data: CompetitorComparison = {
     {
       question: "Does Consilium replace Copilot?",
       answer:
-        "No — and we don't try to. Copilot's inline ghost-text autocomplete is genuinely best-in-class and we'd rather you keep using it. Consilium replaces the parts of Copilot's surface where you wanted multiple opinions: review, architecture, security, anything where one model's confidence is not enough.",
+        "No - and we don't try to. Copilot's inline ghost-text autocomplete is genuinely best-in-class and we'd rather you keep using it. Consilium replaces the parts of Copilot's surface where you wanted multiple opinions: review, architecture, security, anything where one model's confidence is not enough.",
     },
     {
       question: "Can I use Consilium with Copilot side-by-side?",
@@ -168,7 +168,7 @@ const data: CompetitorComparison = {
     {
       question: "Why not just use Copilot Workspace for the multi-step stuff?",
       answer:
-        "Copilot Workspace is a powerful single-agent autonomous loop, similar in shape to Cursor Agent or Cline. It's still one model at a time. Consilium's mechanic is parallel multi-provider debate — a different operation that produces different signal, especially around design tradeoffs and adversarial review.",
+        "Copilot Workspace is a powerful single-agent autonomous loop, similar in shape to Cursor Agent or Cline. It's still one model at a time. Consilium's mechanic is parallel multi-provider debate - a different operation that produces different signal, especially around design tradeoffs and adversarial review.",
     },
     {
       question: "What about the GitHub integration that Copilot has natively?",
@@ -178,7 +178,7 @@ const data: CompetitorComparison = {
     {
       question: "How does pricing compare?",
       answer:
-        "Copilot is per-seat at a flat rate. Consilium is BYOK — you pay your providers directly, no markup, with a free-tier pool (Groq + OpenRouter) for casual usage. Heavy users with their own keys often spend less than per-seat Copilot; light users can stay on the free pool.",
+        "Copilot is per-seat at a flat rate. Consilium is BYOK - you pay your providers directly, no markup, with a free-tier pool (Groq + OpenRouter) for casual usage. Heavy users with their own keys often spend less than per-seat Copilot; light users can stay on the free pool.",
     },
   ],
   lastUpdated: "2026-04-30",

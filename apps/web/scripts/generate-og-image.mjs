@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Generate apps/web/public/og.png — the 1200x630 social card used as
+ * Generate apps/web/public/og.png - the 1200x630 social card used as
  * DEFAULT_OG_IMAGE by lib/seo.ts. Runs sharp + an inline SVG overlay.
  *
  * Re-run whenever the brand mark or tagline changes:
@@ -18,7 +18,7 @@ const BRAND_SVG = path.join(ROOT, "public", "brand", "consilium-icon.svg");
 const OUT = path.join(ROOT, "public", "og.png");
 
 const TITLE = "Consilium";
-const TAG = "The AI Council — Multi-AI debates that synthesize consensus";
+const TAG = "The AI Council - Multi-AI debates that synthesize consensus";
 const SUB = "GPT · Claude · Gemini · Llama · Grok · Moonshot · OpenRouter";
 
 const W = 1200;

@@ -15,7 +15,7 @@ Resolution order:
       CONSILIUM_FREE_TIER_OPENROUTER_KEY is set.
 4. If neither platform key is configured, raise.
 
-The resolver is deliberately pure — it neither imports the heavy
+The resolver is deliberately pure - it neither imports the heavy
 agent classes nor opens HTTP connections. That keeps it fast to test.
 """
 

@@ -1,6 +1,6 @@
 {
   "preliminary": true,
-  "run_notes": "Incomplete or quota-limited run; headline_improvement_pct and costs are not reliable for product claims. Duplicate MMLU aggregate entry removed; HumanEval scores were zero — re-run benchmarks after fixing harness and API quota.",
+  "run_notes": "Incomplete or quota-limited run; headline_improvement_pct and costs are not reliable for product claims. Duplicate MMLU aggregate entry removed; HumanEval scores were zero - re-run benchmarks after fixing harness and API quota.",
   "generated_at": "2026-04-11T01:46:02.423290+00:00",
   "headline_improvement_pct": -27.27272727272728,
   "benchmarks": [

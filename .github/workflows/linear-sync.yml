@@ -40,15 +40,15 @@ jobs:
         run: |
           if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "ready_for_review" ] || [ "$PR_ACTION" = "reopened" ]; then
             echo "state=In Review" >> "$GITHUB_OUTPUT"
-            echo "slack_msg=:github: PR #${PR_NUMBER} opened for ${TICKET_ID} by ${PR_AUTHOR} — <${PR_URL}|View PR>" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:github: PR #${PR_NUMBER} opened for ${TICKET_ID} by ${PR_AUTHOR} - <${PR_URL}|View PR>" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} opened by ${PR_AUTHOR}: ${PR_URL}" >> "$GITHUB_OUTPUT"
           elif [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
             echo "state=Done" >> "$GITHUB_OUTPUT"
-            echo "slack_msg=:white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} — ticket marked Done" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} - ticket marked Done" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} merged" >> "$GITHUB_OUTPUT"
           elif [ "$PR_ACTION" = "closed" ]; then
             echo "state=In Progress" >> "$GITHUB_OUTPUT"
-            echo "slack_msg=:x: PR #${PR_NUMBER} closed for ${TICKET_ID} — back to In Progress" >> "$GITHUB_OUTPUT"
+            echo "slack_msg=:x: PR #${PR_NUMBER} closed for ${TICKET_ID} - back to In Progress" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} closed without merge" >> "$GITHUB_OUTPUT"
           fi
 
@@ -210,7 +210,7 @@ jobs:
           BRANCH: ${{ github.event.check_suite.head_branch }}
         run: |
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            MSG=":x: CI failed on branch ${BRANCH} — ${CONCLUSION}"
+            MSG=":x: CI failed on branch ${BRANCH} - ${CONCLUSION}"
             curl -sf -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d "$(jq -n --arg text "$MSG" '{text: $text}')"

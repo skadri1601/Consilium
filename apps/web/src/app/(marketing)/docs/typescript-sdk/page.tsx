@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "TypeScript SDK",
   description:
-    "The official Consilium TypeScript SDK — start debates, stream rounds over SSE, and embed multi-AI deliberation in your Node.js or browser app.",
+    "The official Consilium TypeScript SDK - start debates, stream rounds over SSE, and embed multi-AI deliberation in your Node.js or browser app.",
   path: "/docs/typescript-sdk",
   keywords: ["consilium typescript sdk", "ai debate javascript", "llm council node"],
 });

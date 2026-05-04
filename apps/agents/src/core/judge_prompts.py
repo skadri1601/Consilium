@@ -36,7 +36,7 @@ CROSS_REFERENCE_PROMPT = (
     "RULES:\n"
     "- Compare EVERY claim from each participant against EVERY claim from every other participant\n"
     "- Do NOT skip any comparisons\n"
-    "- Do NOT say 'all claims agree' — you must enumerate specific relationships\n"
+    "- Do NOT say 'all claims agree' - you must enumerate specific relationships\n"
     "- A claim with no match in another participant's claims is 'unique'\n\n"
     "RELATIONSHIP TYPES:\n"
     "- 'agreement': Claims make the same assertion (even if worded differently)\n"
@@ -59,7 +59,7 @@ DISPUTE_RESOLUTION_PROMPT = (
     "RULES:\n"
     "- Consider the strength of evidence each side provides\n"
     "- Consider technical accuracy and logical consistency\n"
-    "- Do NOT default to 'both are right' — pick a winner or explain the precise conditions "
+    "- Do NOT default to 'both are right' - pick a winner or explain the precise conditions "
     "under which each is correct\n"
     "- Provide step-by-step chain-of-thought reasoning\n\n"
     "Original question: {question}\n\n"
@@ -75,7 +75,7 @@ DISPUTE_RESOLUTION_PROMPT = (
 )
 
 SYNTHESIS_PROMPT_WEB = (
-    "You are producing the GOLDEN PROMPT — the single definitive answer to the user's question. "
+    "You are producing the GOLDEN PROMPT - the single definitive answer to the user's question. "
     "You have access to scored claims from multiple AI models and resolved disputes.\n\n"
     "REQUIREMENTS:\n"
     "- Produce a clear, well-structured answer the user can directly use\n"
@@ -84,7 +84,7 @@ SYNTHESIS_PROMPT_WEB = (
     "- Prioritize reasoning quality, logical consistency, and completeness\n"
     "- Resolve any remaining ambiguity with clear explanations\n"
     "- Do NOT mention the debate process, scoring, or claim extraction\n"
-    "- Do NOT hedge unnecessarily — commit to the best-supported position\n"
+    "- Do NOT hedge unnecessarily - commit to the best-supported position\n"
     "- Structure with headers, lists, and paragraphs as appropriate\n\n"
     "Original question: {question}\n\n"
     "Scored claims and resolutions:\n{scored_data}\n\n"
@@ -93,7 +93,7 @@ SYNTHESIS_PROMPT_WEB = (
 )
 
 SYNTHESIS_PROMPT_CLI = (
-    "You are producing the GOLDEN PROMPT — the single definitive answer to the user's question. "
+    "You are producing the GOLDEN PROMPT - the single definitive answer to the user's question. "
     "You have access to scored claims from multiple AI models and resolved disputes.\n\n"
     "REQUIREMENTS:\n"
     "- Produce a clear, well-structured answer optimized for technical correctness\n"
@@ -103,7 +103,7 @@ SYNTHESIS_PROMPT_CLI = (
     "(e.g., 'As noted by Response A')\n"
     "- Resolve any remaining ambiguity with concrete code or configuration\n"
     "- Do NOT mention the debate process, scoring, or claim extraction\n"
-    "- Do NOT hedge — commit to the best-supported implementation\n"
+    "- Do NOT hedge - commit to the best-supported implementation\n"
     "- Use markdown code blocks with language identifiers\n\n"
     "Original question: {question}\n\n"
     "Scored claims and resolutions:\n{scored_data}\n\n"

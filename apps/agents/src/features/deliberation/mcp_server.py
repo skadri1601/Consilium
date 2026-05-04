@@ -159,7 +159,7 @@ async def handle_blind_eval(arguments: dict) -> str:
     # /api/v1/deliberation/blind and runs the full deliberation engine.
     #
     # The previous in-engine implementation called a synchronous
-    # judge_func that returned flat 5.0 scores for every model — i.e.
+    # judge_func that returned flat 5.0 scores for every model - i.e.
     # it produced ranking output that looked plausible but contained
     # no real evaluation. We refuse here so callers don't accidentally
     # ship results derived from a no-op judge.

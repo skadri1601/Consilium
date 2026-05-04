@@ -1,17 +1,17 @@
-# Consilium — Multi-AI Council
+# Consilium - Multi-AI Council
 
-Run multi-AI debates across **OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter** — directly inside VS Code or Cursor.
+Run multi-AI debates across **OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter** - directly inside VS Code or Cursor.
 
 Right-click code, ask a question, watch seven providers argue it out in a live panel. Get a synthesized answer that survived adversarial scrutiny.
 
 ## What you get
 
-- **Right-click → "Debate selected code"** — council reviews the snippet
-- **"Debate this file"** — full-file review, architecture, edge cases
-- **"Review staged changes"** — pre-commit council review of `git diff --staged`
-- **"Debate the failing test output"** — auto-runs your test command, debates the failure
-- **Live debate panel** — agent cards with per-model progress, convergence, dissent, and synthesis
-- **Debate history** in the activity bar — jump into any past debate
+- **Right-click → "Debate selected code"** - council reviews the snippet
+- **"Debate this file"** - full-file review, architecture, edge cases
+- **"Review staged changes"** - pre-commit council review of `git diff --staged`
+- **"Debate the failing test output"** - auto-runs your test command, debates the failure
+- **Live debate panel** - agent cards with per-model progress, convergence, dissent, and synthesis
+- **Debate history** in the activity bar - jump into any past debate
 - **Status bar entry** for one-click debate from anywhere in the editor
 
 ## Install
@@ -40,7 +40,7 @@ The extension auto-detects an existing CLI token at `~/.consilium/config.json` (
 
 | Setting | Default | What it does |
 |---|---|---|
-| `consilium.apiUrl` | `https://api.myconsilium.xyz` | API base URL — override for self-hosted or local |
+| `consilium.apiUrl` | `https://api.myconsilium.xyz` | API base URL - override for self-hosted or local |
 | `consilium.defaultMode` | `auto` | One of `auto / quick / council / deep / blind / redteam / jury / market` |
 | `consilium.defaultModels` | `[]` | Override council model list. Empty = engine picks. |
 | `consilium.toolsEnabled` | `true` | Advertise built-in Read/Grep/Glob tool schemas to the council |
@@ -63,7 +63,7 @@ The extension auto-detects an existing CLI token at `~/.consilium/config.json` (
 - Auth tokens stored in VS Code's `SecretStorage` (encrypted at rest)
 - File contents are sent to the Consilium API only when you explicitly run a "Debate" command
 - Automatic git context attachment can be disabled per-workspace (`consilium.autoAttachGitContext`)
-- The extension never auto-applies edits — every edit goes through a preview prompt
+- The extension never auto-applies edits - every edit goes through a preview prompt
 
 ## Bring your own keys (BYOK)
 

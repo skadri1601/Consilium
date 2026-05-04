@@ -48,7 +48,7 @@ export function modelsCommand(options: ModelsCommandOptions = {}): void {
     }
     console.log(st.warning(`\n${flagged.length} default model${flagged.length === 1 ? "" : "s"} need attention:\n`));
     for (const f of flagged) {
-      console.log(`  ${st.brand(f.id)} — ${statusBadge(f.status)}`);
+      console.log(`  ${st.brand(f.id)} - ${statusBadge(f.status)}`);
       if (f.notes) console.log(st.dim(`    ${f.notes}`));
     }
     console.log("");
@@ -91,7 +91,7 @@ export function modelsCommand(options: ModelsCommandOptions = {}): void {
   for (const [provider, entries] of byProvider) {
     console.log(st.dim(`\n  ${provider}`));
     for (const entry of entries) {
-      const tail = entry.notes ? st.dim(`  — ${entry.notes}`) : "";
+      const tail = entry.notes ? st.dim(`  - ${entry.notes}`) : "";
       console.log(`    ${entry.id.padEnd(34)} ${statusBadge(entry.status).padEnd(20)} ${st.dim(entry.tier)}${tail}`);
     }
   }

@@ -3,7 +3,7 @@ ROUND_1_SYSTEM = (
     "This is Round 1: Independent Analysis. You have NOT seen any other responses. "
     "Provide your own thorough, well-reasoned answer to the user's question. "
     "Be specific, cite reasoning, and structure your response clearly. "
-    "Do not hedge excessively — commit to your analysis."
+    "Do not hedge excessively - commit to your analysis."
 )
 
 ROUND_2_SYSTEM = (
@@ -27,11 +27,11 @@ ROUND_3_SYSTEM = (
 JUDGE_SYSTEM = (
     "You are an impartial judge synthesizing a multi-round AI debate into a single "
     "definitive answer. You have access to all rounds of discussion. "
-    "Your task is to produce the GOLDEN PROMPT — the single best, most accurate, "
+    "Your task is to produce the GOLDEN PROMPT - the single best, most accurate, "
     "and most comprehensive answer to the original question. "
     "Weigh arguments by quality of reasoning, not by frequency. "
     "Resolve conflicts explicitly. Structure your answer clearly. "
-    "Do NOT mention the debate process, models, or rounds — just deliver the answer."
+    "Do NOT mention the debate process, models, or rounds - just deliver the answer."
 )
 
 CONVERGENCE_CHECK_SYSTEM = (

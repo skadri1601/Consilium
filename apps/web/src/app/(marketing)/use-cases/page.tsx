@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Use Cases",
   description:
-    "How teams use Consilium — architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
+    "How teams use Consilium - architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
   path: "/use-cases",
   keywords: ["ai use cases", "llm council use cases", "ai for engineering teams"],
 });
@@ -38,7 +38,7 @@ const useCases = [
     attackCategories: ["SECURITY_VULN", "LOGICAL_FLAW", "EDGE_CASE", "ROBUSTNESS_TEST"],
     description: [
       "Three models independently review your code, each generating a comprehensive analysis of potential issues. Unlike traditional code review tools that run static analysis, Consilium's code review puts models into adversarial positions where they actively attack each other's findings, uncovering issues that surface only under cross-examination. The Red Team framework ensures that every vulnerability claim is stress-tested before reaching the final report.",
-      "During the Red Team phase, models issue typed challenges categorized as SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE, or ROBUSTNESS_TEST. A defender model must rebut each challenge with evidence — conceding valid points, refuting false positives, qualifying edge cases, or redirecting to more critical issues. This adversarial dynamic mirrors real security audits where penetration testers and defenders engage in structured conflict to harden systems.",
+      "During the Red Team phase, models issue typed challenges categorized as SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE, or ROBUSTNESS_TEST. A defender model must rebut each challenge with evidence - conceding valid points, refuting false positives, qualifying edge cases, or redirecting to more critical issues. This adversarial dynamic mirrors real security audits where penetration testers and defenders engage in structured conflict to harden systems.",
       "The judge model synthesizes all findings into a final vulnerability report with severity ratings (critical/high/medium/low), maps each finding to the original code location, and includes the defender's rebuttals. The result is a structured, auditable code review that catches 30-40% more issues than single-model review. Each finding is cross-referenced against OWASP Top 10, CWE identifiers, and SANS 25 categories where applicable.",
     ],
     rubric: [
@@ -66,7 +66,7 @@ const useCases = [
     description: [
       "Models explore different perspectives on complex research topics, each bringing independent analysis of available evidence. The Council mode ensures diverse viewpoints are represented before any synthesis occurs, preventing the premature convergence that plagues single-model summarization. Three models deliberate across three rounds, with each round building on the previous one's findings and challenges.",
       "During deliberation, models challenge each other's source interpretations, flag potential biases in cited research, and identify gaps in evidence coverage. Each claim must be backed by specific evidence, and models rate their confidence in each assertion. The confidence-weighted voting system (Condorcet + Borda count) ensures well-supported conclusions carry more weight than speculative claims.",
-      "The final synthesis includes a comprehensive overview with inline citations, a section of flagged uncertainties where models disagreed, and confidence scores for each major conclusion. Dissenting views are preserved — if one model identified contradictory evidence, that perspective is included alongside the majority position. The output distinguishes between strong consensus, weak consensus, and active disagreement.",
+      "The final synthesis includes a comprehensive overview with inline citations, a section of flagged uncertainties where models disagreed, and confidence scores for each major conclusion. Dissenting views are preserved - if one model identified contradictory evidence, that perspective is included alongside the majority position. The output distinguishes between strong consensus, weak consensus, and active disagreement.",
     ],
     rubric: [
       { name: "Accuracy", weight: "30%" },
@@ -77,7 +77,7 @@ const useCases = [
     ],
     examplePrompt: "Synthesize current research on transformer architecture efficiency improvements, including sparse attention mechanisms, mixture of experts, and linear attention variants. Compare their tradeoffs for production deployment.",
     outputDescription: "Comprehensive synthesis with inline citations, flagged uncertainties with confidence intervals, per-conclusion confidence scores, and preserved minority opinions where models disagreed on evidence interpretation.",
-    whyDeliberation: "Multiple models reduce single-model hallucination and confirmation bias by up to 15%. When one model cites a finding, others verify it independently — catching fabricated citations and misrepresented conclusions that single-model approaches propagate unchecked. Three rounds of cross-examination force progressively deeper engagement with the evidence.",
+    whyDeliberation: "Multiple models reduce single-model hallucination and confirmation bias by up to 15%. When one model cites a finding, others verify it independently - catching fabricated citations and misrepresented conclusions that single-model approaches propagate unchecked. Three rounds of cross-examination force progressively deeper engagement with the evidence.",
   },
   {
     id: "risk-assessment",
@@ -91,7 +91,7 @@ const useCases = [
     modeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     attackCategories: [],
     description: [
-      "Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds. Every risk assessment must include minority opinions — no conclusion is presented as unanimous unless mathematically verified through convergence detection (Kendall tau + Jaccard + concession rate >= 0.85). This prevents the groupthink that makes single-model risk assessments dangerously overconfident.",
+      "Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds. Every risk assessment must include minority opinions - no conclusion is presented as unanimous unless mathematically verified through convergence detection (Kendall tau + Jaccard + concession rate >= 0.85). This prevents the groupthink that makes single-model risk assessments dangerously overconfident.",
       "Each model independently identifies risks, assesses likelihood and impact on standardized scales, and proposes mitigation strategies. During deliberation, models challenge each other's likelihood estimates and impact assessments, forcing quantitative justification. A model claiming 'low probability' must defend that assessment against adversarial questioning from four other models across three rounds.",
       "The output is a structured risk matrix with likelihood/impact ratings for each identified risk, detailed mitigation strategies with implementation timelines, and mandatory minority opinions. If even one model identifies a catastrophic risk that others dismiss, that dissent is prominently featured in the final report rather than averaged away. Agglomerative clustering groups related risks and surfaces overlooked tail risks.",
     ],
@@ -104,7 +104,7 @@ const useCases = [
     ],
     examplePrompt: "Assess risks of migrating from AWS to multi-cloud architecture (AWS + GCP + Azure). Consider operational complexity, data sovereignty, cost implications, team skill gaps, vendor lock-in tradeoffs, and disaster recovery scenarios.",
     outputDescription: "Risk matrix with likelihood/impact ratings, mitigation strategies with implementation order, mandatory minority opinions from all five models, and a dissent report highlighting risks that only some models identified.",
-    whyDeliberation: "MANDATORY_DISSENT ensures no risks are overlooked due to groupthink. In single-model assessments, the model's training biases determine which risks are emphasized. Five-model Jury deliberation with forced dissent surfaces the full risk landscape — including tail risks that any individual model would dismiss as unlikely.",
+    whyDeliberation: "MANDATORY_DISSENT ensures no risks are overlooked due to groupthink. In single-model assessments, the model's training biases determine which risks are emphasized. Five-model Jury deliberation with forced dissent surfaces the full risk landscape - including tail risks that any individual model would dismiss as unlikely.",
   },
   {
     id: "healthcare",
@@ -118,9 +118,9 @@ const useCases = [
     modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     attackCategories: [],
     description: [
-      "Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions. This reflects the medical principle that premature diagnostic closure is the leading cause of diagnostic error — a problem that single-model systems systematically amplify.",
-      "Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning — questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.",
-      "The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. Every recommendation includes a confidence score calibrated by how well it withstood cross-examination — models that changed their diagnosis under pressure receive lower calibration scores.",
+      "Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions. This reflects the medical principle that premature diagnostic closure is the leading cause of diagnostic error - a problem that single-model systems systematically amplify.",
+      "Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning - questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.",
+      "The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. Every recommendation includes a confidence score calibrated by how well it withstood cross-examination - models that changed their diagnosis under pressure receive lower calibration scores.",
     ],
     rubric: [
       { name: "Evidence Quality", weight: "30%" },
@@ -158,7 +158,7 @@ const useCases = [
     ],
     examplePrompt: "Review this SaaS terms of service for GDPR compliance risks. Evaluate data processing clauses, cross-border transfer mechanisms, data subject rights implementation, and breach notification procedures against current EU regulatory requirements.",
     outputDescription: "Clause-by-clause risk ratings (high/medium/low), regulatory gaps mapped to specific GDPR articles, recommended revisions with alternative language, and a dissent report showing where risk and acceptability models disagreed.",
-    whyDeliberation: "Blind evaluation eliminates model bias — the judge cannot favor a 'brand name' model's analysis. The dialectical format with MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are explored across three rounds, giving stakeholders the full picture rather than a single model's risk tolerance.",
+    whyDeliberation: "Blind evaluation eliminates model bias - the judge cannot favor a 'brand name' model's analysis. The dialectical format with MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are explored across three rounds, giving stakeholders the full picture rather than a single model's risk tolerance.",
   },
   {
     id: "financial-analysis",
@@ -174,9 +174,9 @@ const useCases = [
     metrics: ["VaR", "CVaR", "Sharpe"],
     compliance: ["Basel III", "SOX", "Dodd-Frank", "MiFID II"],
     description: [
-      "Financial analysis uses Jury mode with MANDATORY_DISSENT and requires quantitative metrics in every assessment. Three models must provide specific numerical analysis — VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios — rather than qualitative hand-waving. Compliance mapping covers Basel III, SOX, Dodd-Frank, and MiFID II frameworks. Every quantitative claim is stress-tested across three rounds of deliberation.",
+      "Financial analysis uses Jury mode with MANDATORY_DISSENT and requires quantitative metrics in every assessment. Three models must provide specific numerical analysis - VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios - rather than qualitative hand-waving. Compliance mapping covers Basel III, SOX, Dodd-Frank, and MiFID II frameworks. Every quantitative claim is stress-tested across three rounds of deliberation.",
       "During deliberation, models challenge each other's quantitative assumptions. If one model projects 12% returns, another must stress-test that assumption against historical drawdown scenarios, current market volatility, and macroeconomic indicators. Scenario analysis is mandatory: bull case, base case, bear case, and black swan scenarios must all be addressed with specific numerical projections and probability-weighted outcomes.",
-      "The output includes a comprehensive risk assessment with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, hedging recommendations, and mandatory dissent. If one model identifies a systemic risk that others dismiss, that dissent is preserved with full quantitative backing — preventing the consensus bias that contributed to historical financial crises.",
+      "The output includes a comprehensive risk assessment with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, hedging recommendations, and mandatory dissent. If one model identifies a systemic risk that others dismiss, that dissent is preserved with full quantitative backing - preventing the consensus bias that contributed to historical financial crises.",
     ],
     rubric: [
       { name: "Quantitative Rigor", weight: "30%" },
@@ -187,7 +187,7 @@ const useCases = [
     ],
     examplePrompt: "Evaluate the risk profile of this investment portfolio under current market conditions: 40% US large-cap equities, 20% international developed markets, 15% emerging markets, 15% investment-grade bonds, 10% REITs. Consider interest rate sensitivity, geopolitical risk, and liquidity constraints.",
     outputDescription: "Risk assessment with VaR/CVaR/Sharpe metrics, stress test results across bull/base/bear/black-swan scenarios, Basel III/SOX/Dodd-Frank/MiFID II compliance mapping, hedging recommendations, and mandatory dissent on risk factors where models disagreed.",
-    whyDeliberation: "Jury format with MANDATORY_DISSENT prevents consensus bias in financial decisions. Single models tend to anchor on base-case scenarios. Three-model deliberation with forced dissent ensures tail risks and contrarian indicators are quantified and preserved in the final analysis — the kind of minority opinion that gets averaged away in traditional risk committees.",
+    whyDeliberation: "Jury format with MANDATORY_DISSENT prevents consensus bias in financial decisions. Single models tend to anchor on base-case scenarios. Three-model deliberation with forced dissent ensures tail risks and contrarian indicators are quantified and preserved in the final analysis - the kind of minority opinion that gets averaged away in traditional risk committees.",
   },
 ];
 

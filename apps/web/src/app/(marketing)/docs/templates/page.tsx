@@ -8,7 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Debate Templates",
   description:
-    "Prebuilt debate templates for Consilium — code review, architecture decisions, security red-team, clinical reasoning, legal analysis, and forecasting.",
+    "Prebuilt debate templates for Consilium - code review, architecture decisions, security red-team, clinical reasoning, legal analysis, and forecasting.",
   path: "/docs/templates",
 });
 
@@ -104,7 +104,7 @@ const templates = [
     modeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     defaultModels: 2,
     maxRounds: 3,
-    description: "Dialectical format: one model argues the risk position (this is dangerous/non-compliant), the other argues acceptability (this is fine/compliant). Both are evaluated blindly — model identity stripped — to ensure the quality of legal reasoning matters, not the model brand. Mandatory dissent ensures both sides are fully explored.",
+    description: "Dialectical format: one model argues the risk position (this is dangerous/non-compliant), the other argues acceptability (this is fine/compliant). Both are evaluated blindly - model identity stripped - to ensure the quality of legal reasoning matters, not the model brand. Mandatory dissent ensures both sides are fully explored.",
     rubric: [
       { dimension: "Legal Accuracy", weight: "30%", desc: "Correctness of legal interpretations and citations" },
       { dimension: "Risk Identification", weight: "25%", desc: "Completeness of risk and liability analysis" },

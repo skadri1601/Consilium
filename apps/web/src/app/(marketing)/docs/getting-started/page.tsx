@@ -21,7 +21,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Getting Started",
   description:
-    "Quickstart for Consilium — sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+    "Quickstart for Consilium - sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
   path: "/docs/getting-started",
 });
 
@@ -142,7 +142,7 @@ export default function GettingStartedPage() {
                   <p className="text-sm text-muted-foreground">
                     Consilium uses a Bring Your Own Keys model. Navigate to
                     Settings and add API keys for the providers you want to use.
-                    All keys are encrypted with AES-256-GCM before storage —
+                    All keys are encrypted with AES-256-GCM before storage -
                     they are never stored in plaintext or logged. You need at
                     least one provider key, but using 2-3 different providers
                     gives you genuine model diversity in debates.
@@ -197,7 +197,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Golden Prompt
                         </span>{" "}
-                        — The synthesized final answer integrating the strongest
+                        - The synthesized final answer integrating the strongest
                         arguments from all models
                       </p>
                     </div>
@@ -206,7 +206,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Confidence Scores
                         </span>{" "}
-                        — Per-model calibrated confidence based on explanation
+                        - Per-model calibrated confidence based on explanation
                         stability (how much each model changed its position
                         under pressure)
                       </p>
@@ -216,7 +216,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Dissent Report
                         </span>{" "}
-                        — Majority and minority positions identified via
+                        - Majority and minority positions identified via
                         agglomerative clustering. Shows where models agreed and
                         where they fundamentally disagreed
                       </p>
@@ -226,7 +226,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Vote Results
                         </span>{" "}
-                        — Condorcet winner (if any), Borda scores, full ranking.
+                        - Condorcet winner (if any), Borda scores, full ranking.
                         Shows which position won and by what margin
                       </p>
                     </div>
@@ -235,7 +235,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Audit Trail
                         </span>{" "}
-                        — Every step recorded: model, input, output, tokens
+                        - Every step recorded: model, input, output, tokens
                         used, cost, latency. Full transparency into how
                         consensus was reached
                       </p>
@@ -245,7 +245,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Cost Breakdown
                         </span>{" "}
-                        — Per-model, per-round cost tracking with total cost and
+                        - Per-model, per-round cost tracking with total cost and
                         token usage
                       </p>
                     </div>

@@ -218,7 +218,7 @@ describe("ClerkWebhooksController integration + stress", () => {
   });
 
   describe("concurrency stress", () => {
-    it("1000 unauthenticated requests in parallel — all 401, zero invocations", async () => {
+    it("1000 unauthenticated requests in parallel - all 401, zero invocations", async () => {
       const N = 1000;
       const variants: Array<Record<string, string>> = [
         {},
@@ -249,7 +249,7 @@ describe("ClerkWebhooksController integration + stress", () => {
       expect(deleteUserCalls).toBe(0);
     }, 30_000);
 
-    it("500 authenticated requests in parallel — all 200, service invoked exactly N times", async () => {
+    it("500 authenticated requests in parallel - all 200, service invoked exactly N times", async () => {
       const N = 500;
       const responses = await Promise.all(
         Array.from({ length: N }, (_, i) =>

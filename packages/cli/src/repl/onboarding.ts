@@ -54,7 +54,7 @@ async function ask(question: string): Promise<string> {
 export async function runOnboarding(): Promise<boolean> {
   if (hasOnboarded()) return false;
   if (!terminal.isTTY) {
-    // Non-TTY environments can't ask — just mark onboarded and move on
+    // Non-TTY environments can't ask - just mark onboarded and move on
     // so we don't loop on every CI run.
     markOnboarded();
     return false;
@@ -104,10 +104,10 @@ export async function runOnboarding(): Promise<boolean> {
 
   // 2. Show the one concrete next-action.
   console.log(`  ${st.bold('Try a debate')}`);
-  console.log(`    ${st.brand('/auto')} ${st.dim('<your topic>')}    — engine picks the best mode`);
-  console.log(`    ${st.brand('/quick')} ${st.dim('<topic>')}        — single round, fastest`);
-  console.log(`    ${st.brand('/council')} ${st.dim('<topic>')}      — 3-round multi-model debate`);
-  console.log(`    ${st.brand('/help')}                — list every slash command`);
+  console.log(`    ${st.brand('/auto')} ${st.dim('<your topic>')}    - engine picks the best mode`);
+  console.log(`    ${st.brand('/quick')} ${st.dim('<topic>')}        - single round, fastest`);
+  console.log(`    ${st.brand('/council')} ${st.dim('<topic>')}      - 3-round multi-model debate`);
+  console.log(`    ${st.brand('/help')}                - list every slash command`);
   console.log('');
   console.log(
     `  ${st.dim('Bring your own keys via /config or sign in for the Consilium free-tier pool.')}`,

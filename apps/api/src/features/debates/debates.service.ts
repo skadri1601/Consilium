@@ -67,7 +67,7 @@ export class DebatesService {
     const clerkUser = await this.authService.getUser(clerkId);
     if (!clerkUser) {
       this.logger.error(
-        `Self-heal failed: Clerk getUser(${clerkId}) returned null. Token verifies but Clerk user lookup is failing — verify CLERK_SECRET_KEY.`,
+        `Self-heal failed: Clerk getUser(${clerkId}) returned null. Token verifies but Clerk user lookup is failing - verify CLERK_SECRET_KEY.`,
       );
       throw new NotFoundException(
         "User not found. Please ensure your account is synced.",
@@ -582,7 +582,7 @@ export class DebatesService {
         );
       }
     } catch {
-      // Best-effort cancellation — ignore errors
+      // Best-effort cancellation - ignore errors
     }
 
     return { id, cancelled: true };

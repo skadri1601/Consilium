@@ -81,7 +81,7 @@ async function runReplFallback(): Promise<void> {
   // Non-TTY: skip raw-mode keystroke capture, the palette UI, and the
   // ANSI redraw cycle. Drop to a line-buffered readline so the REPL
   // still works in IDE consoles, docker exec without -t, recording
-  // tools, etc. — the surface a user sees is "type a command per line,
+  // tools, etc. - the surface a user sees is "type a command per line,
   // press enter, repeat".
   const cfg = loadConfig();
   const userName = cfg.userName || "you";
@@ -122,7 +122,7 @@ async function runReplFallback(): Promise<void> {
       if (suggestions.length > 0) {
         console.log(st.dim("  Did you mean:"));
         for (const s of suggestions) {
-          console.log(st.dim(`    ${s.usage ?? `/${s.name}`} — ${s.summary}`));
+          console.log(st.dim(`    ${s.usage ?? `/${s.name}`} - ${s.summary}`));
         }
       } else {
         console.log(st.dim("  Type /help to list all commands."));
@@ -132,7 +132,7 @@ async function runReplFallback(): Promise<void> {
 
     const cmd = parsed.command ?? findCommand("auto");
     if (!cmd) {
-      console.log(st.warning("No command available — set a default with /help."));
+      console.log(st.warning("No command available - set a default with /help."));
       continue;
     }
 

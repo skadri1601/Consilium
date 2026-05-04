@@ -118,7 +118,7 @@ export class SessionManager {
     const filePath = this.getSessionPath(sessionId);
     // Atomic write so two concurrent debate completions in the same
     // chat REPL can't corrupt the session JSON file (write-to-tmp
-    // then rename — the loser's write fails cleanly instead of
+    // then rename - the loser's write fails cleanly instead of
     // interleaving JSON bytes with the winner's).
     const tmpPath = `${filePath}.${process.pid}.tmp`;
     fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf-8");

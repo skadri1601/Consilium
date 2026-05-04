@@ -28,7 +28,7 @@ const tiers = [
     name: "Free + BYOK",
     price: "$0",
     period: "/forever",
-    description: "Bring your own API keys — pay only providers",
+    description: "Bring your own API keys - pay only providers",
     comingSoon: false,
     features: [
       "5 debates/week, 20/month",
@@ -530,7 +530,7 @@ export default function PricingPage() {
           <h2 className="text-xl font-bold mb-2">Need a custom arrangement?</h2>
           <p className="text-muted-foreground mb-6">
             Volume pricing, specific compliance requirements, or a private
-            deployment — talk to us. We work with teams individually until
+            deployment - talk to us. We work with teams individually until
             Consilium has the traction for a formal Enterprise tier.
           </p>
           <Link

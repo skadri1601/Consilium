@@ -285,12 +285,12 @@ consilium debate "What's the best way to ship this feature?" \
   --mode council`;
 
 const providerMeta: Record<string, { icon?: string; blurb: string }> = {
-  Anthropic: { icon: "anthropic", blurb: "Claude 4 family — strongest reasoning and synthesis." },
-  OpenAI: { icon: "openai", blurb: "GPT-5 series — fast, mini, and pro tiers." },
-  Google: { icon: "google", blurb: "Gemini 3 — long context and fast multimodal." },
+  Anthropic: { icon: "anthropic", blurb: "Claude 4 family - strongest reasoning and synthesis." },
+  OpenAI: { icon: "openai", blurb: "GPT-5 series - fast, mini, and pro tiers." },
+  Google: { icon: "google", blurb: "Gemini 3 - long context and fast multimodal." },
   Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
-  xAI: { icon: "xai", blurb: "Grok 4 — code-focused and reasoning variants." },
-  Moonshot: { blurb: "Kimi K2 — long-context reasoning." },
+  xAI: { icon: "xai", blurb: "Grok 4 - code-focused and reasoning variants." },
+  Moonshot: { blurb: "Kimi K2 - long-context reasoning." },
 };
 
 const modelGroups = Object.keys(providerMeta)
@@ -360,7 +360,7 @@ export default function LandingPage() {
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
             Not another orchestration tool. Consilium makes AI models argue,
-            challenge, and synthesize — producing answers with tracked
+            challenge, and synthesize - producing answers with tracked
             confidence, dissent, and audit trails.
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
@@ -518,7 +518,7 @@ export default function LandingPage() {
             Install the CLI
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Run debates from your terminal — pipe in files, diffs, or stdin and
+            Run debates from your terminal - pipe in files, diffs, or stdin and
             stream the deliberation live.
           </p>
         </div>
@@ -689,7 +689,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30 p-6 text-center">
           <p className="text-sm text-muted-foreground">
             <span className="font-medium text-foreground">No key, no problem.</span>{" "}
-            Start a debate with zero setup — Consilium routes free-tier requests
+            Start a debate with zero setup - Consilium routes free-tier requests
             through Groq and OpenRouter automatically. Bring your own keys
             anytime for premium models.
           </p>
@@ -717,7 +717,7 @@ export default function LandingPage() {
                   {paper.title}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {paper.authors} — {paper.venue}
+                  {paper.authors} - {paper.venue}
                 </p>
               </CardHeader>
               <CardContent>

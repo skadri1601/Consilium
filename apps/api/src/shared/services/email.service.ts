@@ -28,7 +28,7 @@ export class EmailService {
     firstName: string,
   ): Promise<{ success: boolean }> {
     if (!this.resend) {
-      this.logger.warn(`Welcome email skipped for ${to} — Resend not configured`);
+      this.logger.warn(`Welcome email skipped for ${to} - Resend not configured`);
       return { success: false };
     }
 
@@ -36,7 +36,7 @@ export class EmailService {
       await this.resend.emails.send({
         from: this.fromAddress,
         to,
-        subject: "Welcome to Consilium — glad you're here",
+        subject: "Welcome to Consilium - glad you're here",
         html: this.buildWelcomeHtml(firstName),
       });
 
@@ -64,10 +64,10 @@ export class EmailService {
 <tr><td>
 <p style="margin:0 0 32px;font-size:22px;font-weight:600;color:#111827;letter-spacing:-0.3px">Consilium</p>
 <p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6">Hi ${name},</p>
-<p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6">Thank you for creating an account and giving Consilium a chance. We hope you enjoy all the features — please don't hesitate to reach out if you have any questions, and we're always happy to take feedback.</p>
+<p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6">Thank you for creating an account and giving Consilium a chance. We hope you enjoy all the features - please don't hesitate to reach out if you have any questions, and we're always happy to take feedback.</p>
 <p style="margin:0 0 32px;font-size:16px;color:#374151;line-height:1.6">Jump in whenever you're ready:</p>
 <a href="${appUrl}/council" style="display:inline-block;background:#111827;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;letter-spacing:0.1px">Open Consilium</a>
-<p style="margin:40px 0 8px;font-size:14px;color:#374151;line-height:1.6">— Saad</p>
+<p style="margin:40px 0 8px;font-size:14px;color:#374151;line-height:1.6">- Saad</p>
 <p style="margin:0;font-size:13px;color:#9ca3af">Founder, Consilium &middot; <a href="mailto:saad@myconsilium.xyz" style="color:#6b7280;text-decoration:none">saad@myconsilium.xyz</a></p>
 </td></tr>
 </table>

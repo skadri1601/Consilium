@@ -23,14 +23,14 @@ interface MenuEntry {
 }
 
 const MENU: MenuEntry[] = [
-  { num: 1, command: 'consilium debate "<topic>"', description: 'Council mode — 3 rounds, default', group: 'modes', action: { kind: 'debate', mode: 'council', promptFor: 'topic' } },
-  { num: 2, command: 'consilium debate "<topic>" --mode quick', description: 'Quick — 1 round, fastest (~15s)', group: 'modes', action: { kind: 'debate', mode: 'quick', promptFor: 'topic' } },
-  { num: 3, command: 'consilium debate "<topic>" --mode deep', description: 'Deep — 5 rounds + sub-agent research', group: 'modes', action: { kind: 'debate', mode: 'deep', promptFor: 'topic' } },
-  { num: 4, command: 'consilium debate "<topic>" --mode blind', description: 'Blind — model names hidden until scored', group: 'modes', action: { kind: 'debate', mode: 'blind', promptFor: 'topic' } },
-  { num: 5, command: 'consilium debate "<topic>" --mode redteam', description: 'Redteam — attack/defend cycle for security review', group: 'modes', action: { kind: 'redteam', promptFor: 'content' } },
-  { num: 6, command: 'consilium debate "<topic>" --mode jury', description: 'Jury — ranked-choice voting (Borda + Condorcet)', group: 'modes', action: { kind: 'debate', mode: 'jury', promptFor: 'topic' } },
-  { num: 7, command: 'consilium debate "<topic>" --mode market', description: 'Market — confidence-weighted probability aggregation', group: 'modes', action: { kind: 'debate', mode: 'market', promptFor: 'topic' } },
-  { num: 8, command: 'consilium debate "<topic>" --mode auto', description: 'Auto — engine picks the best mode for your topic', group: 'modes', action: { kind: 'debate', mode: 'auto', promptFor: 'topic' } },
+  { num: 1, command: 'consilium debate "<topic>"', description: 'Council mode - 3 rounds, default', group: 'modes', action: { kind: 'debate', mode: 'council', promptFor: 'topic' } },
+  { num: 2, command: 'consilium debate "<topic>" --mode quick', description: 'Quick - 1 round, fastest (~15s)', group: 'modes', action: { kind: 'debate', mode: 'quick', promptFor: 'topic' } },
+  { num: 3, command: 'consilium debate "<topic>" --mode deep', description: 'Deep - 5 rounds + sub-agent research', group: 'modes', action: { kind: 'debate', mode: 'deep', promptFor: 'topic' } },
+  { num: 4, command: 'consilium debate "<topic>" --mode blind', description: 'Blind - model names hidden until scored', group: 'modes', action: { kind: 'debate', mode: 'blind', promptFor: 'topic' } },
+  { num: 5, command: 'consilium debate "<topic>" --mode redteam', description: 'Redteam - attack/defend cycle for security review', group: 'modes', action: { kind: 'redteam', promptFor: 'content' } },
+  { num: 6, command: 'consilium debate "<topic>" --mode jury', description: 'Jury - ranked-choice voting (Borda + Condorcet)', group: 'modes', action: { kind: 'debate', mode: 'jury', promptFor: 'topic' } },
+  { num: 7, command: 'consilium debate "<topic>" --mode market', description: 'Market - confidence-weighted probability aggregation', group: 'modes', action: { kind: 'debate', mode: 'market', promptFor: 'topic' } },
+  { num: 8, command: 'consilium debate "<topic>" --mode auto', description: 'Auto - engine picks the best mode for your topic', group: 'modes', action: { kind: 'debate', mode: 'auto', promptFor: 'topic' } },
   { num: 9, command: 'consilium chat', description: 'Interactive REPL with session persistence', group: 'other', action: { kind: 'chat' } },
   { num: 10, command: 'consilium sessions resume', description: 'Resume a saved chat session', group: 'other', action: { kind: 'resume' } },
   { num: 11, command: 'consilium stats', description: 'Usage statistics across past debates', group: 'other', action: { kind: 'stats' } },

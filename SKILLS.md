@@ -7,17 +7,17 @@
 ```
 
 ## Available Skills to Call
-- **ui-ux-pro-max** — UI/UX design for apps/web/ (67 styles, 96 palettes, shadcn/ui)
-- **systematic-debugging** — For any bug, test failure, or unexpected behavior
-- **test-driven-development** — Before implementing features
-- **verification-before-completion** — Before claiming work is done
-- **requesting-code-review** — Before merging PRs
-- **api-design-principles** — When designing/modifying REST endpoints
+- **ui-ux-pro-max** - UI/UX design for apps/web/ (67 styles, 96 palettes, shadcn/ui)
+- **systematic-debugging** - For any bug, test failure, or unexpected behavior
+- **test-driven-development** - Before implementing features
+- **verification-before-completion** - Before claiming work is done
+- **requesting-code-review** - Before merging PRs
+- **api-design-principles** - When designing/modifying REST endpoints
 
 ## MCP Servers Available
-- **Linear** — Ticket management (MYC- prefix), use for project tracking
-- **Sentry** — Error monitoring, use when debugging production issues
-- **Vercel** — Web deployment status and logs
+- **Linear** - Ticket management (MYC- prefix), use for project tracking
+- **Sentry** - Error monitoring, use when debugging production issues
+- **Vercel** - Web deployment status and logs
 
 ## Project-Specific Commands
 
@@ -64,22 +64,22 @@ docker compose -f docker-compose.selfhost.yml up -d
 ## When Working On Each System
 
 ### apps/agents/ (Deliberation Engine)
-- All types in deliberation/types.py — never duplicate
+- All types in deliberation/types.py - never duplicate
 - DeliberationEngine in deliberation_graph.py is the main orchestrator
 - Model IDs must be in shared/config/models.py MODEL_ALIASES or AVAILABLE_MODELS
 - Cost tracking: _estimate_cost() in deliberation_graph.py calculates per-model costs
 - Templates in deliberation/templates/ follow a standard pattern (read registry.py)
 
 ### apps/api/ (NestJS)
-- Types from packages/shared/ — never duplicate
+- Types from packages/shared/ - never duplicate
 - Deliberation endpoints in features/deliberation/
 - SSE streaming via deliberation-sse.service.ts
 - BullMQ retryStrategy must never return null
 
 ### packages/cli/
 - Commands in src/commands/ (debate, eval, redteam, benchmark)
-- Judge config in src/utils/cli-judge.ts — mode-specific via getJudgeConfig()
-- Decision extraction in src/utils/decision-extractor.ts — LLM semantic + regex fallback
+- Judge config in src/utils/cli-judge.ts - mode-specific via getJudgeConfig()
+- Decision extraction in src/utils/decision-extractor.ts - LLM semantic + regex fallback
 - SSE uses onmessage (not addEventListener)
 
 ### packages/shared/
@@ -91,9 +91,9 @@ docker compose -f docker-compose.selfhost.yml up -d
 - Python SDK: httpx + pydantic, sync + async clients
 
 ## Key Files to Read First
-1. **CLAUDE.md** — Architecture overview, conventions
-2. **AGENTS.md** — Dual agent system details
-3. **PR-REVIEW.md** — Pull request standards
-4. **SKILLS.md** (this file) — Commands, skills, system guidelines
-5. **apps/agents/src/features/deliberation/types.py** — All deliberation types
-6. **packages/shared/src/debates/debate-mode.ts** — Mode definitions
+1. **CLAUDE.md** - Architecture overview, conventions
+2. **AGENTS.md** - Dual agent system details
+3. **PR-REVIEW.md** - Pull request standards
+4. **SKILLS.md** (this file) - Commands, skills, system guidelines
+5. **apps/agents/src/features/deliberation/types.py** - All deliberation types
+6. **packages/shared/src/debates/debate-mode.ts** - Mode definitions

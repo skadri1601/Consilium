@@ -12,7 +12,7 @@ import { SITE_NAME, SITE_URL } from "./seo";
  *   - SoftwareApplication site-wide    (already in layout.tsx; we beef it up)
  *
  * NOT shipped:
- *   - FAQPage — Google restricted FAQ rich results to government/health
+ *   - FAQPage - Google restricted FAQ rich results to government/health
  *     sites in 2023, so adding it for a SaaS product is wasted markup.
  */
 

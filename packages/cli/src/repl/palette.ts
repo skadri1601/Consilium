@@ -47,7 +47,7 @@ function clipLine(text: string, max: number): string {
 function renderPalette(buffer: string, paletteIndex: number): string {
   const matches = visibleMatches(buffer);
   if (matches.length === 0) {
-    return `\n  ${st.dim("(no matching commands — press esc to dismiss)")}\n`;
+    return `\n  ${st.dim("(no matching commands - press esc to dismiss)")}\n`;
   }
   const widest = widestUsage(ALL_COMMANDS);
   const visible = matches.slice(0, MAX_VISIBLE);
@@ -68,7 +68,7 @@ function renderPalette(buffer: string, paletteIndex: number): string {
     }
   }
   if (matches.length > visible.length) {
-    lines.push(`     ${st.dim(`+${matches.length - visible.length} more — keep typing to filter`)}`);
+    lines.push(`     ${st.dim(`+${matches.length - visible.length} more - keep typing to filter`)}`);
   }
   lines.push(`     ${st.dim("↑↓ navigate · enter selects · esc dismiss · tab completes")}`);
   return lines.join("\n") + "\n";

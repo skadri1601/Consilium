@@ -340,16 +340,16 @@ async function slashCodebase(args: string[]): Promise<SlashResult> {
     const h = hasCodebasePermission(scopePath);
     console.log(st.bold('\nCodebase permission\n'));
     if (h === true) console.log(st.success('Granted'), st.dim('for'), scopePath);
-    else if (h === false) console.log(st.warning('Previously denied'), st.dim('— run /codebase allow to try again'));
-    else console.log(st.dim('Not set yet'), st.dim('— run /codebase allow before codebase-aware debates'));
+    else if (h === false) console.log(st.warning('Previously denied'), st.dim('- run /codebase allow to try again'));
+    else console.log(st.dim('Not set yet'), st.dim('- run /codebase allow before codebase-aware debates'));
     console.log('');
     return 'continue';
   }
 
   console.log(st.dim('Usage: /codebase allow | /codebase status | /codebase revoke'));
-  console.log(st.dim('  allow   — prompt to allow reading project files for debates'));
-  console.log(st.dim('  status  — show whether this directory is allowed'));
-  console.log(st.dim('  revoke  — remove saved permission for this directory'));
+  console.log(st.dim('  allow   - prompt to allow reading project files for debates'));
+  console.log(st.dim('  status  - show whether this directory is allowed'));
+  console.log(st.dim('  revoke  - remove saved permission for this directory'));
   console.log('');
   return 'continue';
 }
@@ -472,7 +472,7 @@ async function slashRollback(args: string[]): Promise<SlashResult> {
 async function slashReview(args: string[], session: ChatSession): Promise<SlashResult> {
   const filePath = args[0]?.trim();
   if (!filePath) {
-    console.log(st.dim('Usage: /review <file-path>  — sends a file for targeted code review debate\n'));
+    console.log(st.dim('Usage: /review <file-path>  - sends a file for targeted code review debate\n'));
     return 'continue';
   }
   const rootInfo = resolveProjectRoot(process.cwd());
@@ -541,7 +541,7 @@ function slashScope(): SlashResult {
   console.log(st.brand('Project root:'), rootInfo.root);
   console.log(st.brand('Git repo:'), rootInfo.isGitRepo ? 'yes' : 'no');
   if (rootInfo.isSubdirectory) {
-    console.log(st.warning('Launched from subdirectory — full project context is loaded from root.'));
+    console.log(st.warning('Launched from subdirectory - full project context is loaded from root.'));
   }
   console.log('');
   return 'continue';
