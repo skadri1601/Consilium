@@ -71,3 +71,47 @@ jobs:
       - uses: actions/labeler@v5
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  branch-freshness:
+    name: Branch Freshness
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare branch against base
+        id: freshness
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          STALE_COMMITS: "50"
+          STALE_DAYS: "14"
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=200 origin "$BASE_REF" || git fetch --no-tags origin "$BASE_REF"
+          BASE_SHA=$(git rev-parse "origin/$BASE_REF")
+          MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          BEHIND=$(git rev-list --count "$MERGE_BASE..$BASE_SHA")
+          AHEAD=$(git rev-list --count "$MERGE_BASE..$HEAD_SHA")
+          BASE_DATE=$(git log -1 --format=%ct "$BASE_SHA")
+          MB_DATE=$(git log -1 --format=%ct "$MERGE_BASE")
+          NOW=$(date +%s)
+          AGE_DAYS=$(( (NOW - MB_DATE) / 86400 ))
+          echo "behind=$BEHIND" >> "$GITHUB_OUTPUT"
+          echo "ahead=$AHEAD"   >> "$GITHUB_OUTPUT"
+          echo "age_days=$AGE_DAYS" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Branch Freshness"
+            echo ""
+            echo "- Base: \`$BASE_REF\` ($BASE_SHA)"
+            echo "- Merge base age: $AGE_DAYS days"
+            echo "- Commits behind base: $BEHIND"
+            echo "- Commits ahead of base: $AHEAD"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$BEHIND" -gt "$STALE_COMMITS" ] || [ "$AGE_DAYS" -gt "$STALE_DAYS" ]; then
+            echo "::warning::Branch is stale: $BEHIND commits behind, merge-base age ${AGE_DAYS}d (thresholds: $STALE_COMMITS commits / ${STALE_DAYS}d). Rebase or merge $BASE_REF before relying on CI results."
+          fi
