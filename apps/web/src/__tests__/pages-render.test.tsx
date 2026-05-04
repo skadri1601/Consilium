@@ -534,29 +534,32 @@ describe("Layout Components", () => {
 
     it("renders all link columns", () => {
       render(<MarketingFooter {...footerProps} />);
-      expect(screen.getByText("Product")).toBeInTheDocument();
-      expect(screen.getByText("Developers")).toBeInTheDocument();
+      expect(screen.getByText("Products")).toBeInTheDocument();
+      expect(screen.getByText("Navigation")).toBeInTheDocument();
       expect(screen.getByText("Resources")).toBeInTheDocument();
-      expect(screen.getByText("Company")).toBeInTheDocument();
+      expect(screen.getByText("Contact")).toBeInTheDocument();
     });
 
-    it("renders CTA section", () => {
+    it("renders subscribe form", () => {
       render(<MarketingFooter {...footerProps} />);
       expect(
-        screen.getByText("Ready to experience AI deliberation?"),
+        screen.getByPlaceholderText("youremail@domain.com"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /subscribe/i }),
       ).toBeInTheDocument();
     });
 
     it("renders footer links in each column", () => {
       render(<MarketingFooter {...footerProps} />);
       expect(screen.getByText("Features")).toBeInTheDocument();
-      expect(screen.getByText("Pricing")).toBeInTheDocument();
+      expect(screen.getAllByText("Pricing").length).toBeGreaterThan(0);
       expect(screen.getByText("Documentation")).toBeInTheDocument();
       expect(screen.getByText("API Reference")).toBeInTheDocument();
       expect(screen.getByText("Blog")).toBeInTheDocument();
       expect(screen.getByText("About")).toBeInTheDocument();
-      expect(screen.getByText("Privacy")).toBeInTheDocument();
-      expect(screen.getByText("Terms")).toBeInTheDocument();
+      expect(screen.getAllByText("Privacy").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Terms").length).toBeGreaterThan(0);
     });
 
     it("has valid links", () => {
