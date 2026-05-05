@@ -117,8 +117,16 @@ Hooks install automatically via `"prepare": "husky"` in package.json. To bypass 
 - API: NestJS spec files
 
 ## Sibling Docs (read these instead of re-discovering)
-- **AGENTS.md** — when to spawn which subagent + bot agents callable from chat
+- **AGENTS.md** — subagent dispatch + bot agents callable from chat + **Multi-Agent Task Protocol** (mandatory 6–10 parallel subagents for non-trivial tasks)
 - **SKILLS.md** — trigger table mapping situations to skills + dev-loop commands
+
+## Multi-Agent Task Protocol (summary; full rules in AGENTS.md)
+For every non-trivial task, the main agent MUST:
+1. Decompose into **6–10 legs** and spawn that many subagents **in parallel** (single message, multiple `Agent` tool calls).
+2. Always include **one leg for internet research** when building/integrating/upgrading anything.
+3. Subagents must NOT spawn their own subagents — fanout depth is exactly one.
+4. Use the subagent type whose tools fit the leg (`general-purpose` for write/edit, `Explore` for read-only, `Plan` for design).
+5. After subagents return, the main agent reads the actual diffs and runs the tests — does **not** delegate verification. Skip the protocol only for trivial single-file edits.
 
 ## MCP Routing Rules (when to use which integration)
 | Situation | Use | Don't use |

@@ -2,6 +2,8 @@
 
 > Sibling docs: **CLAUDE.md** (architecture, MCP routing, runbook), **AGENTS.md** (subagent dispatch, bot agents).
 
+> **Before starting any non-trivial task**: follow the Multi-Agent Task Protocol in AGENTS.md — spawn 6–10 subagents in parallel (one always for internet research), no recursive subagent spawning, main agent verifies their work + runs tests.
+
 ## Skill Trigger Table — invoke automatically when the situation matches
 
 | Trigger / situation | Skill |
