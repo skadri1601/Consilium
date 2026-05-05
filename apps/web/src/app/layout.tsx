@@ -48,7 +48,13 @@ export const metadata: Metadata = {
   authors: [{ name: "Saad Kadri", url: "https://saadkadri.dev" }],
   creator: "Saad Kadri",
   publisher: SITE_NAME,
-  alternates: { canonical: SITE_URL },
+  alternates: {
+    canonical: SITE_URL,
+    languages: {
+      en: SITE_URL,
+      "x-default": SITE_URL,
+    },
+  },
   formatDetection: { email: false, address: false, telephone: false },
   robots: {
     index: true,
@@ -182,6 +188,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <TestModeClerkProvider>
       <html lang="en" className="dark" suppressHydrationWarning>
+        <head>
+          <link rel="me" href="https://saadkadri.dev" />
+        </head>
         <body className={`${inter.className} antialiased font-normal`}>
           <Script
             id="ld-organization"
