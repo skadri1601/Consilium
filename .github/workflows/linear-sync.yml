@@ -1,6 +1,8 @@
 name: Linear Sync
 
 on:
+  issues:
+    types: [opened]
   pull_request:
     types: [opened, closed, reopened, ready_for_review]
   pull_request_review:
@@ -14,6 +16,73 @@ env:
   TICKET_PREFIX: MYC
 
 jobs:
+  issue-to-linear:
+    name: Create Linear Ticket from GitHub Issue
+    if: github.event_name == 'issues'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      issues: write
+    steps:
+      - name: Create Linear issue
+        id: linear
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_ID: ${{ secrets.LINEAR_TEAM_ID }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          DESCRIPTION="**GitHub Issue #${ISSUE_NUMBER}** by @${ISSUE_AUTHOR}: ${ISSUE_URL}"$'\n\n'"${ISSUE_BODY}"
+
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg teamId "$LINEAR_TEAM_ID" \
+              --arg title "$ISSUE_TITLE" \
+              --arg desc "$DESCRIPTION" \
+              '{query: "mutation($teamId: String!, $title: String!, $desc: String!) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { success issue { identifier url } } }", variables: {teamId: $teamId, title: $title, desc: $desc}}')")
+
+          IDENTIFIER=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.identifier // empty')
+          LINEAR_URL=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.url // empty')
+          echo "identifier=$IDENTIFIER" >> "$GITHUB_OUTPUT"
+          echo "url=$LINEAR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Comment ticket ID on GitHub issue
+        if: steps.linear.outputs.identifier != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          IDENTIFIER: ${{ steps.linear.outputs.identifier }}
+          LINEAR_URL: ${{ steps.linear.outputs.url }}
+          REPO: ${{ github.repository }}
+        run: |
+          curl -sf -X POST "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}/comments" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg body "Linear ticket created: [${IDENTIFIER}](${LINEAR_URL})" \
+              '{body: $body}')"
+
+      - name: Notify Slack
+        if: steps.linear.outputs.identifier != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          IDENTIFIER: ${{ steps.linear.outputs.identifier }}
+          LINEAR_URL: ${{ steps.linear.outputs.url }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            MSG=":linear: <${LINEAR_URL}|${IDENTIFIER}> created from GitHub issue by ${ISSUE_AUTHOR} — <${ISSUE_URL}|${ISSUE_TITLE}>"
+            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
+          fi
+
   pr-lifecycle:
     if: github.event_name == 'pull_request'
     runs-on: blacksmith-4vcpu-ubuntu-2404
