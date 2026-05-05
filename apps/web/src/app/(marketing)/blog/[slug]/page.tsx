@@ -75,13 +75,20 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
+  const tags = Array.from(
+    new Set([post.category.toLowerCase(), ...(post.keywords ?? [])]),
+  );
   return buildMetadata({
     title: post.title,
     description: post.excerpt ?? post.title,
     path: `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.date,
-    keywords: [post.category.toLowerCase(), "consilium", "ai council"],
+    modifiedTime: post.date,
+    keywords: [...tags, "consilium", "ai council"],
+    authors: ["Saad Kadri"],
+    section: post.category,
+    tags,
   });
 }
 
@@ -1315,6 +1322,15 @@ export default async function BlogPostPage({
   const Content = postContent[slug];
 
   const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  const aggregateKeywords = Array.from(
+    new Set([
+      post.category.toLowerCase(),
+      "consilium",
+      "ai council",
+      "multi-agent debate",
+      ...(post.keywords ?? []),
+    ]),
+  );
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -1329,13 +1345,32 @@ export default async function BlogPostPage({
     author: { "@id": SAAD_AUTHOR_ID },
     publisher: { "@id": `${SITE_URL}#organization` },
     articleSection: post.category,
-    keywords: [post.category.toLowerCase(), "consilium", "ai council", "multi-agent debate"],
+    keywords: aggregateKeywords,
     inLanguage: "en-US",
     isPartOf: {
       "@type": "Blog",
       name: `${SITE_NAME} blog`,
       url: `${SITE_URL}/blog`,
     },
+    ...(post.mentions?.length
+      ? {
+          mentions: post.mentions.map((m) => ({
+            "@type": "Thing",
+            name: m.name,
+            url: m.url,
+            sameAs: m.url,
+          })),
+        }
+      : {}),
+    ...(post.citations?.length
+      ? {
+          citation: post.citations.map((c) => ({
+            "@type": "ScholarlyArticle",
+            name: c.name,
+            url: c.url,
+          })),
+        }
+      : {}),
   };
 
   const breadcrumbJsonLd = {
