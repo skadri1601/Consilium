@@ -92,8 +92,23 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | claude.yml | @claude mention | Claude responds to issues/PRs (write perms) |
 | claude-code-review.yml | PR open/sync | Auto code review (sonnet + haiku fallback) |
 | linear-sync.yml | PR/review/CI events | Single source of truth for GitHub→Linear→Slack |
-| ci.yml | Push/PR | Lint + typecheck |
-| security.yml | Push/PR/weekly | CodeQL, pip-audit, bandit, gitleaks |
+| ci.yml | PR + push to main | Lint + typecheck + tests + build |
+| e2e.yml | PR + push to main | Playwright E2E (artifacts kept 3 days) |
+| docker.yml | PR + push to main (path-filtered) | Test-build Docker images |
+| security.yml | Push to main + weekly | python-security on push, CodeQL weekly only |
+
+## Local Gates (pre-commit / pre-push)
+
+Husky hooks in `.husky/` enforce these before code reaches GitHub. They replace the `dependency-audit` and `secrets-scan` jobs that used to live in `security.yml`.
+
+**Pre-commit (`.husky/pre-commit`)**
+- `gitleaks protect --staged` — blocks accidental secret commits. Install: `brew install gitleaks`. Backed by GitHub native Push Protection as a server-side fallback.
+
+**Pre-push (`.husky/pre-push`)**
+- `pnpm format:check && pnpm lint && pnpm type-check` — fast feedback before CI re-runs the same checks.
+- `pnpm audit --audit-level=high` — catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
+
+Hooks install automatically via `"prepare": "husky"` in package.json. To bypass (NOT recommended): `git commit --no-verify` / `git push --no-verify`.
 
 ## Testing
 - Bot tests: `python -m agents.scripts.test_pipeline_e2e` (44 tests)

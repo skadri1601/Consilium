@@ -1,8 +1,6 @@
 name: Security
 
 on:
-  pull_request:
-    branches: [main, develop]
   push:
     branches: [main]
   schedule:
@@ -13,48 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  dependency-audit:
-    name: Dependency Audit
-    if: github.event_name == 'pull_request'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run dependency audit
-        run: pnpm audit --audit-level=high
-        continue-on-error: true
-
-  secrets-scan:
-    name: Secrets Scan
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-
   python-security:
     name: Python Security
     if: github.event_name == 'push'

@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "→ pnpm format:check"
+pnpm format:check
+
+echo "→ pnpm lint"
+pnpm lint
+
+echo "→ pnpm type-check"
+pnpm type-check
+
+if command -v pnpm >/dev/null 2>&1; then
+  echo "→ pnpm audit (high)"
+  pnpm audit --audit-level=high || {
+    echo "pnpm audit found high-severity issues. Review before pushing."
+    echo "To bypass (NOT recommended), push with --no-verify."
+    exit 1
+  }
+fi
