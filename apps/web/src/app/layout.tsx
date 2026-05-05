@@ -16,6 +16,7 @@ import {
   SITE_TWITTER,
   DEFAULT_OG_IMAGE,
 } from "@/lib/seo";
+import { SAAD_AUTHOR, SAAD_AUTHOR_ID } from "@/lib/authors";
 import "@/styles/globals.css";
 
 const inter = localFont({
@@ -109,18 +110,28 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const ORGANIZATION_ID = `${SITE_URL}#organization`;
+const SOFTWARE_ID = `${SITE_URL}#software`;
+const WEBSITE_ID = `${SITE_URL}#website`;
+
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": ORGANIZATION_ID,
   name: SITE_NAME,
   url: SITE_URL,
-  logo: `${SITE_URL}/brand/consilium-logo.svg`,
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/brand/consilium-logo.svg`,
+  },
+  founder: { "@id": SAAD_AUTHOR_ID },
   sameAs: ["https://www.linkedin.com/in/saad-kadri-58b8bb205/"],
 };
 
 const softwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
+  "@id": SOFTWARE_ID,
   name: SITE_NAME,
   applicationCategory: "DeveloperApplication",
   applicationSubCategory: "AI Council / Multi-Agent Deliberation",
@@ -147,24 +158,25 @@ const softwareJsonLd = {
     "TypeScript SDK + Python SDK + CLI",
     "Atomic edit application with rollback snapshots",
   ],
-  publisher: {
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-  },
+  author: { "@id": SAAD_AUTHOR_ID },
+  publisher: { "@id": ORGANIZATION_ID },
 };
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
+  "@id": WEBSITE_ID,
   name: SITE_NAME,
   url: SITE_URL,
+  publisher: { "@id": ORGANIZATION_ID },
   potentialAction: {
     "@type": "SearchAction",
     target: `${SITE_URL}/docs?q={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 };
+
+const personJsonLd = { "@context": "https://schema.org", ...SAAD_AUTHOR };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -178,6 +190,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             dangerouslySetInnerHTML={{
               __html: JSON.stringify(organizationJsonLd),
             }}
+          />
+          <Script
+            id="ld-person-founder"
+            type="application/ld+json"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
           />
           <Script
             id="ld-software"

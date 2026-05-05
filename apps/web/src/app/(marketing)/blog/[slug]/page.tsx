@@ -5,7 +5,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "../blog-data";
-import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { SAAD_AUTHOR_ID } from "@/lib/authors";
 
 const categoryColors: Record<BlogCategory, string> = {
   Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -1313,20 +1314,28 @@ export default async function BlogPostPage({
 
   const Content = postContent[slug];
 
+  const postUrl = `${SITE_URL}/blog/${post.slug}`;
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": `${postUrl}#blogposting`,
     headline: post.title,
     description: post.excerpt ?? post.title,
     datePublished: post.date,
-    url: `${SITE_URL}/blog/${post.slug}`,
-    author: { "@type": "Person", name: "Saad Kadri" },
-    publisher: {
-      "@type": "Organization",
-      name: "Consilium",
-      url: SITE_URL,
-    },
+    dateModified: post.date,
+    url: postUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+    image: `${SITE_URL}/og.png`,
+    author: { "@id": SAAD_AUTHOR_ID },
+    publisher: { "@id": `${SITE_URL}#organization` },
     articleSection: post.category,
+    keywords: [post.category.toLowerCase(), "consilium", "ai council", "multi-agent debate"],
+    inLanguage: "en-US",
+    isPartOf: {
+      "@type": "Blog",
+      name: `${SITE_NAME} blog`,
+      url: `${SITE_URL}/blog`,
+    },
   };
 
   const breadcrumbJsonLd = {
