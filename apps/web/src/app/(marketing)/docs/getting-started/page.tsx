@@ -18,7 +18,11 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
-import { breadcrumbList, howToSchema } from "@/lib/structured-data";
+import {
+  breadcrumbList,
+  howToSchema,
+  techArticleSchema,
+} from "@/lib/structured-data";
 
 export const metadata: Metadata = buildMetadata({
   title: "Getting Started",
@@ -70,6 +74,17 @@ const breadcrumbs = breadcrumbList([
   { name: "Getting Started", path: "/docs/getting-started" },
 ]);
 
+const techArticleData = techArticleSchema({
+  title: "Getting Started with Consilium",
+  description:
+    "Quickstart for Consilium - sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+  path: "/docs/getting-started",
+  proficiencyLevel: "Beginner",
+  dependencies: "Web browser, terminal, or any HTTP client. At least one LLM provider API key (or use the Groq free tier).",
+  publishedTime: "2026-04-29",
+  modifiedTime: "2026-04-29",
+});
+
 const providers = [
   {
     name: "Anthropic",
@@ -118,6 +133,7 @@ const providers = [
 export default function GettingStartedPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-getting-started-techarticle" data={techArticleData} />
       <JsonLd id="ld-getting-started-howto" data={howToData} />
       <JsonLd id="ld-getting-started-breadcrumbs" data={breadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-40">

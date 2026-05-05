@@ -298,3 +298,108 @@ export function speakableSpec(cssSelectors: string[]): Record<string, unknown> {
     cssSelector: cssSelectors,
   };
 }
+
+export interface TechArticleSchemaInput {
+  title: string;
+  description: string;
+  /** Project-relative path. Joined with SITE_URL. */
+  path: string;
+  /** ISO 8601 date string. */
+  publishedTime?: string;
+  modifiedTime?: string;
+  /** "Beginner" | "Intermediate" | "Expert" — surfaces in AI assistant filters. */
+  proficiencyLevel?: "Beginner" | "Intermediate" | "Expert";
+  /** Free-text dependencies (e.g. "Node.js >=18", "An API key"). */
+  dependencies?: string;
+  /** Optional reference to the canonical author entity by @id. */
+  authorId?: string;
+}
+
+/**
+ * TechArticle schema. More specific than Article for technical
+ * documentation. ChatGPT search and Bing Chat treat TechArticle as
+ * authoritative for "how do I" / "set up X" intents and quote the
+ * description + first paragraph more aggressively than for plain
+ * Article.
+ */
+export function techArticleSchema(
+  input: TechArticleSchemaInput,
+): Record<string, unknown> {
+  const url = `${SITE_URL}${input.path.startsWith("/") ? input.path : `/${input.path}`}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "@id": `${url}#techarticle`,
+    headline: input.title,
+    description: input.description,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: `${SITE_URL}/og.png`,
+    inLanguage: "en-US",
+    ...(input.publishedTime ? { datePublished: input.publishedTime } : {}),
+    dateModified:
+      input.modifiedTime ?? input.publishedTime ?? new Date().toISOString(),
+    ...(input.proficiencyLevel
+      ? { proficiencyLevel: input.proficiencyLevel }
+      : {}),
+    ...(input.dependencies ? { dependencies: input.dependencies } : {}),
+    author: input.authorId
+      ? { "@id": input.authorId }
+      : { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/brand/consilium-icon.svg`,
+      },
+    },
+  };
+}
+
+export interface DefinedTermInput {
+  term: string;
+  description: string;
+  /** Optional anchor URL on the same page (e.g. "#condorcet-method"). */
+  url?: string;
+  /** Authoritative external reference (Wikidata preferred). */
+  sameAs?: string;
+}
+
+export interface DefinedTermSetInput {
+  /** Display name of the glossary, e.g. "Consilium voting glossary". */
+  name: string;
+  /** Project-relative path of the page that hosts the glossary. */
+  path: string;
+  description?: string;
+  terms: DefinedTermInput[];
+}
+
+/**
+ * DefinedTermSet schema. AI search engines that handle "what is X" /
+ * "define Y" queries pattern-match DefinedTerm entries directly.
+ * Attaching authoritative ``sameAs`` links (Wikidata) lets the engine
+ * disambiguate the term from common-name collisions.
+ */
+export function definedTermSetSchema(
+  input: DefinedTermSetInput,
+): Record<string, unknown> {
+  const url = `${SITE_URL}${input.path.startsWith("/") ? input.path : `/${input.path}`}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "DefinedTermSet",
+    "@id": `${url}#glossary`,
+    name: input.name,
+    url,
+    ...(input.description ? { description: input.description } : {}),
+    hasDefinedTerm: input.terms.map((t) => ({
+      "@type": "DefinedTerm",
+      name: t.term,
+      description: t.description,
+      inDefinedTermSet: `${url}#glossary`,
+      ...(t.url ? { url: `${url}${t.url}` } : {}),
+      ...(t.sameAs ? { sameAs: t.sameAs } : {}),
+    })),
+  };
+}
