@@ -1,5 +1,34 @@
 # Consilium Agents Architecture
 
+> Sibling docs: **CLAUDE.md** (architecture, MCP routing, runbook), **SKILLS.md** (skill triggers, dev commands).
+
+## Subagent Dispatch (which `Agent` to spawn)
+
+| Need | `subagent_type` | Notes |
+|---|---|---|
+| Locate code: "where is X defined?", grep for symbols, find files by pattern | `Explore` | Read-only, fast. Specify breadth: `quick` / `medium` / `very thorough`. Don't use for review or cross-file analysis — it reads excerpts, not whole files. |
+| Open-ended research, multi-step search across systems, ambiguous lookup | `general-purpose` | Has all tools. Use when you're not confident a single search will hit. |
+| Design an implementation strategy before coding | `Plan` | Returns step-by-step plan + files to touch. Pair with `docs/superpowers/plans/`. |
+| Question about Claude Code, Agent SDK, or Anthropic API behavior | `claude-code-guide` | Use for "how does Claude Code do X" and SDK-shape questions. |
+| Independent code review pass on changes | code-reviewer (if available) | Doesn't see this conversation — give it the full context. |
+
+**Parallelism rule**: when launching multiple subagents for independent work, send them in a single message with multiple `Agent` tool calls so they run concurrently.
+
+**Brief them like new colleagues**: state the goal, what's been ruled out, file paths + line numbers, and the desired output length. Terse command-style prompts produce shallow work.
+
+## Bot Agents as Runnable Tools (chat-callable)
+
+The bot daemon in `agents/` is normally long-running on the droplet, but each bot also runs as a one-shot. Use these from chat when the user asks "what's broken in prod?" or "give me a status digest":
+
+| User intent | Command | Output |
+|---|---|---|
+| "What's failing in prod right now?" | `python -m agents.bots.monitor_agent --once` | Logs unresolved Sentry issues + SonarQube gate state |
+| "Give me a project status briefing" | `python -m agents.bots.briefing_agent` | Text digest (Sentry, Vercel, SonarQube, DB stats) to stdout |
+| "Is the bot pipeline healthy?" | `python -m agents.scripts.test_pipeline_e2e` | Runs 44 pipeline tests |
+| "Check the Claude Action wiring" | `python -m agents.scripts.test_claude_action` | Action-side diagnostics |
+
+Prefer these over hand-grepping logs or manually pulling from MCP. Pipe stdout into context only when the user asked for the digest — they're chatty.
+
 ## Two Agent Systems
 
 ### 1. Bot/DevOps Agents (agents/)

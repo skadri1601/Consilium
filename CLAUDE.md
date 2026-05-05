@@ -115,3 +115,35 @@ Hooks install automatically via `"prepare": "husky"` in package.json. To bypass 
 - Action diagnostics: `python -m agents.scripts.test_claude_action`
 - Web: Vitest + Playwright
 - API: NestJS spec files
+
+## Sibling Docs (read these instead of re-discovering)
+- **AGENTS.md** — when to spawn which subagent + bot agents callable from chat
+- **SKILLS.md** — trigger table mapping situations to skills + dev-loop commands
+
+## MCP Routing Rules (when to use which integration)
+| Situation | Use | Don't use |
+|---|---|---|
+| Tracking a task / referencing a ticket | Linear MCP (`MYC-` prefix) | inline comments, GitHub issues |
+| Investigating a prod error or stack trace | Sentry MCP (`search_issues`, `analyze_issue_with_seer`) | grep through logs blindly |
+| Checking deploy status / preview URL | Vercel MCP (`get_deployment`, `list_deployments`) | curl |
+| Code quality / coverage / hotspots | SonarQube MCP — follow `.cursor/rules/sonarqube_mcp_instructions.mdc` (toggle automatic analysis off at start, re-enable + `analyze_file_list` at end) | guess project keys |
+| PR / review / branch ops on this repo | GitHub MCP (`mcp__github__*`) | the `gh` CLI (not installed) |
+| Posting an outage notice or release note | Slack MCP draft → confirm with user before send | direct send without review |
+
+## Common-Task Runbook (intent → exact files)
+| Intent | Files to touch (in order) |
+|---|---|
+| Add a new debate mode | `apps/agents/src/features/deliberation/deliberation_graph.py` (state machine) → `templates/registry.py` (prompt template) → `tests/deliberation/` (mode test) → `packages/shared/src/debates/debate-mode.ts` (TS enum) → `packages/cli/src/commands/debate.ts` (CLI flag) |
+| Add a new model | `apps/agents/src/shared/config/models.py` MODEL_ALIASES + AVAILABLE_MODELS → `packages/shared/src/models/` → CLI default lists |
+| New REST endpoint | `apps/api/src/features/<feature>/` (controller + service + dto) → `packages/shared/` types → `apps/web/lib/api/` client |
+| New UI component | `apps/web/components/` → use shadcn/ui primitives, invoke `ui-ux-pro-max` skill |
+| Touch BullMQ job | `apps/api/src/queue/` — retryStrategy must never return null; emit SSE `processing` only after worker accepts |
+| Touch SSE event types | `packages/shared/src/sse/` first, then API + web simultaneously (single source of truth) |
+
+## Plans & Specs (use existing structure, don't reinvent)
+- For tasks touching > 3 files or making architectural changes, write a plan to `docs/superpowers/plans/YYYY-MM-DD-<slug>.md` **before** editing code.
+- For design decisions (new system, schema change, API contract), write a spec to `docs/superpowers/specs/YYYY-MM-DD-<slug>.md`.
+- Examples already in those dirs — follow that format. Skip for one-file fixes.
+
+## Trust the local gates
+The husky hooks below already run lint, typecheck, format, audit, and gitleaks. **Don't re-run them in shell to "verify"** unless you suspect a hook failed silently — CI will re-validate at the PR boundary anyway. This saves tokens and time.
