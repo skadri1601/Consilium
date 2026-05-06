@@ -5,7 +5,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/shared/components/ui/accordion";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbList, faqPage } from "@/lib/structured-data";
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
@@ -154,15 +156,29 @@ const sections = [
   { title: "Pricing & Costs", faqs: costFaqs },
 ];
 
+const allFaqs = [...generalFaqs, ...technicalFaqs, ...securityFaqs, ...costFaqs];
+
+const faqSchema = faqPage(
+  allFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+  { url: `${SITE_URL}/faq`, speakable: true },
+);
+
+const faqBreadcrumbs = breadcrumbList([
+  { name: "Home", path: "/" },
+  { name: "FAQ", path: "/faq" },
+]);
+
 export default function FAQPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-faq" data={faqSchema} />
+      <JsonLd id="ld-faq-breadcrumbs" data={faqBreadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-48">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center" data-speakable>
             Frequently Asked Questions
           </h1>
-          <p className="text-center text-muted-foreground mb-16">
+          <p className="text-center text-muted-foreground mb-16" data-speakable>
             Everything you need to know about Consilium
           </p>
 
