@@ -54,6 +54,11 @@ export const metadata: Metadata = {
       en: SITE_URL,
       "x-default": SITE_URL,
     },
+    types: {
+      "application/rss+xml": [
+        { url: `${SITE_URL}/feed.xml`, title: `${SITE_NAME} blog` },
+      ],
+    },
   },
   formatDetection: { email: false, address: false, telephone: false },
   robots: {
