@@ -25,7 +25,7 @@ error-classification behaviour deterministically.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from typing import Optional, Tuple
 
 from .base_agent import BaseAgent, LLMProviderError
@@ -127,15 +127,14 @@ class MockAgent(BaseAgent):
 
     async def stream_response(
         self, query: str, system_prompt: Optional[str] = None
-    ) -> AsyncIterator[str]:
+    ) -> AsyncGenerator[str, None]:
         self._maybe_raise()
         text = self._scenario["text"]
-        if not text:
-            return
-        chunk_size = max(1, len(text) // 4)
-        for i in range(0, len(text), chunk_size):
-            yield text[i : i + chunk_size]
-            await asyncio.sleep(0)
+        if text:
+            chunk_size = max(1, len(text) // 4)
+            for i in range(0, len(text), chunk_size):
+                yield text[i : i + chunk_size]
+                await asyncio.sleep(0)
 
     async def health_check(self) -> bool:
         return "error" not in self._scenario

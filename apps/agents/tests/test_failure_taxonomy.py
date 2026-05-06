@@ -97,6 +97,11 @@ async def test_execute_runs_handler_after_delay():
     called: list[RecoveryDecision] = []
 
     async def handler(d: RecoveryDecision) -> str:
+        # Must be a coroutine because RecoveryDispatcher.execute awaits the
+        # handler. The await below is a no-op yield-to-event-loop so the
+        # function is genuinely async (and not flagged as a sync function
+        # masquerading as async).
+        await asyncio.sleep(0)
         called.append(d)
         return "handled"
 

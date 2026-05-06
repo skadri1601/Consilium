@@ -20,17 +20,20 @@ Or as a context manager:
 ...     log.append("round_start", {"round": 1})
 
 The directory is configured via ``CONSILIUM_SESSION_LOG_DIR`` (defaults
-to ``/tmp/consilium-sessions``). When the directory cannot be created
-the log silently degrades to a no-op so the orchestrator is never
-blocked by a disk problem.
+to a per-user subdirectory of the system temp dir, created with
+owner-only permissions). When the directory cannot be created or has
+unsafe permissions the log silently degrades to a no-op so the
+orchestrator is never blocked by a disk problem.
 """
 
 from __future__ import annotations
 
+import getpass
 import json
 import logging
 import os
 import re
+import tempfile
 import threading
 import time
 from dataclasses import dataclass
@@ -40,8 +43,23 @@ from typing import Any, Iterator
 logger = logging.getLogger(__name__)
 
 
-_DEFAULT_DIR = "/tmp/consilium-sessions"
+_DIR_MODE = 0o700
 _DEBATE_ID_RE = re.compile(r"[^A-Za-z0-9_\-]")
+
+
+def _default_dir() -> Path:
+    """Return the per-user default session log directory.
+
+    Uses :func:`tempfile.gettempdir` (portable) and isolates per-user so
+    the directory is not shared with other system users on multi-tenant
+    hosts. The directory is created with 0o700 permissions on first use.
+    """
+    try:
+        user = getpass.getuser()
+    except (KeyError, OSError):
+        user = str(os.getuid()) if hasattr(os, "getuid") else "anon"
+    safe_user = _DEBATE_ID_RE.sub("_", user)[:64] or "anon"
+    return Path(tempfile.gettempdir()) / f"consilium-sessions-{safe_user}"
 
 
 def _safe_id(debate_id: str) -> str:
@@ -51,7 +69,40 @@ def _safe_id(debate_id: str) -> str:
 
 
 def session_log_dir() -> Path:
-    return Path(os.getenv("CONSILIUM_SESSION_LOG_DIR", _DEFAULT_DIR))
+    override = os.getenv("CONSILIUM_SESSION_LOG_DIR")
+    return Path(override) if override else _default_dir()
+
+
+def _ensure_safe_directory(directory: Path) -> bool:
+    """Create ``directory`` with restrictive permissions; return True on success.
+
+    On POSIX, the directory is created with mode 0o700 and we verify it is
+    not world- or group-writable before using it. This protects against
+    a hostile pre-existing directory at the same path on a shared host.
+    """
+    try:
+        directory.mkdir(parents=True, exist_ok=True, mode=_DIR_MODE)
+    except OSError as exc:
+        logger.warning("session-log: cannot create %s: %s", directory, exc)
+        return False
+    # Tighten permissions on platforms that support chmod (no-op on Windows).
+    try:
+        os.chmod(directory, _DIR_MODE)
+    except OSError:
+        pass
+    if hasattr(os, "stat"):
+        try:
+            mode = os.stat(directory).st_mode
+            if mode & 0o022:
+                logger.warning(
+                    "session-log: %s has insecure permissions (mode=%o); refusing to use it",
+                    directory,
+                    mode & 0o777,
+                )
+                return False
+        except OSError:
+            return False
+    return True
 
 
 @dataclass
@@ -80,10 +131,7 @@ class SessionLog:
     @classmethod
     def open(cls, debate_id: str) -> "SessionLog":
         directory = session_log_dir()
-        try:
-            directory.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            logger.warning("session-log: cannot create %s: %s — using no-op", directory, exc)
+        if not _ensure_safe_directory(directory):
             return _NoopSessionLog()
         path = directory / f"{_safe_id(debate_id)}.jsonl"
         log = cls(path)
@@ -112,7 +160,9 @@ class SessionLog:
                     try:
                         entry = json.loads(line)
                         last = max(last, int(entry.get("seq", 0)))
-                    except (json.JSONDecodeError, ValueError):
+                    except ValueError:
+                        # json.JSONDecodeError is a subclass of ValueError, so
+                        # this also covers malformed JSON.
                         continue
         except OSError:
             return 0
