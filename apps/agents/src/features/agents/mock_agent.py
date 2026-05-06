@@ -2,21 +2,21 @@
 
 Scripted scenarios let tests exercise the debate orchestrator end-to-end
 without touching real LLM providers. A scenario is selected by the
-``model`` field on the request — any model id beginning with ``mock-``
+``model`` field on the request - any model id beginning with ``mock-``
 routes here, and the suffix selects the scenario.
 
 Scenarios cover the common shapes the orchestrator must handle:
 
-* ``mock-aligned`` — a confident, well-formed response
-* ``mock-disagree`` — a contrarian response that rejects the framing
-* ``mock-uncertain`` — hedged, low-confidence response
-* ``mock-short`` — below MINIMUM_RESPONSE_LENGTH (probe fallback path)
-* ``mock-empty`` — returns empty text (probe FALLBACK_RESPONSE path)
-* ``mock-rate-limit`` — raises a rate_limit LLMProviderError
-* ``mock-auth`` — raises an auth LLMProviderError
-* ``mock-timeout`` — raises a timeout LLMProviderError
-* ``mock-server-error`` — raises a server_error LLMProviderError
-* ``mock-context-overflow`` — raises a context-too-large error
+* ``mock-aligned`` - a confident, well-formed response
+* ``mock-disagree`` - a contrarian response that rejects the framing
+* ``mock-uncertain`` - hedged, low-confidence response
+* ``mock-short`` - below MINIMUM_RESPONSE_LENGTH (probe fallback path)
+* ``mock-empty`` - returns empty text (probe FALLBACK_RESPONSE path)
+* ``mock-rate-limit`` - raises a rate_limit LLMProviderError
+* ``mock-auth`` - raises an auth LLMProviderError
+* ``mock-timeout`` - raises a timeout LLMProviderError
+* ``mock-server-error`` - raises a server_error LLMProviderError
+* ``mock-context-overflow`` - raises a context-too-large error
 
 The orchestrator can therefore be probed for its retry, fallback, and
 error-classification behaviour deterministically.

@@ -260,7 +260,7 @@ export function ComparisonPage({ data }: Props) {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Try {SITE_NAME}</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Free tier includes managed pool access — no API keys required to
+            Free tier includes managed pool access - no API keys required to
             get started. BYOK supported for production usage.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">

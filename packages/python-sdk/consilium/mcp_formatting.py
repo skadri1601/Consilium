@@ -77,7 +77,7 @@ def readable_progress_message(event: Mapping[str, Any]) -> str:
     if etype == "dissent_detected":
         d = event.get("dissent") or {}
         agent = _str(d.get("agent"), "an agent")
-        return f"Dissent detected — {agent}"
+        return f"Dissent detected - {agent}"
     if etype == "vote_cast":
         v = event.get("vote") or {}
         return f"Vote: {_str(v.get('agent'), 'agent')} → {_str(v.get('position'), 'option')}"
@@ -99,7 +99,7 @@ def readable_progress_message(event: Mapping[str, Any]) -> str:
         return "Done"
     if etype == "error":
         return f"Error: {_str(event.get('error'), 'unknown')}"
-    return etype.replace("_", " ").replace(":", " — ")
+    return etype.replace("_", " ").replace(":", " - ")
 
 
 # ────────────────────────── result formatters ──────────────────────────
@@ -118,7 +118,7 @@ def _format_dissent(dissent: Any) -> str:
     if isinstance(dissent, Mapping):
         agent = _str(dissent.get("agent"), "an agent")
         reason = _str(dissent.get("reason"), "(no reason)")
-        return f"- **{agent}** — {reason}"
+        return f"- **{agent}** - {reason}"
     if isinstance(dissent, Sequence):
         lines = []
         for d in dissent:
@@ -148,9 +148,9 @@ def _format_cost_breakdown(cost_data: Any) -> str:
                 tokens = 0
             total += cost
             tok_str = f" ({tokens:,} tokens)" if tokens else ""
-            rows.append(f"- `{model}`{tok_str} — ${cost:.4f}")
+            rows.append(f"- `{model}`{tok_str} - ${cost:.4f}")
         if rows:
-            rows.append(f"- **Total** — ${total:.4f}")
+            rows.append(f"- **Total** - ${total:.4f}")
         return "\n".join(rows)
     return f"```json\n{json.dumps(cost_data, indent=2, default=str)}\n```"
 

@@ -53,7 +53,7 @@ MOONSHOT_API_KEY=sk-...
 OPENROUTER_API_KEY=sk-or-...
 
 # Free-tier fallback pool (used only when a debate has no BYOK
-# for the requested provider — BYOK always takes precedence)
+# for the requested provider - BYOK always takes precedence)
 CONSILIUM_FREE_TIER_GROQ_KEY=gsk_...
 CONSILIUM_FREE_TIER_OPENROUTER_KEY=sk-or-...
 
@@ -112,4 +112,4 @@ docker run -p 8000:8000 --env-file .env consilium-agents
 
 ## License
 
-Proprietary — © Consilium. All rights reserved. The Consilium source repository is private as of April 2026. See [LICENSE](../../LICENSE) for permitted use.
+Proprietary - © Consilium. All rights reserved. The Consilium source repository is private as of April 2026. See [LICENSE](../../LICENSE) for permitted use.

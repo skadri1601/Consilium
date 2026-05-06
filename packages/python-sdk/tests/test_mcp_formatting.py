@@ -1,4 +1,4 @@
-"""Tests for consilium.mcp_formatting — Markdown formatters + progress messages."""
+"""Tests for consilium.mcp_formatting - Markdown formatters + progress messages."""
 
 from __future__ import annotations
 

@@ -91,7 +91,7 @@ consilium sessions resume <id>
 | `quick` | 1 | ~$0.01 | Single round, fastest results |
 | `council` | 3 | ~$0.04 | Multi-round deliberation (default) |
 | `deep` | 3 | ~$0.08 | Multi-round with sub-agent research |
-| `blind` | 3 | ~$0.04 | Anonymous — models don't see each other's names |
+| `blind` | 3 | ~$0.04 | Anonymous - models don't see each other's names |
 | `redteam` | 4 | ~$0.10 | Adversarial testing, finds attack surfaces |
 | `jury` | 3 | ~$0.05 | Panel with mandatory dissent tracking |
 | `market` | 5 | ~$0.09 | Prediction-market style with confidence voting |
@@ -179,7 +179,7 @@ The `--responses` file should be a JSON array: `[{"model": "gpt-5.4", "text": ".
 
 ## Providers & Models
 
-Consilium supports 7 LLM providers as of April 2026. Bring your own key for any provider — or run without keys and Consilium will fall back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
+Consilium supports 7 LLM providers as of April 2026. Bring your own key for any provider - or run without keys and Consilium will fall back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
 
 | Provider | Current production models |
 |---|---|
@@ -191,7 +191,7 @@ Consilium supports 7 LLM providers as of April 2026. Bring your own key for any 
 | **Moonshot** | `kimi-k2.6`, `kimi-k2.5`, `kimi-k2-thinking`, `kimi-k2-thinking-turbo`, `kimi-k2-turbo-preview` |
 | **OpenRouter** | `google/gemma-4-26b-a4b-it:free`, `google/gemma-4-31b-it:free`, `qwen/qwen3-coder:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `inclusionai/ling-2.6-1t:free` |
 
-Run `consilium models` for the live catalog with pricing and tier badges. Legacy IDs (e.g. `gpt-4o`, `claude-3-5-sonnet-latest`, `gemini-2.0-flash`) are forwarded to current replacements via aliases — but you should migrate your scripts.
+Run `consilium models` for the live catalog with pricing and tier badges. Legacy IDs (e.g. `gpt-4o`, `claude-3-5-sonnet-latest`, `gemini-2.0-flash`) are forwarded to current replacements via aliases - but you should migrate your scripts.
 
 ## Configuration
 

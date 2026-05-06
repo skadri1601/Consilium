@@ -27,7 +27,7 @@ export function FooterSubscribeForm() {
         throw new Error(data.error ?? "Failed to subscribe");
       }
       setStatus("success");
-      setMessage("Thanks — you're on the list.");
+      setMessage("Thanks - you're on the list.");
       setEmail("");
     } catch (error) {
       setStatus("error");

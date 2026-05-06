@@ -1,7 +1,7 @@
 # Distribution & marketplace submissions
 
 This directory holds the submission materials for getting Consilium
-into MCP marketplaces. Each file is a runbook — read it, follow the
+into MCP marketplaces. Each file is a runbook - read it, follow the
 steps, link the resulting listing back here when it goes live.
 
 ## Submission targets, in priority order
@@ -16,7 +16,7 @@ steps, link the resulting listing back here when it goes live.
 
 1. **Smithery first** because Cursor auto-imports verified servers from there. Single submission unlocks two channels.
 2. **modelcontextprotocol/servers** second because every other client (Claude Desktop, Cline, Continue, etc.) cross-links to it.
-3. **Cursor direct** third — fastest path is via Smithery (#1), but a direct entry in `@cursor/mcp-registry` ensures top-of-category placement that auto-imports might miss.
+3. **Cursor direct** third - fastest path is via Smithery (#1), but a direct entry in `@cursor/mcp-registry` ensures top-of-category placement that auto-imports might miss.
 
 ## What to update after each lands
 

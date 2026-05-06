@@ -37,23 +37,23 @@ export function getWebviewHtml(
     <div class="cn-empty" id="cn-empty">
       <p>Start a debate or red-team a snippet from the editor.</p>
       <ul>
-        <li><kbd>Ctrl/Cmd+Alt+C</kbd> — New debate</li>
-        <li><kbd>Ctrl/Cmd+Alt+D</kbd> — Debate selection</li>
-        <li><kbd>Ctrl/Cmd+Alt+R</kbd> — Red-team selection</li>
+        <li><kbd>Ctrl/Cmd+Alt+C</kbd> - New debate</li>
+        <li><kbd>Ctrl/Cmd+Alt+D</kbd> - Debate selection</li>
+        <li><kbd>Ctrl/Cmd+Alt+R</kbd> - Red-team selection</li>
       </ul>
     </div>
   </main>
   <footer class="cn-composer">
     <div class="cn-composer-row">
       <select id="cn-mode" class="cn-select" aria-label="Mode">
-        <option value="quick">quick — 1 round</option>
-        <option value="council" selected>council — 3 rounds</option>
-        <option value="deep">deep — 5 rounds + sub-agents</option>
-        <option value="blind">blind — names hidden</option>
-        <option value="redteam">redteam — adversarial</option>
-        <option value="jury">jury — voting panel</option>
-        <option value="market">market — confidence aggregation</option>
-        <option value="auto">auto — pick mode</option>
+        <option value="quick">quick - 1 round</option>
+        <option value="council" selected>council - 3 rounds</option>
+        <option value="deep">deep - 5 rounds + sub-agents</option>
+        <option value="blind">blind - names hidden</option>
+        <option value="redteam">redteam - adversarial</option>
+        <option value="jury">jury - voting panel</option>
+        <option value="market">market - confidence aggregation</option>
+        <option value="auto">auto - pick mode</option>
       </select>
       <button id="cn-cancel" class="cn-button cn-cancel" hidden>Cancel</button>
     </div>

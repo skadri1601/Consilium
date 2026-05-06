@@ -92,10 +92,10 @@ export class DebatePanelProvider implements vscode.WebviewViewProvider {
       <h2>Consilium Council</h2>
       <p>Run a debate to see the council in action.</p>
       <ul class="hint-list">
-        <li><code>Consilium: Debate selected code</code> — right-click a selection</li>
-        <li><code>Consilium: Debate this file</code> — right-click anywhere in the editor</li>
-        <li><code>Consilium: Review staged changes</code> — pre-commit review</li>
-        <li><code>Consilium: Debate the failing test output</code> — auto-run + debate</li>
+        <li><code>Consilium: Debate selected code</code> - right-click a selection</li>
+        <li><code>Consilium: Debate this file</code> - right-click anywhere in the editor</li>
+        <li><code>Consilium: Review staged changes</code> - pre-commit review</li>
+        <li><code>Consilium: Debate the failing test output</code> - auto-run + debate</li>
       </ul>
     </div>
     <div id="debate" class="debate hidden">
@@ -125,7 +125,7 @@ function ignore<T>(_promise: Thenable<T>): void {
 }
 
 function makeNonce(): string {
-  // CSP nonces must be cryptographically unpredictable — Math.random
+  // CSP nonces must be cryptographically unpredictable - Math.random
   // is a PRNG that can be modeled, which would let an attacker who
   // controls any injected content guess the nonce and bypass the CSP.
   // randomBytes(16) gives 128 bits of entropy; base64url keeps the

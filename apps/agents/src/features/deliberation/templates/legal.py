@@ -47,7 +47,7 @@ ACCEPTABILITY_ADVOCATE_PROMPT = (
 def build_template(contract_text: str) -> dict:
     return {
         "topic": (
-            f"Dialectical contract review — one advocate argues risk, "
+            f"Dialectical contract review - one advocate argues risk, "
             f"the other argues acceptability.\n\n"
             f"Contract text:\n```\n{contract_text}\n```\n\n"
             f"Required output structure:\n"

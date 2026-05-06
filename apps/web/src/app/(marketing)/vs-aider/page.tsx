@@ -20,25 +20,25 @@ const data: CompetitorComparison = {
     tagline:
       "Aider taught the CLI world how AI should edit code. Consilium asks: what if seven models did it together?",
     hook:
-      "Aider is the gold standard for single-model, git-native CLI coding. Consilium is the same idea — except it runs three to five models in parallel and makes them argue.",
+      "Aider is the gold standard for single-model, git-native CLI coding. Consilium is the same idea - except it runs three to five models in parallel and makes them argue.",
     intro: [
-      "Aider has earned a deserved reputation. It writes commits with sensible messages, applies edits using a structured diff format, builds a repo map for context, and stays out of your way. The whole-file and udiff edit formats it pioneered are now standard practice across the agentic coding ecosystem — including in Consilium's own toolchain.",
-      "Aider's core constraint is its core feature: one model, one voice, one perspective. You pick a model — Sonnet, GPT, DeepSeek, whatever — and that one model handles your request from start to finish. It's fast, cheap, and works well when the model is right.",
-      "Consilium is built for the cases when one model is not enough. Ambiguous architecture decisions. Code touching auth or money or compliance. Anything where 'I asked Claude' is a sentence you'll have to defend in a postmortem. Consilium runs a council — three to five models from different providers — that independently propose answers, cross-examine each other with typed challenges, and converge on a synthesized result with mathematical convergence checks.",
+      "Aider has earned a deserved reputation. It writes commits with sensible messages, applies edits using a structured diff format, builds a repo map for context, and stays out of your way. The whole-file and udiff edit formats it pioneered are now standard practice across the agentic coding ecosystem - including in Consilium's own toolchain.",
+      "Aider's core constraint is its core feature: one model, one voice, one perspective. You pick a model - Sonnet, GPT, DeepSeek, whatever - and that one model handles your request from start to finish. It's fast, cheap, and works well when the model is right.",
+      "Consilium is built for the cases when one model is not enough. Ambiguous architecture decisions. Code touching auth or money or compliance. Anything where 'I asked Claude' is a sentence you'll have to defend in a postmortem. Consilium runs a council - three to five models from different providers - that independently propose answers, cross-examine each other with typed challenges, and converge on a synthesized result with mathematical convergence checks.",
       "Aider is faster and cheaper for routine changes. Consilium catches things one model misses. Most teams that use both end up with Aider in their daily commit loop and Consilium reserved for high-stakes review and decision points.",
     ],
   },
   competitorStrengths: [
-    "Excellent edit-format engineering — the udiff format and whole-file replacement work reliably across models.",
+    "Excellent edit-format engineering - the udiff format and whole-file replacement work reliably across models.",
     "Repo map generation is mature and gives the model good context without manual file selection.",
-    "Native git integration — every change becomes a commit with a sensible auto-generated message.",
+    "Native git integration - every change becomes a commit with a sensible auto-generated message.",
     "Mature, opinionated, single-binary CLI with low-friction setup and a strong Discord community.",
     "Cheaper per request than any deliberation engine because there's only one model in the loop.",
   ],
   consiliumWins: [
     {
       title: "Multiple providers per request, not multiple sessions",
-      body: "Aider lets you switch models between sessions. Consilium runs three to five models simultaneously inside one debate and synthesizes their disagreement into a single answer. You don't pick the right model — the council does.",
+      body: "Aider lets you switch models between sessions. Consilium runs three to five models simultaneously inside one debate and synthesizes their disagreement into a single answer. You don't pick the right model - the council does.",
     },
     {
       title: "Structured cross-examination",
@@ -46,7 +46,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Convergence detection",
-      body: "A Consilium debate doesn't end when the model says it's done. It ends when Kendall tau ranking similarity, Jaccard proposal overlap, and concession rate produce a composite score above 0.85 — or it explicitly reports that consensus failed. You always know whether the answer is solid.",
+      body: "A Consilium debate doesn't end when the model says it's done. It ends when Kendall tau ranking similarity, Jaccard proposal overlap, and concession rate produce a composite score above 0.85 - or it explicitly reports that consensus failed. You always know whether the answer is solid.",
     },
     {
       title: "Eight deliberation modes",
@@ -54,7 +54,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Distributable beyond the CLI",
-      body: "Consilium ships as a CLI, a VS Code extension, an MCP server (works inside Cursor / Claude Desktop / Claude Code), a Python SDK, and a TypeScript SDK. Aider is a CLI. Both are great CLIs — but the surface area is different.",
+      body: "Consilium ships as a CLI, a VS Code extension, an MCP server (works inside Cursor / Claude Desktop / Claude Code), a Python SDK, and a TypeScript SDK. Aider is a CLI. Both are great CLIs - but the surface area is different.",
     },
   ],
   matrix: [
@@ -82,7 +82,7 @@ const data: CompetitorComparison = {
     {
       feature: "Convergence detection",
       consilium: "Kendall tau + Jaccard + concession rate",
-      competitor: "N/A — single voice",
+      competitor: "N/A - single voice",
       consiliumHas: true,
       competitorHas: false,
     },
@@ -117,7 +117,7 @@ const data: CompetitorComparison = {
     },
     {
       feature: "MCP server",
-      consilium: "Yes — exposes deliberation as MCP tool",
+      consilium: "Yes - exposes deliberation as MCP tool",
       competitor: "No",
       consiliumHas: true,
       competitorHas: false,
@@ -140,7 +140,7 @@ const data: CompetitorComparison = {
   workflows: [
     {
       title: "Aider for routine commits, Consilium for the hard ones",
-      body: "Aider is faster, cheaper, and very good at routine refactors and bug fixes. When you hit something gnarly — a schema migration, an auth flow, a perf-critical hot path — pause Aider and run consilium debate \"<question>\". The council weighs in across providers, and you bring the synthesis back into your Aider session.",
+      body: "Aider is faster, cheaper, and very good at routine refactors and bug fixes. When you hit something gnarly - a schema migration, an auth flow, a perf-critical hot path - pause Aider and run consilium debate \"<question>\". The council weighs in across providers, and you bring the synthesis back into your Aider session.",
     },
     {
       title: "Pre-merge security review",
@@ -159,17 +159,17 @@ const data: CompetitorComparison = {
     {
       question: "Is Consilium a fork of Aider?",
       answer:
-        "No. Consilium is independent and built around a fundamentally different premise — multi-model debate instead of single-model agentic editing. We did learn from Aider's edit-format work, the way every modern AI coding tool has, and we credit them for shaping the entire space.",
+        "No. Consilium is independent and built around a fundamentally different premise - multi-model debate instead of single-model agentic editing. We did learn from Aider's edit-format work, the way every modern AI coding tool has, and we credit them for shaping the entire space.",
     },
     {
       question: "Can I use both Aider and Consilium?",
       answer:
-        "Yes — and most heavy users do. Aider is faster and cheaper for routine work. Consilium is for moments when you want a council. Both run as CLIs, both respect your git tree, both work with your provider keys.",
+        "Yes - and most heavy users do. Aider is faster and cheaper for routine work. Consilium is for moments when you want a council. Both run as CLIs, both respect your git tree, both work with your provider keys.",
     },
     {
       question: "What providers does Consilium support that Aider doesn't?",
       answer:
-        "The provider lists overlap heavily — both support OpenAI, Anthropic, Google, OpenRouter, and various open routes. Where we differ is xAI (Grok) and Moonshot (Kimi K2) as first-class adapters with model-specific tuning. The bigger structural difference is that Consilium runs multiple providers in one request; Aider runs one per session.",
+        "The provider lists overlap heavily - both support OpenAI, Anthropic, Google, OpenRouter, and various open routes. Where we differ is xAI (Grok) and Moonshot (Kimi K2) as first-class adapters with model-specific tuning. The bigger structural difference is that Consilium runs multiple providers in one request; Aider runs one per session.",
     },
     {
       question: "Does Consilium auto-commit like Aider?",
@@ -179,7 +179,7 @@ const data: CompetitorComparison = {
     {
       question: "Will Consilium be more expensive than Aider?",
       answer:
-        "Per request — yes, because three to five models cost more than one. But the modes are tuned: Quick mode runs two models in one round and is comparable in cost. Use Quick for routine, Council for design, Deep for the genuinely hard problems. The free tier (Groq + OpenRouter pool fallback) keeps casual usage near zero.",
+        "Per request - yes, because three to five models cost more than one. But the modes are tuned: Quick mode runs two models in one round and is comparable in cost. Use Quick for routine, Council for design, Deep for the genuinely hard problems. The free tier (Groq + OpenRouter pool fallback) keeps casual usage near zero.",
     },
   ],
   lastUpdated: "2026-04-30",

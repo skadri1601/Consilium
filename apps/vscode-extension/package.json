@@ -1,7 +1,7 @@
 {
   "name": "consilium-vscode",
-  "displayName": "Consilium — Multi-AI Council",
-  "description": "Run multi-AI debates across OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter — directly in VS Code or Cursor. Right-click code to debate, get structured edits, see live convergence.",
+  "displayName": "Consilium - Multi-AI Council",
+  "description": "Run multi-AI debates across OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter - directly in VS Code or Cursor. Right-click code to debate, get structured edits, see live convergence.",
   "version": "0.1.0",
   "publisher": "myconsilium",
   "private": false,

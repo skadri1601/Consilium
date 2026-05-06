@@ -15,7 +15,7 @@ const st = style();
  * actual workflow state (PR diff, issue, failing test, staged changes).
  *
  * The point: developers don't run `consilium debate "what should I do?"`
- * out of nowhere — they run it because they're stuck on something
+ * out of nowhere - they run it because they're stuck on something
  * concrete. These commands meet them where they actually are.
  */
 
@@ -282,7 +282,7 @@ export async function debateFailingCommand(options: DebateFailingOptions = {}): 
     process.exit(1);
   }
   if (result.exitCode === 0) {
-    console.log(st.success('  All tests pass — nothing to debate.'));
+    console.log(st.success('  All tests pass - nothing to debate.'));
     return;
   }
 
@@ -349,7 +349,7 @@ export async function debateStagedCommand(options: DebateStagedOptions = {}): Pr
     '',
     '---',
     '',
-    'Council: review this diff before commit. Identify correctness issues, missed edge cases, name/style inconsistency, security concerns, and missing tests. Recommend whether to commit as-is, amend, or rework — with specific reasons.',
+    'Council: review this diff before commit. Identify correctness issues, missed edge cases, name/style inconsistency, security concerns, and missing tests. Recommend whether to commit as-is, amend, or rework - with specific reasons.',
   ].join('\n');
 
   await debateCommand(topic, { ...options, mode: options.mode ?? 'council' });

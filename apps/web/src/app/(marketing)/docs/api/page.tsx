@@ -12,7 +12,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "API Reference",
   description:
-    "Consilium REST and SSE API reference — start debates, stream rounds, manage personas, and integrate with your own tools.",
+    "Consilium REST and SSE API reference - start debates, stream rounds, manage personas, and integrate with your own tools.",
   path: "/docs/api",
 });
 

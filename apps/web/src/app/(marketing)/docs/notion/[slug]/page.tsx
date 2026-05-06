@@ -27,7 +27,7 @@ export async function generateMetadata({
   const { title } = await fetchNotionPage(pageId);
   return buildMetadata({
     title,
-    description: `${title} — Consilium documentation.`,
+    description: `${title} - Consilium documentation.`,
     path: `/docs/notion/${slug}`,
   });
 }

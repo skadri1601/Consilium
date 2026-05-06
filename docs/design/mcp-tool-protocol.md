@@ -6,14 +6,14 @@ Status: Stage 1b (CLI + engine stub shipping now; provider adapters follow per-p
 
 Today's deliberation engine treats each model call as one round-trip: prompt in,
 text out. After Stage 1a, the CLI can host outbound MCP servers (filesystem,
-github, sentry, ...) and enumerate their tools — but the council models have
+github, sentry, ...) and enumerate their tools - but the council models have
 no way to *call* those tools during a debate. This doc defines the wire
 protocol for closing that gap.
 
 ## Non-goals
 
 - Per-provider tool-use format translation (handled inside `apps/agents/src/features/agents/*_agent.py` as follow-up PRs)
-- Arbitrary streaming tool output (tools return a single result blob — streaming tool output is future work)
+- Arbitrary streaming tool output (tools return a single result blob - streaming tool output is future work)
 - Authorizing a tool call without the user present (always requires a live CLI process)
 
 ## Roles
@@ -82,7 +82,7 @@ The `tools` array is optional. When absent or empty, behavior is identical to
 today (no tool-use attempted by models).
 
 `qualifiedName` is `<server>.<tool>` to avoid collisions between MCP servers.
-Engine and providers see the qualified name as a flat tool name — collision
+Engine and providers see the qualified name as a flat tool name - collision
 handling is the CLI's responsibility.
 
 ### Tool-call request (engine → CLI via SSE)
@@ -135,8 +135,8 @@ and the in-flight LLM call picks it up.
 
 Two additional SSE events let the CLI show progress:
 
-- `tool:call_completed` — `{ callId, durationMs, bytes }`
-- `tool:call_failed` — `{ callId, reason }`
+- `tool:call_completed` - `{ callId, durationMs, bytes }`
+- `tool:call_failed` - `{ callId, reason }`
 
 ## Budgets (enforced server-side)
 
@@ -182,10 +182,10 @@ for the audit trail and emits no `tool:call_request` events.
 
 ## Open questions
 
-1. **Cross-call memory** — should a tool's result be visible only to the
+1. **Cross-call memory** - should a tool's result be visible only to the
    seat that called it, or shared across all seats that round? Current
    answer: seat-local. Revisit after real usage.
-2. **Tool output size** — cap at 32KB per result? Truncate and flag?
-3. **Parallel tool calls** — Anthropic and OpenAI both support a model
+2. **Tool output size** - cap at 32KB per result? Truncate and flag?
+3. **Parallel tool calls** - Anthropic and OpenAI both support a model
    returning multiple tool_use blocks in one response. Engine needs to
    handle a batch of `tool:call_request` events atomically.

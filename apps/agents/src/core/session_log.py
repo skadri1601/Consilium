@@ -83,7 +83,7 @@ class SessionLog:
         try:
             directory.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            logger.warning("session-log: cannot create %s: %s — using no-op", directory, exc)
+            logger.warning("session-log: cannot create %s: %s - using no-op", directory, exc)
             return _NoopSessionLog()
         path = directory / f"{_safe_id(debate_id)}.jsonl"
         log = cls(path)
@@ -91,7 +91,7 @@ class SessionLog:
             log._fh = open(path, "a", encoding="utf-8")
             log._seq = log._existing_seq()
         except OSError as exc:
-            logger.warning("session-log: cannot open %s: %s — using no-op", path, exc)
+            logger.warning("session-log: cannot open %s: %s - using no-op", path, exc)
             return _NoopSessionLog()
         return log
 

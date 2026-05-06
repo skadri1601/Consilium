@@ -23,7 +23,7 @@ export interface CompetitorPagePoints {
 }
 
 export interface CompetitorComparison {
-  /** URL slug — used at /vs/<slug>. */
+  /** URL slug - used at /vs/<slug>. */
   slug: string;
   /** Display name of the competitor. */
   competitor: string;

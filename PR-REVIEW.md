@@ -36,8 +36,8 @@ Examples:
 
 ### Files Touched
 ```
-path/to/file.py  — what changed
-path/to/file.ts  — what changed
+path/to/file.py  - what changed
+path/to/file.ts  - what changed
 ```
 
 ### How I Tested
@@ -73,7 +73,7 @@ refactor/short-description
 ```
 <type>(<scope>): <description>
 
-<body — what and why, not how>
+<body - what and why, not how>
 ```
 
 Keep subject under 72 characters. Body wraps at 80.

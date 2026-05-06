@@ -79,7 +79,7 @@ Research shows multi-agent debate improves factual accuracy by reducing hallucin
                +---------------+    +----------------+
 ```
 
-**LLM Providers:** OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), OpenRouter — BYOK (bring your own keys) with no markup on API costs. When no key is provided, Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
+**LLM Providers:** OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), OpenRouter - BYOK (bring your own keys) with no markup on API costs. When no key is provided, Consilium falls back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
 
 ## Quick Start
 

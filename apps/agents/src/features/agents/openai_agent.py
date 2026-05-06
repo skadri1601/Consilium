@@ -2,7 +2,7 @@ from ._openai_compat import BaseOpenAICompatAgent
 
 
 class OpenAIAgent(BaseOpenAICompatAgent):
-    """OpenAI GPT agent. Default endpoint (api.openai.com) — no base_url override."""
+    """OpenAI GPT agent. Default endpoint (api.openai.com) - no base_url override."""
 
     base_url = None
 

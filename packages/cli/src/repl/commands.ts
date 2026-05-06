@@ -60,7 +60,7 @@ async function runDebate(topic: string, mode: DebateMode): Promise<void> {
   const trimmed = topic.trim();
   if (!trimmed) {
     const { default: chalk } = await import("chalk");
-    console.log(chalk.hex("#9ca3af")(`(no topic provided — usage: /${mode} <topic>)`));
+    console.log(chalk.hex("#9ca3af")(`(no topic provided - usage: /${mode} <topic>)`));
     return;
   }
   if (mode === "redteam") {
@@ -122,7 +122,7 @@ const utilityCommands: SlashCommand[] = [
       const trimmed = rawArgs.trim();
       if (!trimmed) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no topic provided — usage: /eval <topic>)"));
+        console.log(chalk.hex("#9ca3af")("(no topic provided - usage: /eval <topic>)"));
         return;
       }
       const { evalCommand } = await import("../commands/eval.js");
@@ -212,7 +212,7 @@ const utilityCommands: SlashCommand[] = [
       const id = rawArgs.trim();
       if (!id) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no debate id — usage: /debug <debateId>)"));
+        console.log(chalk.hex("#9ca3af")("(no debate id - usage: /debug <debateId>)"));
         return;
       }
       const { debugCommand } = await import("../commands/debug.js");
@@ -228,7 +228,7 @@ const utilityCommands: SlashCommand[] = [
       const id = rawArgs.trim();
       if (!id) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no debate id — usage: /logs <debateId>)"));
+        console.log(chalk.hex("#9ca3af")("(no debate id - usage: /logs <debateId>)"));
         return;
       }
       const { logsCommand } = await import("../commands/logs.js");

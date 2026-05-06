@@ -88,7 +88,7 @@ describe("Debate Flow Integration (e2e)", () => {
     });
     userId = user.id;
 
-    // Token value doesn't matter — MockClerkAuthGuard just checks for presence
+    // Token value doesn't matter - MockClerkAuthGuard just checks for presence
     authToken = "mock_clerk_token";
   });
 

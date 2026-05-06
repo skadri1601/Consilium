@@ -14,7 +14,7 @@ export interface WorkspaceDebateContextOptions {
   noContext?: boolean;
   /**
    * Opt out of auto-attaching git diff/branch/recent commits.
-   * Defaults to false — every debate inside a git repo includes
+   * Defaults to false - every debate inside a git repo includes
    * git context so the council can reason about WIP.
    */
   noGit?: boolean;
@@ -29,7 +29,7 @@ export interface WorkspaceDebateContext {
   projectContext: Record<string, unknown>;
   gitContextPrefix: string;
   ticketPrefix: string;
-  /** Markdown summary of recent past debates in this project — prepended to the topic. */
+  /** Markdown summary of recent past debates in this project - prepended to the topic. */
   memoryPrefix: string;
   rootPath: string;
   contextManifest: ScanManifest;
@@ -114,7 +114,7 @@ export async function loadWorkspaceDebateContext(
     if (gitCtx?.diff || gitCtx?.branch) {
       gitContextPrefix = formatGitContextForPrompt(gitCtx);
       const branch = gitCtx.branch || 'unknown';
-      const diffNote = gitCtx.diff ? '' : ' — no uncommitted changes';
+      const diffNote = gitCtx.diff ? '' : ' - no uncommitted changes';
       console.log(st.dim(`  Attached git context (branch: ${branch}${diffNote})`));
     }
   }
@@ -137,7 +137,7 @@ export async function loadWorkspaceDebateContext(
       const ticket = await fetchTicket(options.ticket);
       if (ticket) {
         ticketPrefix = formatTicketForPrompt(ticket);
-        console.log(st.dim(`  Loaded ticket: ${ticket.identifier} — ${ticket.title}`));
+        console.log(st.dim(`  Loaded ticket: ${ticket.identifier} - ${ticket.title}`));
       } else {
         console.log(st.dim(`  Could not fetch ticket ${options.ticket} (check LINEAR_API_KEY)`));
       }
@@ -152,12 +152,12 @@ export async function loadWorkspaceDebateContext(
     const trimmed = files.length < projectFiles.length;
     console.log(
       st.dim(
-        `  Loaded ${files.length} context files (${sentKB} KB)${trimmed ? ` — trimmed from ${projectFiles.length} scanned (${scannedKB} KB)` : ''}`,
+        `  Loaded ${files.length} context files (${sentKB} KB)${trimmed ? ` - trimmed from ${projectFiles.length} scanned (${scannedKB} KB)` : ''}`,
       ),
     );
     console.log(
       st.dim(
-        `  Skipped — secret:${scanResult.manifest.skipped.secret} binary:${scanResult.manifest.skipped.binary} payload-limit:${scanResult.manifest.skipped['payload-limit']} skip-rule:${scanResult.manifest.skipped['skip-rule']}`,
+        `  Skipped - secret:${scanResult.manifest.skipped.secret} binary:${scanResult.manifest.skipped.binary} payload-limit:${scanResult.manifest.skipped['payload-limit']} skip-rule:${scanResult.manifest.skipped['skip-rule']}`,
       ),
     );
   } else {

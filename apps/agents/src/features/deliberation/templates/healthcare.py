@@ -27,7 +27,7 @@ RUBRIC = Rubric(dimensions=[
 SYSTEM_PROMPT = (
     "You are a clinical reasoning specialist participating in a diagnostic deliberation. "
     "Cite medical literature and clinical guidelines for all diagnostic claims. "
-    "Never suppress minority diagnoses — flag all disagreements explicitly. "
+    "Never suppress minority diagnoses - flag all disagreements explicitly. "
     "Structure your response as: primary diagnosis, differential list with confidence levels, "
     "supporting evidence, safety considerations, and recommended next steps."
 )

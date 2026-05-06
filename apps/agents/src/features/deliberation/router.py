@@ -143,7 +143,7 @@ def _spawn_run_task(deliberation_id: str, engine: DeliberationEngine, topic: str
     Without this, asyncio.create_task() returns a value that's only held
     by the event loop's weak set; the GC can collect it before the
     coroutine completes, dropping the in-flight deliberation
-    (python:S6912 — task GC).
+    (python:S6912 - task GC).
     """
     task = asyncio.create_task(_run_deliberation(deliberation_id, engine, topic))
     entry = _deliberations.get(deliberation_id)

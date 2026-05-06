@@ -213,7 +213,7 @@ export async function debateFailingCommand(
     "exitCode" in result ? result.exitCode : 0;
   if (exitCode === 0) {
     vscode.window.showInformationMessage(
-      "Consilium: all tests pass — nothing to debate.",
+      "Consilium: all tests pass - nothing to debate.",
     );
     return;
   }

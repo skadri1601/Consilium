@@ -221,7 +221,7 @@ async function collectGitContext(
 
 /**
  * Schemas mirror the CLI's built-in tool suite. Advertising them
- * doesn't run them — execution is the next milestone (Step 4 in the
+ * doesn't run them - execution is the next milestone (Step 4 in the
  * PR's roadmap). For now, the council sees the schemas + can ask;
  * the extension responds with a "use the CLI for now" tool result so
  * the model continues without hanging on a missing answer.

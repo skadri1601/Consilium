@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
-  // Status bar entry — quick way to start a debate without hunting
+  // Status bar entry - quick way to start a debate without hunting
   // through the command palette.
   const statusItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
@@ -98,6 +98,6 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-  // Nothing to clean up explicitly — disposables registered on
+  // Nothing to clean up explicitly - disposables registered on
   // context.subscriptions are released by VS Code automatically.
 }

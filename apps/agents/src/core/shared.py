@@ -38,7 +38,7 @@ def _warn_unknown_event(event: str) -> None:
     import logging
 
     logging.getLogger(__name__).warning(
-        "sse: emitting unregistered event %r — add it to "
+        "sse: emitting unregistered event %r - add it to "
         "apps/agents/src/core/sse_events.py and packages/shared/src/sse/events.ts",
         event,
     )

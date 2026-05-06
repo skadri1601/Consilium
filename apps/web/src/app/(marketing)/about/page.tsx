@@ -32,7 +32,7 @@ import { ScrollButton } from "./scroll-button";
 export const metadata: Metadata = buildMetadata({
   title: "About",
   description:
-    "Consilium implements formal multi-AI deliberation — typed challenges, social choice voting, convergence detection, and mandatory dissent. Built on peer-reviewed research from ICML, ACL, and AAAI.",
+    "Consilium implements formal multi-AI deliberation - typed challenges, social choice voting, convergence detection, and mandatory dissent. Built on peer-reviewed research from ICML, ACL, and AAAI.",
   path: "/about",
   keywords: [
     "consilium about",
@@ -47,7 +47,7 @@ const differentiators = [
     icon: MessageSquare,
     title: "True Deliberation, Not Orchestration",
     description:
-      "Orchestration tools (CrewAI, AutoGen, LangGraph) run models in parallel and pick the best output. Consilium makes models argue, challenge claims, defend positions, vote, and only converge when mathematically confirmed. Cross-examination uses typed challenges (factual error, missing evidence, flawed logic) and categorized rebuttals (concede, refute, qualify, redirect). Each challenge must reference specific claims, and each rebuttal must provide evidence — not hand-waving.",
+      "Orchestration tools (CrewAI, AutoGen, LangGraph) run models in parallel and pick the best output. Consilium makes models argue, challenge claims, defend positions, vote, and only converge when mathematically confirmed. Cross-examination uses typed challenges (factual error, missing evidence, flawed logic) and categorized rebuttals (concede, refute, qualify, redirect). Each challenge must reference specific claims, and each rebuttal must provide evidence - not hand-waving.",
     detail:
       "Challenge types: FACTUAL_ERROR, MISSING_EVIDENCE, FLAWED_LOGIC. Rebuttal types: CONCEDE, REFUTE, QUALIFY, REDIRECT.",
   },
@@ -55,14 +55,14 @@ const differentiators = [
     icon: BarChart3,
     title: "Formal Voting Theory",
     description:
-      "Condorcet method finds the candidate that beats ALL others pairwise. Borda count provides confidence-weighted scoring across all positions. Ranked Pairs delivers cycle-free tiebreaking using a directed acyclic graph of pairwise victories. Copeland scoring enables comparative analysis by counting net pairwise wins. This is real social choice theory applied to AI consensus — not majority voting, not picking the most popular answer.",
+      "Condorcet method finds the candidate that beats ALL others pairwise. Borda count provides confidence-weighted scoring across all positions. Ranked Pairs delivers cycle-free tiebreaking using a directed acyclic graph of pairwise victories. Copeland scoring enables comparative analysis by counting net pairwise wins. This is real social choice theory applied to AI consensus - not majority voting, not picking the most popular answer.",
     detail: "Algorithms: Condorcet, Borda Count, Ranked Pairs, Copeland.",
   },
   {
     icon: Activity,
     title: "Mathematical Convergence Detection",
     description:
-      "Convergence is measured using Kendall tau correlation (0.4 weight) for ranking similarity, Jaccard index (0.35 weight) for proposal overlap, and concession tracking (0.25 weight) for position shifts. The composite score must reach 0.85 before consensus is declared. If convergence stalls, the system detects it and can trigger additional rounds or escalate to a different mode. Not vibes-based — mathematically verified.",
+      "Convergence is measured using Kendall tau correlation (0.4 weight) for ranking similarity, Jaccard index (0.35 weight) for proposal overlap, and concession tracking (0.25 weight) for position shifts. The composite score must reach 0.85 before consensus is declared. If convergence stalls, the system detects it and can trigger additional rounds or escalate to a different mode. Not vibes-based - mathematically verified.",
     detail:
       "Formula: 0.4 * kendall_tau + 0.35 * jaccard + 0.25 * concession_rate >= 0.85",
   },
@@ -70,7 +70,7 @@ const differentiators = [
     icon: AlertTriangle,
     title: "Mandatory Dissent Preservation",
     description:
-      "Agglomerative clustering identifies minority positions across model responses by measuring semantic distance between position vectors. Every result includes both majority AND minority opinions. Healthcare, legal, and financial modes require explicit dissent reporting. No decision is declared unanimous unless mathematically verified through convergence metrics — and even then, the clustering algorithm surfaces the most distant position as a recorded dissent.",
+      "Agglomerative clustering identifies minority positions across model responses by measuring semantic distance between position vectors. Every result includes both majority AND minority opinions. Healthcare, legal, and financial modes require explicit dissent reporting. No decision is declared unanimous unless mathematically verified through convergence metrics - and even then, the clustering algorithm surfaces the most distant position as a recorded dissent.",
     detail:
       "Clustering: agglomerative, distance-based. Output: majority position + all minority clusters.",
   },
@@ -78,7 +78,7 @@ const differentiators = [
     icon: Gauge,
     title: "Confidence Calibration",
     description:
-      "Models that change their claims under cross-examination pressure receive lower confidence scores. Calibration formula: stability * (1 - concession_rate) * (1 - 0.3 * qualification_rate). This measures explanation stability — do models hold firm on well-supported positions, or cave under scrutiny? Models that maintain their position with evidence get higher calibration; models that flip without justification get penalized.",
+      "Models that change their claims under cross-examination pressure receive lower confidence scores. Calibration formula: stability * (1 - concession_rate) * (1 - 0.3 * qualification_rate). This measures explanation stability - do models hold firm on well-supported positions, or cave under scrutiny? Models that maintain their position with evidence get higher calibration; models that flip without justification get penalized.",
     detail:
       "Score = stability * (1 - concession_rate) * (1 - 0.3 * qualification_rate)",
   },
@@ -86,7 +86,7 @@ const differentiators = [
     icon: FileSearch,
     title: "Complete Audit Trail",
     description:
-      "Every deliberation phase is recorded: input, output, tokens used, cost, and latency per model per round. Full transparency into how consensus was reached — which models agreed, who dissented, what challenges were raised, and how they were resolved. Token counts, cost breakdowns, and timing data enable cost optimization. Required for regulated industries like healthcare, finance, and legal.",
+      "Every deliberation phase is recorded: input, output, tokens used, cost, and latency per model per round. Full transparency into how consensus was reached - which models agreed, who dissented, what challenges were raised, and how they were resolved. Token counts, cost breakdowns, and timing data enable cost optimization. Required for regulated industries like healthcare, finance, and legal.",
     detail:
       "Tracked per model: tokens_in, tokens_out, cost_usd, latency_ms, round, phase.",
   },
@@ -142,8 +142,8 @@ export default function AboutPage() {
             Structured Disagreement Produces Better Decisions
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Consilium implements formal argumentation protocols — proven in
-            peer-reviewed research at ICML, ACL, and AAAI — where AI models
+            Consilium implements formal argumentation protocols - proven in
+            peer-reviewed research at ICML, ACL, and AAAI - where AI models
             propose, challenge, defend, and synthesize positions through
             adversarial debate.
           </p>
@@ -156,14 +156,14 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-6">
             We believe the best decisions emerge from structured disagreement.
-            Consilium implements formal argumentation protocols — proven in
-            peer-reviewed research — where AI models propose, challenge, defend,
+            Consilium implements formal argumentation protocols - proven in
+            peer-reviewed research - where AI models propose, challenge, defend,
             and synthesize through adversarial debate.
           </p>
           <p className="text-lg text-muted-foreground leading-relaxed">
             The result is consensus with tracked confidence, preserved dissent,
             and complete audit trails. Every conclusion is backed by evidence
-            that survived adversarial scrutiny — not the output of a single
+            that survived adversarial scrutiny - not the output of a single
             model that was never challenged.
           </p>
         </div>
@@ -223,7 +223,7 @@ export default function AboutPage() {
               Consilium started with a simple observation: when you ask one AI
               model a hard question, you get one perspective shaped by that
               model&apos;s training biases. Ask three models, and you get three
-              perspectives — but no mechanism to resolve disagreements. We built
+              perspectives - but no mechanism to resolve disagreements. We built
               that mechanism.
             </p>
 
@@ -253,7 +253,7 @@ export default function AboutPage() {
               The architecture is a three-tier system: Next.js 15 frontend,
               NestJS 11 API with BullMQ job processing, and a FastAPI debate
               engine that orchestrates the deliberation state machine. Every
-              phase is recorded for full auditability — which models agreed, who
+              phase is recorded for full auditability - which models agreed, who
               dissented, what evidence was cited, and how consensus was reached.
             </p>
           </div>
@@ -356,7 +356,7 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                   I build software for a living and got tired of the same
                   pattern: ask one AI a hard question, get an answer that&apos;s{" "}
                   <em>almost</em> right, lose two hours discovering the wrong
-                  half. The fix isn&apos;t a smarter single model — it&apos;s a
+                  half. The fix isn&apos;t a smarter single model - it&apos;s a
                   room of models that argue, challenge each other, and only
                   agree when they&apos;ve really agreed. That&apos;s
                   Consilium.
@@ -375,7 +375,7 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                     Make multi-AI deliberation the default for high-stakes
                     engineering decisions. No more single-model guesses. No
                     more provider lock-in. The council reads your code,
-                    debates the problem, and shows its work — so you can
+                    debates the problem, and shows its work - so you can
                     trust the answer or push back on it.
                   </p>
                 </CardContent>
@@ -428,8 +428,8 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                   pretending otherwise is how you ship subtly broken code.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
-                  Consilium puts seven of them in the same room — OpenAI,
-                  Anthropic, Google, Groq, xAI, Moonshot, OpenRouter — and
+                  Consilium puts seven of them in the same room - OpenAI,
+                  Anthropic, Google, Groq, xAI, Moonshot, OpenRouter - and
                   makes them argue with each other on <em>your</em> codebase.
                   When they disagree, you see the disagreement. When they
                   converge, you know it&apos;s real, not a single model&apos;s

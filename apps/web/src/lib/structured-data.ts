@@ -188,7 +188,7 @@ export interface HowToSchemaInput {
 
 /**
  * HowTo schema. The most directly-quoted schema in AI assistant
- * "how do I get started with X" answers — Perplexity and ChatGPT both
+ * "how do I get started with X" answers - Perplexity and ChatGPT both
  * lift the step list verbatim with attribution.
  */
 export function howToSchema(input: HowToSchemaInput): Record<string, unknown> {
@@ -287,7 +287,7 @@ export function videoObjectSchema(
 }
 
 /**
- * SpeakableSpecification — annotation that voice assistants
+ * SpeakableSpecification - annotation that voice assistants
  * (Google Assistant, Alexa, Siri shortcuts) prefer when picking a
  * sentence to read aloud from a page. Attach as the ``speakable``
  * field on a WebPage / Article / FAQPage object.
@@ -307,7 +307,7 @@ export interface TechArticleSchemaInput {
   /** ISO 8601 date string. */
   publishedTime?: string;
   modifiedTime?: string;
-  /** "Beginner" | "Intermediate" | "Expert" — surfaces in AI assistant filters. */
+  /** "Beginner" | "Intermediate" | "Expert" - surfaces in AI assistant filters. */
   proficiencyLevel?: "Beginner" | "Intermediate" | "Expert";
   /** Free-text dependencies (e.g. "Node.js >=18", "An API key"). */
   dependencies?: string;
