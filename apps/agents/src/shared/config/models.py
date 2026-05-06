@@ -212,6 +212,18 @@ AVAILABLE_MODELS = {
             "output_cost": 0.0,
         },
     ],
+    "mock": [
+        {"id": "mock-aligned", "name": "Mock: aligned debater", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-disagree", "name": "Mock: disagreeing debater", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-uncertain", "name": "Mock: uncertain debater", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-short", "name": "Mock: short response", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-empty", "name": "Mock: empty response", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-rate-limit", "name": "Mock: rate-limit error", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-auth", "name": "Mock: auth error", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-timeout", "name": "Mock: timeout error", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-server-error", "name": "Mock: 5xx server error", "input_cost": 0.0, "output_cost": 0.0},
+        {"id": "mock-context-overflow", "name": "Mock: context overflow", "input_cost": 0.0, "output_cost": 0.0},
+    ],
 }
 
 

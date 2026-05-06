@@ -127,7 +127,7 @@ After publishing, monitor:
 - **Open VSX**: install count via
   https://open-vsx.org/extension/myconsilium/consilium-vscode
 - **PostHog event**: extension activation pings the API with
-  `debateSource: "vscode"` — funnel by source in the dashboard
+  `debateSource: "vscode"` - funnel by source in the dashboard
 
 ## When to bump the version
 

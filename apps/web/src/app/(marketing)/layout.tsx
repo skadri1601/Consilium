@@ -22,6 +22,7 @@ export default function MarketingLayout({
         builtByLink="https://saadkadri.dev"
         twitterLink="https://twitter.com"
         linkedinLink="https://www.linkedin.com/in/saad-kadri-58b8bb205/"
+        githubLink="https://github.com/skadri1601/consilium"
       />
     </div>
   );

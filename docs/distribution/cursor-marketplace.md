@@ -26,7 +26,7 @@ Suggested `consilium.json` entry shape (matches Smithery + Cursor conventions):
 ```json
 {
   "name": "consilium",
-  "displayName": "Consilium — Multi-AI Council",
+  "displayName": "Consilium - Multi-AI Council",
   "description": "Multi-provider AI debate on your codebase. OpenAI + Anthropic + Google + Groq + xAI + Moonshot + OpenRouter, all in one council, with read/edit/grep/bash tools.",
   "categories": ["code-review", "multi-agent", "debugging", "security"],
   "homepage": "https://myconsilium.xyz",
@@ -40,7 +40,7 @@ Suggested `consilium.json` entry shape (matches Smithery + Cursor conventions):
     },
     "env": {
       "CONSILIUM_API_KEY": {
-        "description": "CLI token from `consilium login`. Optional — falls back to Consilium-managed free-tier pool.",
+        "description": "CLI token from `consilium login`. Optional - falls back to Consilium-managed free-tier pool.",
         "required": false
       }
     }
@@ -76,7 +76,7 @@ market, auto). Free tier via a Consilium-managed pool when no provider
 keys are configured.
 
 Why list it:
-1. Multi-provider in a single MCP server — no other listed server does
+1. Multi-provider in a single MCP server - no other listed server does
    this. Cursor users currently have to chain providers manually.
 2. Native code-review / red-team / spec workflows via debate-pr,
    debate-issue, debate-failing, debate-staged shortcuts on the CLI
@@ -94,7 +94,7 @@ Repo + docs: https://myconsilium.xyz
 
 Happy to do a 15-min demo whenever it suits.
 
-— Saad Kadri
+- Saad Kadri
 saad@myconsilium.xyz
 ```
 

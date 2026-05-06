@@ -9,6 +9,7 @@ from ..features.agents.groq_agent import GroqAgent
 from ..features.agents.xai_agent import XAIAgent
 from ..features.agents.moonshot_agent import MoonshotAgent
 from ..features.agents.openrouter_agent import OpenRouterAgent
+from ..features.agents.mock_agent import MockAgent, MOCK_MODEL_PREFIX, MOCK_PROVIDER
 from ..features.free_tier import FreeTierResolver, ModelResolution
 from ..features.free_tier.resolver import NoKeyAvailableError
 from ..shared.config.models import (
@@ -27,6 +28,7 @@ PROVIDER_AGENT_MAP: dict[str, type[BaseAgent]] = {
     "xai": XAIAgent,
     "moonshot": MoonshotAgent,
     "openrouter": OpenRouterAgent,
+    MOCK_PROVIDER: MockAgent,
 }
 
 PROVIDER_KEY_FIELD: dict[str, list[str]] = {
@@ -103,7 +105,13 @@ class AgentFactory:
         3. Free-tier pool: Groq (CONSILIUM_FREE_TIER_GROQ_KEY) with a
            tier-equivalent Llama / GPT-OSS model
         4. Free-tier pool: OpenRouter (CONSILIUM_FREE_TIER_OPENROUTER_KEY)
+
+        Mock provider (``mock-*`` model ids) is short-circuited so tests can
+        run without keys or network.
         """
+        if model_id.startswith(MOCK_MODEL_PREFIX):
+            return MockAgent(model_id=model_id)
+
         if allow_free_tier_fallback:
             try:
                 resolution = _resolver.resolve(model_id, api_keys)

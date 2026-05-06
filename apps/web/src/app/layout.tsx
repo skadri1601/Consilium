@@ -47,7 +47,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Saad Kadri", url: "https://saadkadri.dev" }],
   creator: "Saad Kadri",
   publisher: SITE_NAME,
-  alternates: { canonical: SITE_URL },
+  alternates: {
+    canonical: SITE_URL,
+    types: {
+      "application/rss+xml": [
+        { url: `${SITE_URL}/feed.xml`, title: `${SITE_NAME} blog` },
+      ],
+    },
+  },
   formatDetection: { email: false, address: false, telephone: false },
   robots: {
     index: true,

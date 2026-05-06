@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { buttonVariants } from "@/shared/components/ui/button";
+import { videoObjectSchema } from "@/lib/structured-data";
+import { SITE_URL } from "@/lib/seo";
 import {
   Card,
   CardContent,
@@ -312,11 +314,42 @@ function CodeBlock({ code }: Readonly<{ code: string }>) {
   );
 }
 
+const heroVideoSchema = videoObjectSchema({
+  name: "Consilium product walkthrough",
+  description:
+    "30-second tour of Consilium - multi-AI council debating, voting, and synthesizing a consensus answer in real time.",
+  contentUrl: "/brand/consilium-prod.mp4",
+  thumbnailUrl: "/og.png",
+  uploadDate: "2026-04-15",
+});
+
+const homeSpeakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  url: SITE_URL,
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2", "[data-speakable]"],
+  },
+};
+
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Python");
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(heroVideoSchema).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homeSpeakableSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         <video
           autoPlay

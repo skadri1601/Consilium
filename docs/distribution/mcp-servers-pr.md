@@ -41,15 +41,15 @@ Add this single line to the Community Servers list, alphabetically (between any 
 
 ### What it does
 
-Consilium runs **multi-model debates across 7 LLM providers** — OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter — and synthesizes a single answer. The debate has structured phases (proposing → cross-examination → rebuttal → synthesis) and the council can call MCP tools (Read / Edit / Grep / Glob / GitDiff / Bash) on the user's codebase mid-debate.
+Consilium runs **multi-model debates across 7 LLM providers** - OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter - and synthesizes a single answer. The debate has structured phases (proposing → cross-examination → rebuttal → synthesis) and the council can call MCP tools (Read / Edit / Grep / Glob / GitDiff / Bash) on the user's codebase mid-debate.
 
 ### Tools exposed
 
-- `consilium_deliberate` — multi-model debate on a topic, with 8 modes (quick, council, deep, blind, redteam, jury, market, auto)
-- `consilium_red_team` — adversarial assessment of content (jailbreaks, prompt injection, factual gaps)
-- `consilium_blind_eval` — blind evaluation of N pre-existing responses with bias mitigation
-- `consilium_list_debates` — list the user's recent debate sessions
-- `consilium_cancel_debate` — cancel an in-progress debate
+- `consilium_deliberate` - multi-model debate on a topic, with 8 modes (quick, council, deep, blind, redteam, jury, market, auto)
+- `consilium_red_team` - adversarial assessment of content (jailbreaks, prompt injection, factual gaps)
+- `consilium_blind_eval` - blind evaluation of N pre-existing responses with bias mitigation
+- `consilium_list_debates` - list the user's recent debate sessions
+- `consilium_cancel_debate` - cancel an in-progress debate
 
 ### Install (Claude Desktop / Cursor / Claude Code)
 
@@ -70,9 +70,9 @@ Get a free API key at https://myconsilium.xyz/sign-up.
 
 ### Why list it
 
-- **Multi-provider in one MCP server** — no other listed server debates across providers; users currently have to chain N single-provider servers and synthesize manually.
-- **Codebase-aware** — the council reads files, runs `git diff`, greps, and proposes edits as it debates. Equivalent to having 5 senior engineers in the room.
-- **Free tier** — the server falls back to a hosted Groq / OpenRouter pool when no provider keys are configured, so first-time users don't have to wire up auth before seeing value.
+- **Multi-provider in one MCP server** - no other listed server debates across providers; users currently have to chain N single-provider servers and synthesize manually.
+- **Codebase-aware** - the council reads files, runs `git diff`, greps, and proposes edits as it debates. Equivalent to having 5 senior engineers in the room.
+- **Free tier** - the server falls back to a hosted Groq / OpenRouter pool when no provider keys are configured, so first-time users don't have to wire up auth before seeing value.
 
 ### Safety
 
@@ -97,4 +97,4 @@ Happy to answer questions or iterate on the entry.
 
 Some directories want a strict one-liner. Use:
 
-> **Consilium** — Multi-AI council MCP server. Debates across 7 LLM providers (OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter) on your codebase, with read/edit/grep/bash tools and 8 deliberation modes. `pip install consilium`.
+> **Consilium** - Multi-AI council MCP server. Debates across 7 LLM providers (OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter) on your codebase, with read/edit/grep/bash tools and 8 deliberation modes. `pip install consilium`.

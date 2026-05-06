@@ -1,0 +1,43 @@
+# ai.txt - Consilium AI training / inference policy
+# Spec: https://site.spawning.ai/spaces/ai-txt
+# Mirror of robots.txt AI-bot rules; ai.txt is read by some crawlers
+# that don't honor robots.txt user-agent fragmentation.
+
+User-Agent: *
+Allow: training
+Allow: inference
+
+# Allow these named bots explicitly
+User-Agent: GPTBot
+Allow: training, inference
+
+User-Agent: ClaudeBot
+Allow: training, inference
+
+User-Agent: anthropic-ai
+Allow: training, inference
+
+User-Agent: PerplexityBot
+Allow: training, inference
+
+User-Agent: Perplexity-User
+Allow: training, inference
+
+User-Agent: Google-Extended
+Allow: training, inference
+
+User-Agent: Applebot-Extended
+Allow: training, inference
+
+User-Agent: CCBot
+Allow: training, inference
+
+User-Agent: cohere-ai
+Allow: training, inference
+
+# Disallow uncooperative scrapers
+User-Agent: Bytespider
+Disallow: training, inference
+
+# Contact for questions about this policy
+Contact: hello@myconsilium.xyz

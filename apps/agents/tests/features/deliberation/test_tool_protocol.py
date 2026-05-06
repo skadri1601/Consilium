@@ -1,6 +1,6 @@
 """Tests for the MCP tool protocol plumbing on the engine side.
 
-These tests cover the pieces shipping in Stage 1b — payload acceptance,
+These tests cover the pieces shipping in Stage 1b - payload acceptance,
 the tool-results endpoint, the in-memory waiter queue. Provider adapter
 integration is follow-up work and is tested separately."""
 
@@ -94,7 +94,7 @@ class TestAwaitToolResult:
                 )
 
             # Hold a reference to the task so the GC doesn't collect it
-            # before record_later() finishes — see python:S6912.
+            # before record_later() finishes - see python:S6912.
             recorder = asyncio.create_task(record_later())
             try:
                 result = await deliberation_router.await_tool_result("dlb_e", "call_9", timeout_ms=2000)
