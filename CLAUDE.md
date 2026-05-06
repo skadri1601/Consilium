@@ -92,11 +92,66 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | claude.yml | @claude mention | Claude responds to issues/PRs (write perms) |
 | claude-code-review.yml | PR open/sync | Auto code review (sonnet + haiku fallback) |
 | linear-sync.yml | PR/review/CI events | Single source of truth for GitHub→Linear→Slack |
-| ci.yml | Push/PR | Lint + typecheck |
-| security.yml | Push/PR/weekly | CodeQL, pip-audit, bandit, gitleaks |
+| ci.yml | PR + push to main | Lint + typecheck + tests + build |
+| e2e.yml | PR + push to main | Playwright E2E (artifacts kept 3 days) |
+| docker.yml | PR + push to main (path-filtered) | Test-build Docker images |
+| security.yml | Push to main + weekly | python-security on push, CodeQL weekly only |
+
+## Local Gates (pre-commit / pre-push)
+
+Husky hooks in `.husky/` enforce these before code reaches GitHub. They replace the `dependency-audit` and `secrets-scan` jobs that used to live in `security.yml`.
+
+**Pre-commit (`.husky/pre-commit`)**
+- `gitleaks protect --staged` - blocks accidental secret commits. Install: `brew install gitleaks`. Backed by GitHub native Push Protection as a server-side fallback.
+
+**Pre-push (`.husky/pre-push`)**
+- `pnpm format:check && pnpm lint && pnpm type-check` - fast feedback before CI re-runs the same checks.
+- `pnpm audit --audit-level=high` - catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
+
+Hooks install automatically via `"prepare": "husky"` in package.json. To bypass (NOT recommended): `git commit --no-verify` / `git push --no-verify`.
 
 ## Testing
 - Bot tests: `python -m agents.scripts.test_pipeline_e2e` (44 tests)
 - Action diagnostics: `python -m agents.scripts.test_claude_action`
 - Web: Vitest + Playwright
 - API: NestJS spec files
+
+## Sibling Docs (read these instead of re-discovering)
+- **AGENTS.md** - subagent dispatch + bot agents callable from chat + **Multi-Agent Task Protocol** (mandatory 6–10 parallel subagents for non-trivial tasks)
+- **SKILLS.md** - trigger table mapping situations to skills + dev-loop commands
+
+## Multi-Agent Task Protocol (summary; full rules in AGENTS.md)
+For every non-trivial task, the main agent MUST:
+1. Decompose into **6–10 legs** and spawn that many subagents **in parallel** (single message, multiple `Agent` tool calls).
+2. Always include **one leg for internet research** when building/integrating/upgrading anything.
+3. Subagents must NOT spawn their own subagents - fanout depth is exactly one.
+4. Use the subagent type whose tools fit the leg (`general-purpose` for write/edit, `Explore` for read-only, `Plan` for design).
+5. After subagents return, the main agent reads the actual diffs and runs the tests - does **not** delegate verification. Skip the protocol only for trivial single-file edits.
+
+## MCP Routing Rules (when to use which integration)
+| Situation | Use | Don't use |
+|---|---|---|
+| Tracking a task / referencing a ticket | Linear MCP (`MYC-` prefix) | inline comments, GitHub issues |
+| Investigating a prod error or stack trace | Sentry MCP (`search_issues`, `analyze_issue_with_seer`) | grep through logs blindly |
+| Checking deploy status / preview URL | Vercel MCP (`get_deployment`, `list_deployments`) | curl |
+| Code quality / coverage / hotspots | SonarQube MCP - follow `.cursor/rules/sonarqube_mcp_instructions.mdc` (toggle automatic analysis off at start, re-enable + `analyze_file_list` at end) | guess project keys |
+| PR / review / branch ops on this repo | GitHub MCP (`mcp__github__*`) | the `gh` CLI (not installed) |
+| Posting an outage notice or release note | Slack MCP draft → confirm with user before send | direct send without review |
+
+## Common-Task Runbook (intent → exact files)
+| Intent | Files to touch (in order) |
+|---|---|
+| Add a new debate mode | `apps/agents/src/features/deliberation/deliberation_graph.py` (state machine) → `templates/registry.py` (prompt template) → `tests/deliberation/` (mode test) → `packages/shared/src/debates/debate-mode.ts` (TS enum) → `packages/cli/src/commands/debate.ts` (CLI flag) |
+| Add a new model | `apps/agents/src/shared/config/models.py` MODEL_ALIASES + AVAILABLE_MODELS → `packages/shared/src/models/` → CLI default lists |
+| New REST endpoint | `apps/api/src/features/<feature>/` (controller + service + dto) → `packages/shared/` types → `apps/web/lib/api/` client |
+| New UI component | `apps/web/components/` → use shadcn/ui primitives, invoke `ui-ux-pro-max` skill |
+| Touch BullMQ job | `apps/api/src/queue/` - retryStrategy must never return null; emit SSE `processing` only after worker accepts |
+| Touch SSE event types | `packages/shared/src/sse/` first, then API + web simultaneously (single source of truth) |
+
+## Plans & Specs (use existing structure, don't reinvent)
+- For tasks touching > 3 files or making architectural changes, write a plan to `docs/superpowers/plans/YYYY-MM-DD-<slug>.md` **before** editing code.
+- For design decisions (new system, schema change, API contract), write a spec to `docs/superpowers/specs/YYYY-MM-DD-<slug>.md`.
+- Examples already in those dirs - follow that format. Skip for one-file fixes.
+
+## Trust the local gates
+The husky hooks below already run lint, typecheck, format, audit, and gitleaks. **Don't re-run them in shell to "verify"** unless you suspect a hook failed silently - CI will re-validate at the PR boundary anyway. This saves tokens and time.
