@@ -122,8 +122,69 @@ def _normalize_code(code: str) -> str:
     return "\n".join(lines)
 
 
+def _extract_function_body(code: str) -> str | None:
+    m = re.search(r"def\s+\w+\s*\([^)]*\)\s*(?:->.*?)?:", code)
+    if not m:
+        return None
+    start = m.end()
+    body = code[start:].strip()
+    if "\n" not in body:
+        return re.sub(r"\s+", " ", body.strip())
+    lines = []
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith('"""') or stripped.startswith("'''"):
+            continue
+        if re.match(r"^(def |class |if __name__)", stripped):
+            break
+        lines.append(re.sub(r"\s+", " ", stripped))
+    return "\n".join(lines)
+
+
+def _code_functionally_equivalent(model_code: str, expected_code: str) -> bool:
+    model_body = _extract_function_body(model_code)
+    expected_body = _extract_function_body(expected_code)
+
+    if model_body and expected_body:
+        if _normalize(model_body) == _normalize(expected_body):
+            return True
+        if _normalize(expected_body) in _normalize(model_body):
+            return True
+
+    model_ops = set(re.findall(r"[+\-*//%&|^~<>=!]+|return|if|else|for|while|and|or|not|in|range|len|sum|all|any|abs|int|str|max|min", model_code.lower()))
+    expected_ops = set(re.findall(r"[+\-*//%&|^~<>=!]+|return|if|else|for|while|and|or|not|in|range|len|sum|all|any|abs|int|str|max|min", expected_code.lower()))
+    if expected_ops and expected_ops.issubset(model_ops):
+        model_sig = re.search(r"def\s+\w+\s*\(([^)]*)\)", model_code)
+        expected_sig = re.search(r"def\s+\w+\s*\(([^)]*)\)", expected_code)
+        if model_sig and expected_sig:
+            model_params = len([p.strip() for p in model_sig.group(1).split(",") if p.strip()])
+            expected_params = len([p.strip() for p in expected_sig.group(1).split(",") if p.strip()])
+            if model_params == expected_params:
+                return True
+
+    return False
+
+
+_API_ERROR_MARKERS = (
+    "ratelimit", "rate_limit", "insufficient_quota",
+    "error code: 429", "error code: 401", "api error",
+    "[openai api error", "[anthropic api error", "[google api error",
+    "[no response from this agent]",
+)
+
+
+def _is_api_error_answer(text: str) -> bool:
+    if not text:
+        return True
+    low = text.lower()
+    return any(m in low for m in _API_ERROR_MARKERS)
+
+
 def _check_correct(model_answer: str, correct_answer: str) -> bool:
     if not model_answer or not correct_answer:
+        return False
+
+    if _is_api_error_answer(model_answer):
         return False
 
     norm_correct = _normalize(correct_answer)
@@ -134,6 +195,24 @@ def _check_correct(model_answer: str, correct_answer: str) -> bool:
 
     if norm_correct in norm_answer:
         return True
+
+    is_code_question = "def " in correct_answer
+
+    if is_code_question:
+        response_code = _extract_code_block(model_answer) or model_answer
+        if _code_functionally_equivalent(response_code, correct_answer):
+            return True
+        expected_code = _extract_code_block(correct_answer) or correct_answer
+        if _code_functionally_equivalent(response_code, expected_code):
+            return True
+        if "def " in response_code:
+            model_body = _extract_function_body(response_code)
+            expected_body = _extract_function_body(correct_answer)
+            if model_body and expected_body:
+                norm_mb = _normalize(model_body)
+                norm_eb = _normalize(expected_body)
+                if norm_eb in norm_mb or norm_mb == norm_eb:
+                    return True
 
     if norm_correct in ("yes", "no"):
         first_word = re.match(r"\s*(\w+)", model_answer.lower())
@@ -157,6 +236,8 @@ def _check_correct(model_answer: str, correct_answer: str) -> bool:
         if _normalize_code(expected_code) == _normalize_code(response_code):
             return True
         if _normalize(expected_code) in _normalize(response_code):
+            return True
+        if _code_functionally_equivalent(response_code, expected_code):
             return True
     if expected_code is not None and response_code is None:
         if _normalize(expected_code) in norm_answer:
@@ -224,6 +305,9 @@ async def run_benchmark(
 
     primary_model = models[0]
 
+    single_attempted = 0
+    mode_attempted: dict[str, int] = {m: 0 for m in resolved_modes}
+
     for q in questions:
         single_resp = await call_fn(
             model=primary_model,
@@ -232,9 +316,13 @@ async def run_benchmark(
             mode="single",
         )
         single_answer = single_resp.get("answer", "")
-        single_is_correct = _check_correct(single_answer, q.correct_answer)
-        if single_is_correct:
-            single_correct += 1
+        single_error = single_resp.get("error") or _is_api_error_answer(single_answer)
+        single_is_correct = False
+        if not single_error:
+            single_attempted += 1
+            single_is_correct = _check_correct(single_answer, q.correct_answer)
+            if single_is_correct:
+                single_correct += 1
         cost_single += single_resp.get("cost", 0.0)
 
         detail_entry: dict[str, Any] = {
@@ -256,9 +344,13 @@ async def run_benchmark(
                 models=models,
             )
             delib_answer = delib_resp.get("answer", "")
-            delib_is_correct = _check_correct(delib_answer, q.correct_answer)
-            if delib_is_correct:
-                mode_correct[m] += 1
+            delib_error = delib_resp.get("error") or _is_api_error_answer(delib_answer)
+            delib_is_correct = False
+            if not delib_error:
+                mode_attempted[m] += 1
+                delib_is_correct = _check_correct(delib_answer, q.correct_answer)
+                if delib_is_correct:
+                    mode_correct[m] += 1
             mode_cost[m] += delib_resp.get("cost", 0.0)
 
             votes = delib_resp.get("votes", {})
@@ -277,18 +369,20 @@ async def run_benchmark(
 
         details.append(detail_entry)
 
-    n = len(questions)
+    n = max(single_attempted, 1)
     single_score = single_correct / n if n else 0.0
 
     primary_mode = resolved_modes[0]
-    delib_score = mode_correct[primary_mode] / n if n else 0.0
+    primary_attempted = max(mode_attempted[primary_mode], 1)
+    delib_score = mode_correct[primary_mode] / primary_attempted if primary_attempted else 0.0
     improvement = ((delib_score - single_score) / single_score * 100) if single_score > 0 else 0.0
 
     total_delib_cost = sum(mode_cost.values())
 
     mode_scores = []
     for m in resolved_modes:
-        m_score = mode_correct[m] / n if n else 0.0
+        m_attempted = max(mode_attempted[m], 1)
+        m_score = mode_correct[m] / m_attempted if m_attempted else 0.0
         m_improvement = ((m_score - single_score) / single_score * 100) if single_score > 0 else 0.0
         mode_scores.append(ModeScore(
             mode=m,

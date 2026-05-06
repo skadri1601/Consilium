@@ -8,12 +8,14 @@ import { SseProxyService } from "./sse-proxy.service";
 import { PersonasModule } from "../personas/personas.module";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 import { DebateQueueModule } from "../../shared/queue/debate-queue.module";
+import { ConversationsModule } from "../conversations/conversations.module";
 
 @Module({
   imports: [
     ApiKeysModule,
     AuthModule,
     PersonasModule,
+    ConversationsModule,
     forwardRef(() => DebateQueueModule),
   ],
   controllers: [DebatesController],

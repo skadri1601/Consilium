@@ -4,6 +4,7 @@ import { requireAuth } from "../utils/require-auth.js";
 import { isValidMode, getDefaultMode } from "../utils/debate-modes.js";
 import { loadWorkspaceContext } from "./debate.js";
 import { startToolBridge } from "../utils/mcp-tool-bridge.js";
+import { getPreferences } from "../utils/config.js";
 
 const st = style();
 
@@ -112,8 +113,6 @@ export interface StartDebateOptions {
   tools?: boolean;
 }
 
-const DEFAULT_START_MODELS = ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"];
-
 export async function startDebateCommand(
   topic: string,
   options: StartDebateOptions,
@@ -122,7 +121,8 @@ export async function startDebateCommand(
 
   const mode =
     options.mode && isValidMode(options.mode) ? options.mode : getDefaultMode();
-  const models = options.models?.length ? options.models : DEFAULT_START_MODELS;
+  const prefs = await getPreferences();
+  const models = options.models?.length ? options.models : prefs.defaultAgents;
   const client = new ConsiliumClient();
 
   const wsContext = await loadWorkspaceContext({

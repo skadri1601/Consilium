@@ -1,3 +1,4 @@
+export { DEBATE_EVENT_NAMES } from "./events";
 export type {
   DebateStartEvent,
   RoundStartEvent,
@@ -7,11 +8,20 @@ export type {
   AgentCompleteEvent,
   ConvergenceDetectedEvent,
   JudgeStartEvent,
+  JudgeRetryEvent,
   ConsensusEvent,
   CostUpdateEvent,
   DoneEvent,
   DebateErrorEvent,
   DebateCancelledEvent,
+  AntiCapitulationEvent,
+  AntiCapitulationRevisedEvent,
+  SubagentResearchStartEvent,
+  SubagentResearchDoneEvent,
+  SessionCompactedEvent,
+  RecoveryAttemptedEvent,
+  FailureClassifiedEvent,
+  RoutingFallbackEvent,
   DebateSseEvent,
   SseEventType,
 } from "./events";

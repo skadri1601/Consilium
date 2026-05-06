@@ -1,13 +1,11 @@
 import { ConsiliumClient, DebateEvent } from '../api/client';
 import { ContextManager } from '../utils/context-manager';
-import { loadConfig } from '../utils/config';
+import { loadConfig, getCachedPreferences } from '../utils/config';
 import { createStreamHandlers } from '../utils/stream-renderer';
 import { DecisionLog } from '../utils/decision-extractor';
 import { DebateMode, getDefaultMode } from '../utils/debate-modes';
 import { OutputFormat } from '../utils/output-formatter';
 import { type ScanManifest, type ScannedFile } from '../utils/project-scanner';
-
-const DEFAULT_MODELS = ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'];
 const MAX_CONTEXT_CHARS = 80_000;
 
 export interface DebateRecord {
@@ -55,10 +53,11 @@ export class ChatSession {
     this.contextManager = contextManager;
     const config = loadConfig();
     const configModels = (config as { models?: string[] }).models;
+    const prefs = getCachedPreferences();
     this.models = Array.isArray(configModels) && configModels.length > 0
       ? configModels
-      : DEFAULT_MODELS;
-    this.mode = getDefaultMode();
+      : prefs?.defaultAgents ?? [];
+    this.mode = (prefs?.defaultMode as DebateMode) || getDefaultMode();
     this.outputFormat = 'text';
     this.lastGoldenPrompt = undefined;
     this.debates = [];
@@ -225,7 +224,7 @@ export class ChatSession {
     session.name = data.name || '';
     session.conversationId = data.conversationId;
     session.debates = data.debates || [];
-    session.models = data.models || DEFAULT_MODELS;
+    session.models = data.models || [];
     session.mode = data.mode || getDefaultMode();
     session.contextFilePaths = data.contextFilePaths || [];
     session.contextImagePaths = data.contextImagePaths || [];

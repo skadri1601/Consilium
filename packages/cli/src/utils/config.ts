@@ -8,6 +8,11 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 export const DEFAULT_API_ORIGIN = "https://api.myconsilium.xyz";
 export const DEFAULT_WEB_ORIGIN = "https://myconsilium.xyz";
 
+export interface UserPreferences {
+  defaultAgents: string[];
+  defaultMode: string;
+}
+
 export interface Config {
   apiUrl?: string;
   apiKey?: string;
@@ -15,6 +20,7 @@ export interface Config {
   debug?: boolean;
   userName?: string;
   userEmail?: string;
+  preferences?: UserPreferences;
 }
 
 function assertHttpsOrLocal(rawUrl: string, envVar: string): string {
@@ -153,5 +159,47 @@ export function clearAuth(): void {
   delete config.apiKey;
   delete config.userName;
   delete config.userEmail;
+  delete config.preferences;
   saveConfig(config);
+}
+
+export async function fetchAndCachePreferences(): Promise<UserPreferences | null> {
+  const config = loadConfig();
+  if (!config.apiKey) return null;
+  const apiUrl = (config.apiUrl ?? DEFAULT_API_ORIGIN).replace(/\/$/, "");
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/users/me/preferences`, {
+      headers: { Authorization: `Bearer ${config.apiKey}` },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const prefs = (await res.json()) as UserPreferences;
+    if (Array.isArray(prefs.defaultAgents) && prefs.defaultMode) {
+      saveConfig({ ...loadConfig(), preferences: prefs });
+      return prefs;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function getCachedPreferences(): UserPreferences | null {
+  const config = loadConfig();
+  if (
+    config.preferences &&
+    Array.isArray(config.preferences.defaultAgents) &&
+    config.preferences.defaultAgents.length > 0
+  ) {
+    return config.preferences;
+  }
+  return null;
+}
+
+export async function getPreferences(): Promise<UserPreferences> {
+  const cached = getCachedPreferences();
+  if (cached) return cached;
+  const fetched = await fetchAndCachePreferences();
+  if (fetched) return fetched;
+  return { defaultAgents: [], defaultMode: "auto" };
 }

@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { Observable } from "rxjs";
 import { AiWorkersClient } from "./ai-workers.client";
 import { DebatesService } from "./debates.service";
+import { ConversationV2Service } from "../conversations/conversation-v2.service";
 
 interface SseEvent {
   data: string;
@@ -16,6 +17,7 @@ export class SseProxyService {
     private aiWorkersClient: AiWorkersClient,
     @Inject(forwardRef(() => DebatesService))
     private debatesService: DebatesService,
+    private conversationV2Service: ConversationV2Service,
     private configService: ConfigService,
   ) {}
 
@@ -211,6 +213,13 @@ export class SseProxyService {
           totalTokens ?? 0,
           totalCost ?? 0,
         );
+      }
+      if (goldenPrompt) {
+        this.conversationV2Service
+          .extractAndUpdateDecisionLog(debateId, goldenPrompt)
+          .catch((err) =>
+            this.logger.warn(`Decision log extraction failed: ${err}`),
+          );
       }
     } catch (error) {
       this.logger.error(`[SSE PROXY] Failed to update debate status: ${error}`);

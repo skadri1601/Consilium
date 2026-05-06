@@ -7,9 +7,8 @@ import {
   renderFrame,
   visibleMatches,
 } from "./palette.js";
-import { loadConfig } from "../utils/config.js";
+import { loadConfig, isLoggedIn, fetchAndCachePreferences, getCachedPreferences } from "../utils/config.js";
 
-const PALETTE_MAX_VISIBLE = 8;
 import { style } from "../utils/visual-system.js";
 import { terminal } from "../utils/terminal-capabilities.js";
 
@@ -166,6 +165,10 @@ export async function runRepl(): Promise<void> {
   const { runOnboarding } = await import("./onboarding.js");
   await runOnboarding();
 
+  if (isLoggedIn() && !getCachedPreferences()) {
+    fetchAndCachePreferences().catch(() => {});
+  }
+
   writeBanner();
 
   const state = createState();
@@ -318,9 +321,8 @@ export async function runRepl(): Promise<void> {
     if (input === KEY.ARROW_UP) {
       if (isPaletteOpen(state.buffer)) {
         const matches = visibleMatches(state.buffer);
-        const cap = Math.min(matches.length, PALETTE_MAX_VISIBLE);
-        if (cap > 0) {
-          state.paletteIndex = (state.paletteIndex - 1 + cap) % cap;
+        if (matches.length > 0) {
+          state.paletteIndex = (state.paletteIndex - 1 + matches.length) % matches.length;
           drawFrame();
         }
       }
@@ -330,9 +332,8 @@ export async function runRepl(): Promise<void> {
     if (input === KEY.ARROW_DOWN) {
       if (isPaletteOpen(state.buffer)) {
         const matches = visibleMatches(state.buffer);
-        const cap = Math.min(matches.length, PALETTE_MAX_VISIBLE);
-        if (cap > 0) {
-          state.paletteIndex = (state.paletteIndex + 1) % cap;
+        if (matches.length > 0) {
+          state.paletteIndex = (state.paletteIndex + 1) % matches.length;
           drawFrame();
         }
       }

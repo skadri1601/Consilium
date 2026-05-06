@@ -21,6 +21,12 @@ export class UsersController {
     return this.usersService.findByClerkId(user.userId);
   }
 
+  @Get("me/preferences")
+  @ApiOperation({ summary: "Get user preferences (models, mode)" })
+  getPreferences(@CurrentUser() user: CurrentUserData) {
+    return this.usersService.getPreferences(user.userId);
+  }
+
   @Put("me")
   @ApiOperation({ summary: "Update current user profile" })
   updateProfile(

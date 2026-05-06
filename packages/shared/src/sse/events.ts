@@ -19,6 +19,9 @@ export const SSE_EVENT_NAMES = [
   "subagent_research_done",
   "convergence_detected",
   "compaction_applied",
+  "session_compacted",
+  "anti_capitulation",
+  "anti_capitulation_revised",
   "judge_start",
   "judge_retry",
   "judge:attempt",
@@ -111,6 +114,27 @@ export interface CompactionAppliedEvent {
   charsBefore: number;
   charsAfter: number;
   ratio: number;
+}
+
+export interface SessionCompactedEvent {
+  event: "session_compacted";
+  original_tokens: number;
+  compacted_tokens: number;
+  reduction_pct: number;
+}
+
+export interface AntiCapitulationEvent {
+  event: "anti_capitulation";
+  agent_id: string;
+  r1_claims: number;
+  r3_claims: number;
+  drop_ratio: number;
+}
+
+export interface AntiCapitulationRevisedEvent {
+  event: "anti_capitulation_revised";
+  agent_id: string;
+  cost: number;
 }
 
 export interface JudgeStartEvent {
@@ -216,6 +240,9 @@ export type DebateSseEvent =
   | SubagentResearchDoneEvent
   | ConvergenceDetectedEvent
   | CompactionAppliedEvent
+  | SessionCompactedEvent
+  | AntiCapitulationEvent
+  | AntiCapitulationRevisedEvent
   | JudgeStartEvent
   | JudgeRetryEvent
   | JudgePhaseEvent
