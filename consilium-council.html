@@ -718,7 +718,7 @@ main {
           <div class="lh-confidence">
             <span>Confidence</span>
             <div class="conf-track"><div class="conf-fill agree" id="conf-gpt"></div></div>
-            <span class="conf-val" id="cv-gpt">—</span>
+            <span class="conf-val" id="cv-gpt">-</span>
           </div>
         </div>
         <div class="lane-stream" id="stream-gpt"></div>
@@ -740,7 +740,7 @@ main {
           <div class="lh-confidence">
             <span>Confidence</span>
             <div class="conf-track"><div class="conf-fill agree" id="conf-claude"></div></div>
-            <span class="conf-val" id="cv-claude">—</span>
+            <span class="conf-val" id="cv-claude">-</span>
           </div>
         </div>
         <div class="lane-stream" id="stream-claude"></div>
@@ -762,7 +762,7 @@ main {
           <div class="lh-confidence">
             <span>Confidence</span>
             <div class="conf-track"><div class="conf-fill dissent" id="conf-gemini"></div></div>
-            <span class="conf-val" id="cv-gemini">—</span>
+            <span class="conf-val" id="cv-gemini">-</span>
           </div>
         </div>
         <div class="lane-stream" id="stream-gemini"></div>
@@ -826,7 +826,7 @@ const script = [
 
   { after: 'challenge', action: 'phase', phase: 3 },
 
-  { agent: 'gpt', phase: 'rebut', label: 'Qualifies', target: null, text: "Fair — the 50k threshold is a heuristic. At this traffic the coordination cost of microservices dominates any scaling gain we'd see.", delay: 600 },
+  { agent: 'gpt', phase: 'rebut', label: 'Qualifies', target: null, text: "Fair - the 50k threshold is a heuristic. At this traffic the coordination cost of microservices dominates any scaling gain we'd see.", delay: 600 },
   { agent: 'gemini', phase: 'rebut', label: 'Partial concede', target: null, text: "Granted on the SLA risk. Still hold the view that the later-migration cost is underweighted in the majority position.", delay: 1200 },
   { agent: 'claude', phase: 'rebut', label: 'Refutes', target: null, text: "Bounded contexts inside a monolith are reversible. Premature microservices are not. Optionality asymmetry favors the monolith.", delay: 1800 },
 
@@ -900,7 +900,7 @@ async function play() {
   if (playing) return;
   playing = true;
   Object.values(streams).forEach(s => s.innerHTML = '');
-  Object.values(confs).forEach(c => { c.bar.style.width = '0%'; c.val.textContent = '—'; });
+  Object.values(confs).forEach(c => { c.bar.style.width = '0%'; c.val.textContent = '-'; });
   Object.values(lhs).forEach(lh => lh.classList.remove('has-position'));
   verdict.classList.remove('shown');
   setPhase(1);

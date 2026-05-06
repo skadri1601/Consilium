@@ -16,7 +16,7 @@ _repo_root = Path(__file__).resolve().parent.parent
 _memory_dir = (_repo_root / "memory").resolve()
 if not _memory_dir.is_relative_to(_repo_root):
     raise RuntimeError("invalid monitor memory directory")
-# Hardcoded filename — never derived from request data — so the path
+# Hardcoded filename - never derived from request data - so the path
 # can never escape _memory_dir. The `_assert_safe_state_path` helper
 # below re-checks at every read/write site so static analyzers see
 # the sanitization at the SINK (mitigates Sonar pythonsecurity:S2083

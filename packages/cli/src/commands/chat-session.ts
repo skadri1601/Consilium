@@ -109,7 +109,7 @@ export class ChatSession {
 
     if (firstIncludedIdx > 0) {
       const older = previous.slice(0, firstIncludedIdx);
-      parts.push(`[Earlier turns — topics only]\n`);
+      parts.push(`[Earlier turns - topics only]\n`);
       for (let i = 0; i < older.length; i++) {
         const turn = older[i];
         if (!turn) continue;

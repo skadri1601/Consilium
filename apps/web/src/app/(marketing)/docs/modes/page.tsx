@@ -4,11 +4,54 @@ import { ArrowLeft, Zap, Users, FileText, Eye, Target, Shield, BarChart3, Sparkl
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import {
+  breadcrumbList,
+  definedTermSetSchema,
+  techArticleSchema,
+} from "@/lib/structured-data";
+
+const modesGlossary = definedTermSetSchema({
+  name: "Consilium deliberation glossary",
+  description:
+    "Definitions of the eight Consilium deliberation modes plus the social-choice voting methods used to converge on a consensus answer.",
+  path: "/docs/modes",
+  terms: [
+    { term: "Quick mode", description: "Single-round Consilium deliberation: one model proposes, the response is evaluated, and the answer is returned. Best for simple factual queries needing a fast sanity check.", url: "#quick" },
+    { term: "Council mode", description: "Three-round Consilium deliberation with multiple models cross-examining each other through the full propose-challenge-rebut-evaluate-vote-synthesize pipeline. The default mode.", url: "#council" },
+    { term: "Deep mode", description: "Five-round Consilium deliberation with sub-agents researching specific points before the next round. For high-stakes, mission-critical questions.", url: "#deep" },
+    { term: "Blind mode", description: "Council deliberation with model identity stripped during evaluation so brand bias cannot influence votes.", url: "#blind" },
+    { term: "Red Team mode", description: "Adversarial Consilium deliberation: one cohort of models attacks the proposal across eight categories, another defends, and a judge ruling produces the final answer.", url: "#redteam" },
+    { term: "Jury mode", description: "Council deliberation with mandatory dissent: minority opinions are required output, modeled on common-law jury practice.", url: "#jury" },
+    { term: "Market mode", description: "Probability aggregation using prediction-market mechanics: models stake credibility on positions, and confidences are averaged into a market price.", url: "#market" },
+    { term: "Auto mode", description: "Complexity-based router that picks the appropriate Consilium mode for the query without the user specifying.", url: "#auto" },
+    { term: "Condorcet method", description: "Voting method that selects the candidate who beats every other candidate in pairwise comparison. If no Condorcet winner exists, Consilium falls back to Ranked Pairs.", sameAs: "https://www.wikidata.org/wiki/Q839616" },
+    { term: "Borda count", description: "Voting method that scores candidates by their position on each ballot. Consilium uses confidence-weighted Borda for ranking strength of agreement.", sameAs: "https://www.wikidata.org/wiki/Q777887" },
+    { term: "Ranked Pairs", description: "Voting method that locks pairwise victories in order of margin without creating cycles. Used as the Condorcet fallback in Consilium.", sameAs: "https://www.wikidata.org/wiki/Q1192987" },
+    { term: "Kendall tau", description: "Rank correlation coefficient. Consilium combines Kendall tau (weight 0.4) with Jaccard similarity (0.35) and concession rate (0.25) to detect convergence.", sameAs: "https://www.wikidata.org/wiki/Q1730681" },
+  ],
+});
+
+const modesTechArticle = techArticleSchema({
+  title: "Deliberation modes",
+  description:
+    "Reference for the eight deliberation modes in Consilium - quick, council, deep, blind, red team, jury, market, auto - with the voting and convergence math behind each.",
+  path: "/docs/modes",
+  proficiencyLevel: "Intermediate",
+  publishedTime: "2026-04-15",
+  modifiedTime: "2026-04-15",
+});
+
+const modesBreadcrumbs = breadcrumbList([
+  { name: "Home", path: "/" },
+  { name: "Docs", path: "/docs" },
+  { name: "Deliberation Modes", path: "/docs/modes" },
+]);
 
 export const metadata: Metadata = buildMetadata({
   title: "Deliberation Modes",
   description:
-    "The eight deliberation modes in Consilium — classic debate, socratic, tree-of-thoughts, red-team, constitutional, ranked-choice, and more — each backed by peer-reviewed research.",
+    "The eight deliberation modes in Consilium - classic debate, socratic, tree-of-thoughts, red-team, constitutional, ranked-choice, and more - each backed by peer-reviewed research.",
   path: "/docs/modes",
   keywords: ["ai deliberation modes", "multi-agent debate modes", "tree of thoughts", "socratic ai"],
 });
@@ -34,7 +77,7 @@ const modes = [
     phases: ["PROPOSAL", "EVALUATION", "OUTPUT"],
     maxRounds: 1,
     defaultModels: 1,
-    description: "Single-round rapid analysis for straightforward questions. One model generates a response, it gets evaluated, and you receive the output. No debate, no cross-examination — just a fast, direct answer.",
+    description: "Single-round rapid analysis for straightforward questions. One model generates a response, it gets evaluated, and you receive the output. No debate, no cross-examination - just a fast, direct answer.",
     whenToUse: [
       "Simple factual questions: \"What is the time complexity of quicksort?\"",
       "Quick sanity checks on a single idea",
@@ -88,7 +131,7 @@ const modes = [
     phases: ["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"],
     maxRounds: 3,
     defaultModels: "2-5",
-    description: "Anonymous evaluation that eliminates model identity bias. All proposals are stripped of model identity before evaluation. The judge evaluates arguments in multiple orderings to prevent anchoring bias — ensuring the quality of reasoning matters, not which company built the model.",
+    description: "Anonymous evaluation that eliminates model identity bias. All proposals are stripped of model identity before evaluation. The judge evaluates arguments in multiple orderings to prevent anchoring bias - ensuring the quality of reasoning matters, not which company built the model.",
     whenToUse: [
       "Fair model comparison without brand bias",
       "Legal analysis where anchoring bias could skew outcomes",
@@ -124,7 +167,7 @@ const modes = [
     phases: ["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"],
     maxRounds: 3,
     defaultModels: "3-5",
-    description: "Panel deliberation with mandatory dissent reporting. Every result must explicitly declare both majority and minority positions — no decision is presented as unanimous unless mathematically verified through agglomerative clustering. Models must declare dissent even if they're in the minority.",
+    description: "Panel deliberation with mandatory dissent reporting. Every result must explicitly declare both majority and minority positions - no decision is presented as unanimous unless mathematically verified through agglomerative clustering. Models must declare dissent even if they're in the minority.",
     whenToUse: [
       "Risk assessment where overlooking a minority opinion could be catastrophic",
       "Healthcare decisions requiring transparent disagreement",
@@ -174,6 +217,9 @@ const modes = [
 export default function ModesPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-modes-techarticle" data={modesTechArticle} />
+      <JsonLd id="ld-modes-glossary" data={modesGlossary} />
+      <JsonLd id="ld-modes-breadcrumbs" data={modesBreadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-5xl mx-auto">
           <Link

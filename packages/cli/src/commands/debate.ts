@@ -395,7 +395,7 @@ async function runClassicDebateFlow(
     try {
       bridge = await startToolBridge(client, { enabled: true, quiet: false });
     } catch (err) {
-      // Bridge startup failure is non-fatal — fall through to a tool-less debate
+      // Bridge startup failure is non-fatal - fall through to a tool-less debate
       // so the user still gets an answer instead of a hard exit.
       console.log(st.warning(`  Could not start tool bridge: ${(err as Error).message}`));
       console.log(st.dim('  Continuing without agent file tools.'));
@@ -537,7 +537,7 @@ export async function loadWorkspaceContext(
       attachedFiles.push({ name: path.basename(fp), content });
       console.log(st.dim(`  Attached: ${fp}`));
     } catch (err: unknown) {
-      console.log(st.warning(`  Could not read file: ${fp} — ${err instanceof Error ? err.message : String(err)}`));
+      console.log(st.warning(`  Could not read file: ${fp} - ${err instanceof Error ? err.message : String(err)}`));
     }
   }
 

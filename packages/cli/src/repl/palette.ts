@@ -47,7 +47,7 @@ function clipLine(text: string, max: number): string {
 function renderPalette(buffer: string, paletteIndex: number): string {
   const matches = visibleMatches(buffer);
   if (matches.length === 0) {
-    return `\n  ${st.dim("(no matching commands — press esc to dismiss)")}\n`;
+    return `\n  ${st.dim("(no matching commands - press esc to dismiss)")}\n`;
   }
   const widest = widestUsage(ALL_COMMANDS);
   const totalCols = Math.max(40, terminal.width);

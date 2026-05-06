@@ -8,8 +8,8 @@ import { join } from "node:path";
  * in decorator metadata.
  *
  * What this checks: every method decorated with @Get/@Post/@Put/@Patch/
- * @Delete/@Sse must be reachable from a guard binding — either at the
- * method or the controller level — that includes ClerkAuthGuard, OR the
+ * @Delete/@Sse must be reachable from a guard binding - either at the
+ * method or the controller level - that includes ClerkAuthGuard, OR the
  * controller path must be explicitly listed as public below.
  */
 
@@ -146,7 +146,7 @@ describe("API route auth coverage", () => {
 
   it("every public route is in the explicit allow-list", () => {
     // Asserts there's no controller bypassing the rule by removing all guards
-    // accidentally — flips the previous test inside-out.
+    // accidentally - flips the previous test inside-out.
     const allowedControllers = Array.from(PUBLIC_CONTROLLER_PATHS);
     expect(allowedControllers).toContain("health");
     expect(allowedControllers).toContain("waitlist");

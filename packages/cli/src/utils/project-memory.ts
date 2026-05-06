@@ -5,7 +5,7 @@ import path from 'node:path';
  * Per-project memory: an append-only markdown log of past debates the
  * council has run on this codebase. Persists to ".consilium/memory.md"
  * inside the project root so it travels with the repo (or is ignored
- * via .gitignore — that's the user's call).
+ * via .gitignore - that's the user's call).
  *
  * The point: when a user runs a 5th debate in the same project, the
  * council shouldn't re-derive context from scratch. They get a short
@@ -48,7 +48,7 @@ function summarize(text: string): string {
 function formatEntry(entry: MemoryEntry): string {
   const id = entry.debateId ? `  \n_id: ${entry.debateId}_` : '';
   return [
-    `## ${entry.ts} — ${entry.mode}${id}`,
+    `## ${entry.ts} - ${entry.mode}${id}`,
     '',
     `**Topic:** ${entry.topic}`,
     '',
@@ -68,7 +68,7 @@ export function loadProjectMemory(rootPath: string): MemoryEntry[] {
   try {
     const stat = fs.statSync(file);
     if (stat.size > MAX_FILE_BYTES) {
-      // Pathological case — file got huge. Read tail so we still get
+      // Pathological case - file got huge. Read tail so we still get
       // recent entries, drop the rest. The user can manually rotate.
       const fd = fs.openSync(file, 'r');
       try {
@@ -90,7 +90,7 @@ export function loadProjectMemory(rootPath: string): MemoryEntry[] {
   for (const section of sections) {
     if (!section.trim()) continue;
     const body = section.startsWith('## ') ? section.slice(3) : section;
-    const headerMatch = /^([\dT:.\-Z]+)\s+—\s+(\w+)/.exec(body);
+    const headerMatch = /^([\dT:.\-Z]+)\s+-\s+(\w+)/.exec(body);
     if (!headerMatch) continue;
     const ts = headerMatch[1] ?? '';
     const mode = headerMatch[2] ?? '';
@@ -123,7 +123,7 @@ export function appendProjectMemory(rootPath: string, entry: Omit<MemoryEntry, '
 
   const isNewFile = !fs.existsSync(file);
   const header = isNewFile
-    ? '# Consilium Project Memory\n\nAuto-generated log of past debates the council has run in this project. Newest entries at the bottom. Safe to commit, hand-edit, or .gitignore — your call.\n\n'
+    ? '# Consilium Project Memory\n\nAuto-generated log of past debates the council has run in this project. Newest entries at the bottom. Safe to commit, hand-edit, or .gitignore - your call.\n\n'
     : '';
   const block = formatEntry(finalEntry);
   fs.appendFileSync(file, header + block, 'utf-8');
@@ -140,7 +140,7 @@ export function formatMemoryForPrompt(rootPath: string, limit = MAX_ENTRIES_IN_P
   const recent = entries.slice(-limit);
   const lines: string[] = ['', '## Prior Council Decisions in This Project', ''];
   for (const e of recent) {
-    lines.push(`- **[${e.mode}] ${e.topic}** — ${e.summary.slice(0, 240)}`);
+    lines.push(`- **[${e.mode}] ${e.topic}** - ${e.summary.slice(0, 240)}`);
   }
   lines.push('', '_(End of prior decisions. Use them to stay consistent unless the new request explicitly contradicts.)_', '', '');
   return { text: lines.join('\n'), count: entries.length };

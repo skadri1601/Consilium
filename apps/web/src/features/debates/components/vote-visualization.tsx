@@ -477,7 +477,7 @@ export function VoteVisualization({
         <Card>
           <CardContent className="py-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Single candidate — no vote aggregation needed.
+              Single candidate - no vote aggregation needed.
             </p>
           </CardContent>
         </Card>

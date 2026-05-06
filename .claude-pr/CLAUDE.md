@@ -90,7 +90,7 @@ This single command checks prerequisites, installs deps, generates Prisma client
 - Bot tests: `python -m agents.scripts.test_pipeline_e2e`
 
 ## Session Docs
-- **CLAUDE.md** (this file) — Architecture overview, conventions, start commands
-- **AGENTS.md** — Dual agent system details (bot + deliberation engine)
-- **PR-REVIEW.md** — Pull request standards and auto-review process
-- **SKILLS.md** — Available skills, MCP servers, and system-specific guidelines
+- **CLAUDE.md** (this file) - Architecture overview, conventions, start commands
+- **AGENTS.md** - Dual agent system details (bot + deliberation engine)
+- **PR-REVIEW.md** - Pull request standards and auto-review process
+- **SKILLS.md** - Available skills, MCP servers, and system-specific guidelines

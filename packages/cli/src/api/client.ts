@@ -273,7 +273,7 @@ export class ConsiliumClient {
               ? `${contextLabel} stream dropped after ${eventCount} events`
               : `${contextLabel} stream failed to connect`;
             // 429 is technically 4xx but is a backpressure signal, not
-            // a fatal client error — treat it as transient so the
+            // a fatal client error - treat it as transient so the
             // caller's reconnect loop applies backoff instead of
             // surfacing the rate-limit as an immediate failure. All
             // other 4xx codes (401/403/404) remain fatal.

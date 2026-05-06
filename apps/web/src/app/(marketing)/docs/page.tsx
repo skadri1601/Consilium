@@ -38,14 +38,14 @@ const sections = [
         icon: BookOpen,
         title: "Getting Started",
         description:
-          "Set up Consilium and run your first deliberation — via the web app, CLI, or SDK.",
+          "Set up Consilium and run your first deliberation - via the web app, CLI, or SDK.",
         href: "/docs/getting-started",
       },
       {
         icon: Layers,
         title: "Deliberation Modes",
         description:
-          "All 8 modes explained: Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto — phases, parameters, use cases.",
+          "All 8 modes explained: Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto - phases, parameters, use cases.",
         href: "/docs/modes",
       },
       {
@@ -59,7 +59,7 @@ const sections = [
         icon: Cpu,
         title: "AI Providers & Models",
         description:
-          "5 providers, 15 models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI — with judge priority and fallback system.",
+          "5 providers, 15 models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI - with judge priority and fallback system.",
         href: "/docs/providers",
       },
     ],
@@ -113,7 +113,7 @@ const sections = [
         icon: FileText,
         title: "Vertical Templates",
         description:
-          "6 pre-built templates: Code Review, Research, Risk, Healthcare, Legal, Finance — with rubrics, modes, and system prompts.",
+          "6 pre-built templates: Code Review, Research, Risk, Healthcare, Legal, Finance - with rubrics, modes, and system prompts.",
         href: "/docs/templates",
       },
     ],
@@ -153,25 +153,25 @@ const notionDocs = [
   },
   {
     icon: Terminal,
-    title: "Getting Started — CLI",
+    title: "Getting Started - CLI",
     description: "Install, authenticate, and run your first debate",
     href: "/docs/notion/cli",
   },
   {
     icon: Code,
-    title: "Getting Started — TypeScript SDK",
+    title: "Getting Started - TypeScript SDK",
     description: "npm install and quickstart examples",
     href: "/docs/notion/typescript-sdk",
   },
   {
     icon: Code,
-    title: "Getting Started — Python SDK",
+    title: "Getting Started - Python SDK",
     description: "pip install and async/sync usage",
     href: "/docs/notion/python-sdk",
   },
   {
     icon: Zap,
-    title: "Getting Started — MCP",
+    title: "Getting Started - MCP",
     description: "Cursor and Claude Code integration",
     href: "/docs/notion/mcp",
   },
@@ -231,7 +231,7 @@ const quickLinks = [
 export const metadata: Metadata = buildMetadata({
   title: "Documentation",
   description:
-    "Consilium documentation — get started, understand the debate modes, and integrate via the API, CLI, Python SDK, or TypeScript SDK.",
+    "Consilium documentation - get started, understand the debate modes, and integrate via the API, CLI, Python SDK, or TypeScript SDK.",
   path: "/docs",
   keywords: ["consilium docs", "ai council docs", "multi-agent api"],
 });
@@ -262,7 +262,7 @@ export default function DocsPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Documentation</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Everything you need to understand, integrate, deploy, and extend
-            Consilium — organized by audience.
+            Consilium - organized by audience.
           </p>
         </div>
       </section>

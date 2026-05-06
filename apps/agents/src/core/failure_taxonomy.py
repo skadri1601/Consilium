@@ -1,229 +1,246 @@
+"""Structured failure taxonomy + recovery dispatcher for the orchestrator.
+
+The orchestrator currently uses ad-hoc try/except around provider calls
+and decides what to do based on substring matching of error messages.
+This module promotes those decisions into a small, testable layer:
+
+* :class:`FailureClass` enumerates the kinds of failure we care about.
+* :func:`classify` maps an exception to a FailureClass.
+* :class:`RecoveryDecision` describes the action the caller should take
+  (retry, swap to cheap model, drop participant, abort).
+* :class:`RecoveryDispatcher` wraps the per-class recipes and bounds how
+  many times each recipe runs per debate so a stuck loop can't pin a
+  worker.
+
+The dispatcher is intentionally pure-Python with no orchestrator imports
+so it can be unit-tested without spinning up FastAPI or Redis.
+"""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Awaitable
+from typing import Any, Awaitable, Callable, Optional
+
+from ..features.agents.base_agent import LLMProviderError
 
 logger = logging.getLogger(__name__)
 
 
-class FailureClass(Enum):
+class FailureClass(str, Enum):
     RATE_LIMIT = "rate_limit"
     AUTH = "auth"
     TIMEOUT = "timeout"
-    CONTEXT_OVERFLOW = "context_overflow"
     SERVER_ERROR = "server_error"
-    NETWORK = "network"
-    INVALID_RESPONSE = "invalid_response"
-    PROVIDER_UNAVAILABLE = "provider_unavailable"
+    CONTEXT_OVERFLOW = "context_overflow"
+    EMPTY_RESPONSE = "empty_response"
+    SHORT_RESPONSE = "short_response"
     UNKNOWN = "unknown"
 
 
+_CONTEXT_OVERFLOW_PHRASES = (
+    "context length",
+    "context window",
+    "maximum context",
+    "token limit",
+    "too many tokens",
+    "too large",
+)
+
+
+def classify(error: BaseException) -> FailureClass:
+    """Map an arbitrary exception to a FailureClass.
+
+    The mapping prefers structured signals (LLMProviderError.error_type)
+    over free-text matching but falls back to the message when the
+    exception came from somewhere we don't control.
+    """
+    if isinstance(error, asyncio.TimeoutError):
+        return FailureClass.TIMEOUT
+
+    msg_lower = str(error).lower()
+    if any(p in msg_lower for p in _CONTEXT_OVERFLOW_PHRASES):
+        return FailureClass.CONTEXT_OVERFLOW
+
+    if isinstance(error, LLMProviderError):
+        try:
+            return FailureClass(error.error_type)
+        except ValueError:
+            return FailureClass.UNKNOWN
+
+    name = type(error).__name__.lower()
+    if "ratelimit" in name or "429" in msg_lower or "rate limit" in msg_lower:
+        return FailureClass.RATE_LIMIT
+    if "auth" in name or "permission" in name or "401" in msg_lower or "403" in msg_lower:
+        return FailureClass.AUTH
+    if "timeout" in name or "timed out" in msg_lower:
+        return FailureClass.TIMEOUT
+    if "500" in msg_lower or "502" in msg_lower or "503" in msg_lower or "server" in name:
+        return FailureClass.SERVER_ERROR
+    return FailureClass.UNKNOWN
+
+
+def classify_response(text: str, minimum_length: int) -> Optional[FailureClass]:
+    """Classify a non-exception response that the orchestrator deems unusable."""
+    if text is None or text == "":
+        return FailureClass.EMPTY_RESPONSE
+    if len(text.strip()) < minimum_length:
+        return FailureClass.SHORT_RESPONSE
+    return None
+
+
+class RecoveryAction(str, Enum):
+    RETRY = "retry"
+    SWAP_CHEAP_MODEL = "swap_cheap_model"
+    SWAP_FREE_FALLBACK = "swap_free_fallback"
+    COMPACT_AND_RETRY = "compact_and_retry"
+    DROP_PARTICIPANT = "drop_participant"
+    ABORT = "abort"
+
+
+@dataclass(frozen=True)
+class RecoveryDecision:
+    action: RecoveryAction
+    delay_seconds: float = 0.0
+    reason: str = ""
+    failure_class: FailureClass = FailureClass.UNKNOWN
+
+
+# Default recipes per failure class. Each tuple is the ordered list of
+# actions to attempt; the dispatcher walks it once per failure and stops
+# at the first action that hasn't exceeded its budget.
+_DEFAULT_RECIPES: dict[FailureClass, tuple[RecoveryAction, ...]] = {
+    FailureClass.RATE_LIMIT: (
+        RecoveryAction.RETRY,
+        RecoveryAction.SWAP_CHEAP_MODEL,
+        RecoveryAction.SWAP_FREE_FALLBACK,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.AUTH: (
+        RecoveryAction.SWAP_FREE_FALLBACK,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.TIMEOUT: (
+        RecoveryAction.RETRY,
+        RecoveryAction.SWAP_CHEAP_MODEL,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.SERVER_ERROR: (
+        RecoveryAction.RETRY,
+        RecoveryAction.SWAP_FREE_FALLBACK,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.CONTEXT_OVERFLOW: (
+        RecoveryAction.COMPACT_AND_RETRY,
+        RecoveryAction.SWAP_CHEAP_MODEL,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.EMPTY_RESPONSE: (
+        RecoveryAction.RETRY,
+        RecoveryAction.SWAP_CHEAP_MODEL,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.SHORT_RESPONSE: (
+        RecoveryAction.RETRY,
+        RecoveryAction.DROP_PARTICIPANT,
+    ),
+    FailureClass.UNKNOWN: (RecoveryAction.RETRY, RecoveryAction.DROP_PARTICIPANT),
+}
+
+
+_DEFAULT_BUDGETS: dict[RecoveryAction, int] = {
+    RecoveryAction.RETRY: 2,
+    RecoveryAction.SWAP_CHEAP_MODEL: 1,
+    RecoveryAction.SWAP_FREE_FALLBACK: 1,
+    RecoveryAction.COMPACT_AND_RETRY: 1,
+    RecoveryAction.DROP_PARTICIPANT: 1,
+    RecoveryAction.ABORT: 1,
+}
+
+
+_DEFAULT_BACKOFFS: dict[FailureClass, float] = {
+    FailureClass.RATE_LIMIT: 4.0,
+    FailureClass.SERVER_ERROR: 2.0,
+    FailureClass.TIMEOUT: 1.0,
+}
+
+
 @dataclass
-class FailureEvent:
-    failure_class: FailureClass
-    provider: str | None
-    model_id: str | None
-    detail: str
-    recoverable: bool
-    attempt: int = 0
-    original_error: BaseException | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "failure_class": self.failure_class.value,
-            "provider": self.provider,
-            "model_id": self.model_id,
-            "detail": self.detail,
-            "recoverable": self.recoverable,
-            "attempt": self.attempt,
-        }
-
-
-RecoveryAction = Callable[["FailureEvent"], Awaitable[bool]]
-
-
-_CONTEXT_PHRASES = ("too large", "context length", "maximum context", "token limit")
-_CONTEXT_STATUS_CODES = {413, 400}
-
-
-def classify_failure(exc: BaseException, provider: str | None = None, model_id: str | None = None) -> FailureEvent:
-    name = type(exc).__name__.lower()
-    msg = str(exc).lower()
-
-    if isinstance(exc, asyncio.TimeoutError) or "timeout" in name or "timed out" in msg:
-        return FailureEvent(
-            failure_class=FailureClass.TIMEOUT,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Request timed out: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    status = getattr(exc, "status_code", None) or getattr(exc, "status", None)
-    if status in _CONTEXT_STATUS_CODES and any(p in msg for p in _CONTEXT_PHRASES):
-        return FailureEvent(
-            failure_class=FailureClass.CONTEXT_OVERFLOW,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Context too large: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    if "ratelimit" in name or "429" in msg or "rate_limit" in msg or "rate limit" in msg:
-        return FailureEvent(
-            failure_class=FailureClass.RATE_LIMIT,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Rate limited: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    if "auth" in name or "401" in msg or "invalid_api_key" in msg or "permission" in name or "403" in msg:
-        return FailureEvent(
-            failure_class=FailureClass.AUTH,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Authentication failed: {type(exc).__name__}",
-            recoverable=False,
-            original_error=exc,
-        )
-
-    if isinstance(exc, ConnectionError) or "connection" in name:
-        return FailureEvent(
-            failure_class=FailureClass.NETWORK,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Network error: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    if isinstance(exc, OSError):
-        return FailureEvent(
-            failure_class=FailureClass.NETWORK,
-            provider=provider,
-            model_id=model_id,
-            detail=f"OS/Network error: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    if "server" in name or "500" in msg or "502" in msg or "503" in msg:
-        return FailureEvent(
-            failure_class=FailureClass.SERVER_ERROR,
-            provider=provider,
-            model_id=model_id,
-            detail=f"Server error: {type(exc).__name__}",
-            recoverable=True,
-            original_error=exc,
-        )
-
-    return FailureEvent(
-        failure_class=FailureClass.UNKNOWN,
-        provider=provider,
-        model_id=model_id,
-        detail=f"{type(exc).__name__}: {str(exc)[:200]}",
-        recoverable=False,
-        original_error=exc,
-    )
-
-
-_RECOVERY_RECIPES: dict[FailureClass, list[RecoveryAction]] = {}
-
-
-def register_recovery(failure_class: FailureClass, action: RecoveryAction) -> None:
-    _RECOVERY_RECIPES.setdefault(failure_class, []).append(action)
-
-
 class RecoveryDispatcher:
+    """Stateful dispatcher that decides the next action for a participant.
 
-    def __init__(self, max_attempts_per_class: int = 1):
-        self._max_attempts = max_attempts_per_class
-        self._attempt_counts: dict[str, dict[FailureClass, int]] = {}
+    A separate dispatcher is created per (debate, participant) so the
+    budget tracks attempts against this specific actor, not the whole
+    debate. The orchestrator passes the dispatcher into its
+    per-participant retry loop and asks for a :class:`RecoveryDecision`.
+    """
 
-    def _key(self, event: FailureEvent) -> str:
-        return f"{event.provider or 'none'}:{event.model_id or 'none'}"
+    recipes: dict[FailureClass, tuple[RecoveryAction, ...]] = field(
+        default_factory=lambda: dict(_DEFAULT_RECIPES)
+    )
+    budgets: dict[RecoveryAction, int] = field(
+        default_factory=lambda: dict(_DEFAULT_BUDGETS)
+    )
+    backoffs: dict[FailureClass, float] = field(
+        default_factory=lambda: dict(_DEFAULT_BACKOFFS)
+    )
+    _used: dict[RecoveryAction, int] = field(default_factory=dict)
 
-    async def try_recover(self, event: FailureEvent) -> bool:
-        if not event.recoverable:
-            return False
-
-        recipes = _RECOVERY_RECIPES.get(event.failure_class, [])
-        if not recipes:
-            return False
-
-        key = self._key(event)
-        counts = self._attempt_counts.setdefault(key, {})
-        current = counts.get(event.failure_class, 0)
-
-        if current >= self._max_attempts:
-            logger.info(
-                "Recovery exhausted for %s on %s (tried %d times)",
-                event.failure_class.value, key, current,
-            )
-            return False
-
-        counts[event.failure_class] = current + 1
-
-        for recipe in recipes:
-            try:
-                recovered = await recipe(event)
-                if recovered:
-                    logger.info(
-                        "Recovery succeeded for %s on %s",
-                        event.failure_class.value, key,
-                    )
-                    return True
-            except Exception as exc:
-                logger.warning(
-                    "Recovery recipe failed for %s: %s",
-                    event.failure_class.value, type(exc).__name__,
+    def decide(
+        self,
+        failure: FailureClass,
+        *,
+        attempt: int = 1,
+    ) -> RecoveryDecision:
+        recipe = self.recipes.get(failure, _DEFAULT_RECIPES[FailureClass.UNKNOWN])
+        for action in recipe:
+            used = self._used.get(action, 0)
+            budget = self.budgets.get(action, 0)
+            if used < budget:
+                self._used[action] = used + 1
+                delay = self.backoffs.get(failure, 0.0) * max(1, attempt - 1)
+                logger.info(
+                    "recovery action=%s failure=%s attempt=%d delay=%.1fs",
+                    action.value,
+                    failure.value,
+                    attempt,
+                    delay,
                 )
+                return RecoveryDecision(
+                    action=action,
+                    delay_seconds=delay,
+                    reason=f"{failure.value}->{action.value} (attempt {attempt})",
+                    failure_class=failure,
+                )
+        return RecoveryDecision(
+            action=RecoveryAction.ABORT,
+            delay_seconds=0.0,
+            reason=f"recovery budget exhausted for {failure.value}",
+            failure_class=failure,
+        )
 
-        return False
-
-    def reset(self, provider: str | None = None) -> None:
-        if provider:
-            keys_to_remove = [k for k in self._attempt_counts if k.startswith(f"{provider}:")]
-            for k in keys_to_remove:
-                del self._attempt_counts[k]
-        else:
-            self._attempt_counts.clear()
-
-
-async def _recover_rate_limit(event: FailureEvent) -> bool:
-    from .provider_health import provider_health
-    if event.provider:
-        provider_health.record_failure(event.provider, error="rate_limit")
-    event.metadata["switch_provider"] = True
-    logger.info("Rate limit recovery: flagging provider %s for switch", event.provider)
-    return True
+    def usage(self) -> dict[str, int]:
+        return {a.value: n for a, n in self._used.items()}
 
 
-async def _recover_context_overflow(event: FailureEvent) -> bool:
-    event.metadata["truncate_prompt"] = True
-    logger.info("Context overflow recovery: flagging prompt for truncation on %s", event.provider)
-    return True
+HandlerFn = Callable[[RecoveryDecision], Awaitable[Any]]
 
 
-async def _recover_server_error(event: FailureEvent) -> bool:
-    from .provider_health import provider_health
-    if event.provider:
-        provider_health.record_failure(event.provider, error="server_error")
-    event.metadata["switch_provider"] = True
-    logger.info("Server error recovery: flagging provider %s as unhealthy", event.provider)
-    return True
+async def execute(
+    decision: RecoveryDecision,
+    handlers: dict[RecoveryAction, HandlerFn],
+) -> Any:
+    """Convenience: dispatch ``decision`` through the supplied handler map.
 
-
-register_recovery(FailureClass.RATE_LIMIT, _recover_rate_limit)
-register_recovery(FailureClass.CONTEXT_OVERFLOW, _recover_context_overflow)
-register_recovery(FailureClass.SERVER_ERROR, _recover_server_error)
-
-recovery_dispatcher = RecoveryDispatcher()
+    Sleeps for ``decision.delay_seconds`` first when non-zero. The
+    orchestrator owns the actual retry / model-swap mechanics; this
+    function exists so callers don't have to repeat the boilerplate.
+    """
+    if decision.delay_seconds > 0:
+        await asyncio.sleep(decision.delay_seconds)
+    handler = handlers.get(decision.action)
+    if handler is None:
+        raise KeyError(f"no handler registered for {decision.action.value}")
+    return await handler(decision)

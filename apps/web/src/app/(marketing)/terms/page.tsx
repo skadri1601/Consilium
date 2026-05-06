@@ -4,7 +4,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Terms of Service",
   description:
-    "Terms of Service for the Consilium AI deliberation platform — BYOK, acceptable use, IP, and dispute resolution.",
+    "Terms of Service for the Consilium AI deliberation platform - BYOK, acceptable use, IP, and dispute resolution.",
   path: "/terms",
   keywords: [
     "consilium terms",
@@ -310,7 +310,7 @@ export default function TermsPage() {
                 7. AI-Generated Content
               </h2>
               <p className="mb-4 text-muted-foreground font-semibold">
-                IMPORTANT — PLEASE READ CAREFULLY:
+                IMPORTANT - PLEASE READ CAREFULLY:
               </p>
               <p className="mb-4 text-muted-foreground">
                 The Service utilizes artificial intelligence models provided by

@@ -22,16 +22,16 @@ const data: CompetitorComparison = {
     hook:
       "Claude Code is Anthropic's official CLI for Claude. Consilium ships an MCP server that plugs into Claude Code so Claude can call a multi-provider council whenever it needs a second opinion.",
     intro: [
-      "Claude Code is the official Anthropic CLI for Claude. It's deeply integrated with the Claude family — Sonnet, Opus, Haiku — and ships well-engineered primitives: hooks, slash commands, MCP support, status line customization, sub-agents, and tight integration with Anthropic's API. If your team has standardized on Claude, it's the right tool for daily work.",
+      "Claude Code is the official Anthropic CLI for Claude. It's deeply integrated with the Claude family - Sonnet, Opus, Haiku - and ships well-engineered primitives: hooks, slash commands, MCP support, status line customization, sub-agents, and tight integration with Anthropic's API. If your team has standardized on Claude, it's the right tool for daily work.",
       "Claude Code's design constraint is its core value: it's Claude-only. There's no architectural way to ask GPT-5.5 or Gemini 3.1 Pro for a second opinion in the same session. You get exactly the model Anthropic ships, with exactly Anthropic's tradeoffs.",
-      "Consilium is provider-agnostic from the bottom up. A single debate can include Claude alongside GPT-5.5, Gemini 3.1 Pro, Grok-4, Kimi K2, and any model on OpenRouter. The point isn't to replace Claude — it's to put Claude in a council where the other six providers cross-examine its reasoning.",
+      "Consilium is provider-agnostic from the bottom up. A single debate can include Claude alongside GPT-5.5, Gemini 3.1 Pro, Grok-4, Kimi K2, and any model on OpenRouter. The point isn't to replace Claude - it's to put Claude in a council where the other six providers cross-examine its reasoning.",
       "If your stack is built on Claude, the right architecture is to keep using Claude Code for daily work and add Consilium's MCP server. Claude Code can then call @consilium when it needs to deliberate across providers, and the council writes its synthesis back into Claude's context.",
     ],
   },
   competitorStrengths: [
-    "First-class Anthropic integration — instant access to Sonnet 4.6, Opus 4.7, Haiku 4.5 with no proxy.",
+    "First-class Anthropic integration - instant access to Sonnet 4.6, Opus 4.7, Haiku 4.5 with no proxy.",
     "Extremely well-engineered CLI primitives: hooks, slash commands, sub-agents, status line, output styles, MCP host.",
-    "Tight Anthropic ecosystem fit — works seamlessly with the Claude API, Claude Desktop, and Anthropic billing.",
+    "Tight Anthropic ecosystem fit - works seamlessly with the Claude API, Claude Desktop, and Anthropic billing.",
     "Mature codebase-aware tool calls (Read, Edit, Glob, Grep, Bash, etc.) tuned by the team that ships Claude.",
     "Best in class for users committed to the Claude family who want the deepest integration.",
   ],
@@ -46,7 +46,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Mathematical convergence",
-      body: "A Consilium debate explicitly reports whether consensus was reached and how strong it is — composite score across Kendall tau, Jaccard, and concession rate, threshold 0.85. You always know when the council agrees and when it doesn't. Claude Code gives you Claude's confidence, calibrated only against Claude's own reasoning.",
+      body: "A Consilium debate explicitly reports whether consensus was reached and how strong it is - composite score across Kendall tau, Jaccard, and concession rate, threshold 0.85. You always know when the council agrees and when it doesn't. Claude Code gives you Claude's confidence, calibrated only against Claude's own reasoning.",
     },
     {
       title: "Eight modes for different stakes",
@@ -54,7 +54,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Provider hedge and cost discipline",
-      body: "When Anthropic has an outage or rate-limits you, Claude Code is stuck. Consilium can route the same request through GPT, Gemini, Grok, Groq, or OpenRouter — and the free-tier pool fallback keeps debates running even without keys. Multi-provider is also a cost lever: route routine debates through cheaper providers and reserve Claude for the moments it matters.",
+      body: "When Anthropic has an outage or rate-limits you, Claude Code is stuck. Consilium can route the same request through GPT, Gemini, Grok, Groq, or OpenRouter - and the free-tier pool fallback keeps debates running even without keys. Multi-provider is also a cost lever: route routine debates through cheaper providers and reserve Claude for the moments it matters.",
     },
   ],
   matrix: [
@@ -95,7 +95,7 @@ const data: CompetitorComparison = {
     },
     {
       feature: "MCP server",
-      consilium: "Yes — exposes deliberation as MCP tool",
+      consilium: "Yes - exposes deliberation as MCP tool",
       competitor: "Claude Code is an MCP host (consumes, doesn't expose one)",
       consiliumHas: true,
       competitorHas: false,
@@ -103,7 +103,7 @@ const data: CompetitorComparison = {
     {
       feature: "MCP host (consume other servers)",
       consilium: "Through CLI MCP integration",
-      competitor: "Yes — first-class MCP host",
+      competitor: "Yes - first-class MCP host",
       consiliumHas: true,
       competitorHas: true,
     },
@@ -144,7 +144,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Provider failover",
-      body: "When Anthropic has an incident, Claude Code is offline. Consilium can route the same request through GPT-5.5, Gemini 3.1 Pro, Grok, Kimi, Groq's free pool, or anything on OpenRouter — and continue working. Use the consilium CLI when Claude Code can't reach Claude.",
+      body: "When Anthropic has an incident, Claude Code is offline. Consilium can route the same request through GPT-5.5, Gemini 3.1 Pro, Grok, Kimi, Groq's free pool, or anything on OpenRouter - and continue working. Use the consilium CLI when Claude Code can't reach Claude.",
     },
     {
       title: "Cross-provider verification on critical edits",
@@ -164,7 +164,7 @@ const data: CompetitorComparison = {
     {
       question: "Can Consilium run inside Claude Code?",
       answer:
-        "Yes — Consilium ships an MCP server (consilium-mcp on PyPI) that plugs into Claude Code's MCP host. Add it to your settings, and Claude Code can invoke any of the eight deliberation modes whenever it wants a council.",
+        "Yes - Consilium ships an MCP server (consilium-mcp on PyPI) that plugs into Claude Code's MCP host. Add it to your settings, and Claude Code can invoke any of the eight deliberation modes whenever it wants a council.",
     },
     {
       question: "Is this just running Claude five times in parallel?",
@@ -174,12 +174,12 @@ const data: CompetitorComparison = {
     {
       question: "Will using Consilium leak my prompts to other providers?",
       answer:
-        "Only to the providers you choose. By default debates use BYOK — your keys, your provider terms. The free-tier fallback uses Groq and OpenRouter; you can disable it. Consilium itself stores debate transcripts in your account if you opt in, with full audit trail per round.",
+        "Only to the providers you choose. By default debates use BYOK - your keys, your provider terms. The free-tier fallback uses Groq and OpenRouter; you can disable it. Consilium itself stores debate transcripts in your account if you opt in, with full audit trail per round.",
     },
     {
       question: "Why use Consilium when Claude is already the strongest model on most benchmarks?",
       answer:
-        "Because 'strongest on benchmarks' is not the same as 'right for this specific question.' Consilium debates surface the exact cases where Claude is overconfident — and they're not rare. Multi-provider deliberation is also a useful hedge against any one provider's rate-limits, outages, or content-policy quirks.",
+        "Because 'strongest on benchmarks' is not the same as 'right for this specific question.' Consilium debates surface the exact cases where Claude is overconfident - and they're not rare. Multi-provider deliberation is also a useful hedge against any one provider's rate-limits, outages, or content-policy quirks.",
     },
   ],
   lastUpdated: "2026-04-30",

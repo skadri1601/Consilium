@@ -67,7 +67,7 @@ export function findCatalogEntry(id: string): CatalogEntry | undefined {
 }
 
 export function isDeprecatedOrRetired(_id: string): boolean {
-  // Deprecated models are no longer present in the catalog — this
+  // Deprecated models are no longer present in the catalog - this
   // helper stays for API compatibility with the `models --check`
   // command but will always return false now.
   return false;

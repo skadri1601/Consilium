@@ -16,13 +16,73 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import {
+  breadcrumbList,
+  howToSchema,
+  techArticleSchema,
+} from "@/lib/structured-data";
 
 export const metadata: Metadata = buildMetadata({
   title: "Getting Started",
   description:
-    "Quickstart for Consilium — sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+    "Quickstart for Consilium - sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
   path: "/docs/getting-started",
+});
+
+const howToData = howToSchema({
+  name: "Get started with Consilium",
+  description:
+    "Run your first multi-AI deliberation in under five minutes via the web app, CLI, or SDK.",
+  url: `${SITE_URL}/docs/getting-started`,
+  totalTime: "PT5M",
+  estimatedCost: { value: "0", currency: "USD" },
+  tools: [
+    "Web browser, terminal, or any HTTP client",
+    "At least one LLM provider API key (or use the Groq free tier)",
+  ],
+  steps: [
+    {
+      name: "Sign up or install the CLI",
+      text: "Sign up at https://myconsilium.xyz or install the CLI with `npm i -g @myconsilium/cli`. The web app needs no setup; the CLI shares the same API.",
+      url: `${SITE_URL}/sign-up`,
+    },
+    {
+      name: "Add at least one provider key",
+      text: "Paste an API key from any of the seven supported providers (Anthropic, OpenAI, Google, Groq, xAI, Moonshot, OpenRouter). Groq is free and works as an automatic fallback if you skip BYOK entirely.",
+    },
+    {
+      name: "Pick a deliberation mode",
+      text: "Quick (1 round), Council (3 rounds, default), Deep (5 rounds + sub-agents), Blind, Red Team, Jury, Market, or Auto. Use Council unless you need something specific.",
+      url: `${SITE_URL}/docs/modes`,
+    },
+    {
+      name: "Run a debate",
+      text: "Web: type a question and click Run. CLI: `consilium debate \"your question\" --mode council`. SDK: call `client.debate({ query, mode })` and stream SSE events.",
+    },
+    {
+      name: "Review the consensus output",
+      text: "Every debate returns a golden prompt, per-model confidence scores, dissent report (majority and minority positions), vote results, audit trail, and cost breakdown. Export as Markdown, .cursorrules, or plain text.",
+    },
+  ],
+});
+
+const breadcrumbs = breadcrumbList([
+  { name: "Home", path: "/" },
+  { name: "Docs", path: "/docs" },
+  { name: "Getting Started", path: "/docs/getting-started" },
+]);
+
+const techArticleData = techArticleSchema({
+  title: "Getting Started with Consilium",
+  description:
+    "Quickstart for Consilium - sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
+  path: "/docs/getting-started",
+  proficiencyLevel: "Beginner",
+  dependencies: "Web browser, terminal, or any HTTP client. At least one LLM provider API key (or use the Groq free tier).",
+  publishedTime: "2026-04-29",
+  modifiedTime: "2026-04-29",
 });
 
 const providers = [
@@ -73,6 +133,9 @@ const providers = [
 export default function GettingStartedPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-getting-started-techarticle" data={techArticleData} />
+      <JsonLd id="ld-getting-started-howto" data={howToData} />
+      <JsonLd id="ld-getting-started-breadcrumbs" data={breadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto">
           <Link
@@ -142,7 +205,7 @@ export default function GettingStartedPage() {
                   <p className="text-sm text-muted-foreground">
                     Consilium uses a Bring Your Own Keys model. Navigate to
                     Settings and add API keys for the providers you want to use.
-                    All keys are encrypted with AES-256-GCM before storage —
+                    All keys are encrypted with AES-256-GCM before storage -
                     they are never stored in plaintext or logged. You need at
                     least one provider key, but using 2-3 different providers
                     gives you genuine model diversity in debates.
@@ -197,7 +260,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Golden Prompt
                         </span>{" "}
-                        — The synthesized final answer integrating the strongest
+                        - The synthesized final answer integrating the strongest
                         arguments from all models
                       </p>
                     </div>
@@ -206,7 +269,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Confidence Scores
                         </span>{" "}
-                        — Per-model calibrated confidence based on explanation
+                        - Per-model calibrated confidence based on explanation
                         stability (how much each model changed its position
                         under pressure)
                       </p>
@@ -216,7 +279,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Dissent Report
                         </span>{" "}
-                        — Majority and minority positions identified via
+                        - Majority and minority positions identified via
                         agglomerative clustering. Shows where models agreed and
                         where they fundamentally disagreed
                       </p>
@@ -226,7 +289,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Vote Results
                         </span>{" "}
-                        — Condorcet winner (if any), Borda scores, full ranking.
+                        - Condorcet winner (if any), Borda scores, full ranking.
                         Shows which position won and by what margin
                       </p>
                     </div>
@@ -235,7 +298,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Audit Trail
                         </span>{" "}
-                        — Every step recorded: model, input, output, tokens
+                        - Every step recorded: model, input, output, tokens
                         used, cost, latency. Full transparency into how
                         consensus was reached
                       </p>
@@ -245,7 +308,7 @@ export default function GettingStartedPage() {
                         <span className="text-indigo-400 font-medium">
                           Cost Breakdown
                         </span>{" "}
-                        — Per-model, per-round cost tracking with total cost and
+                        - Per-model, per-round cost tracking with total cost and
                         token usage
                       </p>
                     </div>

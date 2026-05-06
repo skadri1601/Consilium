@@ -96,12 +96,12 @@ const MODE_RUBRIC_OVERRIDES: Partial<Record<DebateMode, RubricWeight[]>> = {
 const DEFAULT_PHASE5_PROMPT = `You are synthesizing a multi-agent debate for a CLI user working on a codebase.
 
 PRIORITIES (in order):
-1. CODE CORRECTNESS — Does the code compile/run? Are there bugs?
-2. PROJECT RELEVANCE — Does the solution fit THIS specific project's stack, patterns, and conventions?
-3. IMPLEMENTATION FEASIBILITY — Can a developer implement this now with the current codebase?
-4. CODEBASE COMPATIBILITY — Does it work with existing dependencies, APIs, and architecture?
-5. MAINTAINABILITY — Is it maintainable by the team? Clear naming, reasonable complexity?
-6. SECURITY — Are there vulnerabilities? SQL injection, XSS, secrets exposure?
+1. CODE CORRECTNESS - Does the code compile/run? Are there bugs?
+2. PROJECT RELEVANCE - Does the solution fit THIS specific project's stack, patterns, and conventions?
+3. IMPLEMENTATION FEASIBILITY - Can a developer implement this now with the current codebase?
+4. CODEBASE COMPATIBILITY - Does it work with existing dependencies, APIs, and architecture?
+5. MAINTAINABILITY - Is it maintainable by the team? Clear naming, reasonable complexity?
+6. SECURITY - Are there vulnerabilities? SQL injection, XSS, secrets exposure?
 
 RULES:
 - Working code > elegant code
@@ -119,12 +119,12 @@ const MODE_PHASE5_PROMPTS: Partial<Record<DebateMode, string>> = {
   redteam: `You are synthesizing an adversarial red team assessment for a CLI user.
 
 PRIORITIES (in order):
-1. SECURITY — Identify all vulnerabilities, attack vectors, and threat surfaces
-2. CODE CORRECTNESS — Does the code have exploitable bugs or logic errors?
-3. CODEBASE COMPATIBILITY — Could fixes break existing architecture?
-4. IMPLEMENTATION FEASIBILITY — Are mitigations practical to implement now?
-5. PROJECT RELEVANCE — Do recommendations fit the project's threat model?
-6. MAINTAINABILITY — Are security fixes sustainable long-term?
+1. SECURITY - Identify all vulnerabilities, attack vectors, and threat surfaces
+2. CODE CORRECTNESS - Does the code have exploitable bugs or logic errors?
+3. CODEBASE COMPATIBILITY - Could fixes break existing architecture?
+4. IMPLEMENTATION FEASIBILITY - Are mitigations practical to implement now?
+5. PROJECT RELEVANCE - Do recommendations fit the project's threat model?
+6. MAINTAINABILITY - Are security fixes sustainable long-term?
 
 RULES:
 - Security concerns > all other considerations
@@ -140,12 +140,12 @@ Synthesize the red team findings into a prioritized security report with actiona
   council: `You are synthesizing a multi-agent council deliberation for a CLI user.
 
 PRIORITIES (in order):
-1. CONSENSUS STRENGTH — Where do agents agree? Weight consensus heavily
-2. CODE CORRECTNESS — Does the agreed-upon approach work?
-3. PROJECT RELEVANCE — Does the consensus fit the project's patterns?
-4. IMPLEMENTATION FEASIBILITY — Can the team implement the consensus now?
-5. CODEBASE COMPATIBILITY — Does it integrate with existing systems?
-6. MAINTAINABILITY — Is the consensus solution maintainable?
+1. CONSENSUS STRENGTH - Where do agents agree? Weight consensus heavily
+2. CODE CORRECTNESS - Does the agreed-upon approach work?
+3. PROJECT RELEVANCE - Does the consensus fit the project's patterns?
+4. IMPLEMENTATION FEASIBILITY - Can the team implement the consensus now?
+5. CODEBASE COMPATIBILITY - Does it integrate with existing systems?
+6. MAINTAINABILITY - Is the consensus solution maintainable?
 
 RULES:
 - Highlight areas of strong agreement first
@@ -161,12 +161,12 @@ Synthesize the council deliberation into a consensus-driven response.`,
   blind: `You are synthesizing a blind evaluation for a CLI user. Agent identities were hidden during scoring.
 
 PRIORITIES (in order):
-1. OBJECTIVITY — Judge purely on argument quality, not source
-2. CODE CORRECTNESS — Does the code compile/run? Are there bugs?
-3. REASONING QUALITY — Depth and rigor of the reasoning presented
-4. IMPLEMENTATION FEASIBILITY — Can a developer implement this now?
-5. PROJECT RELEVANCE — Does the solution fit the project?
-6. MAINTAINABILITY — Is it maintainable by the team?
+1. OBJECTIVITY - Judge purely on argument quality, not source
+2. CODE CORRECTNESS - Does the code compile/run? Are there bugs?
+3. REASONING QUALITY - Depth and rigor of the reasoning presented
+4. IMPLEMENTATION FEASIBILITY - Can a developer implement this now?
+5. PROJECT RELEVANCE - Does the solution fit the project?
+6. MAINTAINABILITY - Is it maintainable by the team?
 
 RULES:
 - Evaluate arguments on merit alone
@@ -182,12 +182,12 @@ Synthesize the blind evaluation into an objective, merit-based response.`,
   jury: `You are synthesizing a jury panel deliberation for a CLI user.
 
 PRIORITIES (in order):
-1. CONSENSUS STRENGTH — What did the jury agree on?
-2. EVIDENCE QUALITY — Which positions had the strongest supporting evidence?
-3. CODE CORRECTNESS — Does the verdict hold technically?
-4. PROJECT RELEVANCE — Does the verdict fit the project?
-5. IMPLEMENTATION FEASIBILITY — Can the verdict be implemented?
-6. MAINTAINABILITY — Is the solution maintainable?
+1. CONSENSUS STRENGTH - What did the jury agree on?
+2. EVIDENCE QUALITY - Which positions had the strongest supporting evidence?
+3. CODE CORRECTNESS - Does the verdict hold technically?
+4. PROJECT RELEVANCE - Does the verdict fit the project?
+5. IMPLEMENTATION FEASIBILITY - Can the verdict be implemented?
+6. MAINTAINABILITY - Is the solution maintainable?
 
 RULES:
 - Present the jury's verdict clearly
@@ -202,12 +202,12 @@ Synthesize the jury deliberation into a clear verdict with implementation guidan
   market: `You are synthesizing a prediction market aggregation for a CLI user.
 
 PRIORITIES (in order):
-1. CONFIDENCE CALIBRATION — Weight positions by calibrated confidence scores
-2. CODE CORRECTNESS — Does the highest-confidence approach work?
-3. EVIDENCE QUALITY — What evidence supports the confident positions?
-4. PROJECT RELEVANCE — Does the favored approach fit the project?
-5. IMPLEMENTATION FEASIBILITY — Can the market winner be implemented?
-6. MAINTAINABILITY — Is the favored solution maintainable?
+1. CONFIDENCE CALIBRATION - Weight positions by calibrated confidence scores
+2. CODE CORRECTNESS - Does the highest-confidence approach work?
+3. EVIDENCE QUALITY - What evidence supports the confident positions?
+4. PROJECT RELEVANCE - Does the favored approach fit the project?
+5. IMPLEMENTATION FEASIBILITY - Can the market winner be implemented?
+6. MAINTAINABILITY - Is the favored solution maintainable?
 
 RULES:
 - Report confidence-weighted consensus

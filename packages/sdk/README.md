@@ -147,4 +147,4 @@ try {
 
 ## License
 
-Proprietary — © Consilium. All rights reserved. The TypeScript SDK is distributed publicly via npm; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.
+Proprietary - © Consilium. All rights reserved. The TypeScript SDK is distributed publicly via npm; the source repository is private. Contact <support@myconsilium.xyz> for source access or self-hosting.

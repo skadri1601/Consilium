@@ -1,29 +1,54 @@
-export const DEBATE_EVENT_NAMES = [
+/**
+ * Canonical SSE event schema for the debate stream.
+ *
+ * Every event the agents service emits is enumerated here. The
+ * Python source of truth lives at
+ * `apps/agents/src/core/sse_events.py` - the two MUST stay in sync.
+ * `SseEventName` below is the single string-literal union both sides
+ * agree on.
+ */
+
+export const SSE_EVENT_NAMES = [
   "debate_start",
-  "debate_cancelled",
   "round_start",
   "round_complete",
   "agent_start",
   "agent_chunk",
   "agent_complete",
-  "convergence_detected",
-  "judge_start",
-  "judge_retry",
-  "consensus",
-  "cost_update",
-  "done",
-  "error",
-  "anti_capitulation",
-  "anti_capitulation_revised",
   "subagent_research_start",
   "subagent_research_done",
+  "convergence_detected",
+  "compaction_applied",
   "session_compacted",
-  "recovery_attempted",
-  "failure_classified",
+  "anti_capitulation",
+  "anti_capitulation_revised",
+  "judge_start",
+  "judge_retry",
+  "judge:attempt",
+  "judge:chunk",
+  "judge:complete",
+  "judge:cross-ref",
+  "judge:disputes",
+  "judge:error",
+  "judge:extracting",
+  "judge:fallback",
+  "judge:fatal",
+  "judge:scoring",
+  "judge:scoring_complete",
+  "judge:synthesizing",
+  "phase_start",
+  "phase_end",
+  "consensus",
+  "cost_update",
+  "routing:decided",
   "routing:fallback",
+  "recovery:applied",
+  "done",
+  "error",
+  "debate:cancelled",
 ] as const;
 
-export type SseEventType = (typeof DEBATE_EVENT_NAMES)[number];
+export type SseEventName = (typeof SSE_EVENT_NAMES)[number];
 
 export interface DebateStartEvent {
   event: "debate_start";
@@ -31,9 +56,6 @@ export interface DebateStartEvent {
   topic: string;
   models: string[];
   round_count: number;
-  sub_agents?: boolean;
-  started_at?: string;
-  resumed_from_round?: number | null;
 }
 
 export interface RoundStartEvent {
@@ -45,26 +67,37 @@ export interface RoundStartEvent {
 export interface RoundCompleteEvent {
   event: "round_complete";
   round: number;
-  responses: Array<{ label: string; model_id: string; text: string }>;
+  responses: Record<string, unknown>;
 }
 
 export interface AgentStartEvent {
   event: "agent_start";
-  agent_id: string;
-  round: number;
+  agentId: string;
+  roundNumber: number;
 }
 
 export interface AgentChunkEvent {
   event: "agent_chunk";
-  agent_id: string;
+  agentId: string;
   chunk: string;
 }
 
 export interface AgentCompleteEvent {
   event: "agent_complete";
-  agent_id: string;
-  round: number;
-  content: string;
+  agentId: string;
+  tokens: number;
+  cost: number;
+  durationMs: number;
+}
+
+export interface SubagentResearchStartEvent {
+  event: "subagent_research_start";
+  models: string[];
+}
+
+export interface SubagentResearchDoneEvent {
+  event: "subagent_research_done";
+  count: number;
 }
 
 export interface ConvergenceDetectedEvent {
@@ -74,56 +107,20 @@ export interface ConvergenceDetectedEvent {
   pairwise: Array<{ model_a: string; model_b: string; similarity: number }>;
 }
 
-export interface JudgeStartEvent {
-  event: "judge_start";
-  description: string;
+export interface CompactionAppliedEvent {
+  event: "compaction_applied";
+  droppedRounds: number[];
+  keptRounds: number[];
+  charsBefore: number;
+  charsAfter: number;
+  ratio: number;
 }
 
-export interface JudgeRetryEvent {
-  event: "judge_retry";
-  debate_id: string;
-  reason: string;
-  error_type: string;
-  error_detail?: string;
-}
-
-export interface ConsensusEvent {
-  event: "consensus";
-  golden_prompt: string;
-  goldenPrompt?: string;
-  judge_model: string;
-}
-
-export interface CostUpdateEvent {
-  event: "cost_update";
-  total_cost: number;
-  total_tokens: number;
-  breakdown?: Record<string, unknown>;
-}
-
-export interface DoneEvent {
-  event: "done";
-  status: string;
-  debate_id: string;
-  total_cost?: number;
-  total_tokens?: number;
-  duration_ms?: number;
-  models_succeeded?: string[];
-  models_failed?: string[];
-  completed_at?: string;
-}
-
-export interface DebateErrorEvent {
-  event: "error";
-  message: string;
-  recoverable: boolean;
-}
-
-export interface DebateCancelledEvent {
-  event: "debate_cancelled";
-  debate_id: string;
-  reason: string;
-  partial_cost?: number;
+export interface SessionCompactedEvent {
+  event: "session_compacted";
+  original_tokens: number;
+  compacted_tokens: number;
+  reduction_pct: number;
 }
 
 export interface AntiCapitulationEvent {
@@ -140,43 +137,95 @@ export interface AntiCapitulationRevisedEvent {
   cost: number;
 }
 
-export interface SubagentResearchStartEvent {
-  event: "subagent_research_start";
-  models: string[];
+export interface JudgeStartEvent {
+  event: "judge_start";
+  judgeModel?: string;
+  description?: string;
 }
 
-export interface SubagentResearchDoneEvent {
-  event: "subagent_research_done";
-  count: number;
-  total_tasks: number;
+export interface JudgeRetryEvent {
+  event: "judge_retry";
+  attempt: number;
+  reason?: string;
 }
 
-export interface SessionCompactedEvent {
-  event: "session_compacted";
-  original_tokens: number;
-  compacted_tokens: number;
-  reduction_pct: number;
+export interface JudgePhaseEvent {
+  event:
+    | "judge:attempt"
+    | "judge:chunk"
+    | "judge:complete"
+    | "judge:cross-ref"
+    | "judge:disputes"
+    | "judge:error"
+    | "judge:extracting"
+    | "judge:fallback"
+    | "judge:fatal"
+    | "judge:scoring"
+    | "judge:scoring_complete"
+    | "judge:synthesizing";
+  [key: string]: unknown;
 }
 
-export interface RecoveryAttemptedEvent {
-  event: "recovery_attempted";
-  failure_class: string;
-  provider: string | null;
-  success: boolean;
+export interface PhaseStartEvent {
+  event: "phase_start";
+  phase: string;
 }
 
-export interface FailureClassifiedEvent {
-  event: "failure_classified";
-  failure_class: string;
-  provider: string | null;
-  detail: string;
-  recoverable: boolean;
+export interface PhaseEndEvent {
+  event: "phase_end";
+  phase: string;
+}
+
+export interface ConsensusEvent {
+  event: "consensus";
+  goldenPrompt: string;
+  totalCost: number;
+  modelsUsed: string[];
+}
+
+export interface CostUpdateEvent {
+  event: "cost_update";
+  totalCost: number;
+}
+
+export interface RoutingDecidedEvent {
+  event: "routing:decided";
+  modelId: string;
+  effectiveModel: string;
+  effectiveProvider: string;
 }
 
 export interface RoutingFallbackEvent {
   event: "routing:fallback";
-  original_model: string;
-  fallback_model: string;
+  requestedModel: string;
+  effectiveModel: string;
+  reason: string;
+}
+
+export interface RecoveryAppliedEvent {
+  event: "recovery:applied";
+  participantId: string;
+  failureClass: string;
+  action: string;
+  attempt: number;
+}
+
+export interface DoneEvent {
+  event: "done";
+  status: string;
+  totalCost: number;
+  totalTokens: number;
+  goldenPrompt: string;
+}
+
+export interface DebateErrorEvent {
+  event: "error";
+  message: string;
+  recoverable: boolean;
+}
+
+export interface DebateCancelledEvent {
+  event: "debate:cancelled";
   reason: string;
 }
 
@@ -187,19 +236,37 @@ export type DebateSseEvent =
   | AgentStartEvent
   | AgentChunkEvent
   | AgentCompleteEvent
-  | ConvergenceDetectedEvent
-  | JudgeStartEvent
-  | JudgeRetryEvent
-  | ConsensusEvent
-  | CostUpdateEvent
-  | DoneEvent
-  | DebateErrorEvent
-  | DebateCancelledEvent
-  | AntiCapitulationEvent
-  | AntiCapitulationRevisedEvent
   | SubagentResearchStartEvent
   | SubagentResearchDoneEvent
+  | ConvergenceDetectedEvent
+  | CompactionAppliedEvent
   | SessionCompactedEvent
-  | RecoveryAttemptedEvent
-  | FailureClassifiedEvent
-  | RoutingFallbackEvent;
+  | AntiCapitulationEvent
+  | AntiCapitulationRevisedEvent
+  | JudgeStartEvent
+  | JudgeRetryEvent
+  | JudgePhaseEvent
+  | PhaseStartEvent
+  | PhaseEndEvent
+  | ConsensusEvent
+  | CostUpdateEvent
+  | RoutingDecidedEvent
+  | RoutingFallbackEvent
+  | RecoveryAppliedEvent
+  | DoneEvent
+  | DebateErrorEvent
+  | DebateCancelledEvent;
+
+/**
+ * Backwards-compatible alias of the discriminator field.
+ *
+ * Prefer ``SseEventName`` (covers every name in ``SSE_EVENT_NAMES``,
+ * including event types that do not yet have a dedicated payload
+ * interface). ``SseEventType`` is the older alias kept for callers that
+ * narrow on a typed payload.
+ */
+export type SseEventType = DebateSseEvent["event"];
+
+export function isSseEventName(value: string): value is SseEventName {
+  return (SSE_EVENT_NAMES as readonly string[]).includes(value);
+}

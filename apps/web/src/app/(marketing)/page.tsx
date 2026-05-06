@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { buttonVariants } from "@/shared/components/ui/button";
+import { videoObjectSchema } from "@/lib/structured-data";
+import { SITE_URL } from "@/lib/seo";
 import {
   Card,
   CardContent,
@@ -285,12 +287,12 @@ consilium debate "What's the best way to ship this feature?" \
   --mode council`;
 
 const providerMeta: Record<string, { icon?: string; blurb: string }> = {
-  Anthropic: { icon: "anthropic", blurb: "Claude 4 family — strongest reasoning and synthesis." },
-  OpenAI: { icon: "openai", blurb: "GPT-5 series — fast, mini, and pro tiers." },
-  Google: { icon: "google", blurb: "Gemini 3 — long context and fast multimodal." },
+  Anthropic: { icon: "anthropic", blurb: "Claude 4 family - strongest reasoning and synthesis." },
+  OpenAI: { icon: "openai", blurb: "GPT-5 series - fast, mini, and pro tiers." },
+  Google: { icon: "google", blurb: "Gemini 3 - long context and fast multimodal." },
   Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
-  xAI: { icon: "xai", blurb: "Grok 4 — code-focused and reasoning variants." },
-  Moonshot: { blurb: "Kimi K2 — long-context reasoning." },
+  xAI: { icon: "xai", blurb: "Grok 4 - code-focused and reasoning variants." },
+  Moonshot: { blurb: "Kimi K2 - long-context reasoning." },
 };
 
 const modelGroups = Object.keys(providerMeta)
@@ -312,11 +314,42 @@ function CodeBlock({ code }: Readonly<{ code: string }>) {
   );
 }
 
+const heroVideoSchema = videoObjectSchema({
+  name: "Consilium product walkthrough",
+  description:
+    "30-second tour of Consilium - multi-AI council debating, voting, and synthesizing a consensus answer in real time.",
+  contentUrl: "/brand/consilium-prod.mp4",
+  thumbnailUrl: "/og.png",
+  uploadDate: "2026-04-15",
+});
+
+const homeSpeakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  url: SITE_URL,
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2", "[data-speakable]"],
+  },
+};
+
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Python");
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(heroVideoSchema).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homeSpeakableSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         <video
           autoPlay
@@ -360,7 +393,7 @@ export default function LandingPage() {
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
             Not another orchestration tool. Consilium makes AI models argue,
-            challenge, and synthesize — producing answers with tracked
+            challenge, and synthesize - producing answers with tracked
             confidence, dissent, and audit trails.
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
@@ -518,7 +551,7 @@ export default function LandingPage() {
             Install the CLI
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Run debates from your terminal — pipe in files, diffs, or stdin and
+            Run debates from your terminal - pipe in files, diffs, or stdin and
             stream the deliberation live.
           </p>
         </div>
@@ -689,7 +722,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30 p-6 text-center">
           <p className="text-sm text-muted-foreground">
             <span className="font-medium text-foreground">No key, no problem.</span>{" "}
-            Start a debate with zero setup — Consilium routes free-tier requests
+            Start a debate with zero setup - Consilium routes free-tier requests
             through Groq and OpenRouter automatically. Bring your own keys
             anytime for premium models.
           </p>
@@ -717,7 +750,7 @@ export default function LandingPage() {
                   {paper.title}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {paper.authors} — {paper.venue}
+                  {paper.authors} - {paper.venue}
                 </p>
               </CardHeader>
               <CardContent>

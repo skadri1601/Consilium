@@ -5,12 +5,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/shared/components/ui/accordion";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbList, faqPage } from "@/lib/structured-data";
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
   description:
-    "Answers to common questions about Consilium — how multi-AI debate works, which models are supported, BYOK, privacy, and pricing.",
+    "Answers to common questions about Consilium - how multi-AI debate works, which models are supported, BYOK, privacy, and pricing.",
   path: "/faq",
   keywords: ["consilium faq", "ai council faq", "multi-agent debate questions"],
 });
@@ -20,19 +22,19 @@ const generalFaqs = [
     id: "what-is",
     question: "What is Consilium?",
     answer:
-      "Consilium is a multi-AI deliberation platform. Not orchestration — it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
+      "Consilium is a multi-AI deliberation platform. Not orchestration - it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
   },
   {
     id: "difference",
     question: "How is this different from ChatGPT or Claude?",
     answer:
-      "Single models give you one perspective. Consilium orchestrates structured debate between multiple models — Claude, GPT-4o, Gemini, Grok, Llama — making them cross-examine each other before synthesizing. Research shows multi-agent deliberation improves factual accuracy by 8-15% over single-model responses (ICML 2024).",
+      "Single models give you one perspective. Consilium orchestrates structured debate between multiple models - Claude, GPT-4o, Gemini, Grok, Llama - making them cross-examine each other before synthesizing. Research shows multi-agent deliberation improves factual accuracy by 8-15% over single-model responses (ICML 2024).",
   },
   {
     id: "modes",
     question: "What are the 8 deliberation modes?",
     answer:
-      "Quick (1 round, fastest), Council (3 rounds default with cross-examination), Deep (5 rounds with sub-agents), Blind (identity-stripped to eliminate model bias), Red Team (adversarial with 8 attack categories), Jury (mandatory dissent — minority opinions required), Market (probability aggregation using prediction market mechanics), and Auto (complexity-based routing that picks the best mode for your query).",
+      "Quick (1 round, fastest), Council (3 rounds default with cross-examination), Deep (5 rounds with sub-agents), Blind (identity-stripped to eliminate model bias), Red Team (adversarial with 8 attack categories), Jury (mandatory dissent - minority opinions required), Market (probability aggregation using prediction market mechanics), and Auto (complexity-based routing that picks the best mode for your query).",
   },
   {
     id: "output",
@@ -44,7 +46,7 @@ const generalFaqs = [
     id: "free",
     question: "Is Consilium free?",
     answer:
-      "The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) — Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free to use.",
+      "The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) - Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free to use.",
   },
   {
     id: "who-built",
@@ -77,13 +79,13 @@ const technicalFaqs = [
     id: "dissent",
     question: "How does dissent detection work?",
     answer:
-      "Agglomerative clustering builds a Jaccard similarity matrix between all proposals, then iteratively merges the closest clusters using a threshold of >= 0.5. A single resulting cluster means consensus. Multiple clusters indicate dissent — each cluster becomes a position with majority/minority labels, member models, and representative arguments.",
+      "Agglomerative clustering builds a Jaccard similarity matrix between all proposals, then iteratively merges the closest clusters using a threshold of >= 0.5. A single resulting cluster means consensus. Multiple clusters indicate dissent - each cluster becomes a position with majority/minority labels, member models, and representative arguments.",
   },
   {
     id: "provider-keys",
     question: "Do I need all 5 provider API keys?",
     answer:
-      "No. You need at least one provider key. Groq is free and works as an automatic fallback when other providers fail. For best results, use 2-3 different providers to get genuine model diversity — models from the same provider tend to share similar biases.",
+      "No. You need at least one provider key. Groq is free and works as an automatic fallback when other providers fail. For best results, use 2-3 different providers to get genuine model diversity - models from the same provider tend to share similar biases.",
   },
   {
     id: "streaming",
@@ -104,7 +106,7 @@ const securityFaqs = [
     id: "authentication",
     question: "What authentication does Consilium use?",
     answer:
-      "Clerk for web authentication (JWT-based with session management). The CLI uses hashed long-lived tokens — the plaintext is shown once at creation and never stored. The API uses Bearer token authentication. All auth flows use HTTPS.",
+      "Clerk for web authentication (JWT-based with session management). The CLI uses hashed long-lived tokens - the plaintext is shown once at creation and never stored. The API uses Bearer token authentication. All auth flows use HTTPS.",
   },
   {
     id: "audit-trail",
@@ -154,15 +156,29 @@ const sections = [
   { title: "Pricing & Costs", faqs: costFaqs },
 ];
 
+const allFaqs = [...generalFaqs, ...technicalFaqs, ...securityFaqs, ...costFaqs];
+
+const faqSchema = faqPage(
+  allFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+  { url: `${SITE_URL}/faq`, speakable: true },
+);
+
+const faqBreadcrumbs = breadcrumbList([
+  { name: "Home", path: "/" },
+  { name: "FAQ", path: "/faq" },
+]);
+
 export default function FAQPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-faq" data={faqSchema} />
+      <JsonLd id="ld-faq-breadcrumbs" data={faqBreadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-48">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center" data-speakable>
             Frequently Asked Questions
           </h1>
-          <p className="text-center text-muted-foreground mb-16">
+          <p className="text-center text-muted-foreground mb-16" data-speakable>
             Everything you need to know about Consilium
           </p>
 

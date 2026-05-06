@@ -20,7 +20,7 @@ from .circuit_breaker import circuit_breaker
 from .rate_limiter import rate_limiter
 from .convergence import check_convergence
 from .cost_tracker import CostTracker
-from .failure_taxonomy import classify_failure, recovery_dispatcher, FailureClass
+from .failure_taxonomy import classify, FailureClass
 from .session_compaction import compact_debate_context, build_compacted_prompt, CompactionConfig
 from .session_journal import SessionJournal
 from .event_types import DebateEventName
@@ -192,23 +192,13 @@ async def _call_agent_single_attempt(
             _correlation_token(model_id), attempt + 1,
         )
     except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
-        failure = classify_failure(exc, provider=provider, model_id=model_id)
-        failure.attempt = attempt
+        failure_class = classify(exc)
         logger.warning(
             "Agent %s attempt %d [%s]: %s",
             _correlation_token(model_id), attempt + 1,
-            failure.failure_class.value, failure.detail,
+            failure_class.value, str(exc),
         )
         await _circuit_failure(provider)
-        recovered = await recovery_dispatcher.try_recover(failure)
-        if recovered:
-            pair = await _call_agent_try_generate(
-                agent, system_prompt, user_prompt, model_id, cost_tracker,
-            )
-            if pair is not None:
-                if provider:
-                    await circuit_breaker.record_success(provider)
-                return pair
     return None
 
 

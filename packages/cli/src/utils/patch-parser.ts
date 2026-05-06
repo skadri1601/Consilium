@@ -1,5 +1,5 @@
 /**
- * EditAction format — backward compatible with the legacy { path, content }
+ * EditAction format - backward compatible with the legacy { path, content }
  * shape, extended with surgical { kind: 'edit', oldString, newString } and
  * delete operations modeled after Claude Code's Edit tool semantics.
  */

@@ -103,13 +103,13 @@ export interface StartDebateOptions {
   json?: boolean;
   file?: string[];
   gitDiff?: boolean;
-  /** Commander negation — present and false when --no-git is passed. Default ON. */
+  /** Commander negation - present and false when --no-git is passed. Default ON. */
   git?: boolean;
   ticket?: string;
   context?: boolean;
-  /** Legacy alias — agent tools are now on by default. */
+  /** Legacy alias - agent tools are now on by default. */
   mcpTools?: boolean;
-  /** Commander negation — present and false when --no-tools is passed. */
+  /** Commander negation - present and false when --no-tools is passed. */
   tools?: boolean;
 }
 
@@ -178,9 +178,9 @@ export async function startDebateCommand(
 
 export interface StreamDebateOptions {
   deliberation?: boolean;
-  /** Legacy alias — agent tools are now on by default. */
+  /** Legacy alias - agent tools are now on by default. */
   mcpTools?: boolean;
-  /** Commander negation — present and false when --no-tools is passed. */
+  /** Commander negation - present and false when --no-tools is passed. */
   tools?: boolean;
 }
 

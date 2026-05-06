@@ -6,20 +6,20 @@ IDE.
 
 ## Features
 
-- **Sidebar council** — chat-style transcript that streams every agent token
+- **Sidebar council** - chat-style transcript that streams every agent token
   live as the council debates.
-- **Editor commands** — right-click any selection to debate or red-team it.
-- **Eight modes** — quick, council, deep, blind, redteam, jury, market, and
+- **Editor commands** - right-click any selection to debate or red-team it.
+- **Eight modes** - quick, council, deep, blind, redteam, jury, market, and
   auto. Pick from the command palette or the composer.
-- **Workspace context** — automatically sends a redacted snapshot of your
+- **Workspace context** - automatically sends a redacted snapshot of your
   workspace so the council answers in context. Secrets are scrubbed and
   `.gitignore`d files are excluded.
-- **Sessions tree** — browse, reopen, rename, archive, or delete past debates
+- **Sessions tree** - browse, reopen, rename, archive, or delete past debates
   from the activity bar.
-- **Status bar** — live progress, round counter, and running cost.
-- **BYOK** — bring your own provider keys (OpenAI, Anthropic, Google, Groq,
+- **Status bar** - live progress, round counter, and running cost.
+- **BYOK** - bring your own provider keys (OpenAI, Anthropic, Google, Groq,
   xAI, Moonshot, OpenRouter). Stored in VS Code's encrypted SecretStorage.
-- **Insert golden prompt** — drop the judge's consensus into your file at the
+- **Insert golden prompt** - drop the judge's consensus into your file at the
   cursor or open it in a new buffer.
 
 ## Requirements

@@ -52,7 +52,7 @@ describe("DebatesController (e2e)", () => {
     );
 
     // The controller is registered as @Controller("debates") and main.ts
-    // applies a global prefix "api/v1" — replicate that here so routes match.
+    // applies a global prefix "api/v1" - replicate that here so routes match.
     app.setGlobalPrefix("api/v1");
 
     app.useGlobalPipes(

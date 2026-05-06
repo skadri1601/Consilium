@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "How It Works",
   description:
-    "How Consilium deliberation works under the hood — independent analysis, cross-examination, rebuttal, and judge synthesis across multiple AI models.",
+    "How Consilium deliberation works under the hood - independent analysis, cross-examination, rebuttal, and judge synthesis across multiple AI models.",
   path: "/docs/how-it-works",
 });
 
@@ -120,28 +120,28 @@ export default function HowItWorksPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">PROPOSAL</span> — Each model independently generates: claims (list of assertions), reasoning chain (step-by-step logic), confidence score, and supporting evidence. No model sees others&apos; proposals.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">PROPOSAL</span> - Each model independently generates: claims (list of assertions), reasoning chain (step-by-step logic), confidence score, and supporting evidence. No model sees others&apos; proposals.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CHALLENGE</span> — Models cross-examine each other. Challenges are typed: factual errors, missing evidence, logical flaws, better alternatives. Each challenge targets a specific claim in another model&apos;s proposal.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">CHALLENGE</span> - Models cross-examine each other. Challenges are typed: factual errors, missing evidence, logical flaws, better alternatives. Each challenge targets a specific claim in another model&apos;s proposal.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">REBUTTAL</span> — Defenders respond with categorized rebuttals: CONCEDE (accept the challenge), REFUTE (counter with evidence), QUALIFY (accept partially with conditions), or REDIRECT (reframe the question). Rebuttal types feed into convergence and confidence metrics.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">REBUTTAL</span> - Defenders respond with categorized rebuttals: CONCEDE (accept the challenge), REFUTE (counter with evidence), QUALIFY (accept partially with conditions), or REDIRECT (reframe the question). Rebuttal types feed into convergence and confidence metrics.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">EVALUATION</span> — Proposals scored against a rubric with weighted dimensions. Each dimension gets a 0-1 score. The rubric varies by template (e.g., security 30% + correctness 25% for code review).</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">EVALUATION</span> - Proposals scored against a rubric with weighted dimensions. Each dimension gets a 0-1 score. The rubric varies by template (e.g., security 30% + correctness 25% for code review).</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">VOTING</span> — Models cast RankedBallots: an ordered preference list of proposals with a confidence_weight (0-1). Higher confidence = more influence on the final ranking.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">VOTING</span> - Models cast RankedBallots: an ordered preference list of proposals with a confidence_weight (0-1). Higher confidence = more influence on the final ranking.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">AGGREGATION</span> — Votes aggregated through the voting pipeline: Borda scores → full ranking → Condorcet check → Ranked Pairs fallback. Produces winner, method used, and confidence level.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">AGGREGATION</span> - Votes aggregated through the voting pipeline: Borda scores → full ranking → Condorcet check → Ranked Pairs fallback. Produces winner, method used, and confidence level.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CONVERGENCE</span> — Three metrics combined to determine if debate should continue. If converged (score ≥ 0.85) or max rounds reached, proceeds to OUTPUT. Otherwise loops back to PROPOSAL.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">CONVERGENCE</span> - Three metrics combined to determine if debate should continue. If converged (score ≥ 0.85) or max rounds reached, proceeds to OUTPUT. Otherwise loops back to PROPOSAL.</p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">OUTPUT</span> — Final synthesis: judge model integrates strongest arguments, applies dissent detection, calibrates confidence, and produces the golden prompt.</p>
+                      <p className="text-sm"><span className="text-indigo-400 font-medium">OUTPUT</span> - Final synthesis: judge model integrates strongest arguments, applies dissent detection, calibrates confidence, and produces the golden prompt.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -156,7 +156,7 @@ export default function HowItWorksPage() {
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Consilium implements four formal social choice theory algorithms. These aren&apos;t simple &quot;pick the most popular&quot; mechanisms — they&apos;re mathematically rigorous voting methods used in political science and decision theory.
+                Consilium implements four formal social choice theory algorithms. These aren&apos;t simple &quot;pick the most popular&quot; mechanisms - they&apos;re mathematically rigorous voting methods used in political science and decision theory.
               </p>
 
               <Card>
@@ -165,7 +165,7 @@ export default function HowItWorksPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Checks if any candidate beats ALL others in pairwise matchups. For each pair of candidates (A, B), counts how many voters prefer A over B (weighted by confidence_weight). If one candidate wins every pairwise comparison, it&apos;s the Condorcet winner — the strongest possible consensus.
+                    Checks if any candidate beats ALL others in pairwise matchups. For each pair of candidates (A, B), counts how many voters prefer A over B (weighted by confidence_weight). If one candidate wins every pairwise comparison, it&apos;s the Condorcet winner - the strongest possible consensus.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each pair (A, B):
@@ -208,7 +208,7 @@ Used even when Condorcet winner exists, to produce complete ordering`}</code>
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`1. List all pairwise matchups with victory margins
-2. Sort by margin (descending) — strongest victories first
+2. Sort by margin (descending) - strongest victories first
 3. For each matchup:
    - Lock the edge (winner → loser) IF it doesn't create a cycle
    - Skip if it would create a cycle (topological sort check)
@@ -417,7 +417,7 @@ Output: { converged, score, components, recommendation }`}</code>
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Confidence calibration measures how much each model actually stands behind its claims. A model that caves under scrutiny gets a lower confidence score than one that defends its position with evidence. This is based on &quot;explanation stability&quot; — the degree to which a model&apos;s claims survive cross-examination.
+                Confidence calibration measures how much each model actually stands behind its claims. A model that caves under scrutiny gets a lower confidence score than one that defends its position with evidence. This is based on &quot;explanation stability&quot; - the degree to which a model&apos;s claims survive cross-examination.
               </p>
 
               <Card>

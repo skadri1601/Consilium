@@ -5,7 +5,7 @@ import * as path from "node:path";
 
 /**
  * Auth strategy:
- *   1. VS Code SecretStorage (preferred — encrypted at rest by VS Code)
+ *   1. VS Code SecretStorage (preferred - encrypted at rest by VS Code)
  *   2. ~/.consilium/config.json (cross-tool SSO with the CLI)
  *   3. Browser sign-in flow → store the resulting token in SecretStorage
  *
@@ -60,7 +60,7 @@ export class AuthManager {
 
   /**
    * Open the browser sign-in flow and prompt for the token returned.
-   * The CLI uses a similar flow (login.ts) — eventually this should
+   * The CLI uses a similar flow (login.ts) - eventually this should
    * use a deeplink + URI handler for a fully automated round-trip.
    */
   async signInFlow(): Promise<string | undefined> {

@@ -38,9 +38,9 @@ const papers = [
     venue: "ICML 2024 Best Paper",
     venueColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     href: "https://arxiv.org/abs/2402.06782",
-    abstract: "This ICML 2024 Best Paper award winner investigates what happens when debaters have asymmetric capabilities — when one model is more persuasive than another. The key finding is that even with one more persuasive debater, structured debate protocols still converge on truthful answers because truth has a natural advantage in debate. Truthful arguments are easier to defend under repeated scrutiny, while false arguments require increasingly elaborate justifications that eventually collapse under adversarial pressure.",
+    abstract: "This ICML 2024 Best Paper award winner investigates what happens when debaters have asymmetric capabilities - when one model is more persuasive than another. The key finding is that even with one more persuasive debater, structured debate protocols still converge on truthful answers because truth has a natural advantage in debate. Truthful arguments are easier to defend under repeated scrutiny, while false arguments require increasingly elaborate justifications that eventually collapse under adversarial pressure.",
     findings: [
-      "Truth has a natural advantage in structured debate — truthful positions are easier to defend",
+      "Truth has a natural advantage in structured debate - truthful positions are easier to defend",
       "Even asymmetric debates (strong vs. weak model) converge on correct answers",
       "Structured protocols prevent persuasive but incorrect arguments from dominating",
       "Validates debate as a scalable oversight method for AI alignment",
@@ -48,7 +48,7 @@ const papers = [
     ],
     methodology: "Asymmetric debate experiments where models of varying capability argue for correct and incorrect positions. Human and AI judges evaluate debate transcripts without knowing which model argued which side. Experiments measure judge accuracy across multiple debate formats: single-turn, multi-turn, and cross-examination. The study controls for model capability by pairing GPT-4 against Claude and measuring convergence rates.",
     benchmarks: "Judge accuracy: 76% (direct) → 88% (after debate). Asymmetric pairing: truth-side wins 84% of debates regardless of model strength.",
-    consiliumMapping: "Blind mode implements this paper's insight by hiding model identities during evaluation, preventing brand bias. The judge evaluates arguments purely on merit using multiple argument orderings. This ensures a more persuasive model cannot win through reputation alone — only through the strength of its evidence. Consilium's confidence calibration formula (stability * (1 - concession_rate) * (1 - 0.3 * qualification_rate)) directly operationalizes the paper's finding that explanation stability predicts truthfulness.",
+    consiliumMapping: "Blind mode implements this paper's insight by hiding model identities during evaluation, preventing brand bias. The judge evaluates arguments purely on merit using multiple argument orderings. This ensures a more persuasive model cannot win through reputation alone - only through the strength of its evidence. Consilium's confidence calibration formula (stability * (1 - concession_rate) * (1 - 0.3 * qualification_rate)) directly operationalizes the paper's finding that explanation stability predicts truthfulness.",
   },
   {
     title: "ReConcile: Round-Table Conference Improves Reasoning via Consensus among Diverse LLMs",
@@ -56,7 +56,7 @@ const papers = [
     venue: "ACL 2024",
     venueColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     href: "https://arxiv.org/abs/2309.13007",
-    abstract: "ReConcile proposes a round-table discussion framework where diverse LLMs engage in multi-round discussions, share confidence scores, and update their positions based on group deliberation. The paper demonstrates that this approach consistently outperforms both the best individual model and simple ensemble methods like majority voting. The key insight is that confidence-weighted consensus captures more information than simple aggregation — models that are uncertain about their answers appropriately defer to more confident peers.",
+    abstract: "ReConcile proposes a round-table discussion framework where diverse LLMs engage in multi-round discussions, share confidence scores, and update their positions based on group deliberation. The paper demonstrates that this approach consistently outperforms both the best individual model and simple ensemble methods like majority voting. The key insight is that confidence-weighted consensus captures more information than simple aggregation - models that are uncertain about their answers appropriately defer to more confident peers.",
     findings: [
       "3-10% improvement over the best individual model across reasoning benchmarks",
       "Confidence-weighted voting outperforms simple majority voting by 5-7%",
@@ -66,7 +66,7 @@ const papers = [
     ],
     methodology: "Round-table conference format where diverse LLMs discuss problems across multiple rounds, sharing confidence-weighted votes. Models update their positions based on the group's reasoning, with final answers determined by confidence-weighted consensus. Experiments compare same-architecture vs. cross-architecture ensembles across StrategyQA, ARC, and MATH benchmarks.",
     benchmarks: "StrategyQA: +7% over best single model. ARC-Challenge: +5%. MATH: +10% on hardest problems. Cross-architecture ensembles: +3% over same-architecture.",
-    consiliumMapping: "Council mode implements the round-table format with Condorcet and Borda count voting systems. Consilium extends the paper's approach with confidence-weighted ballots, Ranked Pairs tiebreaking, and Copeland scoring for comparative analysis — applying formal social choice theory to the consensus mechanism. The paper's finding that diverse architectures outperform same-model ensembles is why Consilium supports 5 providers (Anthropic, OpenAI, Google, xAI, Groq) for cross-architecture deliberation.",
+    consiliumMapping: "Council mode implements the round-table format with Condorcet and Borda count voting systems. Consilium extends the paper's approach with confidence-weighted ballots, Ranked Pairs tiebreaking, and Copeland scoring for comparative analysis - applying formal social choice theory to the consensus mechanism. The paper's finding that diverse architectures outperform same-model ensembles is why Consilium supports 5 providers (Anthropic, OpenAI, Google, xAI, Groq) for cross-architecture deliberation.",
   },
   {
     title: "AI Safety via Debate",
@@ -74,7 +74,7 @@ const papers = [
     venue: "Alignment Forum",
     venueColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
     href: "https://arxiv.org/abs/1805.00899",
-    abstract: "This foundational paper proposes debate as an alignment technique where two AI systems argue for opposing positions while a human (or AI) judge evaluates. The key insight is that debate enables judges to assess the quality of AI outputs even on tasks they cannot solve directly — the adversarial structure forces both sides to surface the strongest evidence, making evaluation tractable. The paper provides theoretical analysis showing that optimal play in debate converges on truthful answers under reasonable assumptions about the judge's ability to verify evidence.",
+    abstract: "This foundational paper proposes debate as an alignment technique where two AI systems argue for opposing positions while a human (or AI) judge evaluates. The key insight is that debate enables judges to assess the quality of AI outputs even on tasks they cannot solve directly - the adversarial structure forces both sides to surface the strongest evidence, making evaluation tractable. The paper provides theoretical analysis showing that optimal play in debate converges on truthful answers under reasonable assumptions about the judge's ability to verify evidence.",
     findings: [
       "Debate enables evaluation of AI outputs on tasks beyond the judge's direct capability",
       "Adversarial structure incentivizes surfacing the strongest evidence for each position",
@@ -84,7 +84,7 @@ const papers = [
     ],
     methodology: "Two AI systems debate opposing positions on a given question. A judge (human or AI) evaluates the debate transcript and selects the winning position. The adversarial incentive structure ensures both sides present their strongest arguments. Theoretical analysis proves convergence properties under various judge capability assumptions.",
     benchmarks: "Theoretical: optimal debate converges to truth with O(log n) judge queries for n-bit answers. Empirical validation in subsequent papers (Khan et al., Du et al.).",
-    consiliumMapping: "Red Team mode implements the attack/defend/judge framework directly. Models take adversarial positions, challenge each other with typed attacks (FACTUAL_ERROR, MISSING_EVIDENCE, FLAWED_LOGIC), and a judge synthesizes the final assessment. Jury mode extends this with mandatory dissent — ensuring minority opinions are preserved even when the majority reaches consensus. The paper's theoretical convergence guarantees motivate Consilium's mathematical convergence threshold (0.85).",
+    consiliumMapping: "Red Team mode implements the attack/defend/judge framework directly. Models take adversarial positions, challenge each other with typed attacks (FACTUAL_ERROR, MISSING_EVIDENCE, FLAWED_LOGIC), and a judge synthesizes the final assessment. Jury mode extends this with mandatory dissent - ensuring minority opinions are preserved even when the majority reaches consensus. The paper's theoretical convergence guarantees motivate Consilium's mathematical convergence threshold (0.85).",
   },
   {
     title: "LLM Discussion: Enhancing the Creativity of Large Language Models via Discussion Framework and Role-Play",
@@ -92,7 +92,7 @@ const papers = [
     venue: "AAAI 2024",
     venueColor: "bg-sky-500/10 text-sky-400 border-sky-500/20",
     href: "https://arxiv.org/abs/2311.15789",
-    abstract: "This paper explores how structured discussion between LLMs produces more creative and diverse outputs than individual generation. By having models propose ideas, critique each other's proposals, and build on promising directions collaboratively, the discussion framework overcomes the tendency of individual models to produce safe, predictable outputs. The authors demonstrate that role assignment — giving models specific personas during discussion — further improves creative diversity by forcing exploration of perspectives that a single model would not naturally adopt.",
+    abstract: "This paper explores how structured discussion between LLMs produces more creative and diverse outputs than individual generation. By having models propose ideas, critique each other's proposals, and build on promising directions collaboratively, the discussion framework overcomes the tendency of individual models to produce safe, predictable outputs. The authors demonstrate that role assignment - giving models specific personas during discussion - further improves creative diversity by forcing exploration of perspectives that a single model would not naturally adopt.",
     findings: [
       "Structured multi-model discussion produces 23% more creative outputs (human evaluation)",
       "Discussion format encourages exploration of unconventional approaches",

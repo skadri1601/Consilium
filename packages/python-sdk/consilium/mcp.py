@@ -545,7 +545,7 @@ async def _jsonrpc_handle(request: dict) -> dict:
         try:
             # Streaming tools accept an optional progress_sink as second
             # positional. The stdio fallback has no MCP progress channel,
-            # so we pass None — the handlers will still complete and
+            # so we pass None - the handlers will still complete and
             # return their final result, just without intermediate
             # progress notifications.
             if name in _STREAMING_TOOL_NAMES:

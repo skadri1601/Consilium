@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
 
@@ -46,33 +46,6 @@ jobs:
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
               - 'tsconfig.json'
-
-  branch-freshness:
-    name: Branch Freshness Check
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          fetch-depth: 0
-
-      - name: Check branch is not stale against base
-        run: |
-          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          git fetch origin "$BASE_BRANCH" --quiet
-
-          BEHIND=$(git rev-list --count "HEAD..origin/$BASE_BRANCH")
-          if [ "$BEHIND" -gt 50 ]; then
-            echo "::warning::Branch is $BEHIND commits behind $BASE_BRANCH. Consider rebasing to avoid merge conflicts."
-          fi
-
-          MERGE_BASE=$(git merge-base HEAD "origin/$BASE_BRANCH")
-          DAYS_OLD=$(( ($(date +%s) - $(git log -1 --format=%ct "$MERGE_BASE")) / 86400 ))
-          if [ "$DAYS_OLD" -gt 14 ]; then
-            echo "::warning::Branch diverged from $BASE_BRANCH $DAYS_OLD days ago. Consider rebasing."
-          fi
-
-          echo "Branch status: $BEHIND commits behind $BASE_BRANCH, diverged $DAYS_OLD days ago"
 
   lint-and-typecheck:
     name: Lint & Type Check

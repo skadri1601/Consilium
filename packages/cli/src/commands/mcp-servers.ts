@@ -108,7 +108,7 @@ export async function testServerCommand(name: string, options: TestOptions = {})
       console.log(st.success(`${name}: ready`));
       console.log(st.dim(`  ${tools.length} tool${tools.length === 1 ? "" : "s"} exposed`));
       for (const t of tools) {
-        const desc = t.description ? ` — ${t.description.slice(0, 60)}` : "";
+        const desc = t.description ? ` - ${t.description.slice(0, 60)}` : "";
         console.log(`    ${st.brand(t.name)}${desc}`);
       }
     }
@@ -189,7 +189,7 @@ export async function toolsCommand(options: ToolsOptions = {}): Promise<void> {
   for (const [server, tools] of byServer) {
     console.log(st.brand(`  ${server}`));
     for (const t of tools) {
-      const desc = t.tool.description ? ` — ${t.tool.description.slice(0, 60)}` : "";
+      const desc = t.tool.description ? ` - ${t.tool.description.slice(0, 60)}` : "";
       console.log(`    ${t.tool.name}${desc}`);
     }
   }
