@@ -14,8 +14,8 @@ Usage from the orchestrator:
 ...     # the judge prompt; ``summary.dropped_rounds`` is metadata for
 ...     # SSE / audit.
 
-The implementation is deliberately deterministic and dependency-free —
-no LLM calls — so it can run inside the request path without adding
+The implementation is deliberately deterministic and dependency-free -
+no LLM calls - so it can run inside the request path without adding
 another point of failure. Callers that want a model-summarized version
 can wrap :func:`Compactor.compact` and replace ``continuation`` with the
 LLM output, but the default keeps Consilium's "no surprises" guarantee.
@@ -38,7 +38,7 @@ class RoundRecord:
     """The minimum a compactor needs to summarize a round.
 
     The orchestrator already has richer round records; this is the
-    contract — anything that exposes ``round_number``, ``responses``,
+    contract - anything that exposes ``round_number``, ``responses``,
     and optional ``description`` works.
     """
 

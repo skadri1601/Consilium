@@ -1,4 +1,4 @@
-// ESLint 9 flat-config shim — bridges the legacy Next.js eslint preset into
+// ESLint 9 flat-config shim - bridges the legacy Next.js eslint preset into
 // the flat-config world because `next lint` was removed in Next.js 16 and
 // ESLint 9 no longer reads .eslintrc.json.
 import { fileURLToPath } from "node:url";

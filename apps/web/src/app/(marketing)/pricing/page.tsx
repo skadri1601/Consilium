@@ -8,7 +8,79 @@ import {
   CardTitle,
   CardDescription,
 } from "@/shared/components/ui/card";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+
+const PRICING_URL = `${SITE_URL}/pricing`;
+const ORGANIZATION_ID = `${SITE_URL}#organization`;
+const SOFTWARE_ID = `${SITE_URL}#software`;
+
+const productJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": `${PRICING_URL}#product`,
+  name: SITE_NAME,
+  description:
+    "Multi-AI council platform that runs structured deliberation across 7 LLM providers and synthesizes a consensus answer with full audit trail.",
+  brand: { "@id": ORGANIZATION_ID },
+  isRelatedTo: { "@id": SOFTWARE_ID },
+  url: PRICING_URL,
+  image: `${SITE_URL}/og.png`,
+  offers: [
+    {
+      "@type": "Offer",
+      "@id": `${PRICING_URL}#offer-free`,
+      name: "Free + BYOK",
+      description: "Bring your own API keys; 5 debates/week, 20/month.",
+      price: "0",
+      priceCurrency: "USD",
+      url: `${SITE_URL}/sign-up`,
+      availability: "https://schema.org/InStock",
+      category: "free",
+      eligibleCustomerType: "https://schema.org/Enduser",
+    },
+    {
+      "@type": "Offer",
+      "@id": `${PRICING_URL}#offer-pro`,
+      name: "Pro",
+      description:
+        "Unlimited deliberations, 5+ models per debate, all 8 modes, 500K weighted tokens/week.",
+      price: "29",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "29",
+        priceCurrency: "USD",
+        billingDuration: "P1M",
+        unitText: "month",
+      },
+      availability: "https://schema.org/PreOrder",
+      url: PRICING_URL,
+      category: "subscription",
+      eligibleCustomerType: "https://schema.org/Enduser",
+    },
+    {
+      "@type": "Offer",
+      "@id": `${PRICING_URL}#offer-max`,
+      name: "Max",
+      description:
+        "Pro plus 2M weighted tokens/week, parallel/batch CLI, REST API, conformal safety gate.",
+      price: "99",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "99",
+        priceCurrency: "USD",
+        billingDuration: "P1M",
+        unitText: "month",
+      },
+      availability: "https://schema.org/PreOrder",
+      url: PRICING_URL,
+      category: "subscription",
+      eligibleCustomerType: "https://schema.org/Enduser",
+    },
+  ],
+};
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
@@ -28,7 +100,7 @@ const tiers = [
     name: "Free + BYOK",
     price: "$0",
     period: "/forever",
-    description: "Bring your own API keys — pay only providers",
+    description: "Bring your own API keys - pay only providers",
     comingSoon: false,
     features: [
       "5 debates/week, 20/month",
@@ -286,6 +358,7 @@ function CellValue({ value }: { value: boolean | string }) {
 export default function PricingPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-pricing-product" data={productJsonLd} />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -530,7 +603,7 @@ export default function PricingPage() {
           <h2 className="text-xl font-bold mb-2">Need a custom arrangement?</h2>
           <p className="text-muted-foreground mb-6">
             Volume pricing, specific compliance requirements, or a private
-            deployment — talk to us. We work with teams individually until
+            deployment - talk to us. We work with teams individually until
             Consilium has the traction for a formal Enterprise tier.
           </p>
           <Link

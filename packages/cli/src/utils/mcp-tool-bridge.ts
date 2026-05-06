@@ -84,7 +84,7 @@ export async function startToolBridge(
   if (tools.length === 0) {
     await registry.stopAll();
     if (!options.quiet) {
-      console.log(st.dim("[mcp] no tools available — continuing without tool access"));
+      console.log(st.dim("[mcp] no tools available - continuing without tool access"));
     }
     return null;
   }
@@ -99,7 +99,7 @@ export async function startToolBridge(
 
   // Per-deliberation tool-call counters. The budget message says
   // "...for this debate", which was a lie when totalCalls was a single
-  // bridge-scoped counter — debate #2 inherited the budget consumed by
+  // bridge-scoped counter - debate #2 inherited the budget consumed by
   // debate #1. Tracking by deliberationId restores the documented
   // contract.
   const callsByDeliberation = new Map<string, number>();
@@ -155,7 +155,7 @@ export async function startToolBridge(
       if (!callId || !name) return;
 
       if (!markSeen(deliberationId, callId)) {
-        // Duplicate request from an SSE replay — already handled.
+        // Duplicate request from an SSE replay - already handled.
         return;
       }
 

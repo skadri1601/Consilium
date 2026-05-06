@@ -51,7 +51,7 @@ const modesBreadcrumbs = breadcrumbList([
 export const metadata: Metadata = buildMetadata({
   title: "Deliberation Modes",
   description:
-    "The eight deliberation modes in Consilium — classic debate, socratic, tree-of-thoughts, red-team, constitutional, ranked-choice, and more — each backed by peer-reviewed research.",
+    "The eight deliberation modes in Consilium - classic debate, socratic, tree-of-thoughts, red-team, constitutional, ranked-choice, and more - each backed by peer-reviewed research.",
   path: "/docs/modes",
   keywords: ["ai deliberation modes", "multi-agent debate modes", "tree of thoughts", "socratic ai"],
 });
@@ -77,7 +77,7 @@ const modes = [
     phases: ["PROPOSAL", "EVALUATION", "OUTPUT"],
     maxRounds: 1,
     defaultModels: 1,
-    description: "Single-round rapid analysis for straightforward questions. One model generates a response, it gets evaluated, and you receive the output. No debate, no cross-examination — just a fast, direct answer.",
+    description: "Single-round rapid analysis for straightforward questions. One model generates a response, it gets evaluated, and you receive the output. No debate, no cross-examination - just a fast, direct answer.",
     whenToUse: [
       "Simple factual questions: \"What is the time complexity of quicksort?\"",
       "Quick sanity checks on a single idea",
@@ -131,7 +131,7 @@ const modes = [
     phases: ["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"],
     maxRounds: 3,
     defaultModels: "2-5",
-    description: "Anonymous evaluation that eliminates model identity bias. All proposals are stripped of model identity before evaluation. The judge evaluates arguments in multiple orderings to prevent anchoring bias — ensuring the quality of reasoning matters, not which company built the model.",
+    description: "Anonymous evaluation that eliminates model identity bias. All proposals are stripped of model identity before evaluation. The judge evaluates arguments in multiple orderings to prevent anchoring bias - ensuring the quality of reasoning matters, not which company built the model.",
     whenToUse: [
       "Fair model comparison without brand bias",
       "Legal analysis where anchoring bias could skew outcomes",
@@ -167,7 +167,7 @@ const modes = [
     phases: ["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"],
     maxRounds: 3,
     defaultModels: "3-5",
-    description: "Panel deliberation with mandatory dissent reporting. Every result must explicitly declare both majority and minority positions — no decision is presented as unanimous unless mathematically verified through agglomerative clustering. Models must declare dissent even if they're in the minority.",
+    description: "Panel deliberation with mandatory dissent reporting. Every result must explicitly declare both majority and minority positions - no decision is presented as unanimous unless mathematically verified through agglomerative clustering. Models must declare dissent even if they're in the minority.",
     whenToUse: [
       "Risk assessment where overlooking a minority opinion could be catastrophic",
       "Healthcare decisions requiring transparent disagreement",

@@ -3,7 +3,7 @@
  *
  * Every event the agents service emits is enumerated here. The
  * Python source of truth lives at
- * `apps/agents/src/core/sse_events.py` — the two MUST stay in sync.
+ * `apps/agents/src/core/sse_events.py` - the two MUST stay in sync.
  * `SseEventName` below is the single string-literal union both sides
  * agree on.
  */

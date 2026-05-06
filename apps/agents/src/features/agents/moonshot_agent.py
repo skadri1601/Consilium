@@ -2,7 +2,7 @@ from ._openai_compat import BaseOpenAICompatAgent
 
 
 class MoonshotAgent(BaseOpenAICompatAgent):
-    """Moonshot AI (Kimi K2.x) agent — OpenAI-compatible API.
+    """Moonshot AI (Kimi K2.x) agent - OpenAI-compatible API.
 
     Endpoint: https://api.moonshot.ai/v1
     Models: kimi-k2.6 (current flagship, 256K ctx, tool-use), kimi-k2.5,

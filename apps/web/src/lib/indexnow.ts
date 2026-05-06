@@ -8,7 +8,7 @@ import { SITE_URL } from "./seo";
  * Setup:
  *   1. Generate a 8-128 char hex key (any random string works).
  *   2. Set ``INDEXNOW_KEY`` in env. The public key file is served by
- *      ``app/[key].txt/route.ts`` — Bing fetches it to verify
+ *      ``app/[key].txt/route.ts`` - Bing fetches it to verify
  *      ownership, so the file content must match the key exactly.
  *   3. Call ``pingIndexNow([url1, url2, ...])`` after publishing.
  *

@@ -2,7 +2,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { blogPosts } from "@/app/(marketing)/blog/blog-data";
 
 /**
- * llms.txt — emerging convention (https://llmstxt.org) for giving LLM
+ * llms.txt - emerging convention (https://llmstxt.org) for giving LLM
  * crawlers a curated, structured map of the site's most important
  * content. Functions like a sitemap-but-for-AI. Served from the root
  * (/llms.txt) by Next's app-router file convention. Plain text, UTF-8.
@@ -49,7 +49,7 @@ function buildLlmsTxt(): string {
     link("Modes", "/docs/modes", "Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto"),
     link("Architecture", "/docs/architecture", "Web -> API -> Agents pipeline; SSE streaming, BullMQ, Redis"),
     link("API Reference", "/docs/api", "REST endpoints + SSE event schema"),
-    link("CLI", "/docs/cli", "@myconsilium/cli — debate, replay, estimate"),
+    link("CLI", "/docs/cli", "@myconsilium/cli - debate, replay, estimate"),
     link("Providers", "/docs/providers", "Setting up keys for the 7 supported LLM providers"),
     link("Templates", "/docs/templates"),
     link("Python SDK", "/docs/python-sdk", "consilium-sdk PyPI package"),

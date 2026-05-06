@@ -559,7 +559,7 @@ class DeliberationEngine:
                     resolution = AgentFactory.resolve(model_id, self.api_keys or {})
                 except NoKeyAvailableError:
                     # Resolver couldn't pick any key for this model. Skip
-                    # this seat — the per-round agent construction will
+                    # this seat - the per-round agent construction will
                     # raise with a user-actionable message when the seat
                     # actually runs.
                     continue
@@ -1040,7 +1040,7 @@ class DeliberationEngine:
             golden, latency_ms = await self._timed_llm(self.judge_model, prompt)
             self._audit("output_synthesis", self.judge_model, prompt[:200], golden[:200], latency_ms)
             if not golden or not golden.strip():
-                golden = winning.get("content", "Synthesis failed — using best proposal.")
+                golden = winning.get("content", "Synthesis failed - using best proposal.")
         else:
             golden = "No proposals generated."
 

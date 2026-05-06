@@ -122,7 +122,7 @@ class AgentFactory:
                 # semantics don't break.
                 pass
 
-        # Legacy direct path — keep so tests that don't set the free-tier
+        # Legacy direct path - keep so tests that don't set the free-tier
         # envs still behave as before.
         provider = get_provider_for_model(model_id)
         if provider is None:

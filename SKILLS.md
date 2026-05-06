@@ -2,9 +2,9 @@
 
 > Sibling docs: **CLAUDE.md** (architecture, MCP routing, runbook), **AGENTS.md** (subagent dispatch, bot agents).
 
-> **Before starting any non-trivial task**: follow the Multi-Agent Task Protocol in AGENTS.md — spawn 6–10 subagents in parallel (one always for internet research), no recursive subagent spawning, main agent verifies their work + runs tests.
+> **Before starting any non-trivial task**: follow the Multi-Agent Task Protocol in AGENTS.md - spawn 6–10 subagents in parallel (one always for internet research), no recursive subagent spawning, main agent verifies their work + runs tests.
 
-## Skill Trigger Table — invoke automatically when the situation matches
+## Skill Trigger Table - invoke automatically when the situation matches
 
 | Trigger / situation | Skill |
 |---|---|
@@ -23,7 +23,7 @@
 | Settings.json / hooks / env vars / permission changes | `update-config` |
 | Customizing keyboard shortcuts | `keybindings-help` |
 
-If a skill exists for the situation, invoke it **before** writing other text. Only use names from the available-skills list — never guess.
+If a skill exists for the situation, invoke it **before** writing other text. Only use names from the available-skills list - never guess.
 
 ## Subagent Dispatch (cross-ref AGENTS.md for full rules)
 
@@ -88,22 +88,22 @@ docker compose -f docker-compose.selfhost.yml up -d
 ## When Working On Each System
 
 ### apps/agents/ (Deliberation Engine)
-- All types in `deliberation/types.py` — never duplicate
+- All types in `deliberation/types.py` - never duplicate
 - `DeliberationEngine` in `deliberation_graph.py` is the main orchestrator
 - Model IDs must be in `shared/config/models.py` MODEL_ALIASES or AVAILABLE_MODELS
 - Cost tracking: `_estimate_cost()` in `deliberation_graph.py`
 - Templates in `deliberation/templates/` follow the registry.py pattern
 
 ### apps/api/ (NestJS)
-- Types from `packages/shared/` — never duplicate
+- Types from `packages/shared/` - never duplicate
 - Deliberation endpoints in `features/deliberation/`
 - SSE streaming via `deliberation-sse.service.ts`
 - BullMQ retryStrategy must never return null
 
 ### packages/cli/
 - Commands in `src/commands/` (debate, eval, redteam, benchmark)
-- Judge config in `src/utils/cli-judge.ts` — mode-specific via `getJudgeConfig()`
-- Decision extraction in `src/utils/decision-extractor.ts` — LLM semantic + regex fallback
+- Judge config in `src/utils/cli-judge.ts` - mode-specific via `getJudgeConfig()`
+- Decision extraction in `src/utils/decision-extractor.ts` - LLM semantic + regex fallback
 - SSE uses `onmessage` (not `addEventListener`)
 
 ### packages/shared/
@@ -115,8 +115,8 @@ docker compose -f docker-compose.selfhost.yml up -d
 - Python SDK: httpx + pydantic, sync + async clients
 
 ## Key Files to Read First
-1. **CLAUDE.md** — Architecture, MCP routing, common-task runbook
-2. **AGENTS.md** — Dual agent system + subagent dispatch
-3. **SKILLS.md** (this file) — Skill triggers + commands
-4. `apps/agents/src/features/deliberation/types.py` — All deliberation types
-5. `packages/shared/src/debates/debate-mode.ts` — Mode definitions
+1. **CLAUDE.md** - Architecture, MCP routing, common-task runbook
+2. **AGENTS.md** - Dual agent system + subagent dispatch
+3. **SKILLS.md** (this file) - Skill triggers + commands
+4. `apps/agents/src/features/deliberation/types.py` - All deliberation types
+5. `packages/shared/src/debates/debate-mode.ts` - Mode definitions

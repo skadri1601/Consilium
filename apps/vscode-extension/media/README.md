@@ -1,7 +1,7 @@
 # Extension media
 
-- `activity-bar-icon.svg` — used in the VS Code activity bar (24×24 monochrome, uses `currentColor`).
-- `consilium-icon.png` — **TODO**: 128×128 PNG for the Marketplace listing.
+- `activity-bar-icon.svg` - used in the VS Code activity bar (24×24 monochrome, uses `currentColor`).
+- `consilium-icon.png` - **TODO**: 128×128 PNG for the Marketplace listing.
 
 ## Marketplace icon spec (TODO)
 

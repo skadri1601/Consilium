@@ -20,7 +20,7 @@ const APP_DISALLOW = [
 /**
  * AI crawlers we explicitly allow. These bots are documented and
  * respect robots.txt. Allowing them is an AEO ("answer engine
- * optimization") choice — we want our docs and comparison pages cited
+ * optimization") choice - we want our docs and comparison pages cited
  * in AI assistant answers. To opt out for any of them, move the
  * user-agent into ``AI_BOTS_DISALLOW`` below.
  *

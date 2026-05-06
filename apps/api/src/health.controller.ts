@@ -124,7 +124,7 @@ export class HealthController extends HealthIndicator {
   @ApiResponse({
     status: 200,
     description:
-      "Diagnostic report. Returns 200 even when checks are degraded — clients inspect the per-check status.",
+      "Diagnostic report. Returns 200 even when checks are degraded - clients inspect the per-check status.",
   })
   async diagnostics() {
     const checks: DiagnosticCheck[] = [];

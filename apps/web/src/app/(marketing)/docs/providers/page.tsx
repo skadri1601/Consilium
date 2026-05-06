@@ -13,7 +13,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Providers & Models",
   description:
-    "Supported AI providers and models in Consilium — OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter. Pricing, capabilities, and model selection guide.",
+    "Supported AI providers and models in Consilium - OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter. Pricing, capabilities, and model selection guide.",
   path: "/docs/providers",
   keywords: [
     "ai providers",
@@ -370,7 +370,7 @@ export default function ProvidersPage() {
           </h1>
           <p className="text-xl text-muted-foreground">
             7 providers, 25+ models, from free to frontier. Bring your own keys
-            and mix models from different providers in the same deliberation —
+            and mix models from different providers in the same deliberation -
             or run on Consilium&apos;s free-tier pool when you don&apos;t have keys.
           </p>
         </div>
@@ -384,7 +384,7 @@ export default function ProvidersPage() {
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
               Prices are per 1 million tokens, charged by the provider (not
-              Consilium). Consilium is BYOK — you pay providers directly through
+              Consilium). Consilium is BYOK - you pay providers directly through
               your own API keys.
             </p>
             <div className="rounded-xl border border-white/[0.06] overflow-x-auto">
@@ -547,7 +547,7 @@ export default function ProvidersPage() {
               <CardContent className="pt-6 space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Consilium is BYOK-first. When you supply your own provider
-                  API key, that key is always used — no fallback occurs. When
+                  API key, that key is always used - no fallback occurs. When
                   no key is set for the requested provider, Consilium routes
                   through a platform-hosted free-tier pool so you can keep
                   working at zero cost. Resolution order:
@@ -561,11 +561,11 @@ export default function ProvidersPage() {
                     Self-hosted env var (e.g. <code className="font-mono text-indigo-400">OPENAI_API_KEY</code>)
                   </li>
                   <li>
-                    Groq free-tier pool —{" "}
+                    Groq free-tier pool -{" "}
                     <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_GROQ_KEY</code>
                   </li>
                   <li>
-                    OpenRouter free-tier pool —{" "}
+                    OpenRouter free-tier pool -{" "}
                     <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_OPENROUTER_KEY</code>
                   </li>
                 </ol>

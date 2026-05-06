@@ -16,7 +16,7 @@ photo frame.
 - **File size:** under 200 KB after compression
 - **Subject framing:** chest-up to full-body works; avoid extreme
   close-ups (the frame's 4:5 ratio cuts hard at the edges)
-- **Background:** any — the frame already has a subtle gradient
+- **Background:** any - the frame already has a subtle gradient
   behind the image, and `object-cover` handles the rest
 
 ## Replacing later

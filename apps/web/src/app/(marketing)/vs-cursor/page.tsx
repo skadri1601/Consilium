@@ -8,7 +8,7 @@ const data: CompetitorComparison = {
   competitor: "Cursor",
   pageTitle: "Consilium vs Cursor: Multi-AI Council vs Single-Agent IDE",
   metaDescription:
-    "Cursor pairs you with one AI inside an IDE. Consilium runs a council of AI models that argue, vote, and produce consensus answers — and it works inside Cursor.",
+    "Cursor pairs you with one AI inside an IDE. Consilium runs a council of AI models that argue, vote, and produce consensus answers - and it works inside Cursor.",
   keywords: [
     "cursor ai",
     "cursor alternative",
@@ -20,16 +20,16 @@ const data: CompetitorComparison = {
     tagline:
       "Use Cursor for typing speed. Use Consilium when one AI's answer is not enough.",
     hook:
-      "Cursor is an excellent single-agent IDE. Consilium is a multi-agent deliberation engine that runs across CLI, IDE, and MCP — including inside Cursor itself.",
+      "Cursor is an excellent single-agent IDE. Consilium is a multi-agent deliberation engine that runs across CLI, IDE, and MCP - including inside Cursor itself.",
     intro: [
-      "Cursor reimagined the IDE around an inline AI agent. The result is fast, fluid coding with one model in the loop — Composer for multi-file edits, Agent for autonomous tasks, and tab-complete that's better than every editor that came before it.",
-      "Consilium is built around a different premise: when stakes are high, one model is not enough. We make multiple models from different providers — OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter — argue with each other in a structured deliberation, then synthesize a consensus answer with tracked confidence and preserved dissent.",
+      "Cursor reimagined the IDE around an inline AI agent. The result is fast, fluid coding with one model in the loop - Composer for multi-file edits, Agent for autonomous tasks, and tab-complete that's better than every editor that came before it.",
+      "Consilium is built around a different premise: when stakes are high, one model is not enough. We make multiple models from different providers - OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter - argue with each other in a structured deliberation, then synthesize a consensus answer with tracked confidence and preserved dissent.",
       "These tools are not direct competitors. Cursor wins for inline edits and rapid iteration. Consilium wins for architecture decisions, security reviews, regulatory writeups, and any moment when 'I asked Claude / GPT once' is not a good enough answer. And because Consilium ships an MCP server, you can run a full deliberation from inside Cursor with @consilium.",
       "If you're choosing between them, you're probably asking the wrong question. The right question is: do you want a faster typist, or do you want a council that catches what one model would miss?",
     ],
   },
   competitorStrengths: [
-    "Tightest in-IDE inline completion experience available — Tab autocomplete is genuinely best-in-class.",
+    "Tightest in-IDE inline completion experience available - Tab autocomplete is genuinely best-in-class.",
     "Composer and Agent modes handle most tactical multi-file edits with very low friction.",
     "Mature IDE primitives: split panes, terminal integration, debugger, extension marketplace (forked from VS Code).",
     "Excellent for rapid exploration when you trust the model and want speed over verification.",
@@ -38,7 +38,7 @@ const data: CompetitorComparison = {
   consiliumWins: [
     {
       title: "Real multi-model deliberation, not model switching",
-      body: "Cursor lets you pick one model per request from a dropdown. Consilium runs three to five models in parallel rounds — each generates an independent answer, cross-examines the others with typed challenges, and the judge synthesizes a single consensus with mathematical convergence detection (Kendall tau + Jaccard + concession rate ≥ 0.85).",
+      body: "Cursor lets you pick one model per request from a dropdown. Consilium runs three to five models in parallel rounds - each generates an independent answer, cross-examines the others with typed challenges, and the judge synthesizes a single consensus with mathematical convergence detection (Kendall tau + Jaccard + concession rate ≥ 0.85).",
     },
     {
       title: "Provider-agnostic by design",
@@ -46,7 +46,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Eight purpose-built modes",
-      body: "Council, Deep, Blind, Red Team, Jury, Market, Quick, and Auto — each backed by peer-reviewed research and tuned for different stakes. Healthcare and finance modes ship with mandatory dissent and forced citations. Cursor has one debate-free agent loop.",
+      body: "Council, Deep, Blind, Red Team, Jury, Market, Quick, and Auto - each backed by peer-reviewed research and tuned for different stakes. Healthcare and finance modes ship with mandatory dissent and forced citations. Cursor has one debate-free agent loop.",
     },
     {
       title: "Works wherever you work",
@@ -102,22 +102,22 @@ const data: CompetitorComparison = {
     },
     {
       feature: "CLI",
-      consilium: "First-class — REPL, tools, project memory",
+      consilium: "First-class - REPL, tools, project memory",
       competitor: "No standalone CLI",
       consiliumHas: true,
       competitorHas: false,
     },
     {
       feature: "MCP server",
-      consilium: "Yes — works in Cursor, Claude Desktop, Claude Code",
+      consilium: "Yes - works in Cursor, Claude Desktop, Claude Code",
       competitor: "Cursor consumes MCP, doesn't expose one",
       consiliumHas: true,
       competitorHas: false,
     },
     {
       feature: "BYOK",
-      consilium: "Yes — keys in ~/.consilium or env",
-      competitor: "Limited — provider-routed",
+      consilium: "Yes - keys in ~/.consilium or env",
+      competitor: "Limited - provider-routed",
       consiliumHas: true,
       competitorHas: true,
       note: "Cursor supports OpenAI/Anthropic/Google keys but routes via their proxy.",
@@ -140,11 +140,11 @@ const data: CompetitorComparison = {
   workflows: [
     {
       title: "Cursor for typing, Consilium for deciding",
-      body: "Use Cursor's Composer for everyday refactors and inline edits. When you hit a decision that matters — schema choice, security model, library selection — pause and call @consilium from inside Cursor's MCP host. The council deliberates while you keep typing, then drops a structured recommendation with dissents into your context.",
+      body: "Use Cursor's Composer for everyday refactors and inline edits. When you hit a decision that matters - schema choice, security model, library selection - pause and call @consilium from inside Cursor's MCP host. The council deliberates while you keep typing, then drops a structured recommendation with dissents into your context.",
     },
     {
       title: "Replace the lone-agent loop on PR review",
-      body: "Cursor's review agent catches obvious things. Consilium's Red Team mode runs three models in adversarial roles — attacker issues typed challenges (SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE), defender must rebut with evidence, judge synthesizes the final report. Same diff, ~30–40% more findings.",
+      body: "Cursor's review agent catches obvious things. Consilium's Red Team mode runs three models in adversarial roles - attacker issues typed challenges (SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE), defender must rebut with evidence, judge synthesizes the final report. Same diff, ~30–40% more findings.",
     },
     {
       title: "Use Consilium when Cursor's model is overconfident",
@@ -152,14 +152,14 @@ const data: CompetitorComparison = {
     },
     {
       title: "Architecture and ADRs",
-      body: "Consilium's Council mode (3 models, 3 rounds) produces architecture decision records with documented dissent. Drop the markdown into your repo as an ADR. Cursor's single-agent output is one opinion — useful, but not auditable.",
+      body: "Consilium's Council mode (3 models, 3 rounds) produces architecture decision records with documented dissent. Drop the markdown into your repo as an ADR. Cursor's single-agent output is one opinion - useful, but not auditable.",
     },
   ],
   faq: [
     {
       question: "Does Consilium replace Cursor?",
       answer:
-        "No. Cursor's inline editing experience is excellent and we don't try to compete on that surface. Consilium is for high-stakes decisions where you want multiple models to argue. The two tools work great together — install the Consilium MCP server in Cursor and call @consilium when you want a council.",
+        "No. Cursor's inline editing experience is excellent and we don't try to compete on that surface. Consilium is for high-stakes decisions where you want multiple models to argue. The two tools work great together - install the Consilium MCP server in Cursor and call @consilium when you want a council.",
     },
     {
       question: "Can I use Consilium inside Cursor?",
@@ -169,17 +169,17 @@ const data: CompetitorComparison = {
     {
       question: "Why use Consilium when Cursor lets me pick the model?",
       answer:
-        "Because picking one model and running the same prompt through five models in parallel are very different operations. Cursor gives you a model choice per request. Consilium runs them simultaneously, makes them argue, and gives you the diff between their answers — including the ones who disagreed.",
+        "Because picking one model and running the same prompt through five models in parallel are very different operations. Cursor gives you a model choice per request. Consilium runs them simultaneously, makes them argue, and gives you the diff between their answers - including the ones who disagreed.",
     },
     {
       question: "Is Consilium slower?",
       answer:
-        "A full Council deliberation is slower than a single-model Cursor request — typically 30–90 seconds for a thorough debate. Use Consilium's Quick mode (2 models, 1 round) when you want speed. Use Council/Deep when the question is worth the wait.",
+        "A full Council deliberation is slower than a single-model Cursor request - typically 30–90 seconds for a thorough debate. Use Consilium's Quick mode (2 models, 1 round) when you want speed. Use Council/Deep when the question is worth the wait.",
     },
     {
       question: "What does Consilium cost compared to Cursor?",
       answer:
-        "Consilium has a free tier with a managed pool of open models (Groq + OpenRouter), so you can start without keys. BYOK means you pay your provider directly with no markup. Cursor charges a flat subscription that includes their proxy. The economics depend on usage — heavy users with their own keys often spend less on Consilium because there's no proxy margin.",
+        "Consilium has a free tier with a managed pool of open models (Groq + OpenRouter), so you can start without keys. BYOK means you pay your provider directly with no markup. Cursor charges a flat subscription that includes their proxy. The economics depend on usage - heavy users with their own keys often spend less on Consilium because there's no proxy margin.",
     },
   ],
   lastUpdated: "2026-04-30",

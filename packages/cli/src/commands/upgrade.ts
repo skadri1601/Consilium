@@ -70,7 +70,7 @@ async function detectManager(): Promise<UpgradeResult['manager']> {
         return c.name;
       }
     } catch {
-      // Manager not installed or package not present — try next.
+      // Manager not installed or package not present - try next.
     }
   }
   return 'unknown';

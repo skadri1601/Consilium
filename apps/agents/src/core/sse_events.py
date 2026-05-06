@@ -2,7 +2,7 @@
 
 Source of truth on the Python side. The TypeScript side lives at
 ``packages/shared/src/sse/events.ts``. Both files MUST list the same
-names — :func:`assert_parity` is exposed for tests/CI to fail fast when
+names - :func:`assert_parity` is exposed for tests/CI to fail fast when
 the two drift.
 
 Helpers below replace the ad-hoc ``_sse(\"foo\", {...})`` strings
@@ -18,7 +18,7 @@ from typing import Any
 
 
 class SseEvent(str):
-    """Marker subclass — instances are still plain strings.
+    """Marker subclass - instances are still plain strings.
 
     Using a subclass means a typo like ``SseEvent("agnet_start")`` still
     works at runtime (it's just a string) but :func:`emit` will reject

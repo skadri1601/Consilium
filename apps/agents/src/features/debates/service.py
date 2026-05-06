@@ -12,7 +12,7 @@ from ...core.orchestrator import DebateOrchestrator, _set_runtime_context
 
 _LOCAL_STORAGE: dict[str, dict] = {}
 
-# BYOK API keys are kept in process memory only — never serialized to Redis or
+# BYOK API keys are kept in process memory only - never serialized to Redis or
 # any disk store. Entries expire shortly after the debate is started to bound
 # exposure if the stream is never initiated.
 _EPHEMERAL_KEYS: dict[str, tuple[dict, float]] = {}

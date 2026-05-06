@@ -20,6 +20,12 @@ export type PageSeo = {
   type?: "website" | "article";
   publishedTime?: string;
   modifiedTime?: string;
+  /** Article author display names. Maps to og:article:author (one or more). */
+  authors?: string[];
+  /** Article section / category. Maps to og:article:section. */
+  section?: string;
+  /** Article topical tags. Maps to og:article:tag (one or more). */
+  tags?: string[];
 };
 
 export function buildMetadata({
@@ -32,6 +38,9 @@ export function buildMetadata({
   type = "website",
   publishedTime,
   modifiedTime,
+  authors,
+  section,
+  tags,
 }: PageSeo): Metadata {
   const url = `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
   const resolvedDescription = description ?? SITE_DESCRIPTION;
@@ -55,6 +64,9 @@ export function buildMetadata({
       images: [{ url: resolvedImage, width: 1200, height: 630, alt: SITE_NAME }],
       ...(type === "article" && publishedTime ? { publishedTime } : {}),
       ...(type === "article" && modifiedTime ? { modifiedTime } : {}),
+      ...(type === "article" && authors?.length ? { authors } : {}),
+      ...(type === "article" && section ? { section } : {}),
+      ...(type === "article" && tags?.length ? { tags } : {}),
     },
     twitter: {
       card: "summary_large_image",

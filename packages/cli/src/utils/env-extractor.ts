@@ -30,7 +30,7 @@ export interface EnvMetadata {
 
 // Whitelist of env-file basenames we read. Keeping this as a literal
 // constant means `path.join(projectDir, envFile)` can only ever produce
-// a path of the form `<projectDir>/.env*` — there is no way for envFile
+// a path of the form `<projectDir>/.env*` - there is no way for envFile
 // itself to contain a traversal segment.
 const ENV_FILES = [".env", ".env.local", ".env.example", ".env.development"] as const;
 
@@ -38,7 +38,7 @@ function _resolveSafeEnvPath(projectDir: string, envFile: string): string | null
   // Resolve both ends to absolute, canonical paths and verify the env
   // file lives directly inside projectDir (no symlink-traversal,
   // no `..`). Sonar's typescript:S5443 / S2083 path-injection rule
-  // wants the sanitization at the SINK — keep it inline here.
+  // wants the sanitization at the SINK - keep it inline here.
   const projectRoot = path.resolve(projectDir);
   const resolved = path.resolve(projectRoot, envFile);
   if (path.dirname(resolved) !== projectRoot) {

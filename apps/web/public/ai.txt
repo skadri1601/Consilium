@@ -1,4 +1,4 @@
-# ai.txt — Consilium AI training / inference policy
+# ai.txt - Consilium AI training / inference policy
 # Spec: https://site.spawning.ai/spaces/ai-txt
 # Mirror of robots.txt AI-bot rules; ai.txt is read by some crawlers
 # that don't honor robots.txt user-agent fragmentation.

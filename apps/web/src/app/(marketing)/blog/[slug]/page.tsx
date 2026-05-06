@@ -5,7 +5,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "../blog-data";
-import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { SAAD_AUTHOR_ID } from "@/lib/authors";
 
 const categoryColors: Record<BlogCategory, string> = {
   Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -74,13 +75,20 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
+  const tags = Array.from(
+    new Set([post.category.toLowerCase(), ...(post.keywords ?? [])]),
+  );
   return buildMetadata({
     title: post.title,
     description: post.excerpt ?? post.title,
     path: `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.date,
-    keywords: [post.category.toLowerCase(), "consilium", "ai council"],
+    modifiedTime: post.date,
+    keywords: [...tags, "consilium", "ai council"],
+    authors: ["Saad Kadri"],
+    section: post.category,
+    tags,
   });
 }
 
@@ -89,7 +97,7 @@ function BenchmarkPost() {
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
         Most multi-agent products advertise benchmark gains. We ran our
-        own — and the raw numbers are not yet representative of what
+        own - and the raw numbers are not yet representative of what
         either single models or council deliberation can do. The reason
         is mundane: our answer-checker is too strict. This post lays
         out what we ran in April 2026, what broke, what the cost was,
@@ -157,22 +165,22 @@ function BenchmarkPost() {
 
       <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
         <li>
-          <strong className="text-foreground">Free-text TruthfulQA answers</strong> —
+          <strong className="text-foreground">Free-text TruthfulQA answers</strong> -
           a model can produce a factually correct response that doesn&apos;t
           contain the reference string verbatim, and the checker scores it
           zero. Council deliberation produces longer, more carefully-worded
           answers, which actually <em>hurts</em> the raw score under exact
           match. (That&apos;s why deliberation scored 19% to single-model 27%
-          on TruthfulQA — not a real regression.)
+          on TruthfulQA - not a real regression.)
         </li>
         <li>
-          <strong className="text-foreground">HumanEval code</strong> — we
+          <strong className="text-foreground">HumanEval code</strong> - we
           should be running the unit tests that ship with each problem,
           not string-matching the function body. The fix is straightforward
           but it&apos;s not done yet.
         </li>
         <li>
-          <strong className="text-foreground">MMLU at 2%</strong> — the
+          <strong className="text-foreground">MMLU at 2%</strong> - the
           checker is failing to extract the answer letter from longer
           responses. A 2% absolute score on a 4-choice benchmark is a
           checker bug, not a model bug.
@@ -295,7 +303,7 @@ function ModelFreshnessAuditPost() {
         small drift. We found three real bugs.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 1 — xAI uses dashes, not dots</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 1 - xAI uses dashes, not dots</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Our catalog listed <code>grok-4.20</code>. The xAI native API uses
@@ -306,7 +314,7 @@ function ModelFreshnessAuditPost() {
         pricing page. xAI&apos;s naming convention everywhere else
         (<code>grok-4-1-fast-reasoning</code>,{" "}
         <code>grok-4-1-fast-non-reasoning</code>,{" "}
-        <code>grok-code-fast-1</code>) uses dashes — we just spelled the
+        <code>grok-code-fast-1</code>) uses dashes - we just spelled the
         4.20 model wrong from the start.
       </p>
 
@@ -317,7 +325,7 @@ function ModelFreshnessAuditPost() {
         still resolves to a callable target.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 2 — OpenRouter&apos;s free roster had rotated entirely</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 2 - OpenRouter&apos;s free roster had rotated entirely</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Consilium uses OpenRouter as the secondary free-tier fallback when
@@ -350,11 +358,11 @@ function ModelFreshnessAuditPost() {
         the five retired IDs forward.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 3 — Moonshot&apos;s catalog was incomplete</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Bug 3 - Moonshot&apos;s catalog was incomplete</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         We listed only <code>kimi-k2.6</code>, the latest flagship.
-        Moonshot&apos;s K2 family is broader than that — the K2.6
+        Moonshot&apos;s K2 family is broader than that - the K2.6
         quickstart page also lists <code>kimi-k2.5</code>,{" "}
         <code>kimi-k2-thinking</code>,{" "}
         <code>kimi-k2-thinking-turbo</code>, and{" "}
@@ -379,7 +387,7 @@ function ModelFreshnessAuditPost() {
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         The same audit also surfaced six legacy model IDs scheduled for
-        shutdown between June and October 2026 — including{" "}
+        shutdown between June and October 2026 - including{" "}
         <code>gemini-2.0-flash</code> on June 1, <code>claude-sonnet-4</code>{" "}
         and <code>claude-opus-4</code> on June 15, and{" "}
         <code>gemini-2.5-pro</code> / <code>gemini-2.5-flash</code> on
@@ -411,7 +419,7 @@ function ByokSafetyNetPost() {
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
         Bring-Your-Own-Key (BYOK) is the right default for an
-        AI-mediating product — users keep control of cost, rate limits,
+        AI-mediating product - users keep control of cost, rate limits,
         and provider relationships. But BYOK alone has a sharp edge:
         when a user hasn&apos;t added a key for the provider their
         debate happens to need, the debate just fails. Consilium&apos;s
@@ -446,7 +454,7 @@ function ByokSafetyNetPost() {
         <li>
           <strong className="text-foreground">Free-tier Groq.</strong>{" "}
           If <code>CONSILIUM_FREE_TIER_GROQ_KEY</code> is set, route to
-          Groq with a tier-equivalent open model — fast →{" "}
+          Groq with a tier-equivalent open model - fast →{" "}
           <code>llama-3.1-8b-instant</code>, balanced →{" "}
           <code>llama-3.3-70b-versatile</code>, deep →{" "}
           <code>openai/gpt-oss-120b</code>. Tier is inferred from the
@@ -456,7 +464,7 @@ function ByokSafetyNetPost() {
           <strong className="text-foreground">Free-tier OpenRouter.</strong>{" "}
           Backup path. If{" "}
           <code>CONSILIUM_FREE_TIER_OPENROUTER_KEY</code> is set, route
-          through OpenRouter&apos;s free roster — fast →{" "}
+          through OpenRouter&apos;s free roster - fast →{" "}
           <code>google/gemma-4-26b-a4b-it:free</code>, balanced →{" "}
           <code>qwen/qwen3-coder:free</code>, deep →{" "}
           <code>nvidia/nemotron-3-super-120b-a12b:free</code>.
@@ -480,7 +488,7 @@ function ByokSafetyNetPost() {
         <code>GROQ_API_KEY</code> and{" "}
         <code>OPENROUTER_API_KEY</code>. An operator running Consilium
         for a single internal team probably wants their own provider
-        keys to handle every debate — that&apos;s the step-2 path. A
+        keys to handle every debate - that&apos;s the step-2 path. A
         platform operator funding a free pool for users who haven&apos;t
         signed up for a provider yet uses the step-3 / step-4 path. The
         two should not collide.
@@ -493,7 +501,7 @@ function ByokSafetyNetPost() {
         <code>routing:fallback</code> SSE event before the first round
         runs. The payload lists every model that got rerouted, the
         substitution it received, and a human-readable reason. Critically,
-        the API key never appears in the event — only the substitution
+        the API key never appears in the event - only the substitution
         metadata.
       </p>
 
@@ -527,7 +535,7 @@ data: {
         The resolver runs after the alias map, so legacy IDs forward
         first and then resolve through the chain. A request for{" "}
         <code>gpt-4o</code> with no OpenAI key resolves to{" "}
-        <code>gpt-5.4</code> (alias), then through the chain — if no
+        <code>gpt-5.4</code> (alias), then through the chain - if no
         OpenAI key exists anywhere, it falls back to Groq&apos;s
         balanced tier. The user sees{" "}
         <code>requested_model: &quot;gpt-4o&quot;</code> →{" "}
@@ -538,8 +546,8 @@ data: {
       <h2 className="text-2xl font-bold mt-12 mb-6">Why this matters</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
-        The combination — BYOK preferred, free pool as backstop,
-        substitution surfaced explicitly — means a user can try
+        The combination - BYOK preferred, free pool as backstop,
+        substitution surfaced explicitly - means a user can try
         Consilium with zero setup and still see real multi-provider
         debate behavior. They&apos;re not locked into a paid signup
         before they know if they want the product. And they&apos;re
@@ -562,7 +570,7 @@ function ModelDeprecationCalendarPost() {
         next six months. If your application hard-codes any of them,
         the calls will start returning 404 on the date listed. If your
         application talks to Consilium, our alias map redirects each
-        retired ID to a live equivalent — but you should still know what
+        retired ID to a live equivalent - but you should still know what
         is moving.
       </p>
 
@@ -611,7 +619,7 @@ function ModelDeprecationCalendarPost() {
       <p className="text-lg leading-relaxed text-muted-foreground">
         One model in our previous catalog was already retired before the
         audit ran: <code>gemini-3-pro-preview</code> shut down on March
-        9, 2026 — about seven weeks before we caught it. The replacement
+        9, 2026 - about seven weeks before we caught it. The replacement
         target Google specifies is <code>gemini-3.1-pro-preview</code>,
         which is what our catalog now points to. Anyone who hit the old
         ID between March 9 and our April 25 update would have seen a
@@ -624,9 +632,9 @@ function ModelDeprecationCalendarPost() {
       <p className="text-lg leading-relaxed text-muted-foreground">
         Every entry in the calendar above has a key in our{" "}
         <code>MODEL_ALIASES</code> map (<code>apps/agents/src/shared/config/models.py</code>).
-        When a debate request arrives with one of these IDs — usually
+        When a debate request arrives with one of these IDs - usually
         from a script someone wrote a year ago, or a debate session we
-        replay from history — the resolver substitutes the live target
+        replay from history - the resolver substitutes the live target
         before the agent class is constructed. The user&apos;s
         configured model is preserved in the session record so the
         substitution is auditable, but the actual upstream call uses an
@@ -639,7 +647,7 @@ function ModelDeprecationCalendarPost() {
         retirement date inside the calendar window. So{" "}
         <code>gemini-2.5-pro</code> (retiring Jun 17) is{" "}
         <strong>not</strong> aliased to{" "}
-        <code>gemini-2.5-flash</code> (also retiring Jun 17) — both go
+        <code>gemini-2.5-flash</code> (also retiring Jun 17) - both go
         directly to the 3.x preview line. Same logic for{" "}
         <code>claude-sonnet-4-20250514</code> →{" "}
         <code>claude-sonnet-4-6</code> (skipping{" "}
@@ -652,11 +660,11 @@ function ModelDeprecationCalendarPost() {
         <li>
           Search your code for any of the eight legacy IDs above and
           replace them with the alias target on the right. Do not wait
-          for the retirement date — preview IDs have shorter notice
+          for the retirement date - preview IDs have shorter notice
           windows, and the migration is mechanical.
         </li>
         <li>
-          If you call Consilium, you don&apos;t need to do anything — but
+          If you call Consilium, you don&apos;t need to do anything - but
           it&apos;s still cleaner to migrate so the substitution is
           visible in your code, not invisible in our resolver.
         </li>
@@ -689,8 +697,8 @@ function WhyDeliberationBeatsOrchestrationPost() {
   return (
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
-        Most multi-agent frameworks — CrewAI, LangGraph orchestrations,
-        AutoGen pipelines — treat AI models as workers in a sequence:
+        Most multi-agent frameworks - CrewAI, LangGraph orchestrations,
+        AutoGen pipelines - treat AI models as workers in a sequence:
         researcher hands off to writer, writer hands off to editor,
         editor produces the final answer. Consilium does something
         different. Models are adversaries in a structured debate, not
@@ -706,7 +714,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         an off-by-one in the reasoning, or anchored on the wrong
         framing, the downstream models inherit it. They might polish
         the prose, but they don&apos;t go back and check whether the
-        upstream claim was correct — that&apos;s not their job in the
+        upstream claim was correct - that&apos;s not their job in the
         pipeline graph. The compounding error problem is well-known in
         chained agent systems.
       </p>
@@ -715,7 +723,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         The orchestration approach also flattens disagreement. If two
         models would have produced contradictory answers, you only see
         whichever one happened to be in the right slot at the right
-        time. The dissent — usually the most informative signal — is
+        time. The dissent - usually the most informative signal - is
         gone before the response leaves the system.
       </p>
 
@@ -727,7 +735,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
 
       <ol className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground list-decimal list-inside">
         <li>
-          <strong className="text-foreground">Round 1 — Independent
+          <strong className="text-foreground">Round 1 - Independent
           analysis.</strong> Every model produces an answer to the
           topic in isolation. They never see each other&apos;s output
           in this round, so the responses are uncorrelated and any
@@ -735,7 +743,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
           from one model influencing another.
         </li>
         <li>
-          <strong className="text-foreground">Round 2 —
+          <strong className="text-foreground">Round 2 -
           Cross-examination.</strong> Each model receives every other
           model&apos;s Round 1 answer and is asked to challenge it on
           factual errors, flawed reasoning, missing evidence, and edge
@@ -743,14 +751,14 @@ function WhyDeliberationBeatsOrchestrationPost() {
           one to the right defender.
         </li>
         <li>
-          <strong className="text-foreground">Round 3 — Rebuttal and
+          <strong className="text-foreground">Round 3 - Rebuttal and
           refinement.</strong> Defenders respond to each challenge
           (concede, refute, qualify, or redirect) and produce a
           revised answer that incorporates the survivable points and
           drops the indefensible ones.
         </li>
         <li>
-          <strong className="text-foreground">Judge — 5-phase
+          <strong className="text-foreground">Judge - 5-phase
           synthesis.</strong> A separate judge model performs claim
           extraction, cross-reference (which claims survived
           challenge), dispute resolution (where models still
@@ -765,7 +773,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         The cross-examination round is the load-bearing piece. It is
         the only place in the protocol where one model&apos;s mistake
         gets named by another model in the same conversation. In
-        orchestration, that doesn&apos;t happen — there&apos;s no
+        orchestration, that doesn&apos;t happen - there&apos;s no
         round where the editor is asked &quot;does this claim from the
         researcher actually hold up?&quot;
       </p>
@@ -852,7 +860,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         The deliberation graph lives in{" "}
         <code>apps/agents/src/features/deliberation/deliberation_graph.py</code>{" "}
         and the judge in <code>apps/agents/src/core/judge.py</code>.
-        It&apos;s a LangGraph state machine — round transitions are
+        It&apos;s a LangGraph state machine - round transitions are
         explicit nodes, the round-2 challenge generation is its own
         prompt, and the rebuttal classifications (concede / refute /
         qualify / redirect) come back as typed structured output. The
@@ -865,7 +873,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         That auditability is the other reason we picked deliberation
         over orchestration. When a debate produces a controversial
         answer, you can replay it and see exactly which model said
-        what at which point — not just &quot;the writer agent
+        what at which point - not just &quot;the writer agent
         produced this.&quot;
       </p>
 
@@ -879,7 +887,7 @@ function EightDeliberationModesPost() {
     <>
       <p className="text-lg leading-relaxed text-muted-foreground">
         Consilium ships eight deliberation modes. They&apos;re not
-        marketing skins on the same logic — each one is a distinct
+        marketing skins on the same logic - each one is a distinct
         state machine in the deliberation graph with a different
         round count, transition shape, and judge behavior. Picking the
         right one matters. Picking the wrong one wastes spend or
@@ -916,7 +924,7 @@ function EightDeliberationModesPost() {
         <code>apps/agents/src/features/deliberation/deliberation_graph.py</code>.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">quick — single round, no debate</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">quick - single round, no debate</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Each model produces one independent answer; the judge picks
@@ -928,7 +936,7 @@ function EightDeliberationModesPost() {
         answer productively.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">council — the default</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">council - the default</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Three rounds: independent analysis, cross-examination,
@@ -938,30 +946,30 @@ function EightDeliberationModesPost() {
         disagreement, short enough not to drag.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">deep — five rounds with sub-agent research</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">deep - five rounds with sub-agent research</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Adds two more rounds beyond council, plus optional sub-agent
         research for context-heavy questions. Worth the extra spend
         when the topic is genuinely contested and the room is split
         after round 3. Convergence detection still applies, so a
-        deep-mode debate that locks in early ends early — you only
+        deep-mode debate that locks in early ends early - you only
         pay for the rounds you needed.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">blind — names hidden until scored</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">blind - names hidden until scored</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Same shape as council, but model identities are stripped
         before each round so models judging round-1 outputs in
         round 2 don&apos;t know which one came from
         Claude vs. GPT vs. Gemini. Useful when you suspect anchoring
-        to a particular brand — for example when ranking responses to
+        to a particular brand - for example when ranking responses to
         a prompt where the &quot;safe&quot; answer is the one a more
         cautious model wrote.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">redteam — attack/defend cycle</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">redteam - attack/defend cycle</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Designed for security review. The flow is asymmetric: one
@@ -975,7 +983,7 @@ function EightDeliberationModesPost() {
         round-1 generation.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">jury — ranked-choice voting</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">jury - ranked-choice voting</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Three rounds. After round 3, every model casts a ranked
@@ -990,27 +998,27 @@ function EightDeliberationModesPost() {
         of a single verdict.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">market — prediction-market aggregation</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">market - prediction-market aggregation</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Five rounds with confidence-weighted voting. Each model
         produces a probability claim and a justification; the judge
         aggregates the probabilities the way a prediction market
-        would — weighted by each model&apos;s calibrated confidence
+        would - weighted by each model&apos;s calibrated confidence
         on similar past questions. This is the right mode for
         forecasting (&quot;will WebAssembly replace Docker for
         serverless within 3 years?&quot;) where the deliverable is a
         probability with reasoning, not a yes/no.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">auto — let the engine pick</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">auto - let the engine pick</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Auto runs a small classifier on the topic in front of round 1
         and routes to one of the seven explicit modes. The decision
         is surfaced in the SSE stream as a{" "}
         <code>routing:decided</code> event so you can see what it
-        chose and why — auto is not a black box, it&apos;s
+        chose and why - auto is not a black box, it&apos;s
         a default with an audit trail. If the classifier is uncertain
         it falls back to council, which is the safest non-trivial
         mode.
@@ -1037,7 +1045,7 @@ function EightDeliberationModesPost() {
         <li>
           <strong className="text-foreground">If the deliverable
           is structured (a vote, a probability, a security report),
-          pick the matching specialized mode</strong> — jury, market,
+          pick the matching specialized mode</strong> - jury, market,
           or redteam respectively.
         </li>
       </ul>
@@ -1059,12 +1067,12 @@ function GettingStartedSdkPost() {
         This is a five-minute walkthrough: install the CLI or one of
         the SDKs, run a debate, see the result. The unusual thing
         about Consilium&apos;s onboarding is that you can skip the
-        API-key step entirely on your first try — the platform-hosted
+        API-key step entirely on your first try - the platform-hosted
         free-tier pool will handle the call. You add your own key
         when you&apos;re ready, not before.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Option 1 — npx (no install)</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 1 - npx (no install)</h2>
 
       <p className="text-lg leading-relaxed text-muted-foreground">
         Fastest path. No global install, no config:
@@ -1083,7 +1091,7 @@ function GettingStartedSdkPost() {
         upstream API calls differ.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Option 2 — install globally</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 2 - install globally</h2>
 
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
         <pre className="text-muted-foreground">{`npm install -g @myconsilium/cli
@@ -1095,7 +1103,7 @@ consilium debate "Is Rust better than Go for CLIs?" --mode blind`}</pre>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-4">
         The <code>--file</code> flag attaches local files as context.
-        You can pass code, diagrams, or both — the agent factory
+        You can pass code, diagrams, or both - the agent factory
         will route image inputs through the multimodal-capable
         models in your council and skip them on text-only models.
       </p>
@@ -1112,14 +1120,14 @@ consilium config list`}</pre>
 
       <p className="text-lg leading-relaxed text-muted-foreground mt-4">
         Keys are stored in <code>~/.consilium/config.json</code> on
-        your machine — not on our servers. BYOK always wins over the
+        your machine - not on our servers. BYOK always wins over the
         free-tier pool, so the moment you add a key for a provider,
         debates stop substituting and start using your key directly.
         The CLI surfaces this with no fallback notice on the next
         debate.
       </p>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Option 3 — TypeScript SDK</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 3 - TypeScript SDK</h2>
 
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
         <pre className="text-muted-foreground">{`npm install @myconsilium/sdk`}</pre>
@@ -1165,7 +1173,7 @@ console.log(result.votes);`}</pre>
 }`}</pre>
       </div>
 
-      <h2 className="text-2xl font-bold mt-12 mb-6">Option 4 — Python SDK</h2>
+      <h2 className="text-2xl font-bold mt-12 mb-6">Option 4 - Python SDK</h2>
 
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
         <pre className="text-muted-foreground">{`pip install consilium`}</pre>
@@ -1195,7 +1203,7 @@ print(result.dissent_report)`}</pre>
         <code>deliberate</code>, <code>stream_deliberation</code>,{" "}
         <code>red_team</code>, <code>blind_eval</code>, and{" "}
         <code>estimate_cost</code>. The <code>estimate_cost</code>{" "}
-        call is worth knowing about — it predicts the spend for a
+        call is worth knowing about - it predicts the spend for a
         debate before you run it, using the same token estimator the
         web UI uses.
       </p>
@@ -1210,7 +1218,7 @@ print(result.dissent_report)`}</pre>
       <ul className="mt-4 space-y-3 text-lg leading-relaxed text-muted-foreground list-disc list-inside">
         <li>
           <strong className="text-foreground">~45 seconds median latency</strong>{" "}
-          — three rounds of generation plus a judge synthesis pass.
+          - three rounds of generation plus a judge synthesis pass.
         </li>
         <li>
           <strong className="text-foreground">~$0.05–0.10 cost</strong>{" "}
@@ -1313,20 +1321,56 @@ export default async function BlogPostPage({
 
   const Content = postContent[slug];
 
+  const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  const aggregateKeywords = Array.from(
+    new Set([
+      post.category.toLowerCase(),
+      "consilium",
+      "ai council",
+      "multi-agent debate",
+      ...(post.keywords ?? []),
+    ]),
+  );
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": `${postUrl}#blogposting`,
     headline: post.title,
     description: post.excerpt ?? post.title,
     datePublished: post.date,
-    url: `${SITE_URL}/blog/${post.slug}`,
-    author: { "@type": "Person", name: "Saad Kadri" },
-    publisher: {
-      "@type": "Organization",
-      name: "Consilium",
-      url: SITE_URL,
-    },
+    dateModified: post.date,
+    url: postUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+    image: `${SITE_URL}/og.png`,
+    author: { "@id": SAAD_AUTHOR_ID },
+    publisher: { "@id": `${SITE_URL}#organization` },
     articleSection: post.category,
+    keywords: aggregateKeywords,
+    inLanguage: "en-US",
+    isPartOf: {
+      "@type": "Blog",
+      name: `${SITE_NAME} blog`,
+      url: `${SITE_URL}/blog`,
+    },
+    ...(post.mentions?.length
+      ? {
+          mentions: post.mentions.map((m) => ({
+            "@type": "Thing",
+            name: m.name,
+            url: m.url,
+            sameAs: m.url,
+          })),
+        }
+      : {}),
+    ...(post.citations?.length
+      ? {
+          citation: post.citations.map((c) => ({
+            "@type": "ScholarlyArticle",
+            name: c.name,
+            url: c.url,
+          })),
+        }
+      : {}),
   };
 
   const breadcrumbJsonLd = {

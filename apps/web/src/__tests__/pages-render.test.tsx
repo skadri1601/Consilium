@@ -265,14 +265,14 @@ describe("Marketing Pages", () => {
       expect(screen.getAllByText("Getting Started").length).toBeGreaterThan(0);
       expect(screen.getAllByText("API Reference").length).toBeGreaterThan(0);
       expect(
-        screen.getAllByText(/CLI Reference|Getting Started — CLI/).length,
+        screen.getAllByText(/CLI Reference|Getting Started - CLI/).length,
       ).toBeGreaterThan(0);
       expect(
-        screen.getAllByText(/Python SDK|Getting Started — Python SDK/).length,
+        screen.getAllByText(/Python SDK|Getting Started - Python SDK/).length,
       ).toBeGreaterThan(0);
       expect(
         screen.getAllByText(
-          /TypeScript SDK|Getting Started — TypeScript SDK/,
+          /TypeScript SDK|Getting Started - TypeScript SDK/,
         ).length,
       ).toBeGreaterThan(0);
     });

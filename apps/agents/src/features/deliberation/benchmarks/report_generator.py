@@ -160,7 +160,7 @@ def generate_markdown_report(report: AggregateReport) -> str:
         breakdowns = report.category_breakdowns.get(r.benchmark_name, [])
         if not breakdowns:
             continue
-        lines.append(f"## {r.benchmark_name} — Category Breakdown")
+        lines.append(f"## {r.benchmark_name} - Category Breakdown")
         lines.append("")
         lines.append("| Category | Single | Deliberation | Improvement |")
         lines.append("|----------|--------|-------------|-------------|")

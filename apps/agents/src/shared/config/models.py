@@ -1,6 +1,6 @@
 """Available LLM models configuration.
 
-Source of truth for the engine. Keeps only current-generation models —
+Source of truth for the engine. Keeps only current-generation models -
 anything deprecated by the provider is removed here (not just tagged)
 so the engine never picks a model that will 404.
 """
@@ -237,7 +237,7 @@ def get_model_info(model_id: str) -> dict | None:
 
 
 # Aliases forward legacy / short names to their current replacements.
-# Only list aliases whose *target* is currently live — never alias
+# Only list aliases whose *target* is currently live - never alias
 # something to a model that's retired or near-shutdown.
 MODEL_ALIASES = {
     # OpenAI
@@ -265,7 +265,7 @@ MODEL_ALIASES = {
     "gemini-2.5-flash-lite": "gemini-3.1-flash-lite-preview",
     "gemini-3-pro-preview": "gemini-3.1-pro-preview",
     "gemini-exp-1206": "gemini-3-flash-preview",
-    # xAI — note: canonical xAI API IDs use dashes (grok-4-20, not grok-4.20)
+    # xAI - note: canonical xAI API IDs use dashes (grok-4-20, not grok-4.20)
     "grok-beta": "grok-4-20",
     "grok-2": "grok-4-20",
     "grok-2-mini": "grok-4-1-fast-non-reasoning",
@@ -276,7 +276,7 @@ MODEL_ALIASES = {
     # Groq
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
     "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
-    # OpenRouter — older free-tier IDs forwarded to current free models
+    # OpenRouter - older free-tier IDs forwarded to current free models
     # (verified Apr 25 2026: original IDs no longer in OpenRouter free roster)
     "meta-llama/llama-3.3-70b-instruct:free": "qwen/qwen3-coder:free",
     "google/gemma-2-9b-it:free": "google/gemma-4-26b-a4b-it:free",

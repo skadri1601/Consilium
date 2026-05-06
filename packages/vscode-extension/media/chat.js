@@ -225,7 +225,7 @@
   });
 
   function appendDebateStart(ev) {
-    appendSystem(`Started · models: ${(ev.models || []).join(", ") || "—"}`);
+    appendSystem(`Started · models: ${(ev.models || []).join(", ") || "-"}`);
   }
 
   function appendRoundStart(ev) {
@@ -270,7 +270,7 @@
   }
 
   function appendDissentDetected(ev) {
-    const summary = ev.dissent?.summary || "—";
+    const summary = ev.dissent?.summary || "-";
     appendSystem(`Dissent detected: ${summary}`);
   }
 
@@ -303,7 +303,7 @@
   }
 
   function appendToolFailed(ev) {
-    appendSystem(`Tool call failed: ${ev.name || "?"} — ${ev.message || "?"}`);
+    appendSystem(`Tool call failed: ${ev.name || "?"} - ${ev.message || "?"}`);
   }
 
   function appendDone(ev) {
