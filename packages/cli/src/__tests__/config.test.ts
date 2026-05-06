@@ -39,6 +39,9 @@ import {
   listConfig,
   isLoggedIn,
   clearAuth,
+  getCachedPreferences,
+  getPreferences,
+  fetchAndCachePreferences,
   DEFAULT_API_ORIGIN,
   DEFAULT_WEB_ORIGIN,
 } from '../utils/config';
@@ -148,5 +151,119 @@ describe('clearAuth', () => {
     expect(cfg.userName).toBeUndefined();
     expect(cfg.userEmail).toBeUndefined();
     expect(cfg.apiUrl).toBe(DEFAULT_API_ORIGIN);
+  });
+
+  it('also clears cached preferences', () => {
+    writeConfig({
+      apiKey: 'consilium_clearme12345',
+      userName: 'Alice',
+      preferences: { defaultAgents: ['gpt-5.4'], defaultMode: 'council' },
+    });
+    clearAuth();
+    const cfg = loadConfig();
+    expect(cfg.preferences).toBeUndefined();
+  });
+});
+
+describe('getCachedPreferences', () => {
+  it('returns null when no preferences are cached', () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    expect(getCachedPreferences()).toBeNull();
+  });
+
+  it('returns null when preferences has empty defaultAgents', () => {
+    writeConfig({
+      apiKey: 'consilium_test12345678',
+      preferences: { defaultAgents: [], defaultMode: 'auto' },
+    });
+    expect(getCachedPreferences()).toBeNull();
+  });
+
+  it('returns preferences when cached with non-empty defaultAgents', () => {
+    const prefs = { defaultAgents: ['gpt-5.4', 'claude-sonnet-4-6'], defaultMode: 'council' };
+    writeConfig({ apiKey: 'consilium_test12345678', preferences: prefs });
+    const result = getCachedPreferences();
+    expect(result).toEqual(prefs);
+  });
+});
+
+describe('getPreferences', () => {
+  it('returns cached prefs if available', async () => {
+    const prefs = { defaultAgents: ['gpt-5.4'], defaultMode: 'deep' };
+    writeConfig({ apiKey: 'consilium_test12345678', preferences: prefs });
+    const result = await getPreferences();
+    expect(result).toEqual(prefs);
+  });
+
+  it('calls fetchAndCachePreferences when no cached prefs', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    const mockPrefs = { defaultAgents: ['gemini-3-flash-preview'], defaultMode: 'quick' };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPrefs,
+    } as Response);
+    const result = await getPreferences();
+    expect(result).toEqual(mockPrefs);
+    vi.restoreAllMocks();
+  });
+
+  it('returns empty defaults on failure', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network error'));
+    const result = await getPreferences();
+    expect(result).toEqual({ defaultAgents: [], defaultMode: 'auto' });
+    vi.restoreAllMocks();
+  });
+});
+
+describe('fetchAndCachePreferences', () => {
+  it('returns null when no apiKey', async () => {
+    writeConfig({});
+    const result = await fetchAndCachePreferences();
+    expect(result).toBeNull();
+  });
+
+  it('fetches and caches preferences on success', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678', apiUrl: DEFAULT_API_ORIGIN });
+    const mockPrefs = { defaultAgents: ['gpt-5.4'], defaultMode: 'council' };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPrefs,
+    } as Response);
+    const result = await fetchAndCachePreferences();
+    expect(result).toEqual(mockPrefs);
+    const cfg = loadConfig();
+    expect(cfg.preferences).toEqual(mockPrefs);
+    vi.restoreAllMocks();
+  });
+
+  it('returns null on non-ok response', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+    } as Response);
+    const result = await fetchAndCachePreferences();
+    expect(result).toBeNull();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null on network error', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('timeout'));
+    const result = await fetchAndCachePreferences();
+    expect(result).toBeNull();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null when response missing required fields', async () => {
+    writeConfig({ apiKey: 'consilium_test12345678' });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ defaultAgents: 'not-an-array', defaultMode: 'council' }),
+    } as Response);
+    const result = await fetchAndCachePreferences();
+    expect(result).toBeNull();
+    vi.restoreAllMocks();
   });
 });

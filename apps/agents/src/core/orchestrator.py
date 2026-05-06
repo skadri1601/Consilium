@@ -17,8 +17,21 @@ except ImportError:
 from .agent_factory import AgentFactory, _has_any_user_key
 from .anonymizer import Anonymizer, AnonymityMap
 from .circuit_breaker import circuit_breaker
+from .rate_limiter import rate_limiter
 from .convergence import check_convergence
 from .cost_tracker import CostTracker
+from .failure_taxonomy import classify_failure, recovery_dispatcher, FailureClass
+from .session_compaction import compact_debate_context, build_compacted_prompt, CompactionConfig
+from .session_journal import SessionJournal
+from .event_types import DebateEventName
+from .config_layers import load_debate_config
+from .permission_enforcer import PermissionEnforcer, PermissionMode
+from .container_detect import get_container_environment
+from .agent_lifecycle import AgentLifecycleRegistry, AgentStatus
+from .task_registry import DebateTaskRegistry
+from .debate_hooks import debate_hooks, HookEvent, HookContext
+from .provider_health import provider_health
+from .session_fork import SessionForkManager, DebateSnapshot
 from ..shared.config.models import get_provider_for_model
 from .prompts import (
     ROUND_1_SYSTEM,
@@ -178,18 +191,24 @@ async def _call_agent_single_attempt(
             "Agent %s attempt %d returned insufficient response",
             _correlation_token(model_id), attempt + 1,
         )
-    except asyncio.TimeoutError:
-        logger.warning("Agent %s attempt %d timed out", _correlation_token(model_id), attempt + 1)
-        await _circuit_failure(provider)
-    except OSError as exc:
-        _log_call_agent_os_error(model_id, attempt, exc)
-        await _circuit_failure(provider)
-    except RuntimeError as exc:
+    except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+        failure = classify_failure(exc, provider=provider, model_id=model_id)
+        failure.attempt = attempt
         logger.warning(
-            "Agent %s attempt %d failed: %s",
-            _correlation_token(model_id), attempt + 1, _log_exc(exc),
+            "Agent %s attempt %d [%s]: %s",
+            _correlation_token(model_id), attempt + 1,
+            failure.failure_class.value, failure.detail,
         )
         await _circuit_failure(provider)
+        recovered = await recovery_dispatcher.try_recover(failure)
+        if recovered:
+            pair = await _call_agent_try_generate(
+                agent, system_prompt, user_prompt, model_id, cost_tracker,
+            )
+            if pair is not None:
+                if provider:
+                    await circuit_breaker.record_success(provider)
+                return pair
     return None
 
 
@@ -209,16 +228,39 @@ async def _call_agent(
         )
         return FALLBACK_RESPONSE, 0.0
 
-    for attempt in range(MAX_RETRIES + 1):
-        result = await _call_agent_single_attempt(
-            agent, system_prompt, user_prompt, model_id, cost_tracker, provider, attempt,
-        )
-        if result is not None:
-            return result
-        if attempt < MAX_RETRIES:
-            await asyncio.sleep(RETRY_BACKOFF[attempt])
+    if provider:
+        await rate_limiter.acquire(provider)
 
-    return FALLBACK_RESPONSE, 0.0
+    try:
+        for attempt in range(MAX_RETRIES + 1):
+            result = await _call_agent_single_attempt(
+                agent, system_prompt, user_prompt, model_id, cost_tracker, provider, attempt,
+            )
+            if result is not None:
+                return result
+            if attempt < MAX_RETRIES:
+                await asyncio.sleep(RETRY_BACKOFF[attempt])
+
+        return FALLBACK_RESPONSE, 0.0
+    finally:
+        if provider:
+            rate_limiter.release(provider)
+
+
+class CancelledError(Exception):
+    pass
+
+
+ANTI_CAPITULATION_PROMPT = (
+    "You are reviewing your own revision.\n\n"
+    "YOUR ORIGINAL CLAIMS (Round 1):\n{round1}\n\n"
+    "YOUR REVISED RESPONSE (Round 3):\n{round3}\n\n"
+    "You appear to have dropped or significantly weakened many of your original positions.\n"
+    "Before accepting your revision:\n"
+    "1. Was each critique actually valid, or were you being polite?\n"
+    "2. Reinstate any claims you still believe in with stronger evidence.\n"
+    "3. Produce your FINAL response preserving defensible original claims."
+)
 
 
 class DebateOrchestrator:
@@ -229,6 +271,33 @@ class DebateOrchestrator:
         self.cost_tracker = CostTracker()
         self._event_counter = 0
         self._debate_start_time = 0.0
+        self._cancelled = False
+        self._journal: SessionJournal | None = None
+        self._compaction_result = None
+        self._config: dict = {}
+        self._enforcer: PermissionEnforcer | None = None
+        self._lifecycle_registry = AgentLifecycleRegistry()
+        self._task_registry: DebateTaskRegistry | None = None
+        self._fork_manager = SessionForkManager()
+        self._current_topic: str = ""
+        self._current_model_ids: list[str] = []
+        self._current_system_prompt: str | None = None
+        self._current_sub_agents: bool = False
+        self._current_project_context: dict | None = None
+
+    def _journal_log(self, event: str | DebateEventName, data: dict, round_number: int | None = None) -> None:
+        if not self._journal:
+            return
+        event_str = event.value if isinstance(event, DebateEventName) else event
+        try:
+            self._journal.append(event_str, data, round_number=round_number)
+        except Exception:
+            pass
+
+    def _emit(self, event: DebateEventName, data: dict, round_number: int | None = None) -> str:
+        sse_str = _sse(event.value, data)
+        self._journal_log(event, data, round_number)
+        return sse_str
 
     async def _persist_event(self, debate_id: str, event_str: str):
         try:
@@ -266,6 +335,74 @@ class DebateOrchestrator:
                 _correlation_token(debate_id), _log_exc(exc),
             )
 
+    async def _check_cancelled(self, debate_id: str) -> bool:
+        if self._cancelled:
+            return True
+        try:
+            val = await self.redis.get(f"debate:{debate_id}:cancelled")
+            if val:
+                self._cancelled = True
+                return True
+        except (OSError, TimeoutError):
+            pass
+        return False
+
+    async def _raise_if_cancelled(self, debate_id: str) -> None:
+        if await self._check_cancelled(debate_id):
+            raise CancelledError(f"Debate {debate_id} was cancelled")
+
+    async def _anti_capitulation_check(
+        self,
+        debate_id: str,
+        agents: dict[str, BaseAgent],
+        all_responses: dict[int, dict[str, str]],
+    ) -> AsyncGenerator[str, None]:
+        r1 = all_responses.get(1, {})
+        r3 = all_responses.get(3, {})
+        if not r1 or not r3:
+            return
+
+        for model_id, agent in agents.items():
+            r1_text = r1.get(model_id, "")
+            r3_text = r3.get(model_id, "")
+            if not r1_text or r1_text == FALLBACK_RESPONSE or not r3_text or r3_text == FALLBACK_RESPONSE:
+                continue
+
+            r1_lines = [l for l in r1_text.splitlines() if l.strip().startswith(("-", "*", "1", "2", "3", "[C"))]
+            r3_lines = [l for l in r3_text.splitlines() if l.strip().startswith(("-", "*", "1", "2", "3", "[C"))]
+
+            if len(r1_lines) < 3:
+                continue
+            drop_ratio = 1.0 - (len(r3_lines) / len(r1_lines)) if r1_lines else 0.0
+            if drop_ratio <= 0.5:
+                continue
+
+            yield self._emit(DebateEventName.ANTI_CAPITULATION, {
+                "agent_id": model_id,
+                "r1_claims": len(r1_lines),
+                "r3_claims": len(r3_lines),
+                "drop_ratio": round(drop_ratio, 2),
+            })
+
+            prompt = ANTI_CAPITULATION_PROMPT.format(
+                round1=r1_text[:3000], round3=r3_text[:3000],
+            )
+            try:
+                revised, cost = await _call_agent(
+                    agent, ROUND_3_SYSTEM, prompt, model_id, self.cost_tracker,
+                )
+                if revised != FALLBACK_RESPONSE:
+                    all_responses[3][model_id] = revised
+                    yield self._emit(DebateEventName.ANTI_CAPITULATION_REVISED, {
+                        "agent_id": model_id,
+                        "cost": cost,
+                    })
+            except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+                logger.warning(
+                    "Anti-capitulation re-prompt failed for %s: %s",
+                    _correlation_token(model_id), _log_exc(exc),
+                )
+
     async def _load_checkpoint(self, debate_id: str) -> dict | None:
         try:
             raw = await self.redis.get(f"debate:{debate_id}:checkpoint")
@@ -283,11 +420,12 @@ class DebateOrchestrator:
             )
         return None
 
-    def _tracked_sse(self, event: str, data: dict) -> str:
+    def _tracked_sse(self, event: str | DebateEventName, data: dict) -> str:
         self._event_counter += 1
+        event_str = event.value if isinstance(event, DebateEventName) else event
         data["_event_id"] = self._event_counter
-        payload = {**data, "event": event}
-        return f"id: {self._event_counter}\nevent: {event}\ndata: {json.dumps(payload)}\n\n"
+        payload = {**data, "event": event_str}
+        return f"id: {self._event_counter}\nevent: {event_str}\ndata: {json.dumps(payload)}\n\n"
 
     def _build_round_user_prompt(
         self,
@@ -317,10 +455,10 @@ class DebateOrchestrator:
     ) -> AsyncGenerator[str, None]:
         responses_out: dict[str, str] = {}
 
-        yield _sse("round_start", {
+        yield self._emit(DebateEventName.ROUND_START, {
             "round": round_number,
             "description": _ROUND_CONFIG[round_number]["description"],
-        })
+        }, round_number=round_number)
 
         async for event in self._run_round(
             debate_id=debate_id,
@@ -334,10 +472,11 @@ class DebateOrchestrator:
 
         all_responses[round_number] = responses_out
 
-        rc_event = self._tracked_sse("round_complete", {
+        rc_event = self._tracked_sse(DebateEventName.ROUND_COMPLETE, {
             "round": round_number,
             "responses": self._format_round_results(responses_out, anon_map, round_number),
         })
+        self._journal_log(DebateEventName.ROUND_COMPLETE, {"round": round_number}, round_number=round_number)
         await self._persist_event(debate_id, rc_event)
         yield rc_event
         await self._save_checkpoint(debate_id, round_number)
@@ -350,36 +489,71 @@ class DebateOrchestrator:
         except Exception as exc:
             logger.debug("Failed to add Sentry breadcrumb: %s", _log_exc(exc))
 
+    async def _run_subagent_task(
+        self,
+        cheap_model: str,
+        prompt: str,
+        api_keys: dict[str, str | None],
+        label: str,
+    ) -> tuple[str, str | None]:
+        try:
+            cheap_agent = AgentFactory.create(cheap_model, api_keys)
+            response, _ = await asyncio.wait_for(
+                cheap_agent.generate_response(prompt), timeout=30,
+            )
+            validated = _validate_response(response)
+            if validated != FALLBACK_RESPONSE:
+                return label, validated
+        except asyncio.TimeoutError:
+            logger.warning("Sub-agent %s timed out", label)
+        except (OSError, RuntimeError) as exc:
+            logger.warning("Sub-agent %s failed: %s", label, _log_exc(exc))
+        return label, None
+
     async def _iter_subagent_research(
         self,
         topic: str,
         model_ids: list[str],
         api_keys: dict[str, str | None],
     ) -> AsyncGenerator[str, None]:
-        yield _sse("subagent_research_start", {"models": model_ids})
-        research_ok = 0
+        yield self._emit(DebateEventName.SUBAGENT_RESEARCH_START, {"models": model_ids})
+
+        tasks = []
+        sub_prompts = [
+            ("patterns", f"Research design patterns and best practices for: {topic}\nFocus on: proven approaches, common patterns, industry standards."),
+            ("tradeoffs", f"Analyze trade-offs and edge cases for: {topic}\nFocus on: risks, failure modes, scalability concerns, alternatives."),
+            ("requirements", f"Break down requirements and constraints for: {topic}\nFocus on: must-haves, dependencies, assumptions, success criteria."),
+        ]
+
         for model_id in model_ids:
             cheap_model = _get_cheap_variant(model_id)
             if not cheap_model:
                 continue
-            try:
-                cheap_agent = AgentFactory.create(cheap_model, api_keys)
-                research_prompt = (
-                    f"Research and outline key considerations for: {topic}\n"
-                    f"Focus on: patterns, requirements, trade-offs, edge cases."
-                )
-                await asyncio.wait_for(
-                    cheap_agent.generate_response(research_prompt), timeout=30,
-                )
+            for label, prompt in sub_prompts:
+                tasks.append(self._run_subagent_task(
+                    cheap_model, prompt, api_keys, f"{_correlation_token(model_id)}:{label}",
+                ))
+
+        results = await asyncio.gather(*tasks)
+        research_findings: list[str] = []
+        research_ok = 0
+        for label, finding in results:
+            if finding:
                 research_ok += 1
-            except asyncio.TimeoutError:
-                logger.warning("Sub-agent research timed out for model %s", _correlation_token(model_id))
-            except (OSError, RuntimeError) as exc:
-                logger.warning(
-                    "Sub-agent research failed for model %s: %s",
-                    _correlation_token(model_id), _log_exc(exc),
-                )
-        yield _sse("subagent_research_done", {"count": research_ok})
+                research_findings.append(f"[Sub-agent {label}]: {finding[:1000]}")
+
+        self._subagent_context = ""
+        if research_findings:
+            self._subagent_context = (
+                "=== DEEP MODE: SUB-AGENT RESEARCH ===\n"
+                + "\n\n".join(research_findings[:6])
+                + "\n=== END SUB-AGENT RESEARCH ===\n\n"
+            )
+
+        yield self._emit(DebateEventName.SUBAGENT_RESEARCH_DONE, {
+            "count": research_ok,
+            "total_tasks": len(tasks),
+        })
 
     async def _iter_convergence_finalize(
         self,
@@ -392,7 +566,7 @@ class DebateOrchestrator:
         all_responses: dict[int, dict[str, str]],
         convergence,
     ) -> AsyncGenerator[str, None]:
-        yield _sse("convergence_detected", {
+        yield self._emit(DebateEventName.CONVERGENCE_DETECTED, {
             "similarity": round(convergence.average_similarity, 4),
             "skippingRounds": True,
             "pairwise": [
@@ -416,6 +590,8 @@ class DebateOrchestrator:
         all_responses: dict[int, dict[str, str]],
         round_count: int,
     ) -> AsyncGenerator[str, None]:
+        await self._raise_if_cancelled(debate_id)
+
         if round_count >= 2:
             try:
                 convergence = await check_convergence(all_responses[1], api_keys)
@@ -451,7 +627,21 @@ class DebateOrchestrator:
         all_responses: dict[int, dict[str, str]],
         round_count: int,
     ) -> AsyncGenerator[str, None]:
-        r2_prompt = self._build_round_user_prompt(2, topic, anon_map, all_responses)
+        await self._raise_if_cancelled(debate_id)
+
+        compaction = compact_debate_context(all_responses)
+        if compaction.compacted:
+            self._compaction_result = compaction
+            yield self._emit(DebateEventName.SESSION_COMPACTED, {
+                "original_tokens": compaction.original_tokens,
+                "compacted_tokens": compaction.compacted_tokens,
+                "reduction_pct": round((1 - compaction.compacted_tokens / compaction.original_tokens) * 100, 1) if compaction.original_tokens > 0 else 0,
+            }, round_number=2)
+
+        r2_topic = topic
+        if self._compaction_result and self._compaction_result.compacted:
+            r2_topic = build_compacted_prompt(topic, self._compaction_result, 2)
+        r2_prompt = self._build_round_user_prompt(2, r2_topic, anon_map, all_responses)
         async for ev in self._run_single_round(
             debate_id, 2, agents, ROUND_2_SYSTEM, r2_prompt, anon_map, all_responses,
         ):
@@ -464,9 +654,19 @@ class DebateOrchestrator:
                 yield ev
             return
 
-        r3_prompt = self._build_round_user_prompt(3, topic, anon_map, all_responses)
+        await self._raise_if_cancelled(debate_id)
+
+        r3_topic = topic
+        if self._compaction_result and self._compaction_result.compacted:
+            r3_topic = build_compacted_prompt(topic, self._compaction_result, 3)
+        r3_prompt = self._build_round_user_prompt(3, r3_topic, anon_map, all_responses)
         async for ev in self._run_single_round(
             debate_id, 3, agents, ROUND_3_SYSTEM, r3_prompt, anon_map, all_responses,
+        ):
+            yield ev
+
+        async for ev in self._anti_capitulation_check(
+            debate_id, agents, all_responses,
         ):
             yield ev
 
@@ -485,9 +685,59 @@ class DebateOrchestrator:
         system_prompt: str | None = None,
         sub_agents: bool = False,
         project_context: dict | None = None,
+        mode: str = "council",
+        user_tier: str | None = None,
     ) -> AsyncGenerator[str, None]:
         self._debate_start_time = time.time()
         self._event_counter = 0
+        self._compaction_result = None
+
+        self._config = load_debate_config(debate_overrides={
+            "max_rounds": round_count,
+            "sub_agents_enabled": sub_agents,
+        })
+
+        container = get_container_environment()
+        if container.in_container:
+            logger.info("Running in container: runtime=%s", container.runtime)
+
+        if user_tier:
+            try:
+                tier_mode = PermissionMode(user_tier)
+            except ValueError:
+                tier_mode = PermissionMode.FREE
+            self._enforcer = PermissionEnforcer(tier_mode)
+            enforcement = self._enforcer.check_debate_request(
+                model_count=len(model_ids),
+                round_count=round_count,
+                mode=mode,
+                sub_agents=sub_agents,
+            )
+            if not enforcement.allowed:
+                yield self._emit(DebateEventName.ERROR, {
+                    "message": enforcement.reason or "Permission denied",
+                    "recoverable": False,
+                })
+                return
+            if enforcement.adjusted:
+                if "models" in enforcement.adjusted:
+                    model_ids = model_ids[:enforcement.adjusted["models"]]
+                if "rounds" in enforcement.adjusted:
+                    round_count = enforcement.adjusted["rounds"]
+                if "sub_agents" in enforcement.adjusted:
+                    sub_agents = enforcement.adjusted["sub_agents"]
+
+        journal_dir = os.getenv("CONSILIUM_JOURNAL_DIR")
+        if journal_dir or os.getenv("CONSILIUM_JOURNAL_ENABLED"):
+            self._journal = SessionJournal(debate_id, journal_dir)
+            self._journal_log(DebateEventName.DEBATE_START, {
+                "topic": topic[:200],
+                "models": model_ids,
+                "round_count": round_count,
+                "mode": mode,
+                "user_tier": user_tier,
+                "container": container.to_dict() if container.in_container else None,
+            })
 
         if project_context:
             ctx_parts = ["=== PROJECT CONTEXT ==="]
@@ -518,9 +768,21 @@ class DebateOrchestrator:
         if not _has_any_user_key(api_keys):
             model_ids = get_free_fallback_models(count=max(len(model_ids), 2))
 
+        self._task_registry = DebateTaskRegistry(debate_id)
+        self._current_topic = topic
+        self._current_model_ids = list(model_ids)
+        self._current_system_prompt = system_prompt
+        self._current_sub_agents = sub_agents
+        self._current_project_context = project_context
+
         agents: dict[str, BaseAgent] = {}
         for model_id in model_ids:
             agents[model_id] = AgentFactory.create(model_id, api_keys)
+            lifecycle = self._lifecycle_registry.register(model_id)
+            lifecycle.mark_ready()
+            p = get_provider_for_model(model_id)
+            if p:
+                provider_health.register_provider(p, [model_id])
 
         anon_map = await self.anonymizer.create_map(debate_id, model_ids)
 
@@ -530,7 +792,18 @@ class DebateOrchestrator:
             start_round = checkpoint.get("last_completed_round", 0) + 1
             logger.info("Resuming debate %s from round %d", _correlation_token(debate_id), start_round)
 
-        event = self._tracked_sse("debate_start", {
+        hook_result = await debate_hooks.run(HookContext(
+            debate_id=debate_id, event=HookEvent.PRE_DEBATE,
+            data={"topic": topic[:200], "models": model_ids, "round_count": round_count},
+        ))
+        if not hook_result.proceed:
+            yield self._emit(DebateEventName.ERROR, {
+                "message": hook_result.abort_reason or "Blocked by pre-debate hook",
+                "recoverable": False,
+            })
+            return
+
+        event = self._tracked_sse(DebateEventName.DEBATE_START, {
             "debate_id": debate_id,
             "topic": topic,
             "models": model_ids,
@@ -542,22 +815,33 @@ class DebateOrchestrator:
         await self._persist_event(debate_id, event)
         yield event
 
+        self._subagent_context = ""
         if sub_agents:
             async for ev in self._iter_subagent_research(topic, model_ids, api_keys):
                 yield ev
 
+        effective_topic = self._subagent_context + topic if self._subagent_context else topic
         all_responses: dict[int, dict[str, str]] = {}
         effective_system = system_prompt or ROUND_1_SYSTEM
 
-        async for ev in self._run_single_round(
-            debate_id, 1, agents, effective_system, topic, anon_map, all_responses,
-        ):
-            yield ev
+        try:
+            async for ev in self._run_single_round(
+                debate_id, 1, agents, effective_system, effective_topic, anon_map, all_responses,
+            ):
+                yield ev
 
-        async for ev in self._iter_after_round_one(
-            debate_id, topic, model_ids, agents, api_keys, anon_map, all_responses, round_count,
-        ):
-            yield ev
+            async for ev in self._iter_after_round_one(
+                debate_id, topic, model_ids, agents, api_keys, anon_map, all_responses, round_count,
+            ):
+                yield ev
+        except CancelledError:
+            cost_summary = self.cost_tracker.to_dict()
+            yield self._emit(DebateEventName.DEBATE_CANCELLED, {
+                "debate_id": debate_id,
+                "reason": "user",
+                "partial_cost": cost_summary["total_cost"],
+            })
+            yield self._emit(DebateEventName.DONE, {"status": "cancelled", "debate_id": debate_id})
 
     def _round_task_completion_events(
         self,
@@ -577,6 +861,12 @@ class DebateOrchestrator:
                 _correlation_token(model_id), round_number, _log_exc(exc),
             )
             responses[model_id] = FALLBACK_RESPONSE
+            lifecycle = self._lifecycle_registry.get(model_id)
+            if lifecycle:
+                lifecycle.mark_failed(round_number=round_number, detail=_log_exc(exc))
+            task_entry = self._task_registry.get_by_agent_round(model_id, round_number) if self._task_registry else None
+            if task_entry:
+                task_entry.fail(_log_exc(exc))
             try:
                 sentry_sdk.set_tag("failed_model", _correlation_token(model_id))
                 _set_runtime_context()
@@ -585,25 +875,34 @@ class DebateOrchestrator:
                     "Failed to set Sentry tag for model %s: %s",
                     _correlation_token(model_id), _log_exc(tag_exc),
                 )
-            events.append(_sse("agent_complete", {
+            events.append(self._emit(DebateEventName.AGENT_COMPLETE, {
                 "agent_id": model_id,
                 "round": round_number,
                 "content": FALLBACK_RESPONSE,
-            }))
+            }, round_number=round_number))
             return True, events
 
-        response_text, _ = result
+        response_text, cost = result
         responses[model_id] = response_text
+        lifecycle = self._lifecycle_registry.get(model_id)
+        if lifecycle:
+            lifecycle.mark_completed(round_number=round_number)
+        task_entry = self._task_registry.get_by_agent_round(model_id, round_number) if self._task_registry else None
+        if task_entry:
+            task_entry.complete(response_text[:200], cost=cost)
+        provider = get_provider_for_model(model_id)
+        if provider:
+            provider_health.record_success(provider)
         sentry_sdk.add_breadcrumb(
             category="debate",
             message=f"Agent {_correlation_token(model_id)} completed round {round_number}",
             level="info",
         )
-        events.append(_sse("agent_complete", {
+        events.append(self._emit(DebateEventName.AGENT_COMPLETE, {
             "agent_id": model_id,
             "round": round_number,
             "content": responses[model_id][:200],
-        }))
+        }, round_number=round_number))
         return True, events
 
     async def _persist_round_results(
@@ -646,7 +945,13 @@ class DebateOrchestrator:
         tasks: dict[str, asyncio.Task[tuple[str, float]]] = {}
 
         for model_id, agent in agents.items():
-            yield _sse("agent_start", {"agent_id": model_id, "round": round_number})
+            lifecycle = self._lifecycle_registry.get(model_id)
+            if lifecycle:
+                lifecycle.mark_generating(round_number)
+            prompt_hash = hashlib.sha256(user_prompt[:200].encode()).hexdigest()[:12]
+            if self._task_registry:
+                self._task_registry.create_task(model_id, round_number, prompt_hash)
+            yield self._emit(DebateEventName.AGENT_START, {"agent_id": model_id, "round": round_number}, round_number=round_number)
             tasks[model_id] = asyncio.create_task(
                 _call_agent(agent, system_prompt, user_prompt, model_id, self.cost_tracker)
             )
@@ -654,6 +959,11 @@ class DebateOrchestrator:
         responses: dict[str, str] = {}
 
         while tasks:
+            if await self._check_cancelled(debate_id):
+                for task in tasks.values():
+                    task.cancel()
+                raise CancelledError(f"Debate {debate_id} was cancelled")
+
             done_ids: list[str] = []
             for model_id, task in tasks.items():
                 remove, events = self._round_task_completion_events(
@@ -736,7 +1046,7 @@ class DebateOrchestrator:
         anon_map: AnonymityMap,
         all_responses: dict[int, dict[str, str]],
     ) -> AsyncGenerator[str, None]:
-        yield _sse("judge_start", {"description": "Synthesizing golden prompt"})
+        yield self._emit(DebateEventName.JUDGE_START, {"description": "Synthesizing golden prompt"})
 
         anon_r1 = self.anonymizer.anonymize_responses(anon_map, all_responses.get(1, {}), 1)
         anon_r2 = self.anonymizer.anonymize_responses(anon_map, all_responses.get(2, {}), 2) if all_responses.get(2) else []
@@ -765,7 +1075,7 @@ class DebateOrchestrator:
                     "Judge failed, retrying with simplified prompt: %s",
                     _log_exc(first_err),
                 )
-            yield _sse("judge_retry", {
+            yield self._emit(DebateEventName.JUDGE_RETRY, {
                 "debate_id": debate_id,
                 "reason": "context_too_large" if ctx_large else "judge_retry_failed",
                 "error_type": type(first_err).__name__,
@@ -779,7 +1089,7 @@ class DebateOrchestrator:
                 logger.error("Simplified judge also failed: %s", _log_exc(retry_err))
                 golden_prompt = self._golden_from_anon_fallback(anon_r1, anon_r2, anon_r3)
 
-        yield _sse("consensus", {
+        yield self._emit(DebateEventName.CONSENSUS, {
             "golden_prompt": golden_prompt,
             "judge_model": judge_model_id,
         })
@@ -816,14 +1126,14 @@ class DebateOrchestrator:
                 _correlation_token(debate_id), _log_exc(exc),
             )
 
-        yield _sse("cost_update", cost_summary)
+        yield self._emit(DebateEventName.COST_UPDATE, cost_summary)
 
         round_1_responses = all_responses.get(1, {})
         duration_ms = int((time.time() - self._debate_start_time) * 1000) if self._debate_start_time else 0
         models_succeeded = [m for m, r in round_1_responses.items() if r != FALLBACK_RESPONSE]
         models_failed = [m for m, r in round_1_responses.items() if r == FALLBACK_RESPONSE]
 
-        done_event = self._tracked_sse("done", {
+        done_event = self._tracked_sse(DebateEventName.DONE, {
             "status": "completed",
             "debate_id": debate_id,
             "total_cost": cost_summary["total_cost"],
@@ -834,6 +1144,12 @@ class DebateOrchestrator:
             "completed_at": _now_iso(),
         })
         await self._persist_event(debate_id, done_event)
+        self._journal_log(DebateEventName.DONE, {
+            "status": "completed",
+            "debate_id": debate_id,
+            "total_cost": cost_summary["total_cost"],
+            "duration_ms": duration_ms,
+        })
         yield done_event
 
     async def _finalize(
@@ -881,3 +1197,47 @@ class DebateOrchestrator:
             })
         result.sort(key=lambda entry: entry["label"])
         return result
+
+    def create_snapshot(
+        self,
+        debate_id: str,
+        all_responses: dict[int, dict[str, str]],
+        round_count: int,
+    ) -> DebateSnapshot:
+        return DebateSnapshot(
+            debate_id=debate_id,
+            topic=self._current_topic,
+            model_ids=list(self._current_model_ids),
+            all_responses=all_responses,
+            round_count=round_count,
+            system_prompt=self._current_system_prompt,
+            sub_agents=self._current_sub_agents,
+            project_context=self._current_project_context,
+            cost_so_far=self.cost_tracker.to_dict().get("total_cost", 0.0),
+        )
+
+    def fork_at_round(
+        self,
+        debate_id: str,
+        fork_round: int,
+        all_responses: dict[int, dict[str, str]],
+        round_count: int,
+        reason: str | None = None,
+    ) -> tuple[str, DebateSnapshot]:
+        snapshot = self.create_snapshot(debate_id, all_responses, round_count)
+        fork_debate_id, forked = self._fork_manager.create_fork(
+            parent_debate_id=debate_id,
+            fork_round=fork_round,
+            snapshot=snapshot,
+            reason=reason,
+        )
+        self._journal_log(DebateEventName.DEBATE_START, {
+            "fork_debate_id": fork_debate_id,
+            "parent_debate_id": debate_id,
+            "fork_round": fork_round,
+            "reason": reason,
+        })
+        return fork_debate_id, forked
+
+    def get_fork_lineage(self, debate_id: str) -> list[str]:
+        return self._fork_manager.get_lineage(debate_id)

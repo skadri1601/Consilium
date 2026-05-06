@@ -20,10 +20,13 @@ vi.mock('../utils/visual-system', () => ({
 
 const mockFetch = vi.fn();
 
+vi.mock('../utils/config', () => ({
+  loadConfig: () => ({ apiUrl: 'https://api.myconsilium.xyz', apiKey: 'consilium_testkey12345' }),
+  DEFAULT_API_ORIGIN: 'https://api.myconsilium.xyz',
+}));
+
 vi.mock('../api/client', () => ({
-  ConsiliumClient: vi.fn().mockImplementation(() => ({
-    getApiUrl: () => 'https://api.myconsilium.xyz',
-  })),
+  ConsiliumClient: vi.fn().mockImplementation(() => ({})),
 }));
 
 beforeEach(() => {
@@ -35,13 +38,13 @@ import { statsCommand } from '../commands/stats';
 
 describe('statsCommand', () => {
   it('prints error when API returns non-ok status', async () => {
-    mockFetch.mockResolvedValue({ ok: false });
+    mockFetch.mockResolvedValue({ ok: false, status: 500, text: () => Promise.resolve('') });
     const logs: string[] = [];
     vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
 
     await statsCommand();
 
-    expect(logs.join('\n')).toContain('Failed to fetch stats');
+    expect(logs.join('\n')).toContain('Stats unavailable');
   });
 
   it('prints error when fetch throws', async () => {
@@ -52,7 +55,7 @@ describe('statsCommand', () => {
 
     await statsCommand();
 
-    expect(logs.join('\n')).toContain('Failed to fetch stats');
+    expect(logs.join('\n')).toContain('Stats unavailable');
   });
 
   it('displays stats when API responds correctly', async () => {

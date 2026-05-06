@@ -28,6 +28,7 @@ import { formatEditPreview } from '../utils/diff-preview';
 import { consumeWritePermission, requestWritePermission } from '../utils/codebase-permissions';
 import { resolveProjectRoot } from '../utils/project-root';
 import { KeyManager } from '../utils/key-manager';
+import { getPreferences } from '../utils/config';
 import { appendProjectMemory } from '../utils/project-memory';
 import { startToolBridge, type ToolBridgeHandle } from '../utils/mcp-tool-bridge';
 
@@ -576,7 +577,8 @@ export async function debateCommand(
 
   warnDebateCommandOptions(options, mode, outputFormat);
 
-  const models = options.models || ['gpt-5.4-mini', 'claude-haiku-4-5-20251001', 'gemini-3-flash-preview'];
+  const prefs = await getPreferences();
+  const models = options.models || prefs.defaultAgents;
   const estimate = estimateCost(mode, models.length);
   console.log(st.dim(formatCostEstimate(estimate)));
 

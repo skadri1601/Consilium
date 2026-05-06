@@ -259,9 +259,6 @@ export async function requestCodebasePermission(directory: string): Promise<bool
   const existing = getReadPermissionMatch(normalized);
   if (existing) {
     if (existing.level === 'deny') return false;
-    if (existing.level === 'always') {
-      console.log(`  Codebase read: allowed (stored). Revoke: /codebase revoke`);
-    }
     return true;
   }
 

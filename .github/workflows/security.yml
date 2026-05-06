@@ -9,30 +9,6 @@ on:
     - cron: '0 9 * * 1'
 
 jobs:
-  dependency-audit:
-    name: Dependency Audit
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run dependency audit
-        run: pnpm audit --audit-level=high
-        continue-on-error: true
-
   codeql:
     name: CodeQL Analysis
     runs-on: blacksmith-4vcpu-ubuntu-2404

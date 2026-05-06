@@ -11,7 +11,7 @@ export interface UserPreferences {
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-  defaultAgents: ["gpt-5.4-mini", "claude-haiku-4-5-20251001", "gemini-3-flash-preview"],
+  defaultAgents: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"],
   defaultMode: "council",
 };
 

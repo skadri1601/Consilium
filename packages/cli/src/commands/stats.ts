@@ -1,5 +1,6 @@
 import { ConsiliumClient } from '../api/client';
 import { requireAuth } from '../utils/require-auth';
+import { loadConfig, DEFAULT_API_ORIGIN } from '../utils/config';
 import { style, border, borderBottom, contentLine } from '../utils/visual-system';
 
 const st = style();
@@ -21,11 +22,11 @@ type FetchStatsResult =
   | { ok: true; data: StatsResponse }
   | { ok: false; reason: 'unauthorized' | 'unreachable' | 'server_error'; status?: number; detail?: string };
 
-async function fetchStats(client: ConsiliumClient): Promise<FetchStatsResult> {
-  const apiUrl = client.getApiUrl();
-  const apiKey = client.getApiKey();
+async function fetchStats(_client: ConsiliumClient): Promise<FetchStatsResult> {
+  const config = loadConfig();
+  const apiUrl = config.apiUrl || DEFAULT_API_ORIGIN;
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+  if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
 
   try {
     const response = await fetch(`${apiUrl}/api/v1/analytics/stats`, {

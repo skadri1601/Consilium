@@ -576,6 +576,7 @@ export class DebatesService {
 
     try {
       if (this.redis.status === "ready") {
+        await this.redis.set(`debate:${id}:cancelled`, "1", "EX", 3600);
         await this.redis.publish(
           `debate:${id}:cancel`,
           JSON.stringify({ debateId: id, action: "cancel" }),

@@ -5,6 +5,7 @@ import {
   loadConfig,
   saveConfig,
   isLoggedIn,
+  fetchAndCachePreferences,
 } from "../utils/config.js";
 import { openBrowser } from "../utils/open-browser.js";
 import { printPostLoginProviderHints } from "../utils/post-login-onboarding.js";
@@ -127,6 +128,10 @@ export async function loginFlow(): Promise<boolean> {
     });
 
     console.log(st.success(`\n✓ Logged in as ${userName} (${email})`));
+    const prefs = await fetchAndCachePreferences();
+    if (prefs) {
+      console.log(st.dim(`  Synced preferences: ${prefs.defaultAgents.length} default models, mode=${prefs.defaultMode}`));
+    }
     await printPostLoginProviderHints(apiUrl, token, webUrl);
     return true;
   }
