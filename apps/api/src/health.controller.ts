@@ -25,10 +25,10 @@ interface DiagnosticCheck {
 @Controller("health")
 export class HealthController extends HealthIndicator {
   constructor(
-    private health: HealthCheckService,
-    private memory: MemoryHealthIndicator,
-    private prismaService: PrismaService,
-    private configService: ConfigService,
+    private readonly health: HealthCheckService,
+    private readonly memory: MemoryHealthIndicator,
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
     @InjectRedis() private readonly redis: Redis,
   ) {
     super();
@@ -127,12 +127,13 @@ export class HealthController extends HealthIndicator {
       "Diagnostic report. Returns 200 even when checks are degraded — clients inspect the per-check status.",
   })
   async diagnostics() {
-    const checks: DiagnosticCheck[] = [];
-    checks.push(await this.checkDatabase());
-    checks.push(await this.checkRedis());
-    checks.push(await this.checkAgentsService());
-    checks.push(this.checkProviderKeys());
-    checks.push(this.checkSentry());
+    const checks: DiagnosticCheck[] = [
+      await this.checkDatabase(),
+      await this.checkRedis(),
+      await this.checkAgentsService(),
+      this.checkProviderKeys(),
+      this.checkSentry(),
+    ];
 
     const overall = HealthController.aggregate(checks);
     return {
