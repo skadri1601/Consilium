@@ -5,7 +5,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { blogPosts, type BlogCategory } from "../blog-data";
-import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { SAAD_AUTHOR_ID } from "@/lib/authors";
 
 const categoryColors: Record<BlogCategory, string> = {
   Benchmarks: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -74,13 +75,20 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
+  const tags = Array.from(
+    new Set([post.category.toLowerCase(), ...(post.keywords ?? [])]),
+  );
   return buildMetadata({
     title: post.title,
     description: post.excerpt ?? post.title,
     path: `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.date,
-    keywords: [post.category.toLowerCase(), "consilium", "ai council"],
+    modifiedTime: post.date,
+    keywords: [...tags, "consilium", "ai council"],
+    authors: ["Saad Kadri"],
+    section: post.category,
+    tags,
   });
 }
 
@@ -1313,20 +1321,56 @@ export default async function BlogPostPage({
 
   const Content = postContent[slug];
 
+  const postUrl = `${SITE_URL}/blog/${post.slug}`;
+  const aggregateKeywords = Array.from(
+    new Set([
+      post.category.toLowerCase(),
+      "consilium",
+      "ai council",
+      "multi-agent debate",
+      ...(post.keywords ?? []),
+    ]),
+  );
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": `${postUrl}#blogposting`,
     headline: post.title,
     description: post.excerpt ?? post.title,
     datePublished: post.date,
-    url: `${SITE_URL}/blog/${post.slug}`,
-    author: { "@type": "Person", name: "Saad Kadri" },
-    publisher: {
-      "@type": "Organization",
-      name: "Consilium",
-      url: SITE_URL,
-    },
+    dateModified: post.date,
+    url: postUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+    image: `${SITE_URL}/og.png`,
+    author: { "@id": SAAD_AUTHOR_ID },
+    publisher: { "@id": `${SITE_URL}#organization` },
     articleSection: post.category,
+    keywords: aggregateKeywords,
+    inLanguage: "en-US",
+    isPartOf: {
+      "@type": "Blog",
+      name: `${SITE_NAME} blog`,
+      url: `${SITE_URL}/blog`,
+    },
+    ...(post.mentions?.length
+      ? {
+          mentions: post.mentions.map((m) => ({
+            "@type": "Thing",
+            name: m.name,
+            url: m.url,
+            sameAs: m.url,
+          })),
+        }
+      : {}),
+    ...(post.citations?.length
+      ? {
+          citation: post.citations.map((c) => ({
+            "@type": "ScholarlyArticle",
+            name: c.name,
+            url: c.url,
+          })),
+        }
+      : {}),
   };
 
   const breadcrumbJsonLd = {
