@@ -43,6 +43,7 @@ jobs:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @consilium/shared build
       - run: cd packages/cli && pnpm build && pnpm publish --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
