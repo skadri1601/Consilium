@@ -151,10 +151,11 @@ test.describe("Debate Flow", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await gotoPath(page, "/council");
 
-    // Agent selector should be visible (might be collapsed)
+    // Agent selector should be present in the DOM (may be collapsed on mobile)
     const agentSection = page
       .locator("text=Select Agents")
       .or(page.locator('[data-testid="agent-selector"]'));
+    await expect(agentSection.first()).toBeAttached();
 
     // Check that layout is mobile-friendly
     const textarea = page

@@ -1,15 +1,18 @@
+import * as React from "react";
 import { render, screen, within } from "@testing-library/react";
 
 vi.mock("framer-motion", () => {
-  const React = require("react");
   return {
     motion: new Proxy(
       {},
       {
-        get: (_target: unknown, prop: string) =>
-          React.forwardRef((props: Record<string, unknown>, ref: unknown) =>
-            React.createElement(prop, { ...props, ref }),
-          ),
+        get: (_target: unknown, prop: string) => {
+          const Component = React.forwardRef<unknown, Record<string, unknown>>(
+            (props, ref) => React.createElement(prop, { ...props, ref }),
+          );
+          Component.displayName = `motion.${prop}`;
+          return Component;
+        },
       },
     ),
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
@@ -27,7 +30,10 @@ vi.mock("@clerk/nextjs", () => ({
 }));
 
 vi.mock("next/image", () => ({
-  default: (props: Record<string, unknown>) => <img {...props} />,
+  default: (props: Record<string, unknown>) => {
+    const altText = typeof props.alt === "string" ? props.alt : "";
+    return <img {...props} alt={altText} />;
+  },
 }));
 
 vi.mock("next/link", () => ({
@@ -47,7 +53,6 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("recharts", () => {
-  const React = require("react");
   return {
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div data-testid="responsive-container">{children}</div>

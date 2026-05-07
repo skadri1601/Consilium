@@ -16,7 +16,7 @@ if (typeof navigator !== "undefined") {
     });
   } catch {
     try {
-      delete (navigator as any).clipboard;
+      delete (navigator as { clipboard?: unknown }).clipboard;
       Object.defineProperty(navigator, "clipboard", {
         value: mockClipboard,
         writable: true,
@@ -100,21 +100,22 @@ describe("SynthesisOutput", () => {
       download: "",
       click: vi.fn(),
     };
+    const mockAnchorElement = mockAnchor as unknown as HTMLAnchorElement;
     const originalCreateElement = document.createElement.bind(document);
     const createElementSpy = vi
       .spyOn(document, "createElement")
       .mockImplementation((tagName) => {
         if (tagName === "a") {
-          return mockAnchor as any;
+          return mockAnchorElement;
         }
         return originalCreateElement(tagName);
       });
     const appendChildSpy = vi
       .spyOn(document.body, "appendChild")
-      .mockImplementation(() => mockAnchor as any);
+      .mockImplementation(() => mockAnchorElement);
     const removeChildSpy = vi
       .spyOn(document.body, "removeChild")
-      .mockImplementation(() => mockAnchor as any);
+      .mockImplementation(() => mockAnchorElement);
 
     const exportButton = screen.getByRole("button", { name: /\.cursorrules/i });
     await user.click(exportButton);

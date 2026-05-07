@@ -158,8 +158,12 @@ function RankingChart({
               width={120}
             />
             <Tooltip
-              formatter={(value: number, _name: string, props: any) => [
-                `${value.toFixed(2)} (Rank #${props.payload.rank})`,
+              formatter={(
+                value: number,
+                _name: string,
+                item: { payload?: { rank?: number } },
+              ) => [
+                `${value.toFixed(2)} (Rank #${item.payload?.rank ?? "?"})`,
                 "Borda Score",
               ]}
             />

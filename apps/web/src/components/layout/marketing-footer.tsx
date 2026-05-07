@@ -4,6 +4,7 @@ import {
   LinkedInLogoIcon,
   TwitterLogoIcon,
 } from "@radix-ui/react-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { FooterSubscribeForm } from "./footer-subscribe-form";
 
@@ -70,11 +71,12 @@ export function MarketingFooter(props: MarketingFooterProps) {
               aria-label="Consilium home"
               className="inline-flex items-center"
             >
-              <img
+              <Image
                 src="/brand/consilium-icon.svg"
                 alt=""
                 width={48}
                 height={48}
+                unoptimized
                 className="h-12 w-12"
               />
             </Link>

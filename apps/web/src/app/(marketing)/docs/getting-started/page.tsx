@@ -1,14 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  ArrowLeft,
-  Globe,
-  Terminal,
-  Code,
-  Server,
-  Key,
-  Shield,
-} from "lucide-react";
+import { ArrowLeft, Globe, Terminal, Key, Shield } from "lucide-react";
 import {
   Card,
   CardContent,

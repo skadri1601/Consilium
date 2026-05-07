@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "@/shared/components/ui/button";
 import { videoObjectSchema } from "@/lib/structured-data";
@@ -642,11 +643,12 @@ export default function LandingPage() {
               key={provider.name}
               className="flex flex-col items-center gap-2 rounded-lg border bg-background p-6 min-w-[120px]"
             >
-              <img
+              <Image
                 src={`/brand/providers/${provider.icon}.svg`}
                 alt={provider.name}
                 width={32}
                 height={32}
+                unoptimized
                 className="h-8 w-8"
               />
               <span className="text-sm font-medium">{provider.name}</span>
@@ -684,11 +686,12 @@ export default function LandingPage() {
             >
               <div className="flex items-center gap-3">
                 {group.meta.icon ? (
-                  <img
+                  <Image
                     src={`/brand/providers/${group.meta.icon}.svg`}
                     alt={group.provider}
                     width={24}
                     height={24}
+                    unoptimized
                     className="h-6 w-6"
                   />
                 ) : (
