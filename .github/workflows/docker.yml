@@ -33,7 +33,7 @@ jobs:
       agents: ${{ steps.filter.outputs.agents }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
