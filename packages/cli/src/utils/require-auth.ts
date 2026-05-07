@@ -1,5 +1,5 @@
-import { isLoggedIn } from './config';
-import { loginFlow } from '../commands/login';
+import { isLoggedIn } from "./config";
+import { loginFlow } from "../commands/login";
 
 export async function requireAuth(): Promise<void> {
   if (isLoggedIn()) return;

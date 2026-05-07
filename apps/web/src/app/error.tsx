@@ -2,7 +2,13 @@
 
 import { useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 
 export default function Error({
@@ -38,7 +44,10 @@ export default function Error({
             </div>
             <div className="flex gap-2">
               <Button onClick={reset}>Try Again</Button>
-              <Button variant="outline" onClick={() => window.location.href = "/"}>
+              <Button
+                variant="outline"
+                onClick={() => (window.location.href = "/")}
+              >
                 Go Home
               </Button>
             </div>
@@ -48,4 +57,3 @@ export default function Error({
     </div>
   );
 }
-

@@ -15,7 +15,9 @@ const PROVIDER_ORDER: AgentProvider[] = [
   "OpenRouter",
 ];
 
-function groupByProvider(agents: readonly AgentDef[]): Record<string, AgentDef[]> {
+function groupByProvider(
+  agents: readonly AgentDef[],
+): Record<string, AgentDef[]> {
   const groups: Record<string, AgentDef[]> = {};
   for (const agent of agents) {
     if (!groups[agent.provider]) {

@@ -1,11 +1,11 @@
-export { ConsiliumClient } from './client.js';
+export { ConsiliumClient } from "./client.js";
 export {
   ConsiliumError,
   AuthenticationError,
   TimeoutError,
   ServerError,
   RateLimitError,
-} from './errors.js';
+} from "./errors.js";
 export type {
   DeliberationMode,
   DeliberateOptions,
@@ -19,4 +19,4 @@ export type {
   CostEstimateBreakdown,
   HealthStatus,
   ClientConfig,
-} from './types.js';
+} from "./types.js";

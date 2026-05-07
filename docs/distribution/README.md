@@ -6,11 +6,11 @@ steps, link the resulting listing back here when it goes live.
 
 ## Submission targets, in priority order
 
-| Target | File | Priority | Effort | Reach |
-|---|---|---|---|---|
-| Smithery.ai | `smithery.yaml` | **1** | 30 min | Auto-imports into Cursor + various Claude clients |
-| modelcontextprotocol/servers | `mcp-servers-pr.md` | **2** | 1 hr | Canonical curated list. Every MCP host links to it. |
-| Cursor MCP marketplace | `cursor-marketplace.md` | **3** | 1-2 hrs | Highest single-channel reach. One-click install. |
+| Target                       | File                    | Priority | Effort  | Reach                                               |
+| ---------------------------- | ----------------------- | -------- | ------- | --------------------------------------------------- |
+| Smithery.ai                  | `smithery.yaml`         | **1**    | 30 min  | Auto-imports into Cursor + various Claude clients   |
+| modelcontextprotocol/servers | `mcp-servers-pr.md`     | **2**    | 1 hr    | Canonical curated list. Every MCP host links to it. |
+| Cursor MCP marketplace       | `cursor-marketplace.md` | **3**    | 1-2 hrs | Highest single-channel reach. One-click install.    |
 
 ## Why this order
 

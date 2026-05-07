@@ -52,9 +52,7 @@ Suggested `consilium.json` entry shape (matches Smithery + Cursor conventions):
     "consilium_list_debates",
     "consilium_cancel_debate"
   ],
-  "screenshots": [
-    "https://myconsilium.xyz/og.png"
-  ]
+  "screenshots": ["https://myconsilium.xyz/og.png"]
 }
 ```
 

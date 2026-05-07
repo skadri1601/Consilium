@@ -1,5 +1,10 @@
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
-import { McpClientError, McpServerConfig, McpTool, McpToolResult } from "./types";
+import {
+  McpClientError,
+  McpServerConfig,
+  McpTool,
+  McpToolResult,
+} from "./types";
 
 const PROTOCOL_VERSION = "2025-03-26";
 const CLIENT_INFO = { name: "@myconsilium/cli", version: "0.3.0" };
@@ -61,14 +66,24 @@ export class StdioMcpClient {
 
   async listTools(): Promise<McpTool[]> {
     this.ensureReady();
-    const result = (await this.request("tools/list", {})) as { tools?: unknown };
-    const tools = Array.isArray(result.tools) ? (result.tools as McpTool[]) : [];
+    const result = (await this.request("tools/list", {})) as {
+      tools?: unknown;
+    };
+    const tools = Array.isArray(result.tools)
+      ? (result.tools as McpTool[])
+      : [];
     return tools;
   }
 
-  async callTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
+  async callTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<McpToolResult> {
     this.ensureReady();
-    const result = (await this.request("tools/call", { name, arguments: args })) as McpToolResult;
+    const result = (await this.request("tools/call", {
+      name,
+      arguments: args,
+    })) as McpToolResult;
     return result;
   }
 
@@ -113,7 +128,10 @@ export class StdioMcpClient {
       this.opts.startupTimeoutMs,
     )) as { protocolVersion?: string };
     if (!result || typeof result !== "object") {
-      throw new McpClientError(this.config.name, "initialize returned no result");
+      throw new McpClientError(
+        this.config.name,
+        "initialize returned no result",
+      );
     }
     this.initialized = true;
     this.sendNotification("notifications/initialized", {});
@@ -124,16 +142,26 @@ export class StdioMcpClient {
       throw new McpClientError(this.config.name, "client not initialized");
     }
     if (!this.process || this.process.exitCode !== null) {
-      throw new McpClientError(this.config.name, "server process is not running");
+      throw new McpClientError(
+        this.config.name,
+        "server process is not running",
+      );
     }
   }
 
-  private request(method: string, params: Record<string, unknown>, timeoutMs?: number): Promise<unknown> {
+  private request(
+    method: string,
+    params: Record<string, unknown>,
+    timeoutMs?: number,
+  ): Promise<unknown> {
     if (!this.process) {
-      return Promise.reject(new McpClientError(this.config.name, "process not started"));
+      return Promise.reject(
+        new McpClientError(this.config.name, "process not started"),
+      );
     }
     const id = this.nextId++;
-    const payload = JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n";
+    const payload =
+      JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n";
     const effectiveTimeout = timeoutMs ?? this.opts.requestTimeoutMs;
 
     return new Promise((resolve, reject) => {
@@ -157,7 +185,10 @@ export class StdioMcpClient {
     });
   }
 
-  private sendNotification(method: string, params: Record<string, unknown>): void {
+  private sendNotification(
+    method: string,
+    params: Record<string, unknown>,
+  ): void {
     if (!this.process) return;
     const payload = JSON.stringify({ jsonrpc: "2.0", method, params }) + "\n";
     try {

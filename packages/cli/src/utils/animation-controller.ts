@@ -3,8 +3,8 @@
  * Max 30fps to avoid flicker and excessive redraws.
  */
 
-import logUpdate from 'log-update';
-import { terminal } from './terminal-capabilities';
+import logUpdate from "log-update";
+import { terminal } from "./terminal-capabilities";
 
 const TARGET_FPS = 30;
 const FRAME_MS = 1000 / TARGET_FPS;
@@ -18,7 +18,7 @@ function flush() {
   if (terminal.isTTY && !terminal.usePlain) {
     logUpdate(pendingContent);
   } else if (rafId === null) {
-    process.stdout.write(pendingContent + '\n');
+    process.stdout.write(pendingContent + "\n");
   }
   pendingContent = null;
   rafId = null;

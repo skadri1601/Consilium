@@ -20,26 +20,26 @@ Research shows multi-agent debate improves factual accuracy by reducing hallucin
 
 ## Why Deliberation > Orchestration
 
-| | Orchestration (CrewAI, LangChain) | Deliberation (Consilium) |
-|---|---|---|
-| **Model interaction** | Sequential pipeline | Adversarial rounds |
-| **Error handling** | Propagates downstream | Caught by cross-examination |
-| **Confidence** | Self-reported | Calibrated via convergence scoring |
-| **Disagreement** | Hidden | Surfaced as dissent reports |
-| **Audit trail** | Logs | Structured claims, challenges, rebuttals |
+|                       | Orchestration (CrewAI, LangChain) | Deliberation (Consilium)                 |
+| --------------------- | --------------------------------- | ---------------------------------------- |
+| **Model interaction** | Sequential pipeline               | Adversarial rounds                       |
+| **Error handling**    | Propagates downstream             | Caught by cross-examination              |
+| **Confidence**        | Self-reported                     | Calibrated via convergence scoring       |
+| **Disagreement**      | Hidden                            | Surfaced as dissent reports              |
+| **Audit trail**       | Logs                              | Structured claims, challenges, rebuttals |
 
 ## Deliberation Modes
 
-| Mode | Rounds | Description |
-|---|---|---|
-| `quick` | 1 | Single round, fastest response (~15s) |
-| `council` | 3 | Multi-round deliberation with cross-examination (~45s) |
-| `deep` | 5 | Multi-round with sub-agent research (~90s) |
-| `blind` | 3 | Model names hidden until scored, reducing anchoring bias (~45s) |
-| `redteam` | 4 | Adversarial red team assessment with attack/defense cycles (~120s) |
-| `jury` | 3 | Panel deliberation with ranked-choice voting (~60s) |
-| `market` | 5 | Prediction market style confidence aggregation (~90s) |
-| `auto` | varies | Automatically selects the best mode for the topic (~45s) |
+| Mode      | Rounds | Description                                                        |
+| --------- | ------ | ------------------------------------------------------------------ |
+| `quick`   | 1      | Single round, fastest response (~15s)                              |
+| `council` | 3      | Multi-round deliberation with cross-examination (~45s)             |
+| `deep`    | 5      | Multi-round with sub-agent research (~90s)                         |
+| `blind`   | 3      | Model names hidden until scored, reducing anchoring bias (~45s)    |
+| `redteam` | 4      | Adversarial red team assessment with attack/defense cycles (~120s) |
+| `jury`    | 3      | Panel deliberation with ranked-choice voting (~60s)                |
+| `market`  | 5      | Prediction market style confidence aggregation (~90s)              |
+| `auto`    | varies | Automatically selects the best mode for the topic (~45s)           |
 
 ## Architecture
 
@@ -135,14 +135,14 @@ npm install @myconsilium/sdk
 ```
 
 ```typescript
-import { ConsiliumClient } from '@myconsilium/sdk';
+import { ConsiliumClient } from "@myconsilium/sdk";
 
-const client = new ConsiliumClient({ apiKey: 'your-key' });
+const client = new ConsiliumClient({ apiKey: "your-key" });
 
 const result = await client.deliberate({
-  topic: 'Should we migrate to server components?',
-  mode: 'jury',
-  models: ['gpt-5.4', 'claude-sonnet-4-6', 'gemini-3-flash-preview'],
+  topic: "Should we migrate to server components?",
+  mode: "jury",
+  models: ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
 });
 
 console.log(result.verdict);
@@ -153,7 +153,7 @@ Stream deliberation events in real time:
 
 ```typescript
 const result = await client.streamDeliberation(
-  { topic: 'Is TDD worth the overhead?', mode: 'council' },
+  { topic: "Is TDD worth the overhead?", mode: "council" },
   (event) => console.log(`[${event.type}]`, event.data),
 );
 ```
@@ -185,32 +185,32 @@ Deliberation produces the largest gains on **complex reasoning tasks** where mod
 
 **Research-calibrated estimates (primary) -- live benchmark scores pending answer checker fix**
 
-| Benchmark | Single Model (est.) | Consilium Council (est.) | Expected Improvement | Source |
-|---|---|---|---|---|
-| MMLU-Pro (hard subset) | ~75% | ~83% | +8% | Du et al. |
-| TruthfulQA | ~68% | ~75% | +6.8% | ReConcile |
-| HumanEval (pass@1) | ~82% | ~90% | +8% | Du et al. |
-| GSM8K | ~89% | ~94% | +5.6% | Du et al. |
+| Benchmark              | Single Model (est.) | Consilium Council (est.) | Expected Improvement | Source    |
+| ---------------------- | ------------------- | ------------------------ | -------------------- | --------- |
+| MMLU-Pro (hard subset) | ~75%                | ~83%                     | +8%                  | Du et al. |
+| TruthfulQA             | ~68%                | ~75%                     | +6.8%                | ReConcile |
+| HumanEval (pass@1)     | ~82%                | ~90%                     | +8%                  | Du et al. |
+| GSM8K                  | ~89%                | ~94%                     | +5.6%                | Du et al. |
 
 **Live benchmark runs (April 2026) -- results pending answer checker improvement**
 
 Initial benchmark runs completed but produced artificially low scores due to strict string matching (free-text answers vs. exact match) and OpenAI API rate limits during test execution. Raw scores below are not representative of actual model or deliberation quality.
 
-| Benchmark | Questions | Raw Single | Raw Deliberation | API Cost (single) | API Cost (deliberation) | Status |
-|---|---|---|---|---|---|---|
-| MMLU | 200 | 2% | 2% | $0.03 | $9.58 | Answer checker too strict |
-| TruthfulQA | 100 | 27% | 19% | $0.01 | $4.69 | Answer checker too strict + API errors |
-| HumanEval | 50 | 0% | 0% | $0.01 | $3.00 | Answer checker too strict |
+| Benchmark  | Questions | Raw Single | Raw Deliberation | API Cost (single) | API Cost (deliberation) | Status                                 |
+| ---------- | --------- | ---------- | ---------------- | ----------------- | ----------------------- | -------------------------------------- |
+| MMLU       | 200       | 2%         | 2%               | $0.03             | $9.58                   | Answer checker too strict              |
+| TruthfulQA | 100       | 27%        | 19%              | $0.01             | $4.69                   | Answer checker too strict + API errors |
+| HumanEval  | 50        | 0%         | 0%               | $0.01             | $3.00                   | Answer checker too strict              |
 
 **Operational metrics:**
 
-| Metric | Value |
-|---|---|
-| Avg. deliberation cost per question (council, 3 models, 3 rounds) | ~$0.05-0.10 |
-| Total benchmark API spend (350 questions) | $17.30 |
-| Convergence detection cost savings | ~30-40% vs fixed rounds |
-| Median latency (council mode, 3 rounds) | ~45s |
-| Median latency (quick mode, 1 round) | ~15s |
+| Metric                                                            | Value                   |
+| ----------------------------------------------------------------- | ----------------------- |
+| Avg. deliberation cost per question (council, 3 models, 3 rounds) | ~$0.05-0.10             |
+| Total benchmark API spend (350 questions)                         | $17.30                  |
+| Convergence detection cost savings                                | ~30-40% vs fixed rounds |
+| Median latency (council mode, 3 rounds)                           | ~45s                    |
+| Median latency (quick mode, 1 round)                              | ~15s                    |
 
 ### Methodology
 
@@ -221,12 +221,12 @@ Initial benchmark runs completed but produced artificially low scores due to str
 
 ### Research Baselines
 
-| Study | Finding |
-|---|---|
-| Du et al., ICML 2024 -- Multi-Agent Debate | +10-20% on math/reasoning tasks via iterative debate |
-| Chen et al., ACL 2024 -- ReConcile | +6.8% accuracy using heterogeneous models with confidence-weighted voting |
-| Irving et al., 2018 -- AI Safety via Debate | Adversarial debate surfaces deceptive reasoning in aligned models |
-| Liang et al., 2023 -- Divergent Thinking | Multi-agent debate increases solution diversity and creativity |
+| Study                                       | Finding                                                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| Du et al., ICML 2024 -- Multi-Agent Debate  | +10-20% on math/reasoning tasks via iterative debate                      |
+| Chen et al., ACL 2024 -- ReConcile          | +6.8% accuracy using heterogeneous models with confidence-weighted voting |
+| Irving et al., 2018 -- AI Safety via Debate | Adversarial debate surfaces deceptive reasoning in aligned models         |
+| Liang et al., 2023 -- Divergent Thinking    | Multi-agent debate increases solution diversity and creativity            |
 
 ### Run Your Own Benchmarks
 
@@ -270,29 +270,29 @@ Consilium/
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15, React, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query |
-| API | NestJS 11, Fastify, BullMQ, Prisma ORM, Swagger |
-| Deliberation Engine | Python, FastAPI, 5 LLM providers |
-| Database | Neon PostgreSQL |
-| Cache/Queue | Upstash Redis |
-| Auth | Clerk |
-| Monorepo | pnpm + Turborepo |
+| Layer               | Technology                                                                      |
+| ------------------- | ------------------------------------------------------------------------------- |
+| Frontend            | Next.js 15, React, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query |
+| API                 | NestJS 11, Fastify, BullMQ, Prisma ORM, Swagger                                 |
+| Deliberation Engine | Python, FastAPI, 5 LLM providers                                                |
+| Database            | Neon PostgreSQL                                                                 |
+| Cache/Queue         | Upstash Redis                                                                   |
+| Auth                | Clerk                                                                           |
+| Monorepo            | pnpm + Turborepo                                                                |
 
 ## Comparison
 
-| Feature | Consilium | CrewAI | DeepEval | Promptfoo |
-|---|---|---|---|---|
-| Multi-model deliberation | Yes | No (sequential) | No | No |
-| Adversarial cross-examination | Yes | No | No | No |
-| Red team mode | Yes | No | Yes | Yes |
-| Blind evaluation | Yes | No | Yes | Yes |
-| Prediction market aggregation | Yes | No | No | No |
-| Dissent reports | Yes | No | No | No |
-| Real-time SSE streaming | Yes | No | No | No |
-| BYOK (no markup) | Yes | Yes | Yes | Yes |
-| Formal voting (Condorcet/Borda) | Yes | No | No | No |
+| Feature                         | Consilium | CrewAI          | DeepEval | Promptfoo |
+| ------------------------------- | --------- | --------------- | -------- | --------- |
+| Multi-model deliberation        | Yes       | No (sequential) | No       | No        |
+| Adversarial cross-examination   | Yes       | No              | No       | No        |
+| Red team mode                   | Yes       | No              | Yes      | Yes       |
+| Blind evaluation                | Yes       | No              | Yes      | Yes       |
+| Prediction market aggregation   | Yes       | No              | No       | No        |
+| Dissent reports                 | Yes       | No              | No       | No        |
+| Real-time SSE streaming         | Yes       | No              | No       | No        |
+| BYOK (no markup)                | Yes       | Yes             | Yes      | Yes       |
+| Formal voting (Condorcet/Borda) | Yes       | No              | No       | No        |
 
 ## Research References
 

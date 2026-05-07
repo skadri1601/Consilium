@@ -11,7 +11,10 @@ export interface LinearTicket {
   comments: string[];
 }
 
-async function linearApiQuery(query: string, variables: Record<string, unknown> = {}): Promise<any> {
+async function linearApiQuery(
+  query: string,
+  variables: Record<string, unknown> = {},
+): Promise<any> {
   const config = loadConfig();
   const apiKey = process.env.LINEAR_API_KEY || (config as any).linearApiKey;
   if (!apiKey) return null;
@@ -31,7 +34,9 @@ async function linearApiQuery(query: string, variables: Record<string, unknown> 
   return payload.data;
 }
 
-export async function fetchTicket(identifier: string): Promise<LinearTicket | null> {
+export async function fetchTicket(
+  identifier: string,
+): Promise<LinearTicket | null> {
   const parts = identifier.split("-");
   if (parts.length !== 2) return null;
   const teamKey = parts[0];

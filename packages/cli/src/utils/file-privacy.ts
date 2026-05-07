@@ -1,7 +1,14 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-export type FileClassification = "source" | "manifest" | "config" | "doc" | "secret" | "skip" | "dependency";
+export type FileClassification =
+  | "source"
+  | "manifest"
+  | "config"
+  | "doc"
+  | "secret"
+  | "skip"
+  | "dependency";
 
 export const SECRET_PATTERNS: string[] = [
   ".env*",
@@ -45,12 +52,47 @@ export const READABLE_EXTENSIONS: Set<string> = new Set([
 ]);
 
 const SKIP_EXTENSIONS: Set<string> = new Set([
-  ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".webp",
-  ".pdf", ".docx", ".doc", ".xlsx", ".xls", ".pptx",
-  ".exe", ".dll", ".so", ".dylib", ".bin", ".o", ".obj",
-  ".mp3", ".mp4", ".wav", ".avi", ".mov", ".mkv", ".flac", ".ogg",
-  ".zip", ".tar", ".gz", ".bz2", ".rar", ".7z", ".tgz",
-  ".woff", ".woff2", ".ttf", ".otf", ".eot",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".bmp",
+  ".ico",
+  ".svg",
+  ".webp",
+  ".pdf",
+  ".docx",
+  ".doc",
+  ".xlsx",
+  ".xls",
+  ".pptx",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".bin",
+  ".o",
+  ".obj",
+  ".mp3",
+  ".mp4",
+  ".wav",
+  ".avi",
+  ".mov",
+  ".mkv",
+  ".flac",
+  ".ogg",
+  ".zip",
+  ".tar",
+  ".gz",
+  ".bz2",
+  ".rar",
+  ".7z",
+  ".tgz",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
   ".map",
   ".lock",
 ]);
@@ -69,10 +111,7 @@ const MANIFEST_NAMES: Set<string> = new Set([
   "composer.json",
 ]);
 
-const SPECIAL_READABLE: Set<string> = new Set([
-  "Dockerfile",
-  "Makefile",
-]);
+const SPECIAL_READABLE: Set<string> = new Set(["Dockerfile", "Makefile"]);
 
 export const PRIVACY_PREAMBLE = `PRIVACY RULES: You will NEVER receive .env, .key, .pem, or credential files.
 Do NOT ask for, infer, or generate secret values.
@@ -117,14 +156,29 @@ export function classifyFile(filePath: string): FileClassification {
   }
 
   if (SKIP_EXTENSIONS.has(ext)) return "skip";
-  if (basename === "package-lock.json" || basename === "yarn.lock" || basename === "pnpm-lock.yaml") return "skip";
+  if (
+    basename === "package-lock.json" ||
+    basename === "yarn.lock" ||
+    basename === "pnpm-lock.yaml"
+  )
+    return "skip";
 
   if (MANIFEST_NAMES.has(basename)) return "manifest";
   if (SPECIAL_READABLE.has(basename)) return "config";
 
   if (ext === ".md" || ext === ".txt" || ext === ".rst") return "doc";
 
-  if (ext === ".json" || ext === ".yaml" || ext === ".yml" || ext === ".toml" || ext === ".ini" || ext === ".cfg" || ext === ".xml" || ext === ".conf") return "config";
+  if (
+    ext === ".json" ||
+    ext === ".yaml" ||
+    ext === ".yml" ||
+    ext === ".toml" ||
+    ext === ".ini" ||
+    ext === ".cfg" ||
+    ext === ".xml" ||
+    ext === ".conf"
+  )
+    return "config";
 
   if (READABLE_EXTENSIONS.has(ext)) return "source";
 
@@ -133,7 +187,12 @@ export function classifyFile(filePath: string): FileClassification {
 
 export function isReadableSource(filePath: string): boolean {
   const classification = classifyFile(filePath);
-  return classification === "source" || classification === "config" || classification === "manifest" || classification === "doc";
+  return (
+    classification === "source" ||
+    classification === "config" ||
+    classification === "manifest" ||
+    classification === "doc"
+  );
 }
 
 export function sanitizeDockerCompose(content: string): string {
@@ -175,7 +234,10 @@ export interface ScanResult {
 function loadGitignorePatterns(projectPath: string): Set<string> {
   const patterns = new Set<string>();
   try {
-    const gitignore = fs.readFileSync(path.join(projectPath, ".gitignore"), "utf-8");
+    const gitignore = fs.readFileSync(
+      path.join(projectPath, ".gitignore"),
+      "utf-8",
+    );
     for (const line of gitignore.split("\n")) {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith("#")) {
@@ -193,7 +255,7 @@ function loadGitignorePatterns(projectPath: string): Set<string> {
 
 export function scanDirectory(
   dir: string,
-  options?: { maxFiles?: number; maxFileSize?: number; maxTotalSize?: number }
+  options?: { maxFiles?: number; maxFileSize?: number; maxTotalSize?: number },
 ): ScanResult {
   const maxFiles = options?.maxFiles ?? 200;
   const maxFileSize = options?.maxFileSize ?? 50 * 1024;
@@ -274,7 +336,9 @@ function processScanDirectoryEntry(
   state: ScanWalkState,
 ): void {
   const fullPath = path.join(currentDir, entry.name);
-  const relativePath = path.relative(state.rootDir, fullPath).replaceAll("\\", "/");
+  const relativePath = path
+    .relative(state.rootDir, fullPath)
+    .replaceAll("\\", "/");
 
   if (entry.isDirectory()) {
     if (isDependencyDir(fullPath)) return;
@@ -288,7 +352,11 @@ function processScanDirectoryEntry(
   handleScanFileEntry(fullPath, relativePath, state);
 }
 
-function walkScanTree(currentDir: string, depth: number, state: ScanWalkState): void {
+function walkScanTree(
+  currentDir: string,
+  depth: number,
+  state: ScanWalkState,
+): void {
   if (depth > 10) return;
   if (state.result.readableFiles.length >= state.maxFiles) return;
 

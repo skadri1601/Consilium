@@ -144,11 +144,13 @@ export class ConsiliumClient {
     });
   }
 
-  async listDebates(opts: {
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}): Promise<DebateSummary[]> {
+  async listDebates(
+    opts: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+    } = {},
+  ): Promise<DebateSummary[]> {
     const params = new URLSearchParams();
     if (opts.limit !== undefined) params.set("limit", String(opts.limit));
     if (opts.offset !== undefined) params.set("offset", String(opts.offset));
@@ -200,7 +202,11 @@ export class ConsiliumClient {
   async createRedTeam(
     payload: CreateDeliberationRequest,
   ): Promise<{ id: string }> {
-    return this.request<{ id: string }>("POST", "/deliberation/redteam", payload);
+    return this.request<{ id: string }>(
+      "POST",
+      "/deliberation/redteam",
+      payload,
+    );
   }
 
   async createBlindEval(

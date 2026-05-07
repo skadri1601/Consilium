@@ -48,7 +48,8 @@ export class StatusBarController {
       case "running": {
         const parts: string[] = [`$(loading~spin) ${state.mode}`];
         if (state.round !== undefined) parts.push(`R${state.round}`);
-        if (typeof state.cost === "number") parts.push(`$${state.cost.toFixed(3)}`);
+        if (typeof state.cost === "number")
+          parts.push(`$${state.cost.toFixed(3)}`);
         this.item.text = parts.join(" · ");
         this.item.tooltip = "Click to cancel the active debate";
         this.item.command = "consilium.cancel";

@@ -4,21 +4,21 @@ Next.js 15.2.3 frontend for Consilium. Hosted on Vercel.
 
 ## Tech Stack
 
-| Category | Technology |
-|---|---|
-| Framework | Next.js 15.2.3 (App Router) |
-| Hosting | Vercel  |
-| Language | TypeScript |
-| Auth | Clerk (`@clerk/nextjs ^6.0.0`) + webhook support |
-| UI | shadcn/ui + Radix UI |
-| Styling | Tailwind CSS + `tailwindcss-animate` + Framer Motion |
-| State | Zustand ^5.0.0 + TanStack Query ^5.60.0 |
-| Forms | react-hook-form + zod |
-| Charts | Recharts ^2.14.0 |
-| Payments | Stripe ^17.0.0 + Svix webhooks |
-| Monitoring | Sentry (`@sentry/nextjs`) with Session Replay |
-| Theme | next-themes (dark mode forced) |
-| Testing | Vitest + Playwright |
+| Category   | Technology                                           |
+| ---------- | ---------------------------------------------------- |
+| Framework  | Next.js 15.2.3 (App Router)                          |
+| Hosting    | Vercel                                               |
+| Language   | TypeScript                                           |
+| Auth       | Clerk (`@clerk/nextjs ^6.0.0`) + webhook support     |
+| UI         | shadcn/ui + Radix UI                                 |
+| Styling    | Tailwind CSS + `tailwindcss-animate` + Framer Motion |
+| State      | Zustand ^5.0.0 + TanStack Query ^5.60.0              |
+| Forms      | react-hook-form + zod                                |
+| Charts     | Recharts ^2.14.0                                     |
+| Payments   | Stripe ^17.0.0 + Svix webhooks                       |
+| Monitoring | Sentry (`@sentry/nextjs`) with Session Replay        |
+| Theme      | next-themes (dark mode forced)                       |
+| Testing    | Vitest + Playwright                                  |
 
 ### Radix UI Primitives
 
@@ -45,30 +45,30 @@ accordion, alert-dialog, avatar, dialog, dropdown-menu, label, popover, select, 
 
 ### Dashboard
 
-| Route | Description |
-|---|---|
-| `/council` | Main debate interface |
-| `/debates/[id]` | Debate detail view |
-| `/history` | Debate history with search/filter |
-| `/settings` | BYOK keys and preferences |
-| `/analytics` | Cost tracking and usage stats |
-| `/personas` | Custom persona management |
-| `/agents` | Agent configuration |
+| Route           | Description                       |
+| --------------- | --------------------------------- |
+| `/council`      | Main debate interface             |
+| `/debates/[id]` | Debate detail view                |
+| `/history`      | Debate history with search/filter |
+| `/settings`     | BYOK keys and preferences         |
+| `/analytics`    | Cost tracking and usage stats     |
+| `/personas`     | Custom persona management         |
+| `/agents`       | Agent configuration               |
 
 ### Marketing
 
-| Route | Description |
-|---|---|
-| `/` | Landing page |
-| `/about` | About page |
-| `/faq` | FAQ |
-| `/privacy` | Privacy policy |
-| `/terms` | Terms of service |
+| Route      | Description      |
+| ---------- | ---------------- |
+| `/`        | Landing page     |
+| `/about`   | About page       |
+| `/faq`     | FAQ              |
+| `/privacy` | Privacy policy   |
+| `/terms`   | Terms of service |
 
 ### Auth
 
-| Route | Description |
-|---|---|
+| Route      | Description   |
+| ---------- | ------------- |
 | `/sign-in` | Clerk sign-in |
 | `/sign-up` | Clerk sign-up |
 

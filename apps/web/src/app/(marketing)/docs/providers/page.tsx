@@ -310,7 +310,8 @@ const providerDetails = [
     judgePriority: 6,
     description:
       "Groq provides ultra-fast inference for open-weight models including Llama 3.1 8B, Llama 3.3 70B, and OpenAI's GPT-OSS 120B/20B at zero cost through their free tier. Groq Compound and Compound Mini are agentic systems with built-in web search and code execution. Consilium uses Groq as the primary platform free-tier fallback (CONSILIUM_FREE_TIER_GROQ_KEY) when no BYOK key is configured.",
-    strengths: "Free open-weight models, fastest inference, agentic compound systems",
+    strengths:
+      "Free open-weight models, fastest inference, agentic compound systems",
   },
   {
     name: "xAI",
@@ -340,7 +341,8 @@ const providerDetails = [
     judgePriority: 7,
     description:
       "OpenRouter aggregates access to dozens of models behind one OpenAI-compatible endpoint, including a free tier for popular community models like Gemma 4, Qwen3 Coder, Nemotron 3 Super 120B, and Ling 2.6 1T (rate-limited at 20 req/min, 50 req/day per OpenRouter's April 2026 free-tier policy). Consilium uses OpenRouter as the secondary free-tier fallback (CONSILIUM_FREE_TIER_OPENROUTER_KEY) when Groq is unavailable.",
-    strengths: "Free tier breadth, single endpoint for many providers, easy fallback",
+    strengths:
+      "Free tier breadth, single endpoint for many providers, easy fallback",
   },
 ];
 
@@ -371,7 +373,8 @@ export default function ProvidersPage() {
           <p className="text-xl text-muted-foreground">
             7 providers, 25+ models, from free to frontier. Bring your own keys
             and mix models from different providers in the same deliberation -
-            or run on Consilium&apos;s free-tier pool when you don&apos;t have keys.
+            or run on Consilium&apos;s free-tier pool when you don&apos;t have
+            keys.
           </p>
         </div>
       </section>
@@ -546,27 +549,37 @@ export default function ProvidersPage() {
             <Card>
               <CardContent className="pt-6 space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Consilium is BYOK-first. When you supply your own provider
-                  API key, that key is always used - no fallback occurs. When
-                  no key is set for the requested provider, Consilium routes
-                  through a platform-hosted free-tier pool so you can keep
-                  working at zero cost. Resolution order:
+                  Consilium is BYOK-first. When you supply your own provider API
+                  key, that key is always used - no fallback occurs. When no key
+                  is set for the requested provider, Consilium routes through a
+                  platform-hosted free-tier pool so you can keep working at zero
+                  cost. Resolution order:
                 </p>
                 <ol className="list-decimal pl-6 space-y-1 text-sm text-muted-foreground">
                   <li>
-                    <span className="font-medium text-white">Your BYOK key</span>{" "}
+                    <span className="font-medium text-white">
+                      Your BYOK key
+                    </span>{" "}
                     for the requested provider (always wins)
                   </li>
                   <li>
-                    Self-hosted env var (e.g. <code className="font-mono text-indigo-400">OPENAI_API_KEY</code>)
+                    Self-hosted env var (e.g.{" "}
+                    <code className="font-mono text-indigo-400">
+                      OPENAI_API_KEY
+                    </code>
+                    )
                   </li>
                   <li>
                     Groq free-tier pool -{" "}
-                    <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_GROQ_KEY</code>
+                    <code className="font-mono text-indigo-400">
+                      CONSILIUM_FREE_TIER_GROQ_KEY
+                    </code>
                   </li>
                   <li>
                     OpenRouter free-tier pool -{" "}
-                    <code className="font-mono text-indigo-400">CONSILIUM_FREE_TIER_OPENROUTER_KEY</code>
+                    <code className="font-mono text-indigo-400">
+                      CONSILIUM_FREE_TIER_OPENROUTER_KEY
+                    </code>
                   </li>
                 </ol>
                 <p className="text-sm text-muted-foreground">

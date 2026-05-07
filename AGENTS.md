@@ -4,13 +4,13 @@
 
 ## Subagent Dispatch (which `Agent` to spawn)
 
-| Need | `subagent_type` | Notes |
-|---|---|---|
-| Locate code: "where is X defined?", grep for symbols, find files by pattern | `Explore` | Read-only, fast. Specify breadth: `quick` / `medium` / `very thorough`. Don't use for review or cross-file analysis - it reads excerpts, not whole files. |
-| Open-ended research, multi-step search across systems, ambiguous lookup | `general-purpose` | Has all tools. Use when you're not confident a single search will hit. |
-| Design an implementation strategy before coding | `Plan` | Returns step-by-step plan + files to touch. Pair with `docs/superpowers/plans/`. |
-| Question about Claude Code, Agent SDK, or Anthropic API behavior | `claude-code-guide` | Use for "how does Claude Code do X" and SDK-shape questions. |
-| Independent code review pass on changes | code-reviewer (if available) | Doesn't see this conversation - give it the full context. |
+| Need                                                                        | `subagent_type`              | Notes                                                                                                                                                     |
+| --------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Locate code: "where is X defined?", grep for symbols, find files by pattern | `Explore`                    | Read-only, fast. Specify breadth: `quick` / `medium` / `very thorough`. Don't use for review or cross-file analysis - it reads excerpts, not whole files. |
+| Open-ended research, multi-step search across systems, ambiguous lookup     | `general-purpose`            | Has all tools. Use when you're not confident a single search will hit.                                                                                    |
+| Design an implementation strategy before coding                             | `Plan`                       | Returns step-by-step plan + files to touch. Pair with `docs/superpowers/plans/`.                                                                          |
+| Question about Claude Code, Agent SDK, or Anthropic API behavior            | `claude-code-guide`          | Use for "how does Claude Code do X" and SDK-shape questions.                                                                                              |
+| Independent code review pass on changes                                     | code-reviewer (if available) | Doesn't see this conversation - give it the full context.                                                                                                 |
 
 **Brief them like new colleagues**: state the goal, what's been ruled out, file paths + line numbers, and the desired output length. Terse command-style prompts produce shallow work.
 
@@ -19,6 +19,7 @@
 For every new task that is **non-trivial** (anything beyond a single-line edit, typo, or one-file rename), the main agent MUST decompose the task and spawn **6–10 subagents in parallel**, then verify their work.
 
 ### Hard rules
+
 1. **All subagents fan out from the main agent only.** Subagents must NOT spawn their own subagents - fanout depth is exactly one level.
 2. **Spawn in a single message** with multiple `Agent` tool calls so the subagents run concurrently. Sequential `Agent` calls defeat the purpose.
 3. **Pick the right subagent type per leg** - `Explore` for read-only lookup, `general-purpose` for legs that need to write/edit/run code, `Plan` for design legs, `claude-code-guide` for SDK/API questions. Each subagent gets the tool set of its type; route legs that need write access to `general-purpose`.
@@ -27,23 +28,25 @@ For every new task that is **non-trivial** (anything beyond a single-line edit, 
 
 ### Standard 6–10 leg decomposition (template)
 
-| # | Leg | Typical subagent |
-|---|---|---|
-| 1 | Map the relevant code surface (files, functions, callers) | `Explore` |
-| 2 | Internet research on the library/spec/best practices | `general-purpose` |
-| 3 | Existing-tests audit (what tests cover this area today) | `Explore` |
-| 4 | Implementation plan / file-edit list | `Plan` |
-| 5 | Implement the primary change | `general-purpose` |
-| 6 | Implement the secondary change / wire-up | `general-purpose` |
-| 7 | Add/extend tests | `general-purpose` |
-| 8 | Update types in `packages/shared/` if needed | `general-purpose` |
-| 9 | Cross-system check (web/api/agents alignment) | `Explore` |
-| 10 | Docs / runbook entries | `general-purpose` |
+| #   | Leg                                                       | Typical subagent  |
+| --- | --------------------------------------------------------- | ----------------- |
+| 1   | Map the relevant code surface (files, functions, callers) | `Explore`         |
+| 2   | Internet research on the library/spec/best practices      | `general-purpose` |
+| 3   | Existing-tests audit (what tests cover this area today)   | `Explore`         |
+| 4   | Implementation plan / file-edit list                      | `Plan`            |
+| 5   | Implement the primary change                              | `general-purpose` |
+| 6   | Implement the secondary change / wire-up                  | `general-purpose` |
+| 7   | Add/extend tests                                          | `general-purpose` |
+| 8   | Update types in `packages/shared/` if needed              | `general-purpose` |
+| 9   | Cross-system check (web/api/agents alignment)             | `Explore`         |
+| 10  | Docs / runbook entries                                    | `general-purpose` |
 
 Drop legs that don't apply; aim for **6 minimum** when the task touches ≥ 2 systems or ≥ 3 files. For trivial single-file edits, skip this protocol and edit directly.
 
 ### Verification phase (main agent only)
+
 After all subagents return:
+
 1. Read the actual edited files (not the summaries).
 2. Run the relevant test commands from SKILLS.md (per-package `pnpm type-check`, deliberation tests, etc.).
 3. Reconcile contradictions between subagent reports.
@@ -53,18 +56,19 @@ After all subagents return:
 
 The bot daemon in `agents/` is normally long-running on the droplet, but each bot also runs as a one-shot. Use these from chat when the user asks "what's broken in prod?" or "give me a status digest":
 
-| User intent | Command | Output |
-|---|---|---|
-| "What's failing in prod right now?" | `python -m agents.bots.monitor_agent --once` | Logs unresolved Sentry issues + SonarQube gate state |
-| "Give me a project status briefing" | `python -m agents.bots.briefing_agent` | Text digest (Sentry, Vercel, SonarQube, DB stats) to stdout |
-| "Is the bot pipeline healthy?" | `python -m agents.scripts.test_pipeline_e2e` | Runs 44 pipeline tests |
-| "Check the Claude Action wiring" | `python -m agents.scripts.test_claude_action` | Action-side diagnostics |
+| User intent                         | Command                                       | Output                                                      |
+| ----------------------------------- | --------------------------------------------- | ----------------------------------------------------------- |
+| "What's failing in prod right now?" | `python -m agents.bots.monitor_agent --once`  | Logs unresolved Sentry issues + SonarQube gate state        |
+| "Give me a project status briefing" | `python -m agents.bots.briefing_agent`        | Text digest (Sentry, Vercel, SonarQube, DB stats) to stdout |
+| "Is the bot pipeline healthy?"      | `python -m agents.scripts.test_pipeline_e2e`  | Runs 44 pipeline tests                                      |
+| "Check the Claude Action wiring"    | `python -m agents.scripts.test_claude_action` | Action-side diagnostics                                     |
 
 Prefer these over hand-grepping logs or manually pulling from MCP. Pipe stdout into context only when the user asked for the digest - they're chatty.
 
 ## Two Agent Systems
 
 ### 1. Bot/DevOps Agents (agents/)
+
 Operations automation running on DigitalOcean droplet.
 
 ```
@@ -84,6 +88,7 @@ agents/
 ```
 
 ### 2. Deliberation Engine (apps/agents/)
+
 Multi-model structured deliberation with 8 modes and 13 core modules.
 
 ```
@@ -118,18 +123,20 @@ apps/agents/src/
 ```
 
 ## 8 Deliberation Modes
-| Mode | Flow | Rounds |
-|------|------|--------|
-| quick | PROPOSAL → EVALUATION → OUTPUT | 1 |
-| council | PROPOSAL → CHALLENGE → REBUTTAL → EVALUATION → VOTING → AGGREGATION → CONVERGENCE → OUTPUT | 3 |
-| deep | Same as council, higher convergence threshold | 5 |
-| blind | Same as council + identity stripping | 3 |
-| redteam | PROPOSAL → ATTACK → DEFEND → JUDGE_ATTACK → OUTPUT | 4 |
-| jury | Same as council with panel judges | 3 |
-| market | PROPOSAL → BET → MARKET_UPDATE → CONVERGENCE → OUTPUT | 5 |
-| auto | Routes to appropriate mode via cost_router | varies |
+
+| Mode    | Flow                                                                                       | Rounds |
+| ------- | ------------------------------------------------------------------------------------------ | ------ |
+| quick   | PROPOSAL → EVALUATION → OUTPUT                                                             | 1      |
+| council | PROPOSAL → CHALLENGE → REBUTTAL → EVALUATION → VOTING → AGGREGATION → CONVERGENCE → OUTPUT | 3      |
+| deep    | Same as council, higher convergence threshold                                              | 5      |
+| blind   | Same as council + identity stripping                                                       | 3      |
+| redteam | PROPOSAL → ATTACK → DEFEND → JUDGE_ATTACK → OUTPUT                                         | 4      |
+| jury    | Same as council with panel judges                                                          | 3      |
+| market  | PROPOSAL → BET → MARKET_UPDATE → CONVERGENCE → OUTPUT                                      | 5      |
+| auto    | Routes to appropriate mode via cost_router                                                 | varies |
 
 ## Model Rules
+
 - Bot: haiku only, sonnet as fallback, opus BLOCKED
 - Debate: any model the user's API keys support
 - Judge: non-participant model required in blind mode
@@ -140,12 +147,12 @@ apps/agents/src/
 
 ### Services overview
 
-| Service | Port | Dev command | Health check |
-|---------|------|-------------|--------------|
-| PostgreSQL | 5432 | `sudo docker compose up postgres redis -d` | `sudo docker compose ps` |
-| Redis | 6379 | (started with postgres above) | (same) |
-| NestJS API | 4000 | `pnpm --filter @consilium/api dev` | `curl http://localhost:4000/health` |
-| Next.js Web | 3000 | `pnpm --filter @consilium/web dev` | `curl http://localhost:3000` |
+| Service        | Port | Dev command                                                                  | Health check                        |
+| -------------- | ---- | ---------------------------------------------------------------------------- | ----------------------------------- |
+| PostgreSQL     | 5432 | `sudo docker compose up postgres redis -d`                                   | `sudo docker compose ps`            |
+| Redis          | 6379 | (started with postgres above)                                                | (same)                              |
+| NestJS API     | 4000 | `pnpm --filter @consilium/api dev`                                           | `curl http://localhost:4000/health` |
+| Next.js Web    | 3000 | `pnpm --filter @consilium/web dev`                                           | `curl http://localhost:3000`        |
 | FastAPI Agents | 8000 | `poetry run uvicorn src.main:app --reload --port 8000` (from `apps/agents/`) | `curl http://localhost:8000/health` |
 
 ### Startup sequence

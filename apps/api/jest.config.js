@@ -1,22 +1,21 @@
 module.exports = {
-  moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: '.',
-  roots: ['<rootDir>/test/unit'],
-  testRegex: '.*\\.spec\\.ts$',
+  moduleFileExtensions: ["js", "json", "ts"],
+  rootDir: ".",
+  roots: ["<rootDir>/test/unit"],
+  testRegex: ".*\\.spec\\.ts$",
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    "^.+\\.(t|j)s$": "ts-jest",
   },
   collectCoverageFrom: [
-    'src/**/*.(t|j)s',
-    '!src/**/*.spec.ts',
-    '!**/node_modules/**',
-    '!**/dist/**',
+    "src/**/*.(t|j)s",
+    "!src/**/*.spec.ts",
+    "!**/node_modules/**",
+    "!**/dist/**",
   ],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'json', 'json-summary', 'html', 'lcov'],
-  testEnvironment: 'node',
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "json", "json-summary", "html", "lcov"],
+  testEnvironment: "node",
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
 };
-

@@ -6,7 +6,8 @@ import { buildMetadata } from "@/lib/seo";
 const data: CompetitorComparison = {
   slug: "copilot",
   competitor: "GitHub Copilot",
-  pageTitle: "Consilium vs GitHub Copilot: Multi-AI Council vs Inline Autocomplete",
+  pageTitle:
+    "Consilium vs GitHub Copilot: Multi-AI Council vs Inline Autocomplete",
   metaDescription:
     "GitHub Copilot is the world's most-used AI autocomplete. Consilium does something Copilot does not: a structured multi-provider debate that catches what one model misses.",
   keywords: [
@@ -19,8 +20,7 @@ const data: CompetitorComparison = {
   hero: {
     tagline:
       "Copilot is the typist. Consilium is the council that reviews the typing.",
-    hook:
-      "GitHub Copilot is the dominant inline-autocomplete and chat product. Consilium is built around a different operation: structured multi-provider deliberation for moments when one model is not enough.",
+    hook: "GitHub Copilot is the dominant inline-autocomplete and chat product. Consilium is built around a different operation: structured multi-provider deliberation for moments when one model is not enough.",
     intro: [
       "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself - repos, PRs, issues, Actions - is unique and hard to match.",
       "Copilot is also fundamentally a single-model product per request. You can choose between GPT, Claude, Gemini, or Grok in the model picker, but each request gets one model. Microsoft's proxy controls which models you can route to and at what price. There's no architectural way to ask all of them in parallel and have them argue.",
@@ -88,7 +88,8 @@ const data: CompetitorComparison = {
     },
     {
       feature: "Convergence detection",
-      consilium: "Composite score: 0.4·tau + 0.35·jaccard + 0.25·concession ≥ 0.85",
+      consilium:
+        "Composite score: 0.4·tau + 0.35·jaccard + 0.25·concession ≥ 0.85",
       competitor: "N/A",
       consiliumHas: true,
       competitorHas: false,
@@ -109,7 +110,8 @@ const data: CompetitorComparison = {
     },
     {
       feature: "Editor support",
-      consilium: "VS Code, Cursor (MCP), Claude Desktop (MCP), Claude Code (MCP)",
+      consilium:
+        "VS Code, Cursor (MCP), Claude Desktop (MCP), Claude Code (MCP)",
       competitor: "VS Code, JetBrains, Visual Studio, Vim/Neovim, Web",
       consiliumHas: true,
       competitorHas: true,

@@ -64,7 +64,9 @@ export async function debateSelectionCommand(
     {
       topic,
       files: [{ name: filename, content: selection.slice(0, 32000) }],
-      context: { selection: { file: filename, startLine, endLine, language: lang } },
+      context: {
+        selection: { file: filename, startLine, endLine, language: lang },
+      },
     },
     client,
     panel,
@@ -83,12 +85,14 @@ export async function debateFileCommand(
   const filename = path.basename(editor.document.fileName);
   const lang = editor.document.languageId;
   const content = editor.document.getText().slice(0, 60000);
-  const truncated = editor.document.getText().length > 60000 ? "\n...[truncated]" : "";
+  const truncated =
+    editor.document.getText().length > 60000 ? "\n...[truncated]" : "";
 
   const question = await vscode.window.showInputBox({
     title: "Consilium: Debate this file",
     prompt: "What's the question?",
-    placeHolder: "e.g. 'review the architecture', 'find bugs', 'how to test this'",
+    placeHolder:
+      "e.g. 'review the architecture', 'find bugs', 'how to test this'",
     ignoreFocusOut: true,
   });
   if (!question?.trim()) return;
@@ -203,14 +207,20 @@ export async function debateFailingCommand(
     cwd: ws.uri.fsPath,
     timeout: 180_000,
     maxBuffer: 8 * 1024 * 1024,
-  }).catch((err: { stdout?: string; stderr?: string; code?: number; message?: string }) => ({
-    stdout: err.stdout ?? "",
-    stderr: err.stderr ?? err.message ?? "",
-    exitCode: typeof err.code === "number" ? err.code : 1,
-  }));
+  }).catch(
+    (err: {
+      stdout?: string;
+      stderr?: string;
+      code?: number;
+      message?: string;
+    }) => ({
+      stdout: err.stdout ?? "",
+      stderr: err.stderr ?? err.message ?? "",
+      exitCode: typeof err.code === "number" ? err.code : 1,
+    }),
+  );
 
-  const exitCode =
-    "exitCode" in result ? result.exitCode : 0;
+  const exitCode = "exitCode" in result ? result.exitCode : 0;
   if (exitCode === 0) {
     vscode.window.showInformationMessage(
       "Consilium: all tests pass - nothing to debate.",
@@ -218,7 +228,10 @@ export async function debateFailingCommand(
     return;
   }
 
-  const output = (result.stdout + "\n" + (result.stderr ?? "")).slice(0, 32_000);
+  const output = (result.stdout + "\n" + (result.stderr ?? "")).slice(
+    0,
+    32_000,
+  );
   const topic = [
     `# Failing test run: ${cmd.exe} ${cmd.args.join(" ")}`,
     "",

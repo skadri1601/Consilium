@@ -42,7 +42,10 @@ export class ClerkAuthGuard implements CanActivate {
     }
   }
 
-  private extractToken(request: { headers: any; query?: any }): string | undefined {
+  private extractToken(request: {
+    headers: any;
+    query?: any;
+  }): string | undefined {
     const authHeader = request.headers.authorization;
     if (authHeader?.startsWith("Bearer ")) {
       return authHeader.substring(7);
@@ -68,7 +71,9 @@ export class ClerkAuthGuard implements CanActivate {
 
   private async tryDevBypassWithoutToken(request: any): Promise<boolean> {
     if (process.env.NODE_ENV === undefined) {
-      this.logger.warn("tryDevBypassWithoutToken: NODE_ENV unset; dev bypass disabled");
+      this.logger.warn(
+        "tryDevBypassWithoutToken: NODE_ENV unset; dev bypass disabled",
+      );
       return false;
     }
     const isDev = process.env.NODE_ENV === "development";

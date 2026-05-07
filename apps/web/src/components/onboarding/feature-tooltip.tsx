@@ -30,4 +30,3 @@ export function FeatureTooltip({ content, children }: FeatureTooltipProps) {
 
 // Also export as default for compatibility
 export default FeatureTooltip;
-

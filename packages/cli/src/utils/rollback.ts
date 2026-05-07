@@ -1,9 +1,9 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import type { EditAction } from './patch-parser';
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import type { EditAction } from "./patch-parser";
 
-const EDIT_HISTORY_DIR = path.join(os.homedir(), '.consilium', 'edit-history');
+const EDIT_HISTORY_DIR = path.join(os.homedir(), ".consilium", "edit-history");
 
 interface RollbackFile {
   path: string;
@@ -24,7 +24,10 @@ function ensureHistoryDir(): void {
   }
 }
 
-export function createRollbackSnapshot(rootPath: string, edits: EditAction[]): RollbackSnapshot {
+export function createRollbackSnapshot(
+  rootPath: string,
+  edits: EditAction[],
+): RollbackSnapshot {
   ensureHistoryDir();
   const id = `edit_${Date.now()}`;
   const snapshotDir = path.join(EDIT_HISTORY_DIR, id);
@@ -48,7 +51,11 @@ export function createRollbackSnapshot(rootPath: string, edits: EditAction[]): R
     files,
   };
 
-  fs.writeFileSync(path.join(snapshotDir, 'snapshot.json'), JSON.stringify(snapshot, null, 2), 'utf-8');
+  fs.writeFileSync(
+    path.join(snapshotDir, "snapshot.json"),
+    JSON.stringify(snapshot, null, 2),
+    "utf-8",
+  );
   return snapshot;
 }
 
@@ -66,4 +73,3 @@ export function restoreRollbackSnapshot(snapshot: RollbackSnapshot): void {
     fs.copyFileSync(file.backupPath, target);
   }
 }
-

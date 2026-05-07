@@ -59,7 +59,7 @@ const SECTIONS: Array<{ heading: string; body: string }> = [
       "Three onboarding paths, all under five minutes:",
       "",
       "1. Web - sign up at https://myconsilium.xyz, paste at least one provider key (or use the Groq free tier), pick a mode, run a debate",
-      "2. CLI - npm i -g @myconsilium/cli, then `consilium debate \"your question\" --mode council`",
+      '2. CLI - npm i -g @myconsilium/cli, then `consilium debate "your question" --mode council`',
       "3. SDK - pip install consilium-sdk (Python) or npm i @myconsilium/sdk (TypeScript)",
       "",
       "All three speak the same SSE event schema, so a debate started in one client can be resumed in another.",
@@ -88,7 +88,9 @@ const SECTIONS: Array<{ heading: string; body: string }> = [
 ];
 
 function buildLlmsFullTxt(): string {
-  const sortedPosts = [...blogPosts].sort((a, b) => b.date.localeCompare(a.date));
+  const sortedPosts = [...blogPosts].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
 
   return [
     `# ${SITE_NAME}`,
@@ -108,31 +110,32 @@ function buildLlmsFullTxt(): string {
     "",
     "## Canonical pages",
     "",
-    "- " + [
-      "/",
-      "/pricing",
-      "/use-cases",
-      "/faq",
-      "/about",
-      "/research",
-      "/docs",
-      "/docs/getting-started",
-      "/docs/how-it-works",
-      "/docs/modes",
-      "/docs/architecture",
-      "/docs/api",
-      "/docs/cli",
-      "/docs/providers",
-      "/docs/python-sdk",
-      "/docs/typescript-sdk",
-      "/vs-cursor",
-      "/vs-aider",
-      "/vs-cline",
-      "/vs-claude-code",
-      "/vs-copilot",
-    ]
-      .map((p) => `${SITE_URL}${p}`)
-      .join("\n- "),
+    "- " +
+      [
+        "/",
+        "/pricing",
+        "/use-cases",
+        "/faq",
+        "/about",
+        "/research",
+        "/docs",
+        "/docs/getting-started",
+        "/docs/how-it-works",
+        "/docs/modes",
+        "/docs/architecture",
+        "/docs/api",
+        "/docs/cli",
+        "/docs/providers",
+        "/docs/python-sdk",
+        "/docs/typescript-sdk",
+        "/vs-cursor",
+        "/vs-aider",
+        "/vs-cline",
+        "/vs-claude-code",
+        "/vs-copilot",
+      ]
+        .map((p) => `${SITE_URL}${p}`)
+        .join("\n- "),
     "",
   ].join("\n");
 }

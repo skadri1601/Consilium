@@ -59,7 +59,7 @@ const howToData = howToSchema({
     },
     {
       name: "Run a debate",
-      text: "Web: type a question and click Run. CLI: `consilium debate \"your question\" --mode council`. SDK: call `client.debate({ query, mode })` and stream SSE events.",
+      text: 'Web: type a question and click Run. CLI: `consilium debate "your question" --mode council`. SDK: call `client.debate({ query, mode })` and stream SSE events.',
     },
     {
       name: "Review the consensus output",
@@ -80,7 +80,8 @@ const techArticleData = techArticleSchema({
     "Quickstart for Consilium - sign up, add provider keys, run your first multi-AI debate in under five minutes via web, CLI, or SDK.",
   path: "/docs/getting-started",
   proficiencyLevel: "Beginner",
-  dependencies: "Web browser, terminal, or any HTTP client. At least one LLM provider API key (or use the Groq free tier).",
+  dependencies:
+    "Web browser, terminal, or any HTTP client. At least one LLM provider API key (or use the Groq free tier).",
   publishedTime: "2026-04-29",
   modifiedTime: "2026-04-29",
 });
@@ -113,7 +114,8 @@ const providers = [
   {
     name: "xAI",
     env: "XAI_API_KEY",
-    models: "Grok 4.20, Grok 4.1 Fast (reasoning + non-reasoning), Grok Code Fast",
+    models:
+      "Grok 4.20, Grok 4.1 Fast (reasoning + non-reasoning), Grok Code Fast",
     free: false,
   },
   {
@@ -125,7 +127,8 @@ const providers = [
   {
     name: "OpenRouter",
     env: "OPENROUTER_API_KEY",
-    models: "Free-tier Gemma 4 26B/31B, Qwen3 Coder, Nemotron 3 Super 120B, Ling 2.6 1T (also used as Consilium fallback when no BYOK)",
+    models:
+      "Free-tier Gemma 4 26B/31B, Qwen3 Coder, Nemotron 3 Super 120B, Ling 2.6 1T (also used as Consilium fallback when no BYOK)",
     free: true,
   },
 ];

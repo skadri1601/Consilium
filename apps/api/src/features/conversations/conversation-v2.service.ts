@@ -235,7 +235,10 @@ export class ConversationV2Service {
           }
         }
 
-        const hasHedge = /\b(?:maybe|perhaps|consider|might|could|possibly)\b/i.test(statement);
+        const hasHedge =
+          /\b(?:maybe|perhaps|consider|might|could|possibly)\b/i.test(
+            statement,
+          );
 
         decisions.push({
           category,
@@ -275,9 +278,9 @@ export class ConversationV2Service {
       const existingIdx = merged.findIndex(
         (d) =>
           d.category === newDec.category &&
-          d.statement.toLowerCase().includes(
-            newDec.statement.slice(0, 50).toLowerCase(),
-          ),
+          d.statement
+            .toLowerCase()
+            .includes(newDec.statement.slice(0, 50).toLowerCase()),
       );
 
       if (existingIdx >= 0) {

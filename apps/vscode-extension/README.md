@@ -38,14 +38,14 @@ The extension auto-detects an existing CLI token at `~/.consilium/config.json` (
 
 ## Configuration
 
-| Setting | Default | What it does |
-|---|---|---|
-| `consilium.apiUrl` | `https://api.myconsilium.xyz` | API base URL - override for self-hosted or local |
-| `consilium.defaultMode` | `auto` | One of `auto / quick / council / deep / blind / redteam / jury / market` |
-| `consilium.defaultModels` | `[]` | Override council model list. Empty = engine picks. |
-| `consilium.toolsEnabled` | `true` | Advertise built-in Read/Grep/Glob tool schemas to the council |
-| `consilium.autoAttachGitContext` | `true` | Auto-attach branch + uncommitted diff + recent commits to every debate |
-| `consilium.testCommand` | `""` | Override auto-detect for "Debate the failing test output" |
+| Setting                          | Default                       | What it does                                                             |
+| -------------------------------- | ----------------------------- | ------------------------------------------------------------------------ |
+| `consilium.apiUrl`               | `https://api.myconsilium.xyz` | API base URL - override for self-hosted or local                         |
+| `consilium.defaultMode`          | `auto`                        | One of `auto / quick / council / deep / blind / redteam / jury / market` |
+| `consilium.defaultModels`        | `[]`                          | Override council model list. Empty = engine picks.                       |
+| `consilium.toolsEnabled`         | `true`                        | Advertise built-in Read/Grep/Glob tool schemas to the council            |
+| `consilium.autoAttachGitContext` | `true`                        | Auto-attach branch + uncommitted diff + recent commits to every debate   |
+| `consilium.testCommand`          | `""`                          | Override auto-detect for "Debate the failing test output"                |
 
 ## Commands
 

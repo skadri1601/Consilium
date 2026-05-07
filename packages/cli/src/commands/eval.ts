@@ -21,12 +21,16 @@ interface EvalStreamCtx {
   resultText: string;
 }
 
-function readResponsesJsonFile(filePath: string): unknown[] | Record<string, unknown> {
+function readResponsesJsonFile(
+  filePath: string,
+): unknown[] | Record<string, unknown> {
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw) as unknown;
     if (parsed === null || typeof parsed !== "object") {
-      console.log(st.error("Responses file must contain a JSON array or object"));
+      console.log(
+        st.error("Responses file must contain a JSON array or object"),
+      );
       process.exit(1);
     }
     return parsed as unknown[] | Record<string, unknown>;
@@ -46,7 +50,10 @@ function onEvalPhaseChange(event: DeliberationEvent, ctx: EvalStreamCtx): void {
   console.log(st.brand(`  ${ctx.currentPhase}...`));
 }
 
-function onEvalModelProgress(event: DeliberationEvent, ctx: EvalStreamCtx): void {
+function onEvalModelProgress(
+  event: DeliberationEvent,
+  ctx: EvalStreamCtx,
+): void {
   if (!ctx.useLiveProgress) return;
   if (event.agent === undefined || event.progress === undefined) return;
   const pct = Math.round(event.progress);
@@ -153,7 +160,11 @@ export async function evalCommand(
     ? readResponsesJsonFile(options.responses)
     : undefined;
 
-  const models = options.models ?? ["gpt-4o-mini", "claude-haiku-4-5-20251001", "gemini-2.0-flash"];
+  const models = options.models ?? [
+    "gpt-4o-mini",
+    "claude-haiku-4-5-20251001",
+    "gemini-2.0-flash",
+  ];
   const client = new ConsiliumClient();
   const useLiveProgress = terminal.isTTY && !terminal.usePlain;
   const startTime = Date.now();

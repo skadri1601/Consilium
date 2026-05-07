@@ -11,7 +11,10 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private async request<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: FetchOptions = {},
+  ): Promise<T> {
     const { token, ...fetchOptions } = options;
 
     const headers: HeadersInit = {
@@ -30,7 +33,9 @@ class ApiClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      throw new Error(
+        error.message || `HTTP error! status: ${response.status}`,
+      );
     }
 
     return response.json();
@@ -40,7 +45,11 @@ class ApiClient {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   }
 
-  async post<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
+  async post<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: FetchOptions,
+  ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "POST",
@@ -48,7 +57,11 @@ class ApiClient {
     });
   }
 
-  async put<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
+  async put<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: FetchOptions,
+  ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "PUT",

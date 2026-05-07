@@ -1,7 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Page not found",
@@ -15,13 +21,12 @@ export default function NotFound() {
       <Card>
         <CardHeader>
           <CardTitle className="text-4xl">404</CardTitle>
-          <CardDescription className="text-lg">
-            Page not found
-          </CardDescription>
+          <CardDescription className="text-lg">Page not found</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4">
-            The page you&apos;re looking for doesn&apos;t exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been
+            moved.
           </p>
           <div className="flex gap-2">
             <Button asChild>
@@ -36,4 +41,3 @@ export default function NotFound() {
     </div>
   );
 }
-

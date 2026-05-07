@@ -287,9 +287,18 @@ consilium debate "What's the best way to ship this feature?" \
   --mode council`;
 
 const providerMeta: Record<string, { icon?: string; blurb: string }> = {
-  Anthropic: { icon: "anthropic", blurb: "Claude 4 family - strongest reasoning and synthesis." },
-  OpenAI: { icon: "openai", blurb: "GPT-5 series - fast, mini, and pro tiers." },
-  Google: { icon: "google", blurb: "Gemini 3 - long context and fast multimodal." },
+  Anthropic: {
+    icon: "anthropic",
+    blurb: "Claude 4 family - strongest reasoning and synthesis.",
+  },
+  OpenAI: {
+    icon: "openai",
+    blurb: "GPT-5 series - fast, mini, and pro tiers.",
+  },
+  Google: {
+    icon: "google",
+    blurb: "Gemini 3 - long context and fast multimodal.",
+  },
   Groq: { icon: "groq", blurb: "Sub-second inference. Free tier available." },
   xAI: { icon: "xai", blurb: "Grok 4 - code-focused and reasoning variants." },
   Moonshot: { blurb: "Kimi K2 - long-context reasoning." },
@@ -690,9 +699,13 @@ export default function LandingPage() {
                     {group.provider.charAt(0)}
                   </span>
                 )}
-                <span className="text-base font-semibold">{group.provider}</span>
+                <span className="text-base font-semibold">
+                  {group.provider}
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground">{group.meta.blurb}</p>
+              <p className="text-xs text-muted-foreground">
+                {group.meta.blurb}
+              </p>
               <ul className="space-y-2">
                 {group.models.map((model) => (
                   <li
@@ -721,7 +734,9 @@ export default function LandingPage() {
         </div>
         <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30 p-6 text-center">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">No key, no problem.</span>{" "}
+            <span className="font-medium text-foreground">
+              No key, no problem.
+            </span>{" "}
             Start a debate with zero setup - Consilium routes free-tier requests
             through Groq and OpenRouter automatically. Bring your own keys
             anytime for premium models.

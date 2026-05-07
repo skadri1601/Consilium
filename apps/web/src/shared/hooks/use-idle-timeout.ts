@@ -78,4 +78,3 @@ export function useIdleTimeout({
 
   return { isIdle, timeUntilIdle };
 }
-

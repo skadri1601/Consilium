@@ -142,7 +142,7 @@ AVAILABLE_MODELS = {
             "output_cost": 4.00,
         },
         {
-            "id": "grok-4-20",
+            "id": "grok-4.20",
             "name": "Grok 4.20",
             "input_cost": 3.00,
             "output_cost": 15.00,
@@ -265,13 +265,13 @@ MODEL_ALIASES = {
     "gemini-2.5-flash-lite": "gemini-3.1-flash-lite-preview",
     "gemini-3-pro-preview": "gemini-3.1-pro-preview",
     "gemini-exp-1206": "gemini-3-flash-preview",
-    # xAI - note: canonical xAI API IDs use dashes (grok-4-20, not grok-4.20)
-    "grok-beta": "grok-4-20",
-    "grok-2": "grok-4-20",
+    # xAI - canonical API IDs use dots (grok-4.20)
+    "grok-beta": "grok-4.20",
+    "grok-2": "grok-4.20",
     "grok-2-mini": "grok-4-1-fast-non-reasoning",
-    "grok-3": "grok-4-20",
-    "grok-4.20": "grok-4-20",
-    "grok-4-20-reasoning": "grok-4-20",
+    "grok-3": "grok-4.20",
+    "grok-4-20": "grok-4.20",
+    "grok-4-20-reasoning": "grok-4.20",
     "grok-4-20-non-reasoning": "grok-4-1-fast-non-reasoning",
     # Groq
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",

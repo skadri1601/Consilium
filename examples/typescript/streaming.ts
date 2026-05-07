@@ -75,7 +75,9 @@ function handleEvent(
         console.log(`Cost: $${event.data.cost.toFixed(4)}`);
 
         console.log("\nConfidence Scores:");
-        for (const [model, score] of Object.entries(event.data.confidenceScores)) {
+        for (const [model, score] of Object.entries(
+          event.data.confidenceScores,
+        )) {
           console.log(`  ${model}: ${(score * 100).toFixed(1)}%`);
         }
       }

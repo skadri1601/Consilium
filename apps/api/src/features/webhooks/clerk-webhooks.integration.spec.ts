@@ -73,12 +73,15 @@ describe("ClerkWebhooksController integration + stress", () => {
     headers?: Record<string, string>;
     payload?: unknown;
   }): Promise<{ statusCode: number; body: unknown }> {
-    const res = await app.getHttpAdapter().getInstance().inject({
-      method: "POST",
-      url: opts.path ?? "/api/v1/webhooks/clerk",
-      headers: { "content-type": "application/json", ...opts.headers },
-      payload: opts.payload ? JSON.stringify(opts.payload) : undefined,
-    });
+    const res = await app
+      .getHttpAdapter()
+      .getInstance()
+      .inject({
+        method: "POST",
+        url: opts.path ?? "/api/v1/webhooks/clerk",
+        headers: { "content-type": "application/json", ...opts.headers },
+        payload: opts.payload ? JSON.stringify(opts.payload) : undefined,
+      });
     let body: unknown;
     try {
       body = JSON.parse(res.body);
@@ -115,50 +118,35 @@ describe("ClerkWebhooksController integration + stress", () => {
       ["empty header", { "x-webhook-secret": "" }],
       ["wrong header", { "x-webhook-secret": "wrong-secret-value-here" }],
       ["one char off", { "x-webhook-secret": VALID_SECRET.slice(0, -1) + "X" }],
+      ["shorter prefix", { "x-webhook-secret": VALID_SECRET.slice(0, 10) }],
+      ["longer suffix", { "x-webhook-secret": VALID_SECRET + "extra" }],
       [
-        "shorter prefix",
-        { "x-webhook-secret": VALID_SECRET.slice(0, 10) },
+        "all-X same length",
+        { "x-webhook-secret": "X".repeat(VALID_SECRET.length) },
       ],
-      [
-        "longer suffix",
-        { "x-webhook-secret": VALID_SECRET + "extra" },
-      ],
-      ["all-X same length", { "x-webhook-secret": "X".repeat(VALID_SECRET.length) }],
       [
         "case variation (case-sensitive secret)",
         { "x-webhook-secret": VALID_SECRET.toUpperCase() },
       ],
-      [
-        "leading whitespace",
-        { "x-webhook-secret": " " + VALID_SECRET },
-      ],
-      [
-        "trailing whitespace",
-        { "x-webhook-secret": VALID_SECRET + " " },
-      ],
-      [
-        "control char injected",
-        { "x-webhook-secret": VALID_SECRET + "\x00" },
-      ],
+      ["leading whitespace", { "x-webhook-secret": " " + VALID_SECRET }],
+      ["trailing whitespace", { "x-webhook-secret": VALID_SECRET + " " }],
+      ["control char injected", { "x-webhook-secret": VALID_SECRET + "\x00" }],
     ];
 
-    test.each(attacks)(
-      "rejects: %s",
-      async (_label, headers) => {
-        const res = await inject({
-          headers,
-          payload: {
-            action: "create",
-            clerkId: "u_attack",
-            email: "x@y.z",
-          },
-        });
-        expect(res.statusCode).toBe(401);
-        expect(createUserCalls).toBe(0);
-        expect(updateUserCalls).toBe(0);
-        expect(deleteUserCalls).toBe(0);
-      },
-    );
+    test.each(attacks)("rejects: %s", async (_label, headers) => {
+      const res = await inject({
+        headers,
+        payload: {
+          action: "create",
+          clerkId: "u_attack",
+          email: "x@y.z",
+        },
+      });
+      expect(res.statusCode).toBe(401);
+      expect(createUserCalls).toBe(0);
+      expect(updateUserCalls).toBe(0);
+      expect(deleteUserCalls).toBe(0);
+    });
 
     it("destructive `delete` action is rejected without secret", async () => {
       const res = await inject({
@@ -183,15 +171,18 @@ describe("ClerkWebhooksController integration + stress", () => {
 
   describe("payload malformation", () => {
     it("malformed JSON body returns 4xx, never 5xx, never invokes service", async () => {
-      const res = await app.getHttpAdapter().getInstance().inject({
-        method: "POST",
-        url: "/api/v1/webhooks/clerk",
-        headers: {
-          "content-type": "application/json",
-          "x-webhook-secret": VALID_SECRET,
-        },
-        payload: "{not json",
-      });
+      const res = await app
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: "POST",
+          url: "/api/v1/webhooks/clerk",
+          headers: {
+            "content-type": "application/json",
+            "x-webhook-secret": VALID_SECRET,
+          },
+          payload: "{not json",
+        });
       expect(res.statusCode).toBeGreaterThanOrEqual(400);
       expect(res.statusCode).toBeLessThan(500);
       expect(createUserCalls).toBe(0);
@@ -201,7 +192,12 @@ describe("ClerkWebhooksController integration + stress", () => {
       const huge = "X".repeat(1024 * 1024);
       const res = await inject({
         headers: { "x-webhook-secret": VALID_SECRET },
-        payload: { action: "create", clerkId: "u_huge", email: "a@b.c", junk: huge },
+        payload: {
+          action: "create",
+          clerkId: "u_huge",
+          email: "a@b.c",
+          junk: huge,
+        },
       });
       expect([200, 413, 400]).toContain(res.statusCode);
     });
@@ -315,19 +311,22 @@ describe("ClerkWebhooksController integration + stress", () => {
       await failApp.init();
       await failApp.getHttpAdapter().getInstance().ready();
 
-      const res = await failApp.getHttpAdapter().getInstance().inject({
-        method: "POST",
-        url: "/api/v1/webhooks/clerk",
-        headers: {
-          "content-type": "application/json",
-          "x-webhook-secret": VALID_SECRET,
-        },
-        payload: JSON.stringify({
-          action: "create",
-          clerkId: "u",
-          email: "a@b.c",
-        }),
-      });
+      const res = await failApp
+        .getHttpAdapter()
+        .getInstance()
+        .inject({
+          method: "POST",
+          url: "/api/v1/webhooks/clerk",
+          headers: {
+            "content-type": "application/json",
+            "x-webhook-secret": VALID_SECRET,
+          },
+          payload: JSON.stringify({
+            action: "create",
+            clerkId: "u",
+            email: "a@b.c",
+          }),
+        });
       expect(res.statusCode).toBe(503);
       await failApp.close();
       process.env.INTERNAL_WEBHOOK_SECRET = VALID_SECRET;

@@ -2,9 +2,20 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
-import { DollarSign, TrendingDown, ArrowUpRight, ArrowDownRight, Zap } from "lucide-react";
+import {
+  DollarSign,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  Zap,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -62,9 +73,13 @@ function formatTokens(tokens: number): string {
   return tokens.toString();
 }
 
-export function CostTracker({ debateId, initialCost, streaming = false }: CostTrackerProps) {
+export function CostTracker({
+  debateId,
+  initialCost,
+  streaming = false,
+}: CostTrackerProps) {
   const [costData, setCostData] = useState<CostData>(
-    initialCost ?? { totalCost: 0, modelCosts: [], roundCosts: [] }
+    initialCost ?? { totalCost: 0, modelCosts: [], roundCosts: [] },
   );
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -85,7 +100,9 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
             modelCosts: data.modelCosts ?? data.model_costs ?? prev.modelCosts,
             roundCosts: data.roundCosts ?? data.round_costs ?? prev.roundCosts,
             singleModelEstimate:
-              data.singleModelEstimate ?? data.single_model_estimate ?? prev.singleModelEstimate,
+              data.singleModelEstimate ??
+              data.single_model_estimate ??
+              prev.singleModelEstimate,
           }));
         }
       } catch {}
@@ -103,17 +120,19 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
 
   const totalTokensIn = useMemo(
     () => costData.modelCosts.reduce((sum, m) => sum + m.inputTokens, 0),
-    [costData.modelCosts]
+    [costData.modelCosts],
   );
 
   const totalTokensOut = useMemo(
     () => costData.modelCosts.reduce((sum, m) => sum + m.outputTokens, 0),
-    [costData.modelCosts]
+    [costData.modelCosts],
   );
 
   const savings = useMemo(() => {
-    if (!costData.singleModelEstimate || costData.singleModelEstimate <= 0) return null;
-    const ratio = costData.singleModelEstimate / Math.max(costData.totalCost, 0.0001);
+    if (!costData.singleModelEstimate || costData.singleModelEstimate <= 0)
+      return null;
+    const ratio =
+      costData.singleModelEstimate / Math.max(costData.totalCost, 0.0001);
     return { ratio, saved: costData.singleModelEstimate - costData.totalCost };
   }, [costData.totalCost, costData.singleModelEstimate]);
 
@@ -124,7 +143,7 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
         cost: m.cost,
         modelId: m.modelId,
       })),
-    [costData.modelCosts]
+    [costData.modelCosts],
   );
 
   return (
@@ -171,11 +190,15 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
             </div>
             <div className="rounded-lg border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground mb-1">Models</p>
-              <p className="text-sm font-semibold">{costData.modelCosts.length}</p>
+              <p className="text-sm font-semibold">
+                {costData.modelCosts.length}
+              </p>
             </div>
             <div className="rounded-lg border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground mb-1">Rounds</p>
-              <p className="text-sm font-semibold">{costData.roundCosts.length}</p>
+              <p className="text-sm font-semibold">
+                {costData.roundCosts.length}
+              </p>
             </div>
           </div>
 
@@ -191,7 +214,8 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
                   <div className="flex items-center gap-2">
                     <TrendingDown className="h-4 w-4 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-700 dark:text-green-300">
-                      vs single-model: {formatCost(costData.singleModelEstimate!)}
+                      vs single-model:{" "}
+                      {formatCost(costData.singleModelEstimate!)}
                     </span>
                   </div>
                   <span
@@ -199,7 +223,7 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
                       "text-sm font-bold",
                       savings.saved > 0
                         ? "text-green-600 dark:text-green-400"
-                        : "text-red-500"
+                        : "text-red-500",
                     )}
                   >
                     {savings.saved > 0 ? (
@@ -218,7 +242,9 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
 
           {modelChartData.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs text-muted-foreground mb-2 font-medium">Per-Model Cost</p>
+              <p className="text-xs text-muted-foreground mb-2 font-medium">
+                Per-Model Cost
+              </p>
               <div className="h-[140px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -248,7 +274,11 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
                       }}
                       formatter={(value: number) => [formatCost(value), "Cost"]}
                     />
-                    <Bar dataKey="cost" radius={[0, 4, 4, 0]} animationDuration={600}>
+                    <Bar
+                      dataKey="cost"
+                      radius={[0, 4, 4, 0]}
+                      animationDuration={600}
+                    >
                       {modelChartData.map((_entry, index) => (
                         <Cell
                           key={index}
@@ -264,12 +294,14 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
 
           {costData.roundCosts.length > 0 && (
             <div>
-              <p className="text-xs text-muted-foreground mb-2 font-medium">Per-Round Cost</p>
+              <p className="text-xs text-muted-foreground mb-2 font-medium">
+                Per-Round Cost
+              </p>
               <div className="flex gap-2">
                 {costData.roundCosts.map((round, index) => {
                   const maxRoundCost = Math.max(
                     ...costData.roundCosts.map((r) => r.cost),
-                    0.001
+                    0.001,
                   );
                   const height = Math.max((round.cost / maxRoundCost) * 40, 4);
 
@@ -286,8 +318,12 @@ export function CostTracker({ debateId, initialCost, streaming = false }: CostTr
                         className="w-full rounded-t bg-primary/60"
                         style={{ height: `${height}px` }}
                       />
-                      <span className="text-[10px] text-muted-foreground">R{round.round}</span>
-                      <span className="text-[10px] font-medium">{formatCost(round.cost)}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        R{round.round}
+                      </span>
+                      <span className="text-[10px] font-medium">
+                        {formatCost(round.cost)}
+                      </span>
                     </motion.div>
                   );
                 })}

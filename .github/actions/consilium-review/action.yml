@@ -1,69 +1,69 @@
-name: 'Consilium Multi-Model PR Review'
-description: 'Run multi-model AI deliberation on pull request changes using the Consilium debate engine'
-author: 'consilium'
+name: "Consilium Multi-Model PR Review"
+description: "Run multi-model AI deliberation on pull request changes using the Consilium debate engine"
+author: "consilium"
 
 branding:
-  icon: 'eye'
-  color: 'purple'
+  icon: "eye"
+  color: "purple"
 
 inputs:
   github-token:
-    description: 'GitHub token for posting review comments'
+    description: "GitHub token for posting review comments"
     required: true
   anthropic-api-key:
-    description: 'Anthropic API key'
+    description: "Anthropic API key"
     required: true
   openai-api-key:
-    description: 'OpenAI API key'
+    description: "OpenAI API key"
     required: false
-    default: ''
+    default: ""
   models:
-    description: 'Comma-separated model IDs for deliberation'
+    description: "Comma-separated model IDs for deliberation"
     required: false
-    default: 'claude-sonnet-4-6,gpt-5.4'
+    default: "claude-sonnet-4-6,gpt-5.4"
   mode:
-    description: 'Deliberation mode (redteam, council, blind, jury, deep)'
+    description: "Deliberation mode (redteam, council, blind, jury, deep)"
     required: false
-    default: 'redteam'
+    default: "redteam"
   api-url:
-    description: 'Consilium API base URL'
+    description: "Consilium API base URL"
     required: false
-    default: ''
+    default: ""
   max-rounds:
-    description: 'Maximum deliberation rounds'
+    description: "Maximum deliberation rounds"
     required: false
-    default: '3'
+    default: "3"
   max-diff-size:
-    description: 'Maximum diff characters to send (0 = no limit)'
+    description: "Maximum diff characters to send (0 = no limit)"
     required: false
-    default: '12000'
+    default: "12000"
   post-as-review:
-    description: 'Post as PR review instead of issue comment'
+    description: "Post as PR review instead of issue comment"
     required: false
-    default: 'true'
+    default: "true"
   fail-on-critical:
-    description: 'Fail the action if critical severity findings exist'
+    description: "Fail the action if critical severity findings exist"
     required: false
-    default: 'false'
+    default: "false"
 
 outputs:
   review-body:
-    description: 'The formatted review markdown'
+    description: "The formatted review markdown"
     value: ${{ steps.review.outputs.review_body }}
   findings-count:
-    description: 'Number of findings'
+    description: "Number of findings"
     value: ${{ steps.review.outputs.findings_count }}
   critical-count:
-    description: 'Number of critical findings'
+    description: "Number of critical findings"
     value: ${{ steps.review.outputs.critical_count }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: "3.11"
 
     - name: Install dependencies
       shell: bash

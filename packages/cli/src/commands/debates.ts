@@ -1,4 +1,9 @@
-import { ConsiliumClient, DebateSummary, DebateEvent, DeliberationEvent } from "../api/client.js";
+import {
+  ConsiliumClient,
+  DebateSummary,
+  DebateEvent,
+  DeliberationEvent,
+} from "../api/client.js";
 import { style } from "../utils/visual-system.js";
 import { requireAuth } from "../utils/require-auth.js";
 import { isValidMode, getDefaultMode } from "../utils/debate-modes.js";
@@ -34,21 +39,32 @@ function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
 }
 
-export async function listDebatesCommand(options: ListDebatesOptions): Promise<void> {
+export async function listDebatesCommand(
+  options: ListDebatesOptions,
+): Promise<void> {
   await requireAuth();
 
   const parsedLimit = options.limit ? Number.parseInt(options.limit, 10) : 20;
   const parsedOffset = options.offset ? Number.parseInt(options.offset, 10) : 0;
   const limit =
-    Number.isNaN(parsedLimit) || parsedLimit < 1 ? 20 : Math.min(parsedLimit, 100);
-  const offset = Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset;
+    Number.isNaN(parsedLimit) || parsedLimit < 1
+      ? 20
+      : Math.min(parsedLimit, 100);
+  const offset =
+    Number.isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset;
 
   const client = new ConsiliumClient();
   let debates: DebateSummary[];
   try {
-    debates = await client.listDebates({ limit, offset, search: options.search });
+    debates = await client.listDebates({
+      limit,
+      offset,
+      search: options.search,
+    });
   } catch (err) {
-    console.error(st.error(`Failed to list debates: ${(err as Error).message}`));
+    console.error(
+      st.error(`Failed to list debates: ${(err as Error).message}`),
+    );
     process.exitCode = 1;
     return;
   }
@@ -63,7 +79,9 @@ export async function listDebatesCommand(options: ListDebatesOptions): Promise<v
     return;
   }
 
-  console.log(st.bold(`\n${debates.length} debate${debates.length === 1 ? "" : "s"}\n`));
+  console.log(
+    st.bold(`\n${debates.length} debate${debates.length === 1 ? "" : "s"}\n`),
+  );
   for (const d of debates) {
     const topic = truncate(d.topic ?? "(no topic)", 60);
     const mode = d.mode ?? "?";
@@ -154,10 +172,19 @@ export async function startDebateCommand(
       toolBudget: bridge?.toolBudget,
     });
     if (options.json) {
-      console.log(JSON.stringify({ id, mode, models, mcpTools: bridge?.tools.length ?? 0 }));
+      console.log(
+        JSON.stringify({
+          id,
+          mode,
+          models,
+          mcpTools: bridge?.tools.length ?? 0,
+        }),
+      );
     } else {
       console.log(st.success(`Debate queued: ${id}`));
-      console.log(st.dim(`  Attach later with: consilium debates stream ${id}`));
+      console.log(
+        st.dim(`  Attach later with: consilium debates stream ${id}`),
+      );
     }
     await bridge?.shutdown();
   } catch (err) {
@@ -191,7 +218,9 @@ export async function streamDebateCommand(
   await requireAuth();
   const client = new ConsiliumClient();
 
-  const bridge = await startToolBridge(client, { enabled: options.tools !== false });
+  const bridge = await startToolBridge(client, {
+    enabled: options.tools !== false,
+  });
 
   // The stream event callbacks are sync, so we can't await the
   // bridge's async handleEvent. Attach an explicit .catch() instead of

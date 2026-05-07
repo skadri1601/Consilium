@@ -23,8 +23,16 @@ function statusBadge(status: CatalogEntry["status"]): string {
   }
 }
 
-function checkUserModels(): { id: string; status: CatalogEntry["status"]; notes?: string }[] {
-  const flagged: { id: string; status: CatalogEntry["status"]; notes?: string }[] = [];
+function checkUserModels(): {
+  id: string;
+  status: CatalogEntry["status"];
+  notes?: string;
+}[] {
+  const flagged: {
+    id: string;
+    status: CatalogEntry["status"];
+    notes?: string;
+  }[] = [];
   const ids = new Set([...DEFAULT_MODELS, ...DEFAULT_BLIND_EVAL_MODELS]);
   for (const id of ids) {
     if (isDeprecatedOrRetired(id)) {
@@ -46,7 +54,11 @@ export function modelsCommand(options: ModelsCommandOptions = {}): void {
       console.log(st.success("All default models are current. ✓"));
       return;
     }
-    console.log(st.warning(`\n${flagged.length} default model${flagged.length === 1 ? "" : "s"} need attention:\n`));
+    console.log(
+      st.warning(
+        `\n${flagged.length} default model${flagged.length === 1 ? "" : "s"} need attention:\n`,
+      ),
+    );
     for (const f of flagged) {
       console.log(`  ${st.brand(f.id)} - ${statusBadge(f.status)}`);
       if (f.notes) console.log(st.dim(`    ${f.notes}`));
@@ -92,7 +104,9 @@ export function modelsCommand(options: ModelsCommandOptions = {}): void {
     console.log(st.dim(`\n  ${provider}`));
     for (const entry of entries) {
       const tail = entry.notes ? st.dim(`  - ${entry.notes}`) : "";
-      console.log(`    ${entry.id.padEnd(34)} ${statusBadge(entry.status).padEnd(20)} ${st.dim(entry.tier)}${tail}`);
+      console.log(
+        `    ${entry.id.padEnd(34)} ${statusBadge(entry.status).padEnd(20)} ${st.dim(entry.tier)}${tail}`,
+      );
     }
   }
 

@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, AlertCircle, Clock, ChevronDown, ChevronRight, DollarSign, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Check,
+  AlertCircle,
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  DollarSign,
+  Loader2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { getAgentDisplayName } from "../utils/council-helpers";
 
@@ -63,20 +76,30 @@ function PhaseIcon({ status }: { status: TimelinePhase["status"] }) {
   }
 }
 
-function ModelStatusDot({ status }: { status: "thinking" | "complete" | "error" }) {
+function ModelStatusDot({
+  status,
+}: {
+  status: "thinking" | "complete" | "error";
+}) {
   return (
     <span
       className={cn(
         "inline-block h-2 w-2 rounded-full shrink-0",
         status === "thinking" && "bg-primary animate-pulse",
         status === "complete" && "bg-green-500",
-        status === "error" && "bg-destructive"
+        status === "error" && "bg-destructive",
       )}
     />
   );
 }
 
-function PhaseItem({ phase, isLast }: { phase: TimelinePhase; isLast: boolean }) {
+function PhaseItem({
+  phase,
+  isLast,
+}: {
+  phase: TimelinePhase;
+  isLast: boolean;
+}) {
   const [expanded, setExpanded] = useState(phase.status === "active");
   const hasModels = phase.models && phase.models.length > 0;
 
@@ -88,7 +111,9 @@ function PhaseItem({ phase, isLast }: { phase: TimelinePhase; isLast: boolean })
           <div
             className={cn(
               "w-0.5 flex-1 min-h-[24px]",
-              phase.status === "complete" ? "bg-green-500/50" : "bg-muted-foreground/20"
+              phase.status === "complete"
+                ? "bg-green-500/50"
+                : "bg-muted-foreground/20",
             )}
           />
         )}
@@ -100,16 +125,17 @@ function PhaseItem({ phase, isLast }: { phase: TimelinePhase; isLast: boolean })
           disabled={!hasModels}
           className={cn(
             "flex items-center gap-2 text-left w-full",
-            hasModels && "cursor-pointer"
+            hasModels && "cursor-pointer",
           )}
         >
           <span
             className={cn(
               "text-sm font-semibold",
               phase.status === "active" && "text-primary",
-              phase.status === "complete" && "text-green-600 dark:text-green-400",
+              phase.status === "complete" &&
+                "text-green-600 dark:text-green-400",
               phase.status === "error" && "text-destructive",
-              phase.status === "pending" && "text-muted-foreground"
+              phase.status === "pending" && "text-muted-foreground",
             )}
           >
             {phase.name}
@@ -127,7 +153,11 @@ function PhaseItem({ phase, isLast }: { phase: TimelinePhase; isLast: boolean })
           )}
           {hasModels && (
             <span className="ml-auto text-muted-foreground">
-              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </span>
           )}
         </button>
@@ -148,8 +178,12 @@ function PhaseItem({ phase, isLast }: { phase: TimelinePhase; isLast: boolean })
                     className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs"
                   >
                     <ModelStatusDot status={model.status} />
-                    <span className="truncate">{getAgentDisplayName(model.id)}</span>
-                    <span className="ml-auto text-muted-foreground capitalize">{model.status}</span>
+                    <span className="truncate">
+                      {getAgentDisplayName(model.id)}
+                    </span>
+                    <span className="ml-auto text-muted-foreground capitalize">
+                      {model.status}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -198,7 +232,9 @@ export function DebateTimeline({
         <div className="mt-4 flex flex-col gap-3 border-t pt-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Running Cost</span>
-            <span className="font-mono font-medium">${totalCost.toFixed(4)}</span>
+            <span className="font-mono font-medium">
+              ${totalCost.toFixed(4)}
+            </span>
           </div>
 
           {convergence && (
@@ -210,7 +246,7 @@ export function DebateTimeline({
                     "text-xs font-medium px-2 py-0.5 rounded-full",
                     convergence.converged
                       ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
                   )}
                 >
                   {convergence.converged ? "Converged" : "Deliberating"}
@@ -220,10 +256,12 @@ export function DebateTimeline({
                 <motion.div
                   className={cn(
                     "h-full rounded-full",
-                    convergence.converged ? "bg-green-500" : "bg-primary"
+                    convergence.converged ? "bg-green-500" : "bg-primary",
                   )}
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(convergence.score * 100, 100)}%` }}
+                  animate={{
+                    width: `${Math.min(convergence.score * 100, 100)}%`,
+                  }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               </div>

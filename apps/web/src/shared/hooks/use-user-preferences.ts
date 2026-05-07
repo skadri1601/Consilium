@@ -11,7 +11,11 @@ export interface UserPreferences {
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-  defaultAgents: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"],
+  defaultAgents: [
+    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-120b",
+    "llama-3.1-8b-instant",
+  ],
   defaultMode: "council",
 };
 
@@ -32,7 +36,16 @@ export function useUserPreferences() {
     const meta = user.unsafeMetadata as Record<string, unknown>;
 
     const rawMode = meta.defaultMode as string | undefined;
-    const VALID_MODES = new Set(["quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"]);
+    const VALID_MODES = new Set([
+      "quick",
+      "council",
+      "deep",
+      "blind",
+      "redteam",
+      "jury",
+      "market",
+      "auto",
+    ]);
     const resolvedMode = (
       rawMode === "visible"
         ? "council"
@@ -68,7 +81,7 @@ export function useUserPreferences() {
         },
       });
     },
-    [user, preferences]
+    [user, preferences],
   );
 
   return {

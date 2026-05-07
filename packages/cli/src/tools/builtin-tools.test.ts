@@ -2,11 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  BUILTIN_TOOLS,
-  callBuiltinTool,
-  isBuiltinTool,
-} from "./builtin-tools";
+import { BUILTIN_TOOLS, callBuiltinTool, isBuiltinTool } from "./builtin-tools";
 import {
   grantCodebasePermission,
   revokeCodebasePermission,
@@ -19,7 +15,10 @@ import {
 function grantWritePermissionForTest(directory: string): void {
   const file = path.join(os.homedir(), ".consilium", "permissions.json");
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  let store: { version: number; projects: Record<string, Record<string, unknown>> };
+  let store: {
+    version: number;
+    projects: Record<string, Record<string, unknown>>;
+  };
   try {
     store = JSON.parse(fs.readFileSync(file, "utf-8"));
     if (!store.projects) store = { version: 2, projects: {} };
@@ -81,7 +80,11 @@ describe("builtin-tools", () => {
     grantCodebasePermission(root, "always");
     fs.writeFileSync(path.join(root, "hello.txt"), "alpha\nbeta\ngamma\n");
 
-    const result = await callBuiltinTool("consilium__read", { path: "hello.txt" }, { cwd: root });
+    const result = await callBuiltinTool(
+      "consilium__read",
+      { path: "hello.txt" },
+      { cwd: root },
+    );
     expect(result.isError).toBeUndefined();
     expect(result.content[0]!.text).toContain("alpha");
     expect(result.content[0]!.text).toContain("    1\talpha");
@@ -93,7 +96,11 @@ describe("builtin-tools", () => {
     created.push(root);
     grantCodebasePermission(root, "always");
 
-    const result = await callBuiltinTool("consilium__read", { path: "../escape.txt" }, { cwd: root });
+    const result = await callBuiltinTool(
+      "consilium__read",
+      { path: "../escape.txt" },
+      { cwd: root },
+    );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toMatch(/escapes project root|failed/i);
   });
@@ -103,7 +110,11 @@ describe("builtin-tools", () => {
     created.push(root);
     fs.writeFileSync(path.join(root, "secret.txt"), "sensitive");
 
-    const result = await callBuiltinTool("consilium__read", { path: "secret.txt" }, { cwd: root });
+    const result = await callBuiltinTool(
+      "consilium__read",
+      { path: "secret.txt" },
+      { cwd: root },
+    );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toMatch(/permission|allow/i);
   });
@@ -113,7 +124,10 @@ describe("builtin-tools", () => {
     created.push(root);
     grantCodebasePermission(root, "always");
     fs.mkdirSync(path.join(root, "src"));
-    fs.writeFileSync(path.join(root, "src", "a.ts"), "export const NEEDLE = 1;\n");
+    fs.writeFileSync(
+      path.join(root, "src", "a.ts"),
+      "export const NEEDLE = 1;\n",
+    );
     fs.writeFileSync(path.join(root, "src", "b.ts"), "// no match here\n");
     fs.writeFileSync(path.join(root, "src", "c.ts"), "function NEEDLE() {}\n");
 

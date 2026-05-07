@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext, shouldBypassAuth, isFetchError } from "@/lib/api/auth-helpers";
+import {
+  getAuthContext,
+  shouldBypassAuth,
+  isFetchError,
+} from "@/lib/api/auth-helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -38,10 +42,14 @@ export async function POST(request: NextRequest) {
       }
 
       const errorText = await response.text();
-      console.error("[POST /api/api-keys/test] Backend error:", response.status, errorText);
+      console.error(
+        "[POST /api/api-keys/test] Backend error:",
+        response.status,
+        errorText,
+      );
       return NextResponse.json(
         { valid: false, message: "Failed to test API key" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -57,8 +65,15 @@ export async function POST(request: NextRequest) {
 
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    console.error("[POST /api/api-keys/test] Unexpected error:", errorMessage, error);
+    console.error(
+      "[POST /api/api-keys/test] Unexpected error:",
+      errorMessage,
+      error,
+    );
 
-    return NextResponse.json({ error: "Failed to test API key", message: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to test API key", message: errorMessage },
+      { status: 500 },
+    );
   }
 }

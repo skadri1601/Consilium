@@ -1,8 +1,15 @@
-import { test, expect, type Page, type Route, type BrowserContext } from "@playwright/test";
+import {
+  test,
+  expect,
+  type Page,
+  type Route,
+  type BrowserContext,
+} from "@playwright/test";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
-const REALISTIC_TOPIC = "Design a distributed event-driven microservices architecture for a fintech payment processing platform with real-time fraud detection";
+const REALISTIC_TOPIC =
+  "Design a distributed event-driven microservices architecture for a fintech payment processing platform with real-time fraud detection";
 
 const MOCK_DEBATE_ID = "debate-stress-4f9a-b1c3-7e2d8a6f0c15";
 
@@ -20,7 +27,8 @@ const MOCK_DEBATE_DETAIL = {
   status: "completed",
   modelsUsed: ["gpt-5.4", "claude-sonnet-4-6", "gemini-3-flash-preview"],
   totalCost: 0.0456,
-  goldenPrompt: "Implement a hexagonal architecture with domain-driven design for scalable microservices",
+  goldenPrompt:
+    "Implement a hexagonal architecture with domain-driven design for scalable microservices",
   createdAt: new Date().toISOString(),
   rounds: [
     {
@@ -32,7 +40,8 @@ const MOCK_DEBATE_DETAIL = {
           id: "msg-001",
           agentId: "gpt-5.4",
           modelUsed: "GPT-4o",
-          content: "For the payment processing platform, I recommend an event-sourcing pattern with CQRS",
+          content:
+            "For the payment processing platform, I recommend an event-sourcing pattern with CQRS",
           cost: 0.012,
           latencyMs: 2340,
         },
@@ -40,7 +49,8 @@ const MOCK_DEBATE_DETAIL = {
           id: "msg-002",
           agentId: "claude-sonnet-4-6",
           modelUsed: "Claude 3.5 Sonnet",
-          content: "The fraud detection subsystem should use a streaming architecture with Apache Flink",
+          content:
+            "The fraud detection subsystem should use a streaming architecture with Apache Flink",
           cost: 0.015,
           latencyMs: 3120,
         },
@@ -76,7 +86,8 @@ const MOCK_PERSONAS = [
     id: "persona-001",
     name: "Backend Performance Engineer",
     description: "Specialist in high-throughput server architectures",
-    systemPrompt: "You are a backend performance engineer focused on low-latency systems...",
+    systemPrompt:
+      "You are a backend performance engineer focused on low-latency systems...",
     isDefault: false,
   },
 ];
@@ -91,7 +102,9 @@ function generateMockDebatesList(count: number) {
       "Create a multi-tenant SaaS platform with row-level security",
       "Architect a serverless data pipeline for real-time analytics",
     ][i % 5],
-    status: ["completed", "completed", "failed", "completed", "completed"][i % 5],
+    status: ["completed", "completed", "failed", "completed", "completed"][
+      i % 5
+    ],
     modelsUsed: ["gpt-5.4", "claude-sonnet-4-6"].slice(0, (i % 2) + 2),
     totalCost: parseFloat((0.01 + Math.random() * 0.08).toFixed(4)),
     goldenPrompt: i % 3 === 0 ? null : `Synthesized output for debate ${i}`,
@@ -110,10 +123,18 @@ async function waitForPageReady(page: Page) {
 async function mockApiKeysEndpoint(page: Page) {
   await page.route("**/api/api-keys", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_API_KEYS) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_API_KEYS),
+      });
     }
     if (route.request().method() === "PUT") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true }) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
     }
     return route.continue();
   });
@@ -121,11 +142,19 @@ async function mockApiKeysEndpoint(page: Page) {
 
 async function mockDebatesListEndpoint(page: Page, debates: unknown[]) {
   await page.route("**/api/debates?*", (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(debates) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(debates),
+    }),
   );
   await page.route("**/api/debates", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(debates) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(debates),
+      });
     }
     return route.continue();
   });
@@ -144,28 +173,44 @@ async function mockDebateCreateEndpoint(page: Page) {
   });
 }
 
-async function mockDebateStreamEndpoint(page: Page, events: Array<{ event: string; [key: string]: unknown }>) {
-  await page.route(`**/api/debates/${MOCK_DEBATE_ID}/stream`, (route: Route) => {
-    const sseBody = events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("");
-    return route.fulfill({
-      status: 200,
-      contentType: "text/event-stream",
-      headers: { "Cache-Control": "no-cache", Connection: "keep-alive" },
-      body: sseBody,
-    });
-  });
+async function mockDebateStreamEndpoint(
+  page: Page,
+  events: Array<{ event: string; [key: string]: unknown }>,
+) {
+  await page.route(
+    `**/api/debates/${MOCK_DEBATE_ID}/stream`,
+    (route: Route) => {
+      const sseBody = events
+        .map((e) => `data: ${JSON.stringify(e)}\n\n`)
+        .join("");
+      return route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        headers: { "Cache-Control": "no-cache", Connection: "keep-alive" },
+        body: sseBody,
+      });
+    },
+  );
 }
 
 async function mockAnalyticsEndpoint(page: Page) {
   await page.route("**/api/analytics", (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_ANALYTICS) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_ANALYTICS),
+    }),
   );
 }
 
 async function mockPersonasEndpoint(page: Page) {
   await page.route("**/api/personas", (route: Route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_PERSONAS) });
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PERSONAS),
+      });
     }
     return route.continue();
   });
@@ -173,7 +218,11 @@ async function mockPersonasEndpoint(page: Page) {
 
 async function mockDebateDetailEndpoint(page: Page) {
   await page.route(`**/api/debates/${MOCK_DEBATE_ID}`, (route: Route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DEBATE_DETAIL) })
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_DEBATE_DETAIL),
+    }),
   );
 }
 
@@ -182,8 +231,11 @@ async function mockApiKeyTestEndpoint(page: Page, valid: boolean) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ valid, message: valid ? "API key is valid" : "Invalid API key" }),
-    })
+      body: JSON.stringify({
+        valid,
+        message: valid ? "API key is valid" : "Invalid API key",
+      }),
+    }),
   );
 }
 
@@ -195,7 +247,7 @@ async function mockAllEndpoints(page: Page) {
 }
 
 async function selectAgentsByIndex(page: Page, indices: number[]) {
-  const agentButtons = page.locator('[aria-pressed]');
+  const agentButtons = page.locator("[aria-pressed]");
   for (const idx of indices) {
     await agentButtons.nth(idx).click();
   }
@@ -212,14 +264,27 @@ function collectConsoleErrors(page: Page): string[] {
 }
 
 test.describe("Rapid Navigation", () => {
-  test("should navigate through all major pages without crashes in under 2 seconds per transition", async ({ page }) => {
+  test("should navigate through all major pages without crashes in under 2 seconds per transition", async ({
+    page,
+  }) => {
     await mockAllEndpoints(page);
     await mockDebateDetailEndpoint(page);
     await page.route("**/api/personas/*", (route: Route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_PERSONAS[0]) })
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PERSONAS[0]),
+      }),
     );
 
-    const routes = ["/council", "/history", "/settings", "/analytics", "/personas", "/council"];
+    const routes = [
+      "/council",
+      "/history",
+      "/settings",
+      "/analytics",
+      "/personas",
+      "/council",
+    ];
     const errors = collectConsoleErrors(page);
 
     for (const path of routes) {
@@ -230,11 +295,15 @@ test.describe("Rapid Navigation", () => {
       expect(elapsed).toBeLessThan(15000);
     }
 
-    const criticalErrors = errors.filter((e) => e.includes("TypeError") || e.includes("Cannot read"));
+    const criticalErrors = errors.filter(
+      (e) => e.includes("TypeError") || e.includes("Cannot read"),
+    );
     expect(criticalErrors.length).toBe(0);
   });
 
-  test("should not show stale data when navigating back to council", async ({ page }) => {
+  test("should not show stale data when navigating back to council", async ({
+    page,
+  }) => {
     await mockAllEndpoints(page);
 
     await navigateTo(page, "/council");
@@ -251,7 +320,9 @@ test.describe("Rapid Navigation", () => {
 });
 
 test.describe("Form Spam Prevention", () => {
-  test("should prevent multiple debate submissions from rapid clicking", async ({ page }) => {
+  test("should prevent multiple debate submissions from rapid clicking", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     let submitCount = 0;
 
@@ -271,7 +342,7 @@ test.describe("Form Spam Prevention", () => {
         status: 200,
         contentType: "text/event-stream",
         body: `data: ${JSON.stringify({ event: "debate:start" })}\n\n`,
-      })
+      }),
     );
 
     await navigateTo(page, "/council");
@@ -292,7 +363,9 @@ test.describe("Form Spam Prevention", () => {
 });
 
 test.describe("Long-Running Debate", () => {
-  test("should display progress indicators during debate and support cancel", async ({ page }) => {
+  test("should display progress indicators during debate and support cancel", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await mockDebateCreateEndpoint(page);
 
@@ -300,7 +373,11 @@ test.describe("Long-Running Debate", () => {
       { event: "debate:start" },
       { event: "round:start", roundNumber: 1 },
       { event: "agent:start", agentId: "gpt-5.4" },
-      { event: "agent:chunk", agentId: "gpt-5.4", chunk: "Analyzing architecture requirements in detail..." },
+      {
+        event: "agent:chunk",
+        agentId: "gpt-5.4",
+        chunk: "Analyzing architecture requirements in detail...",
+      },
     ];
 
     await mockDebateStreamEndpoint(page, slowEvents);
@@ -315,15 +392,21 @@ test.describe("Long-Running Debate", () => {
 
     await page.waitForTimeout(3000);
 
-    const progressIndicator = page.locator("text=Council Debate")
+    const progressIndicator = page
+      .locator("text=Council Debate")
       .or(page.locator("text=Processing"))
       .or(page.locator("text=Analyzing"))
       .or(page.locator('[role="progressbar"]'));
-    const hasProgress = await progressIndicator.first().isVisible().catch(() => false);
+    const hasProgress = await progressIndicator
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasProgress || true).toBeTruthy();
   });
 
-  test("should maintain debate state after navigation away and back", async ({ page }) => {
+  test("should maintain debate state after navigation away and back", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await mockDebateCreateEndpoint(page);
     await mockDebateDetailEndpoint(page);
@@ -331,7 +414,11 @@ test.describe("Long-Running Debate", () => {
     const events = [
       { event: "debate:start" },
       { event: "agent:start", agentId: "gpt-5.4" },
-      { event: "agent:chunk", agentId: "gpt-5.4", chunk: "Working on analysis..." },
+      {
+        event: "agent:chunk",
+        agentId: "gpt-5.4",
+        chunk: "Working on analysis...",
+      },
     ];
     await mockDebateStreamEndpoint(page, events);
 
@@ -354,7 +441,9 @@ test.describe("Long-Running Debate", () => {
 });
 
 test.describe("Concurrent Tabs", () => {
-  test("should handle multiple tabs without auth conflicts", async ({ context }) => {
+  test("should handle multiple tabs without auth conflicts", async ({
+    context,
+  }) => {
     const page1 = await context.newPage();
     const page2 = await context.newPage();
     const page3 = await context.newPage();
@@ -386,7 +475,9 @@ test.describe("Concurrent Tabs", () => {
 });
 
 test.describe("Settings Race Condition", () => {
-  test("should reflect API key update across tabs after refresh", async ({ context }) => {
+  test("should reflect API key update across tabs after refresh", async ({
+    context,
+  }) => {
     const tab1 = await context.newPage();
     const tab2 = await context.newPage();
 
@@ -403,7 +494,11 @@ test.describe("Settings Race Condition", () => {
 
     await tab2.route("**/api/api-keys", (route: Route) => {
       if (route.request().method() === "GET") {
-        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(updatedKeys) });
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(updatedKeys),
+        });
       }
       return route.continue();
     });
@@ -432,7 +527,9 @@ test.describe("History With 100 Debates", () => {
     expect(elapsed).toBeLessThan(15000);
   });
 
-  test("should filter debates via search with 100 records", async ({ page }) => {
+  test("should filter debates via search with 100 records", async ({
+    page,
+  }) => {
     const hundredDebates = generateMockDebatesList(100);
     await mockDebatesListEndpoint(page, hundredDebates);
 
@@ -450,7 +547,9 @@ test.describe("History With 100 Debates", () => {
     }
   });
 
-  test("should support date filter buttons with large dataset", async ({ page }) => {
+  test("should support date filter buttons with large dataset", async ({
+    page,
+  }) => {
     const hundredDebates = generateMockDebatesList(100);
     await mockDebatesListEndpoint(page, hundredDebates);
 
@@ -505,11 +604,14 @@ test.describe("Mobile Viewport", () => {
     await navigateTo(page, "/council");
     await waitForPageReady(page);
 
-    const agentButtons = page.locator('[aria-pressed]');
+    const agentButtons = page.locator("[aria-pressed]");
     const count = await agentButtons.count();
     if (count >= 2) {
       await agentButtons.first().click();
-      await expect(agentButtons.first()).toHaveAttribute("aria-pressed", "true");
+      await expect(agentButtons.first()).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
     }
   });
 
@@ -518,18 +620,25 @@ test.describe("Mobile Viewport", () => {
     await navigateTo(page, "/council");
     await waitForPageReady(page);
 
-    const mobileMenu = page.locator('button[aria-label="Menu"]')
+    const mobileMenu = page
+      .locator('button[aria-label="Menu"]')
       .or(page.locator('button[aria-label="Toggle menu"]'))
       .or(page.locator('button[aria-label="Open menu"]'))
       .or(page.locator('[data-testid="mobile-menu"]'))
       .or(page.locator("nav"));
-    const hasNav = await mobileMenu.first().isVisible().catch(() => false);
+    const hasNav = await mobileMenu
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasNav || true).toBeTruthy();
   });
 });
 
 test.describe("Network Failure Recovery", () => {
-  test("should show error on network disconnect during debate", async ({ page, context }) => {
+  test("should show error on network disconnect during debate", async ({
+    page,
+    context,
+  }) => {
     await mockApiKeysEndpoint(page);
     await mockDebateCreateEndpoint(page);
 
@@ -559,7 +668,10 @@ test.describe("Network Failure Recovery", () => {
     expect(pageContent).toBeTruthy();
   });
 
-  test("should recover page state after going offline and back online", async ({ page, context }) => {
+  test("should recover page state after going offline and back online", async ({
+    page,
+    context,
+  }) => {
     await mockAllEndpoints(page);
 
     await navigateTo(page, "/council");
@@ -576,7 +688,9 @@ test.describe("Network Failure Recovery", () => {
 });
 
 test.describe("Accessibility", () => {
-  test("should have focusable interactive elements on council page", async ({ page }) => {
+  test("should have focusable interactive elements on council page", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -594,7 +708,9 @@ test.describe("Accessibility", () => {
     }
   });
 
-  test("should support tab navigation through debate form", async ({ page }) => {
+  test("should support tab navigation through debate form", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await navigateTo(page, "/council");
     await waitForPageReady(page);
@@ -607,23 +723,35 @@ test.describe("Accessibility", () => {
     expect(focused).toBeTruthy();
   });
 
-  test("should have aria labels on key interactive elements", async ({ page }) => {
+  test("should have aria labels on key interactive elements", async ({
+    page,
+  }) => {
     await mockApiKeysEndpoint(page);
     await navigateTo(page, "/council");
     await waitForPageReady(page);
 
-    const ariaElements = page.locator("[aria-label], [aria-pressed], [aria-expanded], [role]");
+    const ariaElements = page.locator(
+      "[aria-label], [aria-pressed], [aria-expanded], [role]",
+    );
     const count = await ariaElements.count();
     expect(count).toBeGreaterThan(0);
   });
 });
 
 test.describe("Memory Leak Check", () => {
-  test("should navigate through 50 pages without console memory errors", async ({ page }) => {
+  test("should navigate through 50 pages without console memory errors", async ({
+    page,
+  }) => {
     await mockAllEndpoints(page);
     const errors = collectConsoleErrors(page);
 
-    const pages = ["/council", "/history", "/settings", "/analytics", "/personas"];
+    const pages = [
+      "/council",
+      "/history",
+      "/settings",
+      "/analytics",
+      "/personas",
+    ];
 
     for (let i = 0; i < 50; i++) {
       const path = pages[i % pages.length];
@@ -635,12 +763,14 @@ test.describe("Memory Leak Check", () => {
       (e) =>
         e.toLowerCase().includes("memory") ||
         e.toLowerCase().includes("heap") ||
-        e.toLowerCase().includes("allocation failed")
+        e.toLowerCase().includes("allocation failed"),
     );
     expect(memoryErrors.length).toBe(0);
   });
 
-  test("should not accumulate TypeError or ReferenceError across navigations", async ({ page }) => {
+  test("should not accumulate TypeError or ReferenceError across navigations", async ({
+    page,
+  }) => {
     await mockAllEndpoints(page);
     const errors = collectConsoleErrors(page);
 
@@ -650,7 +780,7 @@ test.describe("Memory Leak Check", () => {
     }
 
     const jsErrors = errors.filter(
-      (e) => e.includes("TypeError") || e.includes("ReferenceError")
+      (e) => e.includes("TypeError") || e.includes("ReferenceError"),
     );
     expect(jsErrors.length).toBe(0);
   });

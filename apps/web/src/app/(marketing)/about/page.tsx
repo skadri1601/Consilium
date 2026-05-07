@@ -244,9 +244,9 @@ export default function AboutPage() {
               xAI (Grok 4.20, Grok 4.1 Fast), Moonshot (Kimi K2.6), Groq for
               cost-effective inference (Llama 3.x, GPT-OSS, Compound), and
               OpenRouter for free-tier fallback. Models debate through a
-              LangGraph state machine with
-              typed challenges, categorized rebuttals, confidence-weighted
-              voting, and mathematical convergence detection.
+              LangGraph state machine with typed challenges, categorized
+              rebuttals, confidence-weighted voting, and mathematical
+              convergence detection.
             </p>
 
             <p>
@@ -351,15 +351,16 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
 
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-2">Hi, I&apos;m Saad.</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Hi, I&apos;m Saad.
+                </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   I build software for a living and got tired of the same
                   pattern: ask one AI a hard question, get an answer that&apos;s{" "}
                   <em>almost</em> right, lose two hours discovering the wrong
                   half. The fix isn&apos;t a smarter single model - it&apos;s a
                   room of models that argue, challenge each other, and only
-                  agree when they&apos;ve really agreed. That&apos;s
-                  Consilium.
+                  agree when they&apos;ve really agreed. That&apos;s Consilium.
                 </p>
               </div>
 
@@ -373,10 +374,10 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                 <CardContent>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Make multi-AI deliberation the default for high-stakes
-                    engineering decisions. No more single-model guesses. No
-                    more provider lock-in. The council reads your code,
-                    debates the problem, and shows its work - so you can
-                    trust the answer or push back on it.
+                    engineering decisions. No more single-model guesses. No more
+                    provider lock-in. The council reads your code, debates the
+                    problem, and shows its work - so you can trust the answer or
+                    push back on it.
                   </p>
                 </CardContent>
               </Card>
@@ -422,18 +423,18 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                   Why I built Consilium
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Every existing AI coding tool is a single model with a
-                  pretty wrapper. Cursor uses Claude. Copilot uses GPT.
-                  Gemini Code uses Gemini. Each one has blind spots, and
-                  pretending otherwise is how you ship subtly broken code.
+                  Every existing AI coding tool is a single model with a pretty
+                  wrapper. Cursor uses Claude. Copilot uses GPT. Gemini Code
+                  uses Gemini. Each one has blind spots, and pretending
+                  otherwise is how you ship subtly broken code.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
                   Consilium puts seven of them in the same room - OpenAI,
-                  Anthropic, Google, Groq, xAI, Moonshot, OpenRouter - and
-                  makes them argue with each other on <em>your</em> codebase.
-                  When they disagree, you see the disagreement. When they
-                  converge, you know it&apos;s real, not a single model&apos;s
-                  preference. That&apos;s the tool I wanted, so I built it.
+                  Anthropic, Google, Groq, xAI, Moonshot, OpenRouter - and makes
+                  them argue with each other on <em>your</em> codebase. When
+                  they disagree, you see the disagreement. When they converge,
+                  you know it&apos;s real, not a single model&apos;s preference.
+                  That&apos;s the tool I wanted, so I built it.
                 </p>
               </div>
             </div>

@@ -1,1 +1,7 @@
-export { type EntityType, PREFIXES, generateId, parseId, isValidId } from "./prefixed-id";
+export {
+  type EntityType,
+  PREFIXES,
+  generateId,
+  parseId,
+  isValidId,
+} from "./prefixed-id";

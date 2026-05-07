@@ -220,9 +220,7 @@ export class DebatesService {
       mode,
       debateSource,
       systemPrompt,
-      projectContext: dto.projectContext as
-        | Record<string, unknown>
-        | undefined,
+      projectContext: dto.projectContext as Record<string, unknown> | undefined,
       apiKeys,
     });
 
@@ -617,8 +615,7 @@ export class DebatesService {
     }
 
     const judgeModel = "gpt-5.4-mini";
-    const judgePricing =
-      MODEL_PRICING[judgeModel] || MODEL_PRICING["default"];
+    const judgePricing = MODEL_PRICING[judgeModel] || MODEL_PRICING["default"];
     const judgeCost =
       ((avgInputTokens * models.length) / 1_000_000) *
         judgePricing.inputPerMillion +

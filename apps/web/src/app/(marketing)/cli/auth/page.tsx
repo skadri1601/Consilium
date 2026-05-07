@@ -37,7 +37,7 @@ export default function CliAuthPage() {
         setToken(data.token);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to generate token"
+          err instanceof Error ? err.message : "Failed to generate token",
         );
       } finally {
         setLoading(false);
@@ -140,11 +140,7 @@ export default function CliAuthPage() {
               <div className="rounded-md bg-muted p-4 font-mono text-sm break-all select-all leading-relaxed">
                 {token}
               </div>
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={copyToClipboard}
-              >
+              <Button className="w-full" size="lg" onClick={copyToClipboard}>
                 {copied ? (
                   <>
                     <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />

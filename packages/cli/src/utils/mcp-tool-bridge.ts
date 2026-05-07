@@ -1,4 +1,9 @@
-import { ConsiliumClient, DeliberationEvent, DebateEvent, ToolSchema } from "../api/client";
+import {
+  ConsiliumClient,
+  DeliberationEvent,
+  DebateEvent,
+  ToolSchema,
+} from "../api/client";
 import { McpRegistry } from "./mcp-client/registry";
 import { style } from "./visual-system";
 import {
@@ -38,7 +43,10 @@ export interface ToolBridgeOptions {
 export interface ToolBridgeHandle {
   tools: ToolSchema[];
   toolBudget: typeof DEFAULT_BUDGET;
-  handleEvent: (event: DebateEvent | DeliberationEvent, deliberationId: string) => Promise<void>;
+  handleEvent: (
+    event: DebateEvent | DeliberationEvent,
+    deliberationId: string,
+  ) => Promise<void>;
   shutdown: () => Promise<void>;
 }
 
@@ -57,7 +65,11 @@ export async function startToolBridge(
 
   if (!options.quiet) {
     if (started.length > 0) {
-      console.log(st.dim(`[mcp] ${started.length} server${started.length === 1 ? "" : "s"} ready: ${started.join(", ")}`));
+      console.log(
+        st.dim(
+          `[mcp] ${started.length} server${started.length === 1 ? "" : "s"} ready: ${started.join(", ")}`,
+        ),
+      );
     }
     for (const f of failed) {
       console.log(st.warning(`[mcp] ${f.name} failed to start: ${f.error}`));
@@ -84,7 +96,9 @@ export async function startToolBridge(
   if (tools.length === 0) {
     await registry.stopAll();
     if (!options.quiet) {
-      console.log(st.dim("[mcp] no tools available - continuing without tool access"));
+      console.log(
+        st.dim("[mcp] no tools available - continuing without tool access"),
+      );
     }
     return null;
   }
@@ -151,7 +165,15 @@ export async function startToolBridge(
     toolBudget: DEFAULT_BUDGET,
     handleEvent: async (event, deliberationId) => {
       if (event.type !== "tool:call_request") return;
-      const { callId, name, arguments: args } = event as { callId?: string; name?: string; arguments?: Record<string, unknown> };
+      const {
+        callId,
+        name,
+        arguments: args,
+      } = event as {
+        callId?: string;
+        name?: string;
+        arguments?: Record<string, unknown>;
+      };
       if (!callId || !name) return;
 
       if (!markSeen(deliberationId, callId)) {
@@ -161,14 +183,18 @@ export async function startToolBridge(
 
       if (!bumpAndCheckBudget(deliberationId)) {
         await postResultSafely(deliberationId, callId, {
-          content: [{ type: "text", text: "Tool budget exhausted for this debate." }],
+          content: [
+            { type: "text", text: "Tool budget exhausted for this debate." },
+          ],
           isError: true,
         });
         return;
       }
 
       if (!options.quiet) {
-        console.log(st.dim(`[tools] ${name}(${JSON.stringify(args ?? {}).slice(0, 80)})`));
+        console.log(
+          st.dim(`[tools] ${name}(${JSON.stringify(args ?? {}).slice(0, 80)})`),
+        );
       }
 
       try {

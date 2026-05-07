@@ -3,38 +3,38 @@ export class ConsiliumError extends Error {
 
   constructor(message: string, statusCode?: number) {
     super(message);
-    this.name = 'ConsiliumError';
+    this.name = "ConsiliumError";
     this.statusCode = statusCode;
   }
 }
 
 export class AuthenticationError extends ConsiliumError {
-  constructor(message = 'Authentication failed') {
+  constructor(message = "Authentication failed") {
     super(message, 401);
-    this.name = 'AuthenticationError';
+    this.name = "AuthenticationError";
   }
 }
 
 export class TimeoutError extends ConsiliumError {
-  constructor(message = 'Request timed out') {
+  constructor(message = "Request timed out") {
     super(message, 408);
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
 export class ServerError extends ConsiliumError {
-  constructor(message = 'Internal server error', statusCode = 500) {
+  constructor(message = "Internal server error", statusCode = 500) {
     super(message, statusCode);
-    this.name = 'ServerError';
+    this.name = "ServerError";
   }
 }
 
 export class RateLimitError extends ConsiliumError {
   public readonly retryAfter?: number;
 
-  constructor(message = 'Rate limit exceeded', retryAfter?: number) {
+  constructor(message = "Rate limit exceeded", retryAfter?: number) {
     super(message, 429);
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
     this.retryAfter = retryAfter;
   }
 }

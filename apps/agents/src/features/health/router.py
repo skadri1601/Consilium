@@ -16,6 +16,8 @@ def check_api_keys() -> Dict[str, bool]:
         "google": bool(os.getenv("GOOGLE_API_KEY")),
         "groq": bool(os.getenv("GROQ_API_KEY")),
         "xai": bool(os.getenv("XAI_API_KEY")),
+        "moonshot": bool(os.getenv("MOONSHOT_API_KEY")),
+        "openrouter": bool(os.getenv("OPENROUTER_API_KEY")),
     }
 
 
@@ -94,19 +96,24 @@ async def test_api_keys() -> Dict[str, Dict[str, Any]]:
 
 def get_available_models() -> list:
     """Get list of available models based on configured API keys."""
-    keys = check_api_keys()
-    models = []
+    from ...shared.config.models import AVAILABLE_MODELS
 
-    if keys["openai"]:
-        models.extend(["gpt-5.4", "gpt-5.4-mini"])
-    if keys["anthropic"]:
-        models.extend(["claude-sonnet-4-6", "claude-haiku-4-5-20251001"])
-    if keys["google"]:
-        models.extend(["gemini-3.1-pro-preview", "gemini-3-flash-preview"])
-    if keys["groq"]:
-        models.extend(["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
-    if keys["xai"]:
-        models.extend(["grok-4-20", "grok-4-1-fast-reasoning"])
+    keys = check_api_keys()
+    provider_key_map = {
+        "openai": keys.get("openai", False),
+        "anthropic": keys.get("anthropic", False),
+        "google": keys.get("google", False),
+        "groq": keys.get("groq", False),
+        "xai": keys.get("xai", False),
+        "moonshot": keys.get("moonshot", False),
+        "openrouter": keys.get("openrouter", False),
+    }
+    models = []
+    for provider, provider_models in AVAILABLE_MODELS.items():
+        if provider == "mock":
+            continue
+        if provider_key_map.get(provider, False):
+            models.extend(m["id"] for m in provider_models)
 
     return models
 

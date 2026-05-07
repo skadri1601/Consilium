@@ -7,7 +7,7 @@ Status: Stage 1b (CLI + engine stub shipping now; provider adapters follow per-p
 Today's deliberation engine treats each model call as one round-trip: prompt in,
 text out. After Stage 1a, the CLI can host outbound MCP servers (filesystem,
 github, sentry, ...) and enumerate their tools - but the council models have
-no way to *call* those tools during a debate. This doc defines the wire
+no way to _call_ those tools during a debate. This doc defines the wire
 protocol for closing that gap.
 
 ## Non-goals
@@ -67,7 +67,11 @@ consilium CLI            Nest API             agents engine (Python)
     {
       "qualifiedName": "filesystem.read_file",
       "description": "Read a file from the workspace",
-      "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } }, "required": ["path"] }
+      "inputSchema": {
+        "type": "object",
+        "properties": { "path": { "type": "string" } },
+        "required": ["path"]
+      }
     }
   ],
   "toolBudget": {
@@ -110,7 +114,9 @@ the CLI uses when posting the result back.
 {
   "callId": "call_01HYZK3...",
   "result": {
-    "content": [{ "type": "text", "text": "export async function authenticate(...) {..." }],
+    "content": [
+      { "type": "text", "text": "export async function authenticate(...) {..." }
+    ],
     "isError": false
   }
 }
@@ -140,34 +146,34 @@ Two additional SSE events let the CLI show progress:
 
 ## Budgets (enforced server-side)
 
-| Limit | Default | Behavior when exceeded |
-|---|---|---|
-| `maxCallsPerTurn` | 5 | Engine refuses further tool calls within the current LLM turn; model gets "budget exhausted" back |
-| `maxTotalCalls` | 50 | Engine stops offering tools for the rest of the debate |
-| `perCallTimeoutMs` | 30000 | Engine records `tool:call_failed` and feeds a timeout result back to the model |
+| Limit              | Default | Behavior when exceeded                                                                            |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------- |
+| `maxCallsPerTurn`  | 5       | Engine refuses further tool calls within the current LLM turn; model gets "budget exhausted" back |
+| `maxTotalCalls`    | 50      | Engine stops offering tools for the rest of the debate                                            |
+| `perCallTimeoutMs` | 30000   | Engine records `tool:call_failed` and feeds a timeout result back to the model                    |
 
 A circuit breaker disables a specific tool after 5 consecutive failures for
 the rest of that debate.
 
 ## Failure modes and fallbacks
 
-| Failure | Behavior |
-|---|---|
-| CLI disconnects mid-tool-call | Engine times out after `perCallTimeoutMs`, records `tool:call_failed`, model continues without that tool's output |
-| MCP server crashes on CLI side | CLI posts `{ isError: true, content: [...] }` with the stderr tail, engine treats as a normal tool failure |
-| Tool result never arrives | Engine's `perCallTimeoutMs` fires, same as above |
-| Engine receives `tool-results` for unknown `callId` | 404 returned; CLI logs and moves on |
-| Engine receives `tools` for a provider that doesn't support tools yet | Stub provider ignores them; emits no `tool:call_request` |
+| Failure                                                               | Behavior                                                                                                          |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| CLI disconnects mid-tool-call                                         | Engine times out after `perCallTimeoutMs`, records `tool:call_failed`, model continues without that tool's output |
+| MCP server crashes on CLI side                                        | CLI posts `{ isError: true, content: [...] }` with the stderr tail, engine treats as a normal tool failure        |
+| Tool result never arrives                                             | Engine's `perCallTimeoutMs` fires, same as above                                                                  |
+| Engine receives `tool-results` for unknown `callId`                   | 404 returned; CLI logs and moves on                                                                               |
+| Engine receives `tools` for a provider that doesn't support tools yet | Stub provider ignores them; emits no `tool:call_request`                                                          |
 
 ## Provider support matrix (follow-up work)
 
-| Provider | Tool format | PR |
-|---|---|---|
-| Anthropic | `content: [{type: "tool_use"|"tool_result", ...}]` | follow-up |
-| OpenAI | `tool_calls: [{id, function: {name, arguments}}]` | follow-up |
-| Google | `function_calls: [{name, args}]` | follow-up |
-| Groq | OpenAI-compatible | follow-up |
-| xAI | OpenAI-compatible | follow-up |
+| Provider  | Tool format                                       | PR                    |
+| --------- | ------------------------------------------------- | --------------------- | --------- |
+| Anthropic | `content: [{type: "tool_use"                      | "tool_result", ...}]` | follow-up |
+| OpenAI    | `tool_calls: [{id, function: {name, arguments}}]` | follow-up             |
+| Google    | `function_calls: [{name, args}]`                  | follow-up             |
+| Groq      | OpenAI-compatible                                 | follow-up             |
+| xAI       | OpenAI-compatible                                 | follow-up             |
 
 Each provider adapter gets its own PR. The adapters all convert to/from the
 engine's internal `ToolCall`/`ToolResult` shape; the protocol above only cares

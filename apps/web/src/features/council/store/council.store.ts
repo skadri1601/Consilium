@@ -29,7 +29,10 @@ interface CouncilState {
   setLoading: (loading: boolean) => void;
   setConversationId: (id: string | null) => void;
   newConversation: () => void;
-  loadDefaults: (prefs: { defaultAgents: string[]; defaultMode: CouncilMode }) => void;
+  loadDefaults: (prefs: {
+    defaultAgents: string[];
+    defaultMode: CouncilMode;
+  }) => void;
 }
 
 export const useCouncilStore = create<CouncilState>((set, get) => ({
@@ -73,7 +76,10 @@ export const useCouncilStore = create<CouncilState>((set, get) => ({
 
   loadDefaults: (prefs) => {
     if (get()._defaultsLoaded) return;
-    const mode = prefs.defaultMode === ("visible" as string) ? "council" : prefs.defaultMode;
+    const mode =
+      prefs.defaultMode === ("visible" as string)
+        ? "council"
+        : prefs.defaultMode;
     set({
       selectedAgents: sanitizeAgentIds(prefs.defaultAgents),
       mode: mode as CouncilMode,

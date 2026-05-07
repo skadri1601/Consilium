@@ -8,4 +8,3 @@ export default async function DebateDetailPage({
   const { id } = await params;
   return <DebateDetail debateId={id} />;
 }
-

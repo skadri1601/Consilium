@@ -31,7 +31,9 @@ function formatDate(dateStr: string) {
 }
 
 export default function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>("All");
+  const [activeCategory, setActiveCategory] = useState<"All" | BlogCategory>(
+    "All",
+  );
 
   const filtered =
     activeCategory === "All"
@@ -62,7 +64,7 @@ export default function BlogPage() {
                 "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
                 activeCategory === cat
                   ? "bg-white text-black"
-                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]"
+                  : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.1]",
               )}
             >
               {cat}
@@ -77,7 +79,9 @@ export default function BlogPage() {
           >
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1">
-                <Badge className={cn("mb-4", categoryColors[featured.category])}>
+                <Badge
+                  className={cn("mb-4", categoryColors[featured.category])}
+                >
                   {featured.category}
                 </Badge>
                 <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">

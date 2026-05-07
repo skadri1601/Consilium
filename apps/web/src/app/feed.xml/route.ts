@@ -27,9 +27,13 @@ function rfc822(dateStr: string): string {
 }
 
 function buildFeed(): string {
-  const sortedPosts = [...blogPosts].sort((a, b) => b.date.localeCompare(a.date));
+  const sortedPosts = [...blogPosts].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
   const lastBuildDate =
-    sortedPosts.length > 0 ? rfc822(sortedPosts[0].date) : new Date().toUTCString();
+    sortedPosts.length > 0
+      ? rfc822(sortedPosts[0].date)
+      : new Date().toUTCString();
 
   const items = sortedPosts
     .map((post) => {

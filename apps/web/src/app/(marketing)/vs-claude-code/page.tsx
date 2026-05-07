@@ -19,8 +19,7 @@ const data: CompetitorComparison = {
   hero: {
     tagline:
       "Claude Code is the best way to use Claude. Consilium is the best way to verify Claude with six other models.",
-    hook:
-      "Claude Code is Anthropic's official CLI for Claude. Consilium ships an MCP server that plugs into Claude Code so Claude can call a multi-provider council whenever it needs a second opinion.",
+    hook: "Claude Code is Anthropic's official CLI for Claude. Consilium ships an MCP server that plugs into Claude Code so Claude can call a multi-provider council whenever it needs a second opinion.",
     intro: [
       "Claude Code is the official Anthropic CLI for Claude. It's deeply integrated with the Claude family - Sonnet, Opus, Haiku - and ships well-engineered primitives: hooks, slash commands, MCP support, status line customization, sub-agents, and tight integration with Anthropic's API. If your team has standardized on Claude, it's the right tool for daily work.",
       "Claude Code's design constraint is its core value: it's Claude-only. There's no architectural way to ask GPT-5.5 or Gemini 3.1 Pro for a second opinion in the same session. You get exactly the model Anthropic ships, with exactly Anthropic's tradeoffs.",
@@ -177,7 +176,8 @@ const data: CompetitorComparison = {
         "Only to the providers you choose. By default debates use BYOK - your keys, your provider terms. The free-tier fallback uses Groq and OpenRouter; you can disable it. Consilium itself stores debate transcripts in your account if you opt in, with full audit trail per round.",
     },
     {
-      question: "Why use Consilium when Claude is already the strongest model on most benchmarks?",
+      question:
+        "Why use Consilium when Claude is already the strongest model on most benchmarks?",
       answer:
         "Because 'strongest on benchmarks' is not the same as 'right for this specific question.' Consilium debates surface the exact cases where Claude is overconfident - and they're not rare. Multi-provider deliberation is also a useful hedge against any one provider's rate-limits, outages, or content-policy quirks.",
     },

@@ -28,7 +28,9 @@ export class EmailService {
     firstName: string,
   ): Promise<{ success: boolean }> {
     if (!this.resend) {
-      this.logger.warn(`Welcome email skipped for ${to} - Resend not configured`);
+      this.logger.warn(
+        `Welcome email skipped for ${to} - Resend not configured`,
+      );
       return { success: false };
     }
 
@@ -52,7 +54,8 @@ export class EmailService {
 
   private buildWelcomeHtml(firstName: string): string {
     const name = firstName || "there";
-    const appUrl = this.configService.get<string>("APP_URL") || "https://myconsilium.xyz";
+    const appUrl =
+      this.configService.get<string>("APP_URL") || "https://myconsilium.xyz";
 
     return `<!DOCTYPE html>
 <html>

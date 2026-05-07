@@ -18,9 +18,7 @@ export class SessionTreeItem extends vscode.TreeItem {
   }
 }
 
-export class SessionsTreeProvider
-  implements vscode.TreeDataProvider<SessionTreeItem>
-{
+export class SessionsTreeProvider implements vscode.TreeDataProvider<SessionTreeItem> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 

@@ -7,11 +7,14 @@ import { ModelsTreeProvider } from "./views/models-tree";
 import { SessionsTreeProvider } from "./views/sessions-tree";
 import { ChatPanelProvider } from "./webview/chat-panel";
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(
+  context: vscode.ExtensionContext,
+): Promise<void> {
   const secrets = new SecretsStore(context.secrets);
 
   const cfg = () => vscode.workspace.getConfiguration("consilium");
-  const apiUrl = () => cfg().get<string>("apiUrl", "https://api.myconsilium.xyz");
+  const apiUrl = () =>
+    cfg().get<string>("apiUrl", "https://api.myconsilium.xyz");
 
   const client = new ConsiliumClient({
     apiUrl: apiUrl(),
@@ -69,7 +72,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
     }),
     statusBar,
-    vscode.window.registerTreeDataProvider("consilium.sessions", sessionsProvider),
+    vscode.window.registerTreeDataProvider(
+      "consilium.sessions",
+      sessionsProvider,
+    ),
     vscode.window.registerTreeDataProvider("consilium.models", modelsProvider),
     vscode.window.registerWebviewViewProvider(
       ChatPanelProvider.viewType,

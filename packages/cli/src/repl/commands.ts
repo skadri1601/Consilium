@@ -60,7 +60,9 @@ async function runDebate(topic: string, mode: DebateMode): Promise<void> {
   const trimmed = topic.trim();
   if (!trimmed) {
     const { default: chalk } = await import("chalk");
-    console.log(chalk.hex("#9ca3af")(`(no topic provided - usage: /${mode} <topic>)`));
+    console.log(
+      chalk.hex("#9ca3af")(`(no topic provided - usage: /${mode} <topic>)`),
+    );
     return;
   }
   if (mode === "redteam") {
@@ -122,7 +124,9 @@ const utilityCommands: SlashCommand[] = [
       const trimmed = rawArgs.trim();
       if (!trimmed) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no topic provided - usage: /eval <topic>)"));
+        console.log(
+          chalk.hex("#9ca3af")("(no topic provided - usage: /eval <topic>)"),
+        );
         return;
       }
       const { evalCommand } = await import("../commands/eval.js");
@@ -162,7 +166,8 @@ const utilityCommands: SlashCommand[] = [
         console.log(chalk.hex("#9ca3af")("Usage: /debate-pr <number-or-url>"));
         return;
       }
-      const { debatePrCommand } = await import("../commands/debate-shortcuts.js");
+      const { debatePrCommand } =
+        await import("../commands/debate-shortcuts.js");
       await debatePrCommand(ref, {});
     },
   },
@@ -175,10 +180,13 @@ const utilityCommands: SlashCommand[] = [
       const ref = rawArgs.trim();
       if (!ref) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("Usage: /debate-issue <number-or-MYC-id>"));
+        console.log(
+          chalk.hex("#9ca3af")("Usage: /debate-issue <number-or-MYC-id>"),
+        );
         return;
       }
-      const { debateIssueCommand } = await import("../commands/debate-shortcuts.js");
+      const { debateIssueCommand } =
+        await import("../commands/debate-shortcuts.js");
       await debateIssueCommand(ref, {});
     },
   },
@@ -189,7 +197,8 @@ const utilityCommands: SlashCommand[] = [
     usage: "/debate-failing [test-command]",
     run: async (rawArgs) => {
       const cmd = rawArgs.trim() || undefined;
-      const { debateFailingCommand } = await import("../commands/debate-shortcuts.js");
+      const { debateFailingCommand } =
+        await import("../commands/debate-shortcuts.js");
       await debateFailingCommand(cmd ? { command: cmd } : {});
     },
   },
@@ -199,7 +208,8 @@ const utilityCommands: SlashCommand[] = [
     summary: "Review the currently-staged git changes before commit",
     usage: "/debate-staged",
     run: async () => {
-      const { debateStagedCommand } = await import("../commands/debate-shortcuts.js");
+      const { debateStagedCommand } =
+        await import("../commands/debate-shortcuts.js");
       await debateStagedCommand({});
     },
   },
@@ -212,7 +222,9 @@ const utilityCommands: SlashCommand[] = [
       const id = rawArgs.trim();
       if (!id) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no debate id - usage: /debug <debateId>)"));
+        console.log(
+          chalk.hex("#9ca3af")("(no debate id - usage: /debug <debateId>)"),
+        );
         return;
       }
       const { debugCommand } = await import("../commands/debug.js");
@@ -228,7 +240,9 @@ const utilityCommands: SlashCommand[] = [
       const id = rawArgs.trim();
       if (!id) {
         const { default: chalk } = await import("chalk");
-        console.log(chalk.hex("#9ca3af")("(no debate id - usage: /logs <debateId>)"));
+        console.log(
+          chalk.hex("#9ca3af")("(no debate id - usage: /logs <debateId>)"),
+        );
         return;
       }
       const { logsCommand } = await import("../commands/logs.js");
@@ -238,7 +252,8 @@ const utilityCommands: SlashCommand[] = [
   {
     name: "config",
     category: "config",
-    summary: "Manage CLI config: list / get <key> / set <key> <val> / open (browser)",
+    summary:
+      "Manage CLI config: list / get <key> / set <key> <val> / open (browser)",
     usage: "/config [list|get <key>|set <key> <val>|open]",
     run: async (rawArgs) => {
       const args = rawArgs.trim().split(/\s+/).filter(Boolean);
@@ -272,7 +287,8 @@ const utilityCommands: SlashCommand[] = [
         return;
       }
       if (sub === "open") {
-        const { loadConfig, DEFAULT_WEB_ORIGIN } = await import("../utils/config.js");
+        const { loadConfig, DEFAULT_WEB_ORIGIN } =
+          await import("../utils/config.js");
         const { openBrowser } = await import("../utils/open-browser.js");
         const { style } = await import("../utils/visual-system.js");
         const cfg = loadConfig();
@@ -282,13 +298,18 @@ const utilityCommands: SlashCommand[] = [
         return;
       }
       const { default: chalk } = await import("chalk");
-      console.log(chalk.hex("#9ca3af")(`Unknown /config subcommand "${sub}". Try /config list|get|set|open.`));
+      console.log(
+        chalk.hex("#9ca3af")(
+          `Unknown /config subcommand "${sub}". Try /config list|get|set|open.`,
+        ),
+      );
     },
   },
   {
     name: "mcp",
     category: "config",
-    summary: "Print MCP setup snippet for Cursor / Python clients (alias for /integrations help)",
+    summary:
+      "Print MCP setup snippet for Cursor / Python clients (alias for /integrations help)",
     usage: "/mcp",
     run: async () => {
       const { mcpCommand } = await import("../commands/mcp.js");
@@ -298,13 +319,16 @@ const utilityCommands: SlashCommand[] = [
   {
     name: "integrations",
     category: "config",
-    summary: "Manage MCP servers (file readers, GitHub, etc.): list / add / remove / test / tools",
-    usage: "/integrations [list|add <name> <cmd> [args...]|remove <name>|test <name>|tools]",
+    summary:
+      "Manage MCP servers (file readers, GitHub, etc.): list / add / remove / test / tools",
+    usage:
+      "/integrations [list|add <name> <cmd> [args...]|remove <name>|test <name>|tools]",
     run: async (rawArgs) => {
       const args = rawArgs.trim().split(/\s+/).filter(Boolean);
       const sub = args[0] ?? "list";
       if (sub === "list") {
-        const { listServersCommand } = await import("../commands/mcp-servers.js");
+        const { listServersCommand } =
+          await import("../commands/mcp-servers.js");
         listServersCommand();
         return;
       }
@@ -319,22 +343,38 @@ const utilityCommands: SlashCommand[] = [
         const cmdArgs = args.slice(3);
         if (!name || !command) {
           const { default: chalk } = await import("chalk");
-          console.log(chalk.hex("#9ca3af")("Usage: /integrations add <name> <command> [args...]"));
-          console.log(chalk.hex("#9ca3af")("Example: /integrations add filesystem npx @modelcontextprotocol/server-filesystem /home/me/code"));
+          console.log(
+            chalk.hex("#9ca3af")(
+              "Usage: /integrations add <name> <command> [args...]",
+            ),
+          );
+          console.log(
+            chalk.hex("#9ca3af")(
+              "Example: /integrations add filesystem npx @modelcontextprotocol/server-filesystem /home/me/code",
+            ),
+          );
           return;
         }
         const { addServerCommand } = await import("../commands/mcp-servers.js");
-        addServerCommand(name, command, cmdArgs.length > 0 ? cmdArgs : undefined, {});
+        addServerCommand(
+          name,
+          command,
+          cmdArgs.length > 0 ? cmdArgs : undefined,
+          {},
+        );
         return;
       }
       if (sub === "remove") {
         const name = args[1];
         if (!name) {
           const { default: chalk } = await import("chalk");
-          console.log(chalk.hex("#9ca3af")("Usage: /integrations remove <name>"));
+          console.log(
+            chalk.hex("#9ca3af")("Usage: /integrations remove <name>"),
+          );
           return;
         }
-        const { removeServerCommand } = await import("../commands/mcp-servers.js");
+        const { removeServerCommand } =
+          await import("../commands/mcp-servers.js");
         removeServerCommand(name);
         return;
       }
@@ -345,12 +385,17 @@ const utilityCommands: SlashCommand[] = [
           console.log(chalk.hex("#9ca3af")("Usage: /integrations test <name>"));
           return;
         }
-        const { testServerCommand } = await import("../commands/mcp-servers.js");
+        const { testServerCommand } =
+          await import("../commands/mcp-servers.js");
         await testServerCommand(name);
         return;
       }
       const { default: chalk } = await import("chalk");
-      console.log(chalk.hex("#9ca3af")(`Unknown /integrations subcommand "${sub}". Try /integrations list|add|remove|test|tools.`));
+      console.log(
+        chalk.hex("#9ca3af")(
+          `Unknown /integrations subcommand "${sub}". Try /integrations list|add|remove|test|tools.`,
+        ),
+      );
     },
   },
   {
@@ -366,7 +411,8 @@ const utilityCommands: SlashCommand[] = [
   {
     name: "sessions",
     category: "session",
-    summary: "Manage saved chat sessions: list / resume <id> / rename <id> <name> / delete <id>",
+    summary:
+      "Manage saved chat sessions: list / resume <id> / rename <id> <name> / delete <id>",
     usage: "/sessions [list|resume <id>|rename <id> <name>|delete <id>]",
     run: async (rawArgs) => {
       const args = rawArgs.trim().split(/\s+/).filter(Boolean);
@@ -382,14 +428,25 @@ const utilityCommands: SlashCommand[] = [
           console.log(st.dim("\n  No saved sessions.\n"));
           return;
         }
-        console.log(st.bold(`\n  ${sessions.length} saved session${sessions.length === 1 ? "" : "s"}\n`));
+        console.log(
+          st.bold(
+            `\n  ${sessions.length} saved session${sessions.length === 1 ? "" : "s"}\n`,
+          ),
+        );
         for (let i = 0; i < Math.min(sessions.length, 20); i++) {
           const s = sessions[i]!;
           const ago = sm.formatRelativeTime(s.updatedAt);
           const label = s.name || s.topic || "Untitled";
-          const display = label.length > 60 ? label.slice(0, 57) + "..." : label;
-          console.log(`  ${st.brand((i + 1).toString().padStart(2))}. ${display}`);
-          console.log(st.dim(`      ${s.id} · ${s.debateCount} debate${s.debateCount === 1 ? "" : "s"} · ${ago}`));
+          const display =
+            label.length > 60 ? label.slice(0, 57) + "..." : label;
+          console.log(
+            `  ${st.brand((i + 1).toString().padStart(2))}. ${display}`,
+          );
+          console.log(
+            st.dim(
+              `      ${s.id} · ${s.debateCount} debate${s.debateCount === 1 ? "" : "s"} · ${ago}`,
+            ),
+          );
         }
         console.log("");
         return;
@@ -433,7 +490,11 @@ const utilityCommands: SlashCommand[] = [
         }
         return;
       }
-      console.log(st.warning(`Unknown /sessions subcommand "${sub}". Try list|resume|rename|delete.`));
+      console.log(
+        st.warning(
+          `Unknown /sessions subcommand "${sub}". Try list|resume|rename|delete.`,
+        ),
+      );
     },
   },
   {
@@ -457,7 +518,9 @@ const utilityCommands: SlashCommand[] = [
         const level = getCodebasePermissionLevel(cwd);
         if (level === "unset") {
           console.log(st.dim(`No codebase permission stored for ${cwd}.`));
-          console.log(st.dim("  Run /codebase allow to grant always-on read access."));
+          console.log(
+            st.dim("  Run /codebase allow to grant always-on read access."),
+          );
         } else {
           console.log(`Codebase read for ${cwd}: ${st.brand(level)}`);
         }
@@ -474,7 +537,11 @@ const utilityCommands: SlashCommand[] = [
         console.log(st.success(`Revoked codebase read permission for ${cwd}.`));
         return;
       }
-      console.log(st.warning(`Unknown /codebase subcommand "${sub}". Try status|allow|revoke.`));
+      console.log(
+        st.warning(
+          `Unknown /codebase subcommand "${sub}". Try status|allow|revoke.`,
+        ),
+      );
     },
   },
   {
@@ -483,7 +550,8 @@ const utilityCommands: SlashCommand[] = [
     summary: "Show read + write permission state for the current project",
     usage: "/permissions",
     run: async () => {
-      const { getPermissionSnapshot } = await import("../utils/codebase-permissions.js");
+      const { getPermissionSnapshot } =
+        await import("../utils/codebase-permissions.js");
       const { style } = await import("../utils/visual-system.js");
       const st = style();
       const cwd = process.cwd();
@@ -493,7 +561,11 @@ const utilityCommands: SlashCommand[] = [
       console.log(`    Read codebase:  ${st.brand(snap.readCodebase)}`);
       console.log(`    Write files:    ${st.brand(snap.writeFiles)}`);
       console.log("");
-      console.log(st.dim("  Manage with: /codebase allow|revoke (read), /apply prompts for write per session"));
+      console.log(
+        st.dim(
+          "  Manage with: /codebase allow|revoke (read), /apply prompts for write per session",
+        ),
+      );
       console.log("");
     },
   },
@@ -538,7 +610,9 @@ const utilityCommands: SlashCommand[] = [
       const relPath = rawArgs.trim();
       if (!relPath) return logUsage("Usage: /read <path>");
       const { handleRead } = await import("../tools/builtin-tools.js");
-      await logToolResult(await handleRead({ path: relPath }, { cwd: process.cwd() }));
+      await logToolResult(
+        await handleRead({ path: relPath }, { cwd: process.cwd() }),
+      );
     },
   },
   {
@@ -554,7 +628,9 @@ const utilityCommands: SlashCommand[] = [
       const { pattern, glob } = parseGrepArgs(rawArgs);
       if (!pattern) return logUsage("Usage: /grep <regex> [glob]");
       const { handleGrep } = await import("../tools/builtin-tools.js");
-      await logToolResult(await handleGrep({ pattern, glob }, { cwd: process.cwd() }));
+      await logToolResult(
+        await handleGrep({ pattern, glob }, { cwd: process.cwd() }),
+      );
     },
   },
   {
@@ -566,7 +642,9 @@ const utilityCommands: SlashCommand[] = [
       const pattern = rawArgs.trim();
       if (!pattern) return logUsage("Usage: /find <glob>");
       const { handleGlob } = await import("../tools/builtin-tools.js");
-      await logToolResult(await handleGlob({ pattern }, { cwd: process.cwd() }));
+      await logToolResult(
+        await handleGlob({ pattern }, { cwd: process.cwd() }),
+      );
     },
   },
   {
@@ -578,7 +656,9 @@ const utilityCommands: SlashCommand[] = [
       const subPath = rawArgs.trim() || undefined;
       const { handleGitDiff } = await import("../tools/builtin-tools.js");
       await logToolResult(
-        await handleGitDiff(subPath ? { path: subPath } : {}, { cwd: process.cwd() }),
+        await handleGitDiff(subPath ? { path: subPath } : {}, {
+          cwd: process.cwd(),
+        }),
       );
     },
   },
@@ -590,7 +670,8 @@ const utilityCommands: SlashCommand[] = [
     run: async () => {
       const { style } = await import("../utils/visual-system.js");
       const { resolveProjectRoot } = await import("../utils/project-root.js");
-      const { parseEditsFromSynthesis } = await import("../utils/apply-edits.js");
+      const { parseEditsFromSynthesis } =
+        await import("../utils/apply-edits.js");
       const { formatEditPreview } = await import("../utils/diff-preview.js");
       const { SessionManager } = await import("../utils/session-manager.js");
       const st = style();
@@ -607,7 +688,11 @@ const utilityCommands: SlashCommand[] = [
         const loaded = sm.loadSession(latest.id);
         synthesis = loaded.debates.at(-1)?.goldenPrompt;
       } catch (err) {
-        console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
+        console.log(
+          st.error(
+            `Could not load session ${latest.id}: ${(err as Error).message}`,
+          ),
+        );
         return;
       }
       if (!synthesis) {
@@ -628,21 +713,26 @@ const utilityCommands: SlashCommand[] = [
       console.log(st.bold("\nPlanned edits (latest synthesis):\n"));
       console.log(formatEditPreview(parsed.preview));
       console.log("");
-      console.log(st.dim("  Run /apply to apply, /rollback to undo a previous apply."));
+      console.log(
+        st.dim("  Run /apply to apply, /rollback to undo a previous apply."),
+      );
     },
   },
   {
     name: "apply",
     category: "session",
-    summary: "Apply structured edits from latest debate synthesis (with permission prompt)",
+    summary:
+      "Apply structured edits from latest debate synthesis (with permission prompt)",
     usage: "/apply",
     run: async () => {
       const { style } = await import("../utils/visual-system.js");
       const { resolveProjectRoot } = await import("../utils/project-root.js");
-      const { parseEditsFromSynthesis, applyEdits } = await import("../utils/apply-edits.js");
+      const { parseEditsFromSynthesis, applyEdits } =
+        await import("../utils/apply-edits.js");
       const { formatEditPreview } = await import("../utils/diff-preview.js");
       const { SessionManager } = await import("../utils/session-manager.js");
-      const { requestWritePermission, consumeWritePermission } = await import("../utils/codebase-permissions.js");
+      const { requestWritePermission, consumeWritePermission } =
+        await import("../utils/codebase-permissions.js");
       const st = style();
 
       const sm = new SessionManager();
@@ -657,7 +747,11 @@ const utilityCommands: SlashCommand[] = [
         const loaded = sm.loadSession(latest.id);
         synthesis = loaded.debates.at(-1)?.goldenPrompt;
       } catch (err) {
-        console.log(st.error(`Could not load session ${latest.id}: ${(err as Error).message}`));
+        console.log(
+          st.error(
+            `Could not load session ${latest.id}: ${(err as Error).message}`,
+          ),
+        );
         return;
       }
       if (!synthesis) {
@@ -667,7 +761,9 @@ const utilityCommands: SlashCommand[] = [
       const root = resolveProjectRoot(process.cwd()).root;
       const parsed = parseEditsFromSynthesis(synthesis, root);
       if (parsed.edits.length === 0) {
-        console.log(st.warning("No structured edits found in latest synthesis."));
+        console.log(
+          st.warning("No structured edits found in latest synthesis."),
+        );
         return;
       }
 
@@ -677,7 +773,9 @@ const utilityCommands: SlashCommand[] = [
 
       const level = await requestWritePermission(root);
       if (level === "deny" || !consumeWritePermission(root)) {
-        console.log(st.warning("Write permission denied. No files were changed."));
+        console.log(
+          st.warning("Write permission denied. No files were changed."),
+        );
         return;
       }
 
@@ -727,7 +825,11 @@ const utilityCommands: SlashCommand[] = [
       try {
         const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf-8"));
         restoreRollbackSnapshot(snapshot);
-        console.log(st.success(`Restored snapshot ${latest} (${snapshot.files?.length ?? 0} files).`));
+        console.log(
+          st.success(
+            `Restored snapshot ${latest} (${snapshot.files?.length ?? 0} files).`,
+          ),
+        );
       } catch (err) {
         console.log(st.error(`Rollback failed: ${(err as Error).message}`));
       }
@@ -771,7 +873,11 @@ const utilityCommands: SlashCommand[] = [
         }
         console.log("");
       }
-      console.log(st.dim("  Press /  to open the command palette · Ctrl+C or /exit to quit"));
+      console.log(
+        st.dim(
+          "  Press /  to open the command palette · Ctrl+C or /exit to quit",
+        ),
+      );
       console.log("");
     },
   },
@@ -791,7 +897,10 @@ const utilityCommands: SlashCommand[] = [
   },
 ];
 
-export const ALL_COMMANDS: SlashCommand[] = [...modeCommands, ...utilityCommands];
+export const ALL_COMMANDS: SlashCommand[] = [
+  ...modeCommands,
+  ...utilityCommands,
+];
 
 export function findCommand(name: string): SlashCommand | undefined {
   const lower = name.toLowerCase();
@@ -805,7 +914,8 @@ export function filterCommands(query: string): SlashCommand[] {
   const contains: SlashCommand[] = [];
   for (const c of ALL_COMMANDS) {
     if (c.name.startsWith(q)) startsWith.push(c);
-    else if (c.name.includes(q) || c.summary.toLowerCase().includes(q)) contains.push(c);
+    else if (c.name.includes(q) || c.summary.toLowerCase().includes(q))
+      contains.push(c);
   }
   return [...startsWith, ...contains];
 }

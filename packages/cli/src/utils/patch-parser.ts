@@ -5,7 +5,13 @@
  */
 export type EditAction =
   | { kind: "write"; path: string; content: string }
-  | { kind: "edit"; path: string; oldString: string; newString: string; replaceAll?: boolean }
+  | {
+      kind: "edit";
+      path: string;
+      oldString: string;
+      newString: string;
+      replaceAll?: boolean;
+    }
   | { kind: "delete"; path: string };
 
 interface FencedBlock {
@@ -43,7 +49,10 @@ interface SearchReplaceBlock {
   endIndex: number;
 }
 
-function findNextSearchReplace(body: string, fromIndex: number): SearchReplaceBlock | null {
+function findNextSearchReplace(
+  body: string,
+  fromIndex: number,
+): SearchReplaceBlock | null {
   const slice = body.slice(fromIndex);
   const searchMatch = SR_SEARCH.exec(slice);
   if (!searchMatch) return null;
@@ -63,8 +72,14 @@ function findNextSearchReplace(body: string, fromIndex: number): SearchReplaceBl
   const repStart = divEnd + repMatch.index;
   const repEnd = repStart + repMatch[0].length;
 
-  const oldString = body.slice(searchEnd, divStart).replace(/^\n/, "").replace(/\n$/, "");
-  const newString = body.slice(divEnd, repStart).replace(/^\n/, "").replace(/\n$/, "");
+  const oldString = body
+    .slice(searchEnd, divStart)
+    .replace(/^\n/, "")
+    .replace(/\n$/, "");
+  const newString = body
+    .slice(divEnd, repStart)
+    .replace(/^\n/, "")
+    .replace(/\n$/, "");
 
   // Look back for an inline path on the line just before the SEARCH marker.
   const before = body.slice(fromIndex, searchStart);
@@ -76,7 +91,10 @@ function findNextSearchReplace(body: string, fromIndex: number): SearchReplaceBl
   return { pathLine, oldString, newString, endIndex: repEnd };
 }
 
-function parseSearchReplaceBody(body: string, fallbackPath: string | null): EditAction[] {
+function parseSearchReplaceBody(
+  body: string,
+  fallbackPath: string | null,
+): EditAction[] {
   const actions: EditAction[] = [];
   let cursor = 0;
   while (cursor < body.length) {
@@ -104,8 +122,15 @@ function pickString(obj: Record<string, unknown>, ...keys: string[]): string {
   return "";
 }
 
-function isEditShape(obj: Record<string, unknown>, kind: string | undefined): boolean {
-  return kind === "edit" || obj.old_string !== undefined || obj.oldString !== undefined;
+function isEditShape(
+  obj: Record<string, unknown>,
+  kind: string | undefined,
+): boolean {
+  return (
+    kind === "edit" ||
+    obj.old_string !== undefined ||
+    obj.oldString !== undefined
+  );
 }
 
 function coerceJsonEdit(item: unknown): EditAction | null {
@@ -171,7 +196,9 @@ export function parseEditActions(text: string): EditAction[] {
       actions.push(...parseJsonEdits(block.body));
       continue;
     }
-    const consiliumEditMatch = /^consilium-edit:(.+)$/i.exec(block.rawLanguage.trim());
+    const consiliumEditMatch = /^consilium-edit:(.+)$/i.exec(
+      block.rawLanguage.trim(),
+    );
     if (consiliumEditMatch) {
       const path = (consiliumEditMatch[1] || "").trim();
       actions.push(...parseSearchReplaceBody(block.body, path));

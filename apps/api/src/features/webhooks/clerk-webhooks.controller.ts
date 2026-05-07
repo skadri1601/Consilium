@@ -55,7 +55,12 @@ export class ClerkWebhooksController {
     @Headers("svix-signature") svixSignature: string,
     @Req() req: FastifyRequest,
   ) {
-    const event = this.verifyAndParse(req, svixId, svixTimestamp, svixSignature);
+    const event = this.verifyAndParse(
+      req,
+      svixId,
+      svixTimestamp,
+      svixSignature,
+    );
 
     this.logger.log(`Processing Clerk webhook: ${event.type}`);
 
@@ -89,10 +94,7 @@ export class ClerkWebhooksController {
       case "session.removed":
       case "session.revoked": {
         const data = event.data as ClerkSessionData;
-        return this.webhooksService.handleSessionEnded(
-          data.user_id,
-          data.id,
-        );
+        return this.webhooksService.handleSessionEnded(data.user_id, data.id);
       }
 
       default:

@@ -1,9 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { useCouncilStore } from "../store/council.store";
-import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
+import {
+  AGENTS,
+  MIN_AGENTS_PER_DEBATE,
+  MAX_AGENTS_PER_DEBATE,
+} from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
 import { CheckCircle2, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -104,68 +113,76 @@ export function AgentSelector() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        {AGENTS.map((agent) => {
-          const hasApiKey = hasKey(agent);
-          const isSelected = selectedAgents.includes(agent.id);
-          const atLimit = selectedAgents.length >= MAX_AGENTS_PER_DEBATE;
-          const isDisabled = !hasApiKey || (!isSelected && atLimit);
+          {AGENTS.map((agent) => {
+            const hasApiKey = hasKey(agent);
+            const isSelected = selectedAgents.includes(agent.id);
+            const atLimit = selectedAgents.length >= MAX_AGENTS_PER_DEBATE;
+            const isDisabled = !hasApiKey || (!isSelected && atLimit);
 
-          let statusLabel = "Available";
-          if (agent.free) statusLabel = "Free";
-          else if (!hasApiKey) statusLabel = "API key required";
-          else if (!isSelected && atLimit) statusLabel = "Agent limit reached";
+            let statusLabel = "Available";
+            if (agent.free) statusLabel = "Free";
+            else if (!hasApiKey) statusLabel = "API key required";
+            else if (!isSelected && atLimit)
+              statusLabel = "Agent limit reached";
 
-          let borderStyle = "border-transparent bg-muted/30";
-          if (isSelected) borderStyle = "border-primary bg-primary/10";
-          else if (agent.free && !isDisabled) borderStyle = "border-green-500/40 hover:bg-green-50 dark:hover:bg-green-950/20";
-          else if (!isDisabled) borderStyle = "border-border hover:bg-accent";
+            let borderStyle = "border-transparent bg-muted/30";
+            if (isSelected) borderStyle = "border-primary bg-primary/10";
+            else if (agent.free && !isDisabled)
+              borderStyle =
+                "border-green-500/40 hover:bg-green-50 dark:hover:bg-green-950/20";
+            else if (!isDisabled) borderStyle = "border-border hover:bg-accent";
 
-          return (
-            <button
-              key={agent.id}
-              onClick={() => {
-                if (isDisabled) return;
-                toggleAgent(agent.id);
-              }}
-              disabled={isDisabled}
-              aria-label={`${agent.name} - ${statusLabel}`}
-              aria-pressed={isSelected}
-              className={cn(
-                "w-full rounded-lg border p-3 text-left transition-colors relative",
-                isDisabled && "opacity-50 cursor-not-allowed",
-                borderStyle
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-medium">{agent.name}</p>
-                    {agent.free && (
-                      <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-[10px] font-semibold px-1.5 py-0.5 leading-none">
-                        Free
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{agent.provider}</p>
-                </div>
-                {agent.free ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
-                ) : hasApiKey ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
-                ) : (
-                  <Lock className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+            return (
+              <button
+                key={agent.id}
+                onClick={() => {
+                  if (isDisabled) return;
+                  toggleAgent(agent.id);
+                }}
+                disabled={isDisabled}
+                aria-label={`${agent.name} - ${statusLabel}`}
+                aria-pressed={isSelected}
+                className={cn(
+                  "w-full rounded-lg border p-3 text-left transition-colors relative",
+                  isDisabled && "opacity-50 cursor-not-allowed",
+                  borderStyle,
                 )}
-              </div>
-              {!hasApiKey && !agent.free && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  <Link href="/settings" className="text-primary hover:underline">
-                    Configure API key
-                  </Link>
-                </p>
-              )}
-            </button>
-          );
-        })}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium">{agent.name}</p>
+                      {agent.free && (
+                        <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-[10px] font-semibold px-1.5 py-0.5 leading-none">
+                          Free
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {agent.provider}
+                    </p>
+                  </div>
+                  {agent.free ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
+                  ) : hasApiKey ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 ml-2" />
+                  ) : (
+                    <Lock className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+                  )}
+                </div>
+                {!hasApiKey && !agent.free && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <Link
+                      href="/settings"
+                      className="text-primary hover:underline"
+                    >
+                      Configure API key
+                    </Link>
+                  </p>
+                )}
+              </button>
+            );
+          })}
         </div>
         {selectedAgents.length < MIN_AGENTS_PER_DEBATE && (
           <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground flex items-center gap-2">

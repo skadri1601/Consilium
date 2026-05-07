@@ -245,9 +245,7 @@ export class HealthController extends HealthIndicator {
     const presentPlatform = platformKeys.filter((k) => !!process.env[k]);
     const presentFallback = fallbackKeys.filter((k) => !!process.env[k]);
     const status: DiagnosticStatus =
-      presentPlatform.length + presentFallback.length === 0
-        ? "degraded"
-        : "ok";
+      presentPlatform.length + presentFallback.length === 0 ? "degraded" : "ok";
     return {
       name: "providers",
       status,

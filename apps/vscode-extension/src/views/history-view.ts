@@ -31,8 +31,9 @@ class DebateNode extends vscode.TreeItem {
 }
 
 export class HistoryViewProvider implements vscode.TreeDataProvider<DebateNode> {
-  private readonly _onDidChangeTreeData =
-    new vscode.EventEmitter<DebateNode | undefined | void>();
+  private readonly _onDidChangeTreeData = new vscode.EventEmitter<
+    DebateNode | undefined | void
+  >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private cache: DebateSummary[] = [];

@@ -23,20 +23,19 @@ export async function POST() {
       const errorText = await response.text();
       let message = errorText || "Failed to generate CLI token";
       try {
-        const errJson = JSON.parse(errorText) as { message?: string; error?: string };
+        const errJson = JSON.parse(errorText) as {
+          message?: string;
+          error?: string;
+        };
         message = errJson.message ?? errJson.error ?? message;
-      } catch {
-      }
+      } catch {}
       if (response.status === 401 || response.status === 403) {
         return NextResponse.json(
           { error: "Unauthorized. Sign in again." },
-          { status: 401 }
+          { status: 401 },
         );
       }
-      return NextResponse.json(
-        { error: message },
-        { status: response.status }
-      );
+      return NextResponse.json({ error: message }, { status: response.status });
     }
 
     const data = (await response.json()) as { token: string };
@@ -45,7 +44,7 @@ export async function POST() {
     console.error("Error generating CLI token:", error);
     return NextResponse.json(
       { error: "Failed to generate CLI token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
