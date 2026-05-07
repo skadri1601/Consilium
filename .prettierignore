@@ -16,6 +16,7 @@
 
 # Prisma generated client
 **/.prisma
+**/generated/prisma/**
 packages/database/node_modules
 
 # Python workspace - the agents project uses its own black+ruff formatting
