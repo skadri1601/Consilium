@@ -6,6 +6,8 @@
  * makes individual schemas easier to test in the Rich Results tool).
  */
 
+import type { JSX } from "react";
+
 interface JsonLdProps {
   data: Record<string, unknown> | Array<Record<string, unknown>>;
   id?: string;

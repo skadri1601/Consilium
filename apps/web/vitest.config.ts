@@ -21,13 +21,7 @@ export default defineConfig({
         "e2e/",
       ],
     },
-    // Use threads pool to avoid CommonJS issues
     pool: "threads",
-    poolOptions: {
-      threads: {
-        singleThread: false,
-      },
-    },
   },
   resolve: {
     alias: {

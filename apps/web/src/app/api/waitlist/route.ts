@@ -4,7 +4,7 @@ import { z } from "zod";
 const waitlistSchema = z.object({
   email: z.string().email("Invalid email address"),
   source: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid email address", details: error.errors },
+        { error: "Invalid email address", details: error.issues },
         { status: 400 },
       );
     }
