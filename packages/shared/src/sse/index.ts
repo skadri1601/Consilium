@@ -1,4 +1,4 @@
-export { DEBATE_EVENT_NAMES } from "./events";
+export { SSE_EVENT_NAMES } from "./events";
 export type {
   DebateStartEvent,
   RoundStartEvent,
@@ -19,8 +19,7 @@ export type {
   SubagentResearchStartEvent,
   SubagentResearchDoneEvent,
   SessionCompactedEvent,
-  RecoveryAttemptedEvent,
-  FailureClassifiedEvent,
+  RecoveryAppliedEvent,
   RoutingFallbackEvent,
   DebateSseEvent,
   SseEventType,
