@@ -14,7 +14,7 @@ concurrency:
 jobs:
   e2e:
     name: Playwright E2E Tests
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16-alpine

@@ -4,7 +4,7 @@ on:
     tags: ["python-v*"]
 jobs:
   publish:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
