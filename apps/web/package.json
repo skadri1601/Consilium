@@ -46,7 +46,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.75.0",
-    "recharts": "^2.15.4",
+    "recharts": "^3.8.1",
     "stripe": "^22.1.1",
     "svix": "^1.93.0",
     "tailwind-merge": "^3.5.0",

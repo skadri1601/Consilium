@@ -158,10 +158,12 @@ function RankingChart({
               width={120}
             />
             <Tooltip
-              formatter={(value: number, _name: string, props: any) => [
-                `${value.toFixed(2)} (Rank #${props.payload.rank})`,
-                "Borda Score",
-              ]}
+              formatter={(value, _name, props) => {
+                const v = typeof value === "number" ? value : 0;
+                const rank =
+                  (props as { payload?: { rank?: number } }).payload?.rank ?? "?";
+                return [`${v.toFixed(2)} (Rank #${rank})`, "Borda Score"];
+              }}
             />
             <Bar dataKey="score" radius={[0, 4, 4, 0]}>
               {chartData.map((entry, index) => (

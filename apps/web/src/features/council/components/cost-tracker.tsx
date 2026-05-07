@@ -272,7 +272,10 @@ export function CostTracker({
                         borderRadius: "8px",
                         fontSize: "12px",
                       }}
-                      formatter={(value: number) => [formatCost(value), "Cost"]}
+                      formatter={(value) => [
+                        formatCost(typeof value === "number" ? value : 0),
+                        "Cost",
+                      ]}
                     />
                     <Bar
                       dataKey="cost"

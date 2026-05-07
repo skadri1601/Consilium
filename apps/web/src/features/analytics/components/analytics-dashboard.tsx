@@ -192,9 +192,11 @@ export function AnalyticsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ model, percent }) =>
-                      `${model} ${(percent * 100).toFixed(0)}%`
-                    }
+                    label={(entry) => {
+                      const model = (entry as { model?: string }).model ?? "";
+                      const percent = (entry as { percent?: number }).percent ?? 0;
+                      return `${model} ${(percent * 100).toFixed(0)}%`;
+                    }}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"
