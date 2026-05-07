@@ -103,8 +103,7 @@ export function CostBreakdown() {
               labelLine={false}
               label={(entry) => {
                 const name = String((entry as { name?: unknown }).name ?? "");
-                const percent =
-                  (entry as { percent?: number }).percent ?? 0;
+                const percent = (entry as { percent?: number }).percent ?? 0;
                 const percentage = (percent * 100).toFixed(1);
                 const displayName = name
                   .replace("gpt-", "GPT-")

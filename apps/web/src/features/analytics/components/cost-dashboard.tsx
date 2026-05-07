@@ -395,7 +395,9 @@ export function CostDashboard({
                         <Tooltip
                           contentStyle={tooltipStyle}
                           formatter={(value) => [
-                            formatCurrency(typeof value === "number" ? value : 0),
+                            formatCurrency(
+                              typeof value === "number" ? value : 0,
+                            ),
                             "Cost",
                           ]}
                         />
@@ -434,7 +436,9 @@ export function CostDashboard({
                         <Tooltip
                           contentStyle={tooltipStyle}
                           formatter={(value) => [
-                            formatCurrency(typeof value === "number" ? value : 0),
+                            formatCurrency(
+                              typeof value === "number" ? value : 0,
+                            ),
                             "Total Cost",
                           ]}
                           labelFormatter={(label) => `Round ${label}`}

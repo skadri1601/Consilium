@@ -161,7 +161,8 @@ function RankingChart({
               formatter={(value, _name, props) => {
                 const v = typeof value === "number" ? value : 0;
                 const rank =
-                  (props as { payload?: { rank?: number } }).payload?.rank ?? "?";
+                  (props as { payload?: { rank?: number } }).payload?.rank ??
+                  "?";
                 return [`${v.toFixed(2)} (Rank #${rank})`, "Borda Score"];
               }}
             />

@@ -128,8 +128,9 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                   }}
                   formatter={(value, _name, props) => {
                     const v = typeof value === "number" ? value : 0;
-                    const payload = (props as { payload?: { confidence?: number } })
-                      .payload;
+                    const payload = (
+                      props as { payload?: { confidence?: number } }
+                    ).payload;
                     const confidence = payload?.confidence ?? 0;
                     return [
                       `${v} pts (${Math.round(confidence * 100)}% confidence)`,

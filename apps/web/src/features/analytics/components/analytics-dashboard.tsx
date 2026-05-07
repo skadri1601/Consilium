@@ -194,7 +194,8 @@ export function AnalyticsDashboard() {
                     labelLine={false}
                     label={(entry) => {
                       const model = (entry as { model?: string }).model ?? "";
-                      const percent = (entry as { percent?: number }).percent ?? 0;
+                      const percent =
+                        (entry as { percent?: number }).percent ?? 0;
                       return `${model} ${(percent * 100).toFixed(0)}%`;
                     }}
                     outerRadius={80}
