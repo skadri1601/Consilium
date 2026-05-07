@@ -1,4 +1,4 @@
-import open from 'open';
+import open from "open";
 
 /**
  * Open a URL in the default browser (cross-platform, works on Windows).

@@ -52,7 +52,9 @@ export function MarketingFooter(props: MarketingFooterProps) {
     { href: props.twitterLink, icon: TwitterLogoIcon, label: "X (Twitter)" },
     { href: props.linkedinLink, icon: LinkedInLogoIcon, label: "LinkedIn" },
   ].filter(
-    (link): link is { href: string; icon: typeof GitHubLogoIcon; label: string } =>
+    (
+      link,
+    ): link is { href: string; icon: typeof GitHubLogoIcon; label: string } =>
       link !== null,
   );
 

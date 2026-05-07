@@ -19,8 +19,7 @@ const data: CompetitorComparison = {
   hero: {
     tagline:
       "Use Cursor for typing speed. Use Consilium when one AI's answer is not enough.",
-    hook:
-      "Cursor is an excellent single-agent IDE. Consilium is a multi-agent deliberation engine that runs across CLI, IDE, and MCP - including inside Cursor itself.",
+    hook: "Cursor is an excellent single-agent IDE. Consilium is a multi-agent deliberation engine that runs across CLI, IDE, and MCP - including inside Cursor itself.",
     intro: [
       "Cursor reimagined the IDE around an inline AI agent. The result is fast, fluid coding with one model in the loop - Composer for multi-file edits, Agent for autonomous tasks, and tab-complete that's better than every editor that came before it.",
       "Consilium is built around a different premise: when stakes are high, one model is not enough. We make multiple models from different providers - OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter - argue with each other in a structured deliberation, then synthesize a consensus answer with tracked confidence and preserved dissent.",
@@ -67,7 +66,8 @@ const data: CompetitorComparison = {
     },
     {
       feature: "Provider count",
-      consilium: "7 (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter)",
+      consilium:
+        "7 (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter)",
       competitor: "Vendor-managed proxy",
       consiliumHas: true,
       competitorHas: true,

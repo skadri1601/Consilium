@@ -36,24 +36,24 @@ IDE.
 
 ## Default keybindings
 
-| Action | Shortcut |
-| --- | --- |
-| New debate | `Ctrl/Cmd+Alt+C` |
-| Debate selection | `Ctrl/Cmd+Alt+D` |
+| Action             | Shortcut         |
+| ------------------ | ---------------- |
+| New debate         | `Ctrl/Cmd+Alt+C` |
+| Debate selection   | `Ctrl/Cmd+Alt+D` |
 | Red-team selection | `Ctrl/Cmd+Alt+R` |
 
 ## Settings
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `consilium.apiUrl` | `https://api.myconsilium.xyz` | Consilium API origin |
-| `consilium.webUrl` | `https://myconsilium.xyz` | Web app origin (sign-in) |
-| `consilium.defaultMode` | `council` | Default debate mode |
-| `consilium.defaultModels` | gpt-5.4-mini, haiku-4.5, gemini-3-flash-preview | Models on every debate |
-| `consilium.includeWorkspaceContext` | `true` | Send redacted workspace files with each debate |
-| `consilium.contextBudgetKB` | `512` | Max KB of workspace context per request |
-| `consilium.respectGitIgnore` | `true` | Honor `.gitignore` when scanning workspace |
-| `consilium.autoApplyGoldenPrompt` | `false` | Auto-open consensus as a diff |
+| Setting                             | Default                                         | Description                                    |
+| ----------------------------------- | ----------------------------------------------- | ---------------------------------------------- |
+| `consilium.apiUrl`                  | `https://api.myconsilium.xyz`                   | Consilium API origin                           |
+| `consilium.webUrl`                  | `https://myconsilium.xyz`                       | Web app origin (sign-in)                       |
+| `consilium.defaultMode`             | `council`                                       | Default debate mode                            |
+| `consilium.defaultModels`           | gpt-5.4-mini, haiku-4.5, gemini-3-flash-preview | Models on every debate                         |
+| `consilium.includeWorkspaceContext` | `true`                                          | Send redacted workspace files with each debate |
+| `consilium.contextBudgetKB`         | `512`                                           | Max KB of workspace context per request        |
+| `consilium.respectGitIgnore`        | `true`                                          | Honor `.gitignore` when scanning workspace     |
+| `consilium.autoApplyGoldenPrompt`   | `false`                                         | Auto-open consensus as a diff                  |
 
 ## Privacy
 

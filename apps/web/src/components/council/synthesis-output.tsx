@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Copy, Download, CheckCircle2, Sparkles } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
@@ -114,7 +119,7 @@ ${modelsUsed ? `\n**Models Used:** ${modelsUsed.join(", ")}` : ""}
               aria-label="Copy to clipboard"
               className={cn(
                 "transition-all duration-200",
-                copied && "border-green-500/50 bg-green-500/10"
+                copied && "border-green-500/50 bg-green-500/10",
               )}
             >
               {copied ? (

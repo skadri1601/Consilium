@@ -29,8 +29,7 @@ export function TestModeClerkProvider({ children }: { children: ReactNode }) {
             "border border-input bg-background hover:bg-accent hover:text-accent-foreground normal-case",
           socialButtonsBlockButtonText: "text-foreground font-normal",
           formFieldLabel: "text-foreground",
-          formFieldInput:
-            "border-input bg-background text-foreground",
+          formFieldInput: "border-input bg-background text-foreground",
           footerActionLink: "text-primary hover:text-primary/90",
           identityPreviewText: "text-foreground",
           identityPreviewEditButton: "text-muted-foreground",

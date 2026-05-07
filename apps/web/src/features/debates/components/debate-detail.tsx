@@ -4,8 +4,20 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { ArrowLeft, Loader2, Send, SlidersHorizontal, User, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
+import {
+  ArrowLeft,
+  Loader2,
+  Send,
+  SlidersHorizontal,
+  User,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/shared/lib/utils";
 import { AGENTS } from "@/shared/lib/constants";
@@ -50,13 +62,17 @@ interface StreamEvent {
   message?: string;
 }
 
-const AGENT_NAME_MAP = new Map<string, string>(AGENTS.map((a) => [a.id, a.name]));
+const AGENT_NAME_MAP = new Map<string, string>(
+  AGENTS.map((a) => [a.id, a.name]),
+);
 
 function getAgentDisplayName(agentId: string): string {
   return AGENT_NAME_MAP.get(agentId) ?? agentId;
 }
 
-async function fetchConversationDebates(debateId: string): Promise<ConversationDebate[]> {
+async function fetchConversationDebates(
+  debateId: string,
+): Promise<ConversationDebate[]> {
   const response = await fetch(`/api/debates/${debateId}/conversation`);
   if (!response.ok) {
     const single = await fetch(`/api/debates/${debateId}`);
@@ -85,7 +101,15 @@ function ChatBubbleUser({ content }: { content: string }) {
   );
 }
 
-function ChatBubbleAssistant({ content, cost, modelsUsed }: { content: string; cost?: number; modelsUsed?: string[] }) {
+function ChatBubbleAssistant({
+  content,
+  cost,
+  modelsUsed,
+}: {
+  content: string;
+  cost?: number;
+  modelsUsed?: string[];
+}) {
   return (
     <div className="flex gap-3">
       <div className="max-w-[80%]">
@@ -93,9 +117,13 @@ function ChatBubbleAssistant({ content, cost, modelsUsed }: { content: string; c
           <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
             <Sparkles className="h-3.5 w-3.5 text-white" />
           </div>
-          <span className="text-xs font-medium text-muted-foreground">Consilium</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            Consilium
+          </span>
           {cost != null && cost > 0 && (
-            <span className="text-xs text-muted-foreground">${cost.toFixed(4)}</span>
+            <span className="text-xs text-muted-foreground">
+              ${cost.toFixed(4)}
+            </span>
           )}
         </div>
         <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm whitespace-pre-wrap">
@@ -104,7 +132,10 @@ function ChatBubbleAssistant({ content, cost, modelsUsed }: { content: string; c
         {modelsUsed && modelsUsed.length > 0 && (
           <div className="mt-1 flex gap-1 flex-wrap">
             {modelsUsed.map((m) => (
-              <span key={m} className="text-[10px] bg-muted rounded-full px-2 py-0.5 text-muted-foreground">
+              <span
+                key={m}
+                className="text-[10px] bg-muted rounded-full px-2 py-0.5 text-muted-foreground"
+              >
                 {getAgentDisplayName(m)}
               </span>
             ))}
@@ -124,7 +155,9 @@ function ModelSelector({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">Models for follow-up</p>
+      <p className="text-xs font-medium text-muted-foreground">
+        Models for follow-up
+      </p>
       <div className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
         {AGENTS.map((agent) => {
           const isSelected = selectedModels.includes(agent.id);
@@ -136,7 +169,7 @@ function ModelSelector({
                 "flex items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                 isSelected
                   ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted text-muted-foreground"
+                  : "hover:bg-muted text-muted-foreground",
               )}
             >
               <span>{agent.name}</span>
@@ -226,7 +259,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
 
       if (!createResponse.ok) {
         const errorData = await createResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || "Failed to create follow-up");
+        throw new Error(
+          errorData.message || errorData.error || "Failed to create follow-up",
+        );
       }
 
       const newDebate = await createResponse.json();
@@ -240,7 +275,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
         },
       ]);
 
-      const eventSource = new EventSource(`/api/debates/${newDebate.id}/stream`);
+      const eventSource = new EventSource(
+        `/api/debates/${newDebate.id}/stream`,
+      );
       eventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
@@ -249,20 +286,29 @@ export function DebateDetail({ debateId }: { debateId: string }) {
           const eventName = (data.event || "").replace(/_/g, ":");
 
           if (eventName === "consensus") {
-            const golden = data.goldenPrompt || (data as any).golden_prompt || (data as any).consensus;
+            const golden =
+              data.goldenPrompt ||
+              (data as any).golden_prompt ||
+              (data as any).consensus;
             setStreamingGolden(golden || null);
           }
 
           if (eventName === "done" || eventName === "debate:complete") {
-            const finalGolden = data.goldenPrompt || (data as any).golden_prompt;
+            const finalGolden =
+              data.goldenPrompt || (data as any).golden_prompt;
             if (finalGolden) {
               setStreamingGolden(null);
               setDebates((prev) =>
                 prev.map((d) =>
                   d.id === newDebate.id
-                    ? { ...d, goldenPrompt: finalGolden, status: "completed", totalCost: data.totalCost || d.totalCost }
-                    : d
-                )
+                    ? {
+                        ...d,
+                        goldenPrompt: finalGolden,
+                        status: "completed",
+                        totalCost: data.totalCost || d.totalCost,
+                      }
+                    : d,
+                ),
               );
             }
             setSending(false);
@@ -273,9 +319,13 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             setDebates((prev) =>
               prev.map((d) =>
                 d.id === newDebate.id
-                  ? { ...d, goldenPrompt: `Error: ${data.message || "Something went wrong"}`, status: "failed" }
-                  : d
-              )
+                  ? {
+                      ...d,
+                      goldenPrompt: `Error: ${data.message || "Something went wrong"}`,
+                      status: "failed",
+                    }
+                  : d,
+              ),
             );
             setSending(false);
             eventSource.close();
@@ -290,7 +340,8 @@ export function DebateDetail({ debateId }: { debateId: string }) {
         setSending(false);
       };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to send follow-up";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to send follow-up";
       setDebates((prev) => [
         ...prev,
         {
@@ -316,7 +367,7 @@ export function DebateDetail({ debateId }: { debateId: string }) {
         handleSendFollowUp();
       }
     },
-    [handleSendFollowUp]
+    [handleSendFollowUp],
   );
 
   if (loading) {
@@ -357,7 +408,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             </Link>
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-semibold truncate">{firstDebate.topic}</h1>
+            <h1 className="text-lg font-semibold truncate">
+              {firstDebate.topic}
+            </h1>
             <p className="text-xs text-muted-foreground">
               {new Date(firstDebate.createdAt).toLocaleString()}
             </p>
@@ -372,7 +425,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
               {idx > 0 && (
                 <div className="flex items-center gap-3 py-2">
                   <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">Follow-up #{idx}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Follow-up #{idx}
+                  </span>
                   <div className="flex-1 h-px bg-border" />
                 </div>
               )}
@@ -390,14 +445,17 @@ export function DebateDetail({ debateId }: { debateId: string }) {
                   cost={debate.totalCost}
                   modelsUsed={debate.modelsUsed}
                 />
-              ) : debate.status === "processing" || debate.status === "pending" ? (
+              ) : debate.status === "processing" ||
+                debate.status === "pending" ? (
                 <div className="flex gap-3">
                   <div className="max-w-[80%]">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                         <Sparkles className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">Consilium</span>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Consilium
+                      </span>
                     </div>
                     <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -417,9 +475,7 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             </div>
           ))}
 
-          {streamingGolden && (
-            <ChatBubbleAssistant content={streamingGolden} />
-          )}
+          {streamingGolden && <ChatBubbleAssistant content={streamingGolden} />}
 
           <div ref={messagesEndRef} />
         </div>
@@ -439,7 +495,11 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             />
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 h-[44px] w-[44px]">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 h-[44px] w-[44px]"
+                >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -452,7 +512,9 @@ export function DebateDetail({ debateId }: { debateId: string }) {
             </Popover>
             <Button
               onClick={handleSendFollowUp}
-              disabled={sending || !followUpInput.trim() || followUpModels.length < 2}
+              disabled={
+                sending || !followUpInput.trim() || followUpModels.length < 2
+              }
               size="icon"
               className="shrink-0 h-[44px] w-[44px]"
             >

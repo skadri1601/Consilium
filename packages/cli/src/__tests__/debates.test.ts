@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const {
   mockListDebates,
@@ -16,7 +16,7 @@ const {
   mockStreamDeliberation: vi.fn(),
 }));
 
-vi.mock('../api/client', () => ({
+vi.mock("../api/client", () => ({
   ConsiliumClient: vi.fn().mockImplementation(() => ({
     listDebates: mockListDebates,
     cancelDebate: mockCancelDebate,
@@ -27,7 +27,10 @@ vi.mock('../api/client', () => ({
   })),
   StreamError: class StreamError extends Error {
     kind: string;
-    constructor(message: string, kind: string) { super(message); this.kind = kind; }
+    constructor(message: string, kind: string) {
+      super(message);
+      this.kind = kind;
+    }
   },
   ApiError: class ApiError extends Error {
     status: number;
@@ -40,15 +43,15 @@ vi.mock('../api/client', () => ({
   },
 }));
 
-vi.mock('../commands/debate', () => ({
+vi.mock("../commands/debate", () => ({
   loadWorkspaceContext: vi.fn().mockResolvedValue(null),
 }));
 
-vi.mock('../utils/require-auth', () => ({
+vi.mock("../utils/require-auth", () => ({
   requireAuth: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../utils/visual-system', () => ({
+vi.mock("../utils/visual-system", () => ({
   style: () => ({
     brand: (s: string) => s,
     dim: (s: string) => s,
@@ -64,156 +67,194 @@ import {
   cancelDebateCommand,
   startDebateCommand,
   streamDebateCommand,
-} from '../commands/debates';
+} from "../commands/debates";
 
-describe('listDebatesCommand', () => {
+describe("listDebatesCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
   });
 
-  it('calls listDebates with parsed limit/offset/search', async () => {
+  it("calls listDebates with parsed limit/offset/search", async () => {
     mockListDebates.mockResolvedValue([]);
-    await listDebatesCommand({ limit: '5', offset: '10', search: 'auth' });
-    expect(mockListDebates).toHaveBeenCalledWith({ limit: 5, offset: 10, search: 'auth' });
+    await listDebatesCommand({ limit: "5", offset: "10", search: "auth" });
+    expect(mockListDebates).toHaveBeenCalledWith({
+      limit: 5,
+      offset: 10,
+      search: "auth",
+    });
   });
 
-  it('clamps limit to 100 and rejects negative values', async () => {
+  it("clamps limit to 100 and rejects negative values", async () => {
     mockListDebates.mockResolvedValue([]);
-    await listDebatesCommand({ limit: '500' });
-    expect(mockListDebates).toHaveBeenCalledWith({ limit: 100, offset: 0, search: undefined });
+    await listDebatesCommand({ limit: "500" });
+    expect(mockListDebates).toHaveBeenCalledWith({
+      limit: 100,
+      offset: 0,
+      search: undefined,
+    });
     mockListDebates.mockClear();
-    await listDebatesCommand({ limit: '-1', offset: '-5' });
-    expect(mockListDebates).toHaveBeenCalledWith({ limit: 20, offset: 0, search: undefined });
+    await listDebatesCommand({ limit: "-1", offset: "-5" });
+    expect(mockListDebates).toHaveBeenCalledWith({
+      limit: 20,
+      offset: 0,
+      search: undefined,
+    });
   });
 
-  it('emits JSON when --json is set', async () => {
-    const debates = [{ id: 'dbt_1', topic: 'x', mode: 'council', status: 'completed' }];
+  it("emits JSON when --json is set", async () => {
+    const debates = [
+      { id: "dbt_1", topic: "x", mode: "council", status: "completed" },
+    ];
     mockListDebates.mockResolvedValue(debates);
     const logs: string[] = [];
-    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+    vi.spyOn(console, "log").mockImplementation((...args) =>
+      logs.push(args.join(" ")),
+    );
     await listDebatesCommand({ json: true });
-    expect(JSON.parse(logs.join('\n'))).toEqual(debates);
+    expect(JSON.parse(logs.join("\n"))).toEqual(debates);
   });
 
-  it('prints a friendly empty message when no debates', async () => {
+  it("prints a friendly empty message when no debates", async () => {
     mockListDebates.mockResolvedValue([]);
     const logs: string[] = [];
-    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+    vi.spyOn(console, "log").mockImplementation((...args) =>
+      logs.push(args.join(" ")),
+    );
     await listDebatesCommand({});
-    expect(logs.join('\n')).toContain('No debates found.');
+    expect(logs.join("\n")).toContain("No debates found.");
   });
 
-  it('sets exit code on error', async () => {
-    mockListDebates.mockRejectedValue(new Error('boom'));
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  it("sets exit code on error", async () => {
+    mockListDebates.mockRejectedValue(new Error("boom"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
     await listDebatesCommand({});
     expect(process.exitCode).toBe(1);
   });
 });
 
-describe('cancelDebateCommand', () => {
+describe("cancelDebateCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
   });
 
-  it('cancels a classic debate by default', async () => {
+  it("cancels a classic debate by default", async () => {
     mockCancelDebate.mockResolvedValue(undefined);
-    await cancelDebateCommand('dbt_1', {});
-    expect(mockCancelDebate).toHaveBeenCalledWith('dbt_1');
+    await cancelDebateCommand("dbt_1", {});
+    expect(mockCancelDebate).toHaveBeenCalledWith("dbt_1");
     expect(mockCancelDeliberation).not.toHaveBeenCalled();
   });
 
-  it('cancels a deliberation when flag set', async () => {
+  it("cancels a deliberation when flag set", async () => {
     mockCancelDeliberation.mockResolvedValue(undefined);
-    await cancelDebateCommand('dlb_1', { deliberation: true });
-    expect(mockCancelDeliberation).toHaveBeenCalledWith('dlb_1');
+    await cancelDebateCommand("dlb_1", { deliberation: true });
+    expect(mockCancelDeliberation).toHaveBeenCalledWith("dlb_1");
     expect(mockCancelDebate).not.toHaveBeenCalled();
   });
 
-  it('sets exit code when cancel fails', async () => {
-    mockCancelDebate.mockRejectedValue(new Error('nope'));
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    await cancelDebateCommand('dbt_1', {});
+  it("sets exit code when cancel fails", async () => {
+    mockCancelDebate.mockRejectedValue(new Error("nope"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await cancelDebateCommand("dbt_1", {});
     expect(process.exitCode).toBe(1);
   });
 });
 
-describe('startDebateCommand', () => {
+describe("startDebateCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
   });
 
-  it('creates a debate and prints ID in human mode', async () => {
-    mockCreateDebate.mockResolvedValue({ id: 'dbt_abc' });
+  it("creates a debate and prints ID in human mode", async () => {
+    mockCreateDebate.mockResolvedValue({ id: "dbt_abc" });
     const logs: string[] = [];
-    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
-    await startDebateCommand('hello', {});
+    vi.spyOn(console, "log").mockImplementation((...args) =>
+      logs.push(args.join(" ")),
+    );
+    await startDebateCommand("hello", {});
     expect(mockCreateDebate).toHaveBeenCalled();
-    expect(logs.join('\n')).toContain('dbt_abc');
-    expect(logs.join('\n')).toContain('consilium debates stream dbt_abc');
+    expect(logs.join("\n")).toContain("dbt_abc");
+    expect(logs.join("\n")).toContain("consilium debates stream dbt_abc");
   });
 
-  it('emits JSON when --json', async () => {
-    mockCreateDebate.mockResolvedValue({ id: 'dbt_xyz' });
+  it("emits JSON when --json", async () => {
+    mockCreateDebate.mockResolvedValue({ id: "dbt_xyz" });
     const logs: string[] = [];
-    vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
-    await startDebateCommand('topic', { json: true, mode: 'quick', models: ['a', 'b'] });
-    const parsed = JSON.parse(logs.join('\n'));
-    expect(parsed).toMatchObject({ id: 'dbt_xyz', mode: 'quick', models: ['a', 'b'] });
+    vi.spyOn(console, "log").mockImplementation((...args) =>
+      logs.push(args.join(" ")),
+    );
+    await startDebateCommand("topic", {
+      json: true,
+      mode: "quick",
+      models: ["a", "b"],
+    });
+    const parsed = JSON.parse(logs.join("\n"));
+    expect(parsed).toMatchObject({
+      id: "dbt_xyz",
+      mode: "quick",
+      models: ["a", "b"],
+    });
   });
 
-  it('falls back to default mode when given an invalid one', async () => {
-    mockCreateDebate.mockResolvedValue({ id: 'dbt_1' });
-    await startDebateCommand('t', { mode: 'bogus' });
+  it("falls back to default mode when given an invalid one", async () => {
+    mockCreateDebate.mockResolvedValue({ id: "dbt_1" });
+    await startDebateCommand("t", { mode: "bogus" });
     const call = mockCreateDebate.mock.calls[0]?.[0];
-    expect(call?.mode).toBe('auto');
+    expect(call?.mode).toBe("auto");
   });
 
-  it('sets exit code when creation fails', async () => {
-    mockCreateDebate.mockRejectedValue(new Error('kaboom'));
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    await startDebateCommand('t', {});
+  it("sets exit code when creation fails", async () => {
+    mockCreateDebate.mockRejectedValue(new Error("kaboom"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await startDebateCommand("t", {});
     expect(process.exitCode).toBe(1);
   });
 
-  it('prints auth-specific hint on 401 ApiError', async () => {
-    const { ApiError } = await import('../api/client');
-    mockCreateDebate.mockRejectedValue(new ApiError(401, 'unauthorized'));
+  it("prints auth-specific hint on 401 ApiError", async () => {
+    const { ApiError } = await import("../api/client");
+    mockCreateDebate.mockRejectedValue(new ApiError(401, "unauthorized"));
     const errors: string[] = [];
-    vi.spyOn(console, 'error').mockImplementation((...args) => errors.push(args.join(' ')));
-    await startDebateCommand('t', {});
-    expect(errors.join('\n')).toContain('consilium login');
+    vi.spyOn(console, "error").mockImplementation((...args) =>
+      errors.push(args.join(" ")),
+    );
+    await startDebateCommand("t", {});
+    expect(errors.join("\n")).toContain("consilium login");
     expect(process.exitCode).toBe(1);
   });
 });
 
-describe('streamDebateCommand', () => {
+describe("streamDebateCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
   });
 
-  it('calls streamDebate by default', async () => {
+  it("calls streamDebate by default", async () => {
     mockStreamDebate.mockResolvedValue(undefined);
-    await streamDebateCommand('dbt_1', {});
-    expect(mockStreamDebate).toHaveBeenCalledWith('dbt_1', expect.any(Function));
+    await streamDebateCommand("dbt_1", {});
+    expect(mockStreamDebate).toHaveBeenCalledWith(
+      "dbt_1",
+      expect.any(Function),
+    );
     expect(mockStreamDeliberation).not.toHaveBeenCalled();
   });
 
-  it('routes to streamDeliberation when flag set', async () => {
+  it("routes to streamDeliberation when flag set", async () => {
     mockStreamDeliberation.mockResolvedValue(undefined);
-    await streamDebateCommand('dlb_1', { deliberation: true });
-    expect(mockStreamDeliberation).toHaveBeenCalledWith('dlb_1', expect.any(Function));
+    await streamDebateCommand("dlb_1", { deliberation: true });
+    expect(mockStreamDeliberation).toHaveBeenCalledWith(
+      "dlb_1",
+      expect.any(Function),
+    );
     expect(mockStreamDebate).not.toHaveBeenCalled();
   });
 
-  it('sets exit code when stream fails', async () => {
-    mockStreamDebate.mockRejectedValue(new Error('dropped'));
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    await streamDebateCommand('dbt_1', {});
+  it("sets exit code when stream fails", async () => {
+    mockStreamDebate.mockRejectedValue(new Error("dropped"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await streamDebateCommand("dbt_1", {});
     expect(process.exitCode).toBe(1);
   });
 });

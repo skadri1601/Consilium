@@ -158,11 +158,13 @@ export function ComparisonPage({ data }: Props) {
             </CardContent>
           </Card>
           <p className="text-xs text-muted-foreground/60 mt-3 text-center">
-            Last reviewed {new Date(data.lastUpdated).toLocaleDateString("en-US", {
+            Last reviewed{" "}
+            {new Date(data.lastUpdated).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",
-            })}.
+            })}
+            .
           </p>
         </div>
       </section>
@@ -260,8 +262,8 @@ export function ComparisonPage({ data }: Props) {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Try {SITE_NAME}</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Free tier includes managed pool access - no API keys required to
-            get started. BYOK supported for production usage.
+            Free tier includes managed pool access - no API keys required to get
+            started. BYOK supported for production usage.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -289,15 +291,17 @@ export function ComparisonPage({ data }: Props) {
               Compare with
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {OTHER_COMPETITORS.filter((c) => c.slug !== data.slug).map((c) => (
-                <Link
-                  key={c.slug}
-                  href={`/vs-${c.slug}`}
-                  className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
-                >
-                  vs {c.name}
-                </Link>
-              ))}
+              {OTHER_COMPETITORS.filter((c) => c.slug !== data.slug).map(
+                (c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/vs-${c.slug}`}
+                    className="inline-flex items-center rounded-full border px-3 py-1 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    vs {c.name}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
         </div>

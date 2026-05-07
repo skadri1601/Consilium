@@ -66,9 +66,7 @@ const AI_BOTS_ALLOW = [
   "ImagesiftBot",
 ];
 
-const AI_BOTS_DISALLOW: string[] = [
-  "Bytespider",
-];
+const AI_BOTS_DISALLOW: string[] = ["Bytespider"];
 
 export default function robots(): MetadataRoute.Robots {
   const aiAllowRules = AI_BOTS_ALLOW.map((userAgent) => ({

@@ -1,31 +1,31 @@
-import crypto from 'node:crypto';
+import crypto from "node:crypto";
 
 export type EntityType =
-  | 'debate'
-  | 'round'
-  | 'message'
-  | 'agent'
-  | 'sub-agent'
-  | 'conversation'
-  | 'tool-call'
-  | 'worker-job'
-  | 'log-entry'
-  | 'session';
+  | "debate"
+  | "round"
+  | "message"
+  | "agent"
+  | "sub-agent"
+  | "conversation"
+  | "tool-call"
+  | "worker-job"
+  | "log-entry"
+  | "session";
 
 export const PREFIXES: Record<EntityType, string> = {
-  'debate': 'dbt',
-  'round': 'rnd',
-  'message': 'msg',
-  'agent': 'agt',
-  'sub-agent': 'sag',
-  'conversation': 'cnv',
-  'tool-call': 'tcl',
-  'worker-job': 'job',
-  'log-entry': 'log',
-  'session': 'ses',
+  debate: "dbt",
+  round: "rnd",
+  message: "msg",
+  agent: "agt",
+  "sub-agent": "sag",
+  conversation: "cnv",
+  "tool-call": "tcl",
+  "worker-job": "job",
+  "log-entry": "log",
+  session: "ses",
 };
 
-const CROCKFORD_BASE32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 const CROCKFORD_DECODE: Record<string, number> = {};
 {
@@ -43,7 +43,7 @@ function encodeTime(timestamp: number): string {
     chars[i] = CROCKFORD_BASE32.charAt(t & 0x1f);
     t = Math.floor(t / 32);
   }
-  return chars.join('');
+  return chars.join("");
 }
 
 function decodeTime(encoded: string): number {
@@ -74,7 +74,7 @@ function encodeRandom(): string {
       charIdx += 1;
     }
   }
-  return chars.join('');
+  return chars.join("");
 }
 
 const PREFIX_TO_ENTITY: Record<string, EntityType> = {};
@@ -82,7 +82,7 @@ for (const [entity, prefix] of Object.entries(PREFIXES)) {
   PREFIX_TO_ENTITY[prefix] = entity as EntityType;
 }
 
-const VALID_CHAR_SET = new Set(CROCKFORD_BASE32.split(''));
+const VALID_CHAR_SET = new Set(CROCKFORD_BASE32.split(""));
 
 export function generateId(entity: EntityType): string {
   const prefix = PREFIXES[entity];
@@ -91,8 +91,10 @@ export function generateId(entity: EntityType): string {
   return `${prefix}_${timePart}${randomPart}`;
 }
 
-export function parseId(id: string): { entity: EntityType; timestamp: Date; raw: string } | null {
-  const sepIdx = id.indexOf('_');
+export function parseId(
+  id: string,
+): { entity: EntityType; timestamp: Date; raw: string } | null {
+  const sepIdx = id.indexOf("_");
   if (sepIdx === -1) return null;
 
   const prefix = id.substring(0, sepIdx);

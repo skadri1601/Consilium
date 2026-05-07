@@ -46,7 +46,8 @@ export function registerCommands(
       ignoreFocusOut: true,
     });
     if (!topic?.trim()) return;
-    const mode = (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
+    const mode =
+      (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
     await panel.startDebate(topic.trim(), mode);
   });
 
@@ -66,7 +67,8 @@ export function registerCommands(
       ignoreFocusOut: true,
     });
     if (!topic?.trim()) return;
-    const mode = (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
+    const mode =
+      (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
     const composed = `${topic.trim()}\n\n--- selection from ${fileLabel} ---\n\n\`\`\`\n${selected}\n\`\`\``;
     await panel.startDebate(composed, mode);
   });
@@ -82,7 +84,8 @@ export function registerCommands(
     const selected = editor.document.getText(editor.selection);
     const note = await vscode.window.showInputBox({
       title: "Red-team focus",
-      prompt: "Optional focus areas (e.g. 'auth bypass, injection'). Leave blank for general assessment.",
+      prompt:
+        "Optional focus areas (e.g. 'auth bypass, injection'). Leave blank for general assessment.",
       ignoreFocusOut: true,
     });
     const models = cfg().get<string[]>("defaultModels") ?? [];
@@ -98,7 +101,12 @@ export function registerCommands(
       topic: `Red-team review of ${fileLabel}${noteSuffix}`,
       models,
       content: selected,
-      categories: note ? note.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+      categories: note
+        ? note
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
     });
   });
 
@@ -110,7 +118,8 @@ export function registerCommands(
       ignoreFocusOut: true,
     });
     if (!topic?.trim()) return;
-    const mode = (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
+    const mode =
+      (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
     const models = cfg().get<string[]>("defaultModels") ?? [];
     await panel.startDeliberation({
       kind: "deliberate",
@@ -170,9 +179,7 @@ export function registerCommands(
     const sessionsList = await client.listDebates({ limit: 30 });
     const completed = sessionsList.filter((s) => s.status === "completed");
     if (completed.length === 0) {
-      vscode.window.showInformationMessage(
-        "No completed sessions found.",
-      );
+      vscode.window.showInformationMessage("No completed sessions found.");
       return;
     }
     const pick = await vscode.window.showQuickPick(
@@ -187,7 +194,9 @@ export function registerCommands(
     const detail = await client.getDebate(pick.id);
     const text = detail.goldenPrompt;
     if (!text) {
-      vscode.window.showWarningMessage("Selected session has no golden prompt.");
+      vscode.window.showWarningMessage(
+        "Selected session has no golden prompt.",
+      );
       return;
     }
     const editor = vscode.window.activeTextEditor;
@@ -236,13 +245,37 @@ export function registerCommands(
 async function pickMode(): Promise<string | undefined> {
   const items: Array<vscode.QuickPickItem & { mode: string }> = [
     { label: "$(zap) quick", description: "1 round, fastest", mode: "quick" },
-    { label: "$(comment-discussion) council", description: "3 rounds (default)", mode: "council" },
-    { label: "$(rocket) deep", description: "5 rounds + sub-agents", mode: "deep" },
-    { label: "$(eye-closed) blind", description: "Names hidden until scoring", mode: "blind" },
-    { label: "$(shield) redteam", description: "Adversarial assessment", mode: "redteam" },
+    {
+      label: "$(comment-discussion) council",
+      description: "3 rounds (default)",
+      mode: "council",
+    },
+    {
+      label: "$(rocket) deep",
+      description: "5 rounds + sub-agents",
+      mode: "deep",
+    },
+    {
+      label: "$(eye-closed) blind",
+      description: "Names hidden until scoring",
+      mode: "blind",
+    },
+    {
+      label: "$(shield) redteam",
+      description: "Adversarial assessment",
+      mode: "redteam",
+    },
     { label: "$(law) jury", description: "Voting panel", mode: "jury" },
-    { label: "$(graph) market", description: "Confidence aggregation", mode: "market" },
-    { label: "$(sparkle) auto", description: "Pick best mode automatically", mode: "auto" },
+    {
+      label: "$(graph) market",
+      description: "Confidence aggregation",
+      mode: "market",
+    },
+    {
+      label: "$(sparkle) auto",
+      description: "Pick best mode automatically",
+      mode: "auto",
+    },
   ];
   const pick = await vscode.window.showQuickPick(items, {
     title: "Debate mode",

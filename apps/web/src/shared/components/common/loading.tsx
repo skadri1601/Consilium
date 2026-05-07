@@ -17,7 +17,7 @@ export function Loading({ size = "md", className }: LoadingProps) {
       <div
         className={cn(
           "animate-spin rounded-full border-2 border-current border-t-transparent text-primary",
-          sizeClasses[size]
+          sizeClasses[size],
         )}
       />
     </div>

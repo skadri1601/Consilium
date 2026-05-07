@@ -12,7 +12,7 @@ export function logoutCommand(): void {
   clearAuth();
   console.log(
     st.success(
-      `✓ Logged out${userName ? ` (${userName})` : ""}. Run \`consilium\` to sign in again.`
-    )
+      `✓ Logged out${userName ? ` (${userName})` : ""}. Run \`consilium\` to sign in again.`,
+    ),
   );
 }

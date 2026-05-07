@@ -11,15 +11,15 @@ async function getClerkToken(): Promise<string> {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const { id } = await params;
@@ -34,17 +34,19 @@ export async function GET(
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "Stream request failed");
-      return new Response(
-        JSON.stringify({ error: errorText }),
-        { status: response.status, headers: { "Content-Type": "application/json" } }
-      );
+      const errorText = await response
+        .text()
+        .catch(() => "Stream request failed");
+      return new Response(JSON.stringify({ error: errorText }), {
+        status: response.status,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     if (!response.body) {
       return new Response(
         JSON.stringify({ error: "No stream body from backend" }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
+        { status: 502, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -64,7 +66,9 @@ export async function GET(
           }
         } catch {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ event: "debate:error", message: "Stream interrupted" })}\n\n`)
+            encoder.encode(
+              `data: ${JSON.stringify({ event: "debate:error", message: "Stream interrupted" })}\n\n`,
+            ),
           );
           controller.close();
         }
@@ -80,9 +84,9 @@ export async function GET(
       },
     });
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

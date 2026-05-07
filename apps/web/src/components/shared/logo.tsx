@@ -2,7 +2,11 @@ import { cn } from "@/shared/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
-export function Logo(props: { className?: string; link?: string; iconOnly?: boolean }) {
+export function Logo(props: {
+  className?: string;
+  link?: string;
+  iconOnly?: boolean;
+}) {
   return (
     <Link
       href={props.link ?? "/"}
@@ -16,7 +20,9 @@ export function Logo(props: { className?: string; link?: string; iconOnly?: bool
         className="h-6 w-6"
       />
       {!props.iconOnly && (
-        <span className="font-semibold tracking-wide sm:inline-block">Consilium</span>
+        <span className="font-semibold tracking-wide sm:inline-block">
+          Consilium
+        </span>
       )}
     </Link>
   );

@@ -293,15 +293,17 @@ const modelPricing = [
     models: [
       { name: "Grok 4.20", input: "$3.00", output: "$15.00" },
       { name: "Grok 4.1 Fast (reasoning)", input: "$1.00", output: "$4.00" },
-      { name: "Grok 4.1 Fast (non-reasoning)", input: "$0.50", output: "$2.00" },
+      {
+        name: "Grok 4.1 Fast (non-reasoning)",
+        input: "$0.50",
+        output: "$2.00",
+      },
       { name: "Grok Code Fast", input: "$0.30", output: "$1.20" },
     ],
   },
   {
     provider: "Moonshot",
-    models: [
-      { name: "Kimi K2.6", input: "$1.20", output: "$2.50" },
-    ],
+    models: [{ name: "Kimi K2.6", input: "$1.20", output: "$2.50" }],
   },
   {
     provider: "OpenRouter (free tier)",

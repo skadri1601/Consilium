@@ -22,7 +22,9 @@ const link = (title: string, path: string, summary?: string) =>
     : `- [${title}](${SITE_URL}${path})`;
 
 function buildLlmsTxt(): string {
-  const sortedPosts = [...blogPosts].sort((a, b) => b.date.localeCompare(a.date));
+  const sortedPosts = [...blogPosts].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
 
   return [
     `# ${SITE_NAME}`,
@@ -34,34 +36,86 @@ function buildLlmsTxt(): string {
     "## Product",
     "",
     link("Home", "/", "Product overview, deliberation modes, supported models"),
-    link("Pricing", "/pricing", "Free tier (50 deliberations/mo) + Pro $29/mo. BYOK with zero markup; Groq/OpenRouter free fallbacks"),
-    link("Use Cases", "/use-cases", "When multi-AI debate beats a single model: high-stakes decisions, dissent capture, eval harnesses"),
-    link("FAQ", "/faq", "Common questions about deliberation modes, voting, models, security, and pricing"),
+    link(
+      "Pricing",
+      "/pricing",
+      "Free tier (50 deliberations/mo) + Pro $29/mo. BYOK with zero markup; Groq/OpenRouter free fallbacks",
+    ),
+    link(
+      "Use Cases",
+      "/use-cases",
+      "When multi-AI debate beats a single model: high-stakes decisions, dissent capture, eval harnesses",
+    ),
+    link(
+      "FAQ",
+      "/faq",
+      "Common questions about deliberation modes, voting, models, security, and pricing",
+    ),
     link("About", "/about", "Founder note + research lineage"),
-    link("Research", "/research", "Peer-reviewed research backing each deliberation mode"),
+    link(
+      "Research",
+      "/research",
+      "Peer-reviewed research backing each deliberation mode",
+    ),
     link("Contact", "/contact", "How to reach the team"),
     "",
     "## Documentation",
     "",
     link("Docs Home", "/docs"),
-    link("Getting Started", "/docs/getting-started", "Quickstart in under five minutes via web, CLI, or SDK"),
-    link("How It Works", "/docs/how-it-works", "Round-by-round walkthrough of the deliberation pipeline"),
-    link("Modes", "/docs/modes", "Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto"),
-    link("Architecture", "/docs/architecture", "Web -> API -> Agents pipeline; SSE streaming, BullMQ, Redis"),
+    link(
+      "Getting Started",
+      "/docs/getting-started",
+      "Quickstart in under five minutes via web, CLI, or SDK",
+    ),
+    link(
+      "How It Works",
+      "/docs/how-it-works",
+      "Round-by-round walkthrough of the deliberation pipeline",
+    ),
+    link(
+      "Modes",
+      "/docs/modes",
+      "Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto",
+    ),
+    link(
+      "Architecture",
+      "/docs/architecture",
+      "Web -> API -> Agents pipeline; SSE streaming, BullMQ, Redis",
+    ),
     link("API Reference", "/docs/api", "REST endpoints + SSE event schema"),
     link("CLI", "/docs/cli", "@myconsilium/cli - debate, replay, estimate"),
-    link("Providers", "/docs/providers", "Setting up keys for the 7 supported LLM providers"),
+    link(
+      "Providers",
+      "/docs/providers",
+      "Setting up keys for the 7 supported LLM providers",
+    ),
     link("Templates", "/docs/templates"),
     link("Python SDK", "/docs/python-sdk", "consilium-sdk PyPI package"),
-    link("TypeScript SDK", "/docs/typescript-sdk", "@myconsilium/sdk npm package"),
+    link(
+      "TypeScript SDK",
+      "/docs/typescript-sdk",
+      "@myconsilium/sdk npm package",
+    ),
     "",
     "## Comparisons",
     "",
-    link("vs Cursor", "/vs-cursor", "Single-model coder vs multi-model deliberation"),
+    link(
+      "vs Cursor",
+      "/vs-cursor",
+      "Single-model coder vs multi-model deliberation",
+    ),
     link("vs Aider", "/vs-aider", "CLI coder vs structured debate"),
     link("vs Cline", "/vs-cline", "VS Code agent vs council deliberation"),
-    link("vs Claude Code", "/vs-claude-code", "Anthropic CLI vs multi-provider council"),
-    link("vs Copilot", "/vs-copilot", "GitHub autocomplete vs deliberated synthesis"),
+    link(
+      "vs Claude Code",
+      "/vs-claude-code",
+      "Anthropic CLI vs multi-provider council",
+    ),
+    link(
+      "vs Copilot",
+      "/vs-copilot",
+      "GitHub autocomplete vs deliberated synthesis",
+    ),
     "",
     "## Blog",
     "",
@@ -75,7 +129,11 @@ function buildLlmsTxt(): string {
     link("Terms", "/terms"),
     link("Sitemap (XML)", "/sitemap.xml"),
     link("RSS feed", "/feed.xml"),
-    link("Full corpus", "/llms-full.txt", "All page bodies inlined for zero-fetch ingestion"),
+    link(
+      "Full corpus",
+      "/llms-full.txt",
+      "All page bodies inlined for zero-fetch ingestion",
+    ),
     "",
   ].join("\n");
 }

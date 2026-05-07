@@ -3,10 +3,10 @@
  * Shows steps: Health check → Auth → Create debate → Start stream.
  */
 
-import { border, borderBottom, borderLine, contentLine } from './visual-system';
-import { terminal } from './terminal-capabilities';
+import { border, borderBottom, borderLine, contentLine } from "./visual-system";
+import { terminal } from "./terminal-capabilities";
 
-export type StepStatus = 'pending' | 'running' | 'complete' | 'error';
+export type StepStatus = "pending" | "running" | "complete" | "error";
 
 export interface Step {
   id: string;
@@ -16,23 +16,27 @@ export interface Step {
   error?: string;
 }
 
-const SPINNER = '⠸';
-const CHECK = '✓';
-const PENDING = ' ';
+const SPINNER = "⠸";
+const CHECK = "✓";
+const PENDING = " ";
 
 function iconForStepStatus(status: StepStatus): string {
-  if (status === 'complete') return CHECK;
-  if (status === 'running') return SPINNER;
+  if (status === "complete") return CHECK;
+  if (status === "running") return SPINNER;
   return PENDING;
 }
 
 function suffixForStepRow(s: Step): string {
   if (s.durationMs != null) return `${s.durationMs}ms`;
-  if (s.status === 'running') return '...';
-  return '';
+  if (s.status === "running") return "...";
+  return "";
 }
 
-export function renderSteps(title: string, steps: Step[], width?: number): string {
+export function renderSteps(
+  title: string,
+  steps: Step[],
+  width?: number,
+): string {
   const w = width ?? terminal.width;
   const lines: string[] = [border(title, w), borderLine(w)];
   for (const s of steps) {
@@ -43,36 +47,45 @@ export function renderSteps(title: string, steps: Step[], width?: number): strin
     lines.push(contentLine(text, w));
   }
   lines.push(borderLine(w), borderBottom(w));
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
-export function createStepTracker(stepIds: string[], labels: Record<string, string>) {
-  const steps: Step[] = stepIds.map((id) => ({ id, label: labels[id] ?? id, status: 'pending' as StepStatus }));
+export function createStepTracker(
+  stepIds: string[],
+  labels: Record<string, string>,
+) {
+  const steps: Step[] = stepIds.map((id) => ({
+    id,
+    label: labels[id] ?? id,
+    status: "pending" as StepStatus,
+  }));
   const startTimes: Record<string, number> = {};
 
   return {
     steps,
     start(id: string) {
       const s = steps.find((x) => x.id === id);
-      if (s) s.status = 'running';
+      if (s) s.status = "running";
       startTimes[id] = Date.now();
     },
     complete(id: string) {
       const s = steps.find((x) => x.id === id);
       if (s) {
-        s.status = 'complete';
-        s.durationMs = id in startTimes ? Date.now() - startTimes[id]! : undefined;
+        s.status = "complete";
+        s.durationMs =
+          id in startTimes ? Date.now() - startTimes[id]! : undefined;
       }
     },
     fail(id: string, error: string) {
       const s = steps.find((x) => x.id === id);
       if (s) {
-        s.status = 'error';
+        s.status = "error";
         s.error = error;
-        s.durationMs = id in startTimes ? Date.now() - startTimes[id]! : undefined;
+        s.durationMs =
+          id in startTimes ? Date.now() - startTimes[id]! : undefined;
       }
     },
-    render(title: string = 'Initializing') {
+    render(title: string = "Initializing") {
       return renderSteps(title, steps);
     },
   };

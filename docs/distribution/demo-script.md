@@ -62,6 +62,7 @@ That component lazy-loads `asciinema-player` from a CDN so we
 don't bloat the bundle.
 
 Drop in:
+
 ```tsx
 <AsciinemaPlayer
   src="/demo/consilium-council.cast"
@@ -70,7 +71,7 @@ Drop in:
   autoPlay
   loop
   idleTimeLimit={1.5}
-  poster="npt:0:08"  // start at the most-visual moment
+  poster="npt:0:08" // start at the most-visual moment
 />
 ```
 

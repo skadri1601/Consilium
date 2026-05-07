@@ -24,14 +24,7 @@ const PUBLIC_METHOD_NAMES = new Set<string>([
   // No exceptions today. Add only with explicit security review.
 ]);
 
-const HTTP_METHOD_DECORATORS = [
-  "Get",
-  "Post",
-  "Put",
-  "Patch",
-  "Delete",
-  "Sse",
-];
+const HTTP_METHOD_DECORATORS = ["Get", "Post", "Put", "Patch", "Delete", "Sse"];
 
 interface RouteEntry {
   file: string;
@@ -94,7 +87,10 @@ function parseRoutes(file: string): RouteEntry[] {
       methodLine = next;
       break;
     }
-    const nameMatch = /^(?:async\s+|public\s+|private\s+)*([a-zA-Z0-9_$]+)\s*\(/.exec(methodLine);
+    const nameMatch =
+      /^(?:async\s+|public\s+|private\s+)*([a-zA-Z0-9_$]+)\s*\(/.exec(
+        methodLine,
+      );
     if (!nameMatch) continue;
     const method = nameMatch[1] ?? "<unknown>";
     const methodHasGuard = decorators.some((d) =>

@@ -61,9 +61,10 @@ export function formatGitContextForPrompt(ctx: GitContext): string {
   }
   if (ctx.diff) {
     const maxDiffSize = 30000;
-    const diff = ctx.diff.length > maxDiffSize
-      ? ctx.diff.slice(0, maxDiffSize) + "\n... (diff truncated)"
-      : ctx.diff;
+    const diff =
+      ctx.diff.length > maxDiffSize
+        ? ctx.diff.slice(0, maxDiffSize) + "\n... (diff truncated)"
+        : ctx.diff;
     parts.push("\n" + diff);
   }
   parts.push("=== END GIT CONTEXT ===\n");

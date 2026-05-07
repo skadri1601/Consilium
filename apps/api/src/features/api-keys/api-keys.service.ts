@@ -193,11 +193,9 @@ export class ApiKeysService {
             { headers: { Authorization: `Bearer ${dto.key}` } },
           );
         case ApiKeyProvider.XAI:
-          return await this.probe(
-            "XAI (Grok)",
-            "https://api.x.ai/v1/models",
-            { headers: { Authorization: `Bearer ${dto.key}` } },
-          );
+          return await this.probe("XAI (Grok)", "https://api.x.ai/v1/models", {
+            headers: { Authorization: `Bearer ${dto.key}` },
+          });
         case ApiKeyProvider.MOONSHOT:
           return await this.probe(
             "Moonshot",

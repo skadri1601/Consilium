@@ -10,46 +10,55 @@ test.describe("Debate Flow", () => {
     await gotoPath(page, "/council");
   });
 
-  test("should display empty state when no debates started", async ({ page }) => {
+  test("should display empty state when no debates started", async ({
+    page,
+  }) => {
     // Use .first() to resolve strict mode violation if multiple elements exist
     // or target the specific heading/element
-    await expect(page.locator("text=Start Your First Debate").first()).toBeVisible();
+    await expect(
+      page.locator("text=Start Your First Debate").first(),
+    ).toBeVisible();
     await expect(page.locator("text=Select AI agents").first()).toBeVisible();
   });
 
   test("should show agent selector with available models", async ({ page }) => {
     // Check that agent selector is visible
     // Use first() to avoid strict mode violations if multiple exist (e.g. mobile/desktop)
-    const agentSelector = page.locator('[data-testid="agent-selector"]').or(
-      page.locator("text=Select Agents")
-    ).first();
+    const agentSelector = page
+      .locator('[data-testid="agent-selector"]')
+      .or(page.locator("text=Select Agents"))
+      .first();
     await expect(agentSelector).toBeVisible();
   });
 
-  test("should disable submit button when no agents selected", async ({ page }) => {
+  test("should disable submit button when no agents selected", async ({
+    page,
+  }) => {
     // Fill in topic but don't select agents
-    const textarea = page.locator('textarea[placeholder*="Describe"]').or(
-      page.locator('input[placeholder*="Ask the council"]')
-    );
+    const textarea = page
+      .locator('textarea[placeholder*="Describe"]')
+      .or(page.locator('input[placeholder*="Ask the council"]'));
     await textarea.fill("Test topic");
 
     const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).toBeDisabled();
   });
 
-  test("should enable submit button when agents selected and topic entered", async ({ page }) => {
+  test("should enable submit button when agents selected and topic entered", async ({
+    page,
+  }) => {
     // Select an agent (click on agent checkbox/button)
-    const agentCheckbox = page.locator('[aria-label*="gpt-5.4-mini"]').or(
-      page.locator('button:has-text("GPT-5.4 Mini")')
-    );
-    if (await agentCheckbox.count() > 0) {
+    const agentCheckbox = page
+      .locator('[aria-label*="gpt-5.4-mini"]')
+      .or(page.locator('button:has-text("GPT-5.4 Mini")'));
+    if ((await agentCheckbox.count()) > 0) {
       await agentCheckbox.first().click();
     }
 
     // Enter topic
-    const textarea = page.locator('textarea[placeholder*="Describe"]').or(
-      page.locator('input[placeholder*="Ask the council"]')
-    );
+    const textarea = page
+      .locator('textarea[placeholder*="Describe"]')
+      .or(page.locator('input[placeholder*="Ask the council"]'));
     await textarea.fill("Build a REST API with authentication");
 
     // Check submit button is enabled
@@ -58,19 +67,24 @@ test.describe("Debate Flow", () => {
   });
 
   test("should show character count when typing", async ({ page }) => {
-    const textarea = page.locator('textarea[placeholder*="Describe"]').or(
-      page.locator('input[placeholder*="Ask the council"]')
-    );
+    const textarea = page
+      .locator('textarea[placeholder*="Describe"]')
+      .or(page.locator('input[placeholder*="Ask the council"]'));
     await textarea.fill("Test message with some content");
 
     // Check that character count is displayed
     // Allow for slight variations in text content (e.g., "30 / 1000" or just "30")
-    await expect(page.locator("text=/\\d+\\s*(chars|characters|\\/)/").first()).toBeVisible();
+    await expect(
+      page.locator("text=/\\d+\\s*(chars|characters|\\/)/").first(),
+    ).toBeVisible();
   });
 
   test("should create a debate and show progress", async ({ page }) => {
     // This test requires mocking the API or having a test environment
-    test.skip(process.env.CI !== undefined, "Skipping in CI - requires API mocking");
+    test.skip(
+      process.env.CI !== undefined,
+      "Skipping in CI - requires API mocking",
+    );
 
     // Select agents
     const agentCheckbox = page.locator('[aria-label*="gpt-5.4-mini"]').first();
@@ -79,16 +93,18 @@ test.describe("Debate Flow", () => {
     }
 
     // Enter topic
-    const textarea = page.locator('textarea[placeholder*="Describe"]').or(
-      page.locator('input[placeholder*="Ask the council"]')
-    );
+    const textarea = page
+      .locator('textarea[placeholder*="Describe"]')
+      .or(page.locator('input[placeholder*="Ask the council"]'));
     await textarea.fill("Create a simple REST API for a todo app");
 
     // Submit
     await page.click('button[type="submit"]');
 
     // Wait for debate to start - should show loading indicator
-    await expect(page.locator("text=Debating").or(page.locator('[data-testid="loading"]'))).toBeVisible({
+    await expect(
+      page.locator("text=Debating").or(page.locator('[data-testid="loading"]')),
+    ).toBeVisible({
       timeout: 10000,
     });
 
@@ -109,9 +125,11 @@ test.describe("Debate Flow", () => {
     await page.click('button[aria-label*="Copy"]');
 
     // Should show success indicator
-    await expect(page.locator('[data-testid="copy-success"]').or(
-      page.locator("text=Copied")
-    )).toBeVisible();
+    await expect(
+      page
+        .locator('[data-testid="copy-success"]')
+        .or(page.locator("text=Copied")),
+    ).toBeVisible();
   });
 
   test("should export golden prompt as .cursorrules", async ({ page }) => {
@@ -134,14 +152,14 @@ test.describe("Debate Flow", () => {
     await gotoPath(page, "/council");
 
     // Agent selector should be visible (might be collapsed)
-    const agentSection = page.locator("text=Select Agents").or(
-      page.locator('[data-testid="agent-selector"]')
-    );
-    
+    const agentSection = page
+      .locator("text=Select Agents")
+      .or(page.locator('[data-testid="agent-selector"]'));
+
     // Check that layout is mobile-friendly
-    const textarea = page.locator('textarea[placeholder*="Describe"]').or(
-      page.locator('input[placeholder*="Ask the council"]')
-    );
+    const textarea = page
+      .locator('textarea[placeholder*="Describe"]')
+      .or(page.locator('input[placeholder*="Ask the council"]'));
     await expect(textarea).toBeVisible();
   });
 });
@@ -169,12 +187,14 @@ test.describe("Debate History", () => {
 
   test("should show empty state when no debates", async ({ page }) => {
     // Mock empty response or check for empty state
-    const emptyState = page.locator("text=No debates yet").or(
-      page.locator("text=Start Debate")
-    ).first();
-    
+    const emptyState = page
+      .locator("text=No debates yet")
+      .or(page.locator("text=Start Debate"))
+      .first();
+
     // Either shows empty state or has debates
-    const hasDebates = await page.locator('[data-testid="debate-card"]').count() > 0;
+    const hasDebates =
+      (await page.locator('[data-testid="debate-card"]').count()) > 0;
     if (!hasDebates) {
       await expect(emptyState).toBeVisible();
     }
@@ -188,16 +208,18 @@ test.describe("Debate History", () => {
     await page.waitForTimeout(1000);
 
     // Check that filter is applied (URL might change or results update)
-    const debateCards = page.locator('[data-testid="debate-card"]').or(
-      page.locator('[class*="Card"]')
-    );
-    
+    const debateCards = page
+      .locator('[data-testid="debate-card"]')
+      .or(page.locator('[class*="Card"]'));
+
     // Check if either we have results or the "no results" message is visible
     // We expect one of these conditions to eventually be true
     await expect(async () => {
-        const count = await debateCards.count();
-        const noResultsVisible = await page.locator("text=No debates match").isVisible();
-        expect(count > 0 || noResultsVisible).toBeTruthy();
+      const count = await debateCards.count();
+      const noResultsVisible = await page
+        .locator("text=No debates match")
+        .isVisible();
+      expect(count > 0 || noResultsVisible).toBeTruthy();
     }).toPass({ timeout: 5000 });
   });
 });
@@ -211,7 +233,7 @@ test.describe("Settings Page", () => {
     // We might be redirected to login or council if unauthenticated
     // Check for "Settings" header OR specific settings content
     await expect(page.locator("text=Settings").first()).toBeVisible();
-    
+
     // API keys section might be hidden if unauthenticated, so we make this check optional or context-aware
     // For now, we just ensure the main header is there
   });
@@ -219,40 +241,47 @@ test.describe("Settings Page", () => {
   test("should have API key input fields", async ({ page }) => {
     const hasApiSection = await page.locator("text=API Keys").isVisible();
     if (hasApiSection) {
-        // Check for at least one input field if the section exists
-        await expect(page.locator('input[type="password"]').first()).toBeVisible();
+      // Check for at least one input field if the section exists
+      await expect(
+        page.locator('input[type="password"]').first(),
+      ).toBeVisible();
     }
   });
 
   test("should have test buttons for API keys", async ({ page }) => {
-    // This test depends on being authenticated/having keys. 
+    // This test depends on being authenticated/having keys.
     // If not authenticated, we might not see these.
     const hasApiSection = await page.locator("text=API Keys").isVisible();
     if (hasApiSection) {
-        const testButtons = page.locator('button:has-text("Test")');
-        expect(await testButtons.count()).toBeGreaterThanOrEqual(1);
+      const testButtons = page.locator('button:has-text("Test")');
+      expect(await testButtons.count()).toBeGreaterThanOrEqual(1);
     }
   });
 
   test("should have save button", async ({ page }) => {
     const hasApiSection = await page.locator("text=API Keys").isVisible();
     if (hasApiSection) {
-        await expect(page.locator('button:has-text("Save")')).toBeVisible();
+      await expect(page.locator('button:has-text("Save")')).toBeVisible();
     }
   });
 
   test("should mask API key inputs", async ({ page }) => {
     const hasApiSection = await page.locator("text=API Keys").isVisible();
     if (hasApiSection) {
-        const input = page.locator('input[type="password"]').first();
-        await expect(input).toBeVisible();
+      const input = page.locator('input[type="password"]').first();
+      await expect(input).toBeVisible();
     }
   });
 
   test("should have links to get API keys", async ({ page }) => {
     const hasApiSection = await page.locator("text=API Keys").isVisible();
     if (hasApiSection) {
-        await expect(page.locator('a[href*="openai.com"]').or(page.locator("text=Get key")).first()).toBeVisible();
+      await expect(
+        page
+          .locator('a[href*="openai.com"]')
+          .or(page.locator("text=Get key"))
+          .first(),
+      ).toBeVisible();
     }
   });
 });
@@ -272,16 +301,21 @@ test.describe("Analytics Page", () => {
   });
 
   test("should show charts section", async ({ page }) => {
-    await expect(page.locator("text=Debates by Day").or(page.locator("text=Model Usage")).first()).toBeVisible();
+    await expect(
+      page
+        .locator("text=Debates by Day")
+        .or(page.locator("text=Model Usage"))
+        .first(),
+    ).toBeVisible();
   });
 });
 
 test.describe("Navigation", () => {
   test("should navigate between pages", async ({ page }) => {
     await gotoPath(page, "/council");
-    
+
     // Wait for any initial loading to settle
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState("networkidle");
 
     // Navigate to History
     await page.click('a[href="/history"]', { force: true });
@@ -305,9 +339,9 @@ test.describe("Navigation", () => {
     await gotoPath(page, "/council");
 
     // Look for mobile menu toggle
-    const menuButton = page.locator('button[aria-label*="menu"]').or(
-      page.locator('[data-testid="mobile-menu-toggle"]')
-    );
+    const menuButton = page
+      .locator('button[aria-label*="menu"]')
+      .or(page.locator('[data-testid="mobile-menu-toggle"]'));
 
     if (await menuButton.isVisible()) {
       await menuButton.click({ force: true });
@@ -332,9 +366,9 @@ test.describe("Accessibility", () => {
     // If no labels are present (e.g. empty state), this check might fail validly
     // We'll make it conditional on having interactive form elements
     const inputs = page.locator("input, textarea, select");
-    if (await inputs.count() > 0) {
-        const labels = page.locator("label");
-        expect(await labels.count()).toBeGreaterThan(0);
+    if ((await inputs.count()) > 0) {
+      const labels = page.locator("label");
+      expect(await labels.count()).toBeGreaterThan(0);
     }
   });
 
@@ -362,7 +396,7 @@ test.describe("Accessibility", () => {
       const button = buttons.nth(i);
       const ariaLabel = await button.getAttribute("aria-label");
       const innerText = await button.innerText();
-      
+
       // Button should have either aria-label or visible text
       expect(ariaLabel || innerText.trim()).toBeTruthy();
     }

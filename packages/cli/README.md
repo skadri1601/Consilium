@@ -61,41 +61,41 @@ consilium sessions resume <id>
 
 ## Commands
 
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `consilium debate <topic>` | `ask` | Start a multi-model debate |
-| `consilium chat` | | Interactive REPL with session persistence |
-| `consilium config set\|get\|list` | | Configuration management |
-| `consilium login` | | Web-based authentication (opens browser) |
-| `consilium debug <debateId>` | | Full debate trace |
-| `consilium logs <debateId>` | | Query debate logs |
-| `consilium stats` | | Model performance dashboard |
-| `consilium sessions list\|resume\|rename\|delete` | | Manage saved sessions |
+| Command                                           | Alias | Description                               |
+| ------------------------------------------------- | ----- | ----------------------------------------- |
+| `consilium debate <topic>`                        | `ask` | Start a multi-model debate                |
+| `consilium chat`                                  |       | Interactive REPL with session persistence |
+| `consilium config set\|get\|list`                 |       | Configuration management                  |
+| `consilium login`                                 |       | Web-based authentication (opens browser)  |
+| `consilium debug <debateId>`                      |       | Full debate trace                         |
+| `consilium logs <debateId>`                       |       | Query debate logs                         |
+| `consilium stats`                                 |       | Model performance dashboard               |
+| `consilium sessions list\|resume\|rename\|delete` |       | Manage saved sessions                     |
 
 ## Debate Options
 
-| Flag | Description |
-|------|-------------|
-| `-m, --models <models...>` | Select models for the debate |
-| `--output <format>` | Output format: markdown, cursorrules, claude-md, json |
-| `--mode <mode>` | Set debate mode (see below) |
-| `--file <paths...>` | Attach files as context (e.g., `--file src/auth.ts diagram.png`) |
-| `--git-diff` | Include current git diff as context |
-| `--ticket <id>` | Include a Linear ticket as context (e.g., `MYC-123`) |
-| `--apply` | Apply structured edits from synthesis directly to files |
+| Flag                       | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `-m, --models <models...>` | Select models for the debate                                     |
+| `--output <format>`        | Output format: markdown, cursorrules, claude-md, json            |
+| `--mode <mode>`            | Set debate mode (see below)                                      |
+| `--file <paths...>`        | Attach files as context (e.g., `--file src/auth.ts diagram.png`) |
+| `--git-diff`               | Include current git diff as context                              |
+| `--ticket <id>`            | Include a Linear ticket as context (e.g., `MYC-123`)             |
+| `--apply`                  | Apply structured edits from synthesis directly to files          |
 
 ## Debate Modes
 
-| Mode | Rounds | Cost | Description |
-|------|--------|------|-------------|
-| `quick` | 1 | ~$0.01 | Single round, fastest results |
-| `council` | 3 | ~$0.04 | Multi-round deliberation (default) |
-| `deep` | 3 | ~$0.08 | Multi-round with sub-agent research |
-| `blind` | 3 | ~$0.04 | Anonymous - models don't see each other's names |
-| `redteam` | 4 | ~$0.10 | Adversarial testing, finds attack surfaces |
-| `jury` | 3 | ~$0.05 | Panel with mandatory dissent tracking |
-| `market` | 5 | ~$0.09 | Prediction-market style with confidence voting |
-| `auto` | 3 | ~$0.04 | Auto-selects the best mode for your topic |
+| Mode      | Rounds | Cost   | Description                                     |
+| --------- | ------ | ------ | ----------------------------------------------- |
+| `quick`   | 1      | ~$0.01 | Single round, fastest results                   |
+| `council` | 3      | ~$0.04 | Multi-round deliberation (default)              |
+| `deep`    | 3      | ~$0.08 | Multi-round with sub-agent research             |
+| `blind`   | 3      | ~$0.04 | Anonymous - models don't see each other's names |
+| `redteam` | 4      | ~$0.10 | Adversarial testing, finds attack surfaces      |
+| `jury`    | 3      | ~$0.05 | Panel with mandatory dissent tracking           |
+| `market`  | 5      | ~$0.09 | Prediction-market style with confidence voting  |
+| `auto`    | 3      | ~$0.04 | Auto-selects the best mode for your topic       |
 
 ```bash
 consilium debate "Microservices vs monolith" --mode deep
@@ -105,13 +105,13 @@ consilium debate "Which approach?" --mode auto
 
 ## Output Formats
 
-| Format | Use Case |
-|--------|----------|
-| `markdown` | General documentation |
-| `cursorrules` | Cursor IDE rules file |
-| `claude-md` | CLAUDE.md instructions |
-| `json` | Programmatic consumption |
-| `text` | Plain text |
+| Format        | Use Case                 |
+| ------------- | ------------------------ |
+| `markdown`    | General documentation    |
+| `cursorrules` | Cursor IDE rules file    |
+| `claude-md`   | CLAUDE.md instructions   |
+| `json`        | Programmatic consumption |
+| `text`        | Plain text               |
 
 ```bash
 consilium debate "Error handling strategy" --output cursorrules
@@ -154,14 +154,14 @@ consilium benchmark --benchmark mmlu -n 20
 consilium benchmark --benchmark truthfulqa --local -n 10 --output results.json
 ```
 
-| Flag | Description |
-|------|-------------|
-| `--benchmark <name>` | Required: `mmlu`, `truthfulqa`, or `humaneval` |
-| `-m, --models <models...>` | Models to use as debaters |
-| `--mode <mode>` | Deliberation mode (default: council) |
-| `-n <count>` | Number of questions to run |
-| `--output <path>` | Save JSON results to file |
-| `--local` | Run via local Python agent instead of API |
+| Flag                       | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `--benchmark <name>`       | Required: `mmlu`, `truthfulqa`, or `humaneval` |
+| `-m, --models <models...>` | Models to use as debaters                      |
+| `--mode <mode>`            | Deliberation mode (default: council)           |
+| `-n <count>`               | Number of questions to run                     |
+| `--output <path>`          | Save JSON results to file                      |
+| `--local`                  | Run via local Python agent instead of API      |
 
 ## Eval
 
@@ -181,14 +181,14 @@ The `--responses` file should be a JSON array: `[{"model": "gpt-5.4", "text": ".
 
 Consilium supports 7 LLM providers as of April 2026. Bring your own key for any provider - or run without keys and Consilium will fall back to a platform-hosted free-tier pool (Groq + OpenRouter) so you can keep working at zero cost.
 
-| Provider | Current production models |
-|---|---|
-| **OpenAI** | `gpt-5.5-pro`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano` |
-| **Anthropic** | `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
-| **Google** | `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview` |
-| **Groq** | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini` |
-| **xAI** | `grok-4-20`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1` |
-| **Moonshot** | `kimi-k2.6`, `kimi-k2.5`, `kimi-k2-thinking`, `kimi-k2-thinking-turbo`, `kimi-k2-turbo-preview` |
+| Provider       | Current production models                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OpenAI**     | `gpt-5.5-pro`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano`                                                                                               |
+| **Anthropic**  | `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`                                                                            |
+| **Google**     | `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`                                                                               |
+| **Groq**       | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini`                             |
+| **xAI**        | `grok-4-20`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1`                                                                         |
+| **Moonshot**   | `kimi-k2.6`, `kimi-k2.5`, `kimi-k2-thinking`, `kimi-k2-thinking-turbo`, `kimi-k2-turbo-preview`                                                                   |
 | **OpenRouter** | `google/gemma-4-26b-a4b-it:free`, `google/gemma-4-31b-it:free`, `qwen/qwen3-coder:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `inclusionai/ling-2.6-1t:free` |
 
 Run `consilium models` for the live catalog with pricing and tier badges. Legacy IDs (e.g. `gpt-4o`, `claude-3-5-sonnet-latest`, `gemini-2.0-flash`) are forwarded to current replacements via aliases - but you should migrate your scripts.

@@ -27,7 +27,9 @@ export interface BreadcrumbItem {
   path: string;
 }
 
-export function breadcrumbList(items: BreadcrumbItem[]): Record<string, unknown> {
+export function breadcrumbList(
+  items: BreadcrumbItem[],
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -54,7 +56,9 @@ export interface ArticleSchemaInput {
   image?: string;
 }
 
-export function articleSchema(input: ArticleSchemaInput): Record<string, unknown> {
+export function articleSchema(
+  input: ArticleSchemaInput,
+): Record<string, unknown> {
   const url = `${SITE_URL}/blog/${input.slug}`;
   const image = input.image
     ? input.image.startsWith("http")
@@ -70,7 +74,8 @@ export function articleSchema(input: ArticleSchemaInput): Record<string, unknown
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     url,
     ...(input.publishedTime ? { datePublished: input.publishedTime } : {}),
-    dateModified: input.modifiedTime ?? input.publishedTime ?? new Date().toISOString(),
+    dateModified:
+      input.modifiedTime ?? input.publishedTime ?? new Date().toISOString(),
     author: input.authorName
       ? {
           "@type": "Person",
@@ -102,7 +107,9 @@ export interface PersonSchemaInput {
   image?: string;
 }
 
-export function personSchema(input: PersonSchemaInput): Record<string, unknown> {
+export function personSchema(
+  input: PersonSchemaInput,
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "Person",

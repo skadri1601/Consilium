@@ -19,8 +19,7 @@ const data: CompetitorComparison = {
   hero: {
     tagline:
       "Aider taught the CLI world how AI should edit code. Consilium asks: what if seven models did it together?",
-    hook:
-      "Aider is the gold standard for single-model, git-native CLI coding. Consilium is the same idea - except it runs three to five models in parallel and makes them argue.",
+    hook: "Aider is the gold standard for single-model, git-native CLI coding. Consilium is the same idea - except it runs three to five models in parallel and makes them argue.",
     intro: [
       "Aider has earned a deserved reputation. It writes commits with sensible messages, applies edits using a structured diff format, builds a repo map for context, and stays out of your way. The whole-file and udiff edit formats it pioneered are now standard practice across the agentic coding ecosystem - including in Consilium's own toolchain.",
       "Aider's core constraint is its core feature: one model, one voice, one perspective. You pick a model - Sonnet, GPT, DeepSeek, whatever - and that one model handles your request from start to finish. It's fast, cheap, and works well when the model is right.",
@@ -67,8 +66,10 @@ const data: CompetitorComparison = {
     },
     {
       feature: "Provider count",
-      consilium: "7 providers (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter)",
-      competitor: "Anthropic, OpenAI, Gemini, DeepSeek, Cohere, OpenRouter, Ollama",
+      consilium:
+        "7 providers (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter)",
+      competitor:
+        "Anthropic, OpenAI, Gemini, DeepSeek, Cohere, OpenRouter, Ollama",
       consiliumHas: true,
       competitorHas: true,
     },
@@ -140,7 +141,7 @@ const data: CompetitorComparison = {
   workflows: [
     {
       title: "Aider for routine commits, Consilium for the hard ones",
-      body: "Aider is faster, cheaper, and very good at routine refactors and bug fixes. When you hit something gnarly - a schema migration, an auth flow, a perf-critical hot path - pause Aider and run consilium debate \"<question>\". The council weighs in across providers, and you bring the synthesis back into your Aider session.",
+      body: 'Aider is faster, cheaper, and very good at routine refactors and bug fixes. When you hit something gnarly - a schema migration, an auth flow, a perf-critical hot path - pause Aider and run consilium debate "<question>". The council weighs in across providers, and you bring the synthesis back into your Aider session.',
     },
     {
       title: "Pre-merge security review",

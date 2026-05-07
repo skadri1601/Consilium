@@ -23,7 +23,9 @@ export function FooterSubscribeForm() {
         body: JSON.stringify({ email, source: "footer" }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}) as { error?: string });
+        const data = await response
+          .json()
+          .catch(() => ({}) as { error?: string });
         throw new Error(data.error ?? "Failed to subscribe");
       }
       setStatus("success");
@@ -31,7 +33,9 @@ export function FooterSubscribeForm() {
       setEmail("");
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Something went wrong");
+      setMessage(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     }
   }
 

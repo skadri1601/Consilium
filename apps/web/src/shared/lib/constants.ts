@@ -2,8 +2,10 @@ export const APP_NAME = "Consilium";
 export const APP_DESCRIPTION =
   "Multi-agent debate platform for better prompts and recommendations";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const AGENTS = [
   {
@@ -122,7 +124,8 @@ export const AGENTS = [
     id: "groq/compound",
     name: "Groq Compound",
     provider: "Groq",
-    description: "Groq's agentic system with built-in web search and code execution",
+    description:
+      "Groq's agentic system with built-in web search and code execution",
     free: false,
   },
   {
@@ -147,7 +150,7 @@ export const AGENTS = [
     free: false,
   },
   {
-    id: "grok-4-20",
+    id: "grok-4.20",
     name: "Grok 4.20",
     provider: "xAI",
     description: "xAI's flagship four-agent reasoning model",

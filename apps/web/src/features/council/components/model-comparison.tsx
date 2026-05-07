@@ -2,11 +2,25 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
-import { Columns2, List, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
-import { getAgentDisplayName, getProviderStyles } from "../utils/council-helpers";
+import {
+  Columns2,
+  List,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+} from "lucide-react";
+import {
+  getAgentDisplayName,
+  getProviderStyles,
+} from "../utils/council-helpers";
 
 interface Claim {
   text: string;
@@ -86,14 +100,18 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
           className={cn("h-full rounded-full", color)}
         />
       </div>
-      <span className="text-xs text-muted-foreground font-medium w-8 text-right">{pct}%</span>
+      <span className="text-xs text-muted-foreground font-medium w-8 text-right">
+        {pct}%
+      </span>
     </div>
   );
 }
 
 export function ModelComparison({ responses }: ModelComparisonProps) {
   const [leftIndex, setLeftIndex] = useState(0);
-  const [rightIndex, setRightIndex] = useState(Math.min(1, responses.length - 1));
+  const [rightIndex, setRightIndex] = useState(
+    Math.min(1, responses.length - 1),
+  );
   const [showClaims, setShowClaims] = useState(true);
   const [viewMode, setViewMode] = useState<"split" | "list">("split");
 
@@ -101,8 +119,9 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
   const right = responses[rightIndex];
 
   const diffSections = useMemo(
-    () => (left && right ? computeDiffSections(left.content, right.content) : []),
-    [left, right]
+    () =>
+      left && right ? computeDiffSections(left.content, right.content) : [],
+    [left, right],
   );
 
   if (responses.length < 2) return null;
@@ -176,11 +195,15 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
             <>
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Confidence</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Confidence
+                  </p>
                   <ConfidenceBar confidence={left.confidence} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Confidence</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Confidence
+                  </p>
                   <ConfidenceBar confidence={right.confidence} />
                 </div>
               </div>
@@ -190,7 +213,7 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                   <div
                     className={cn(
                       "rounded-lg border p-3 text-sm leading-relaxed max-h-[400px] overflow-y-auto",
-                      getProviderStyles(left.modelId, "thinking")
+                      getProviderStyles(left.modelId, "thinking"),
                     )}
                   >
                     {diffSections.map((section, i) => (
@@ -198,7 +221,7 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                         key={i}
                         className={cn(
                           section.type === "different" &&
-                            "bg-red-100 dark:bg-red-900/30 rounded px-0.5"
+                            "bg-red-100 dark:bg-red-900/30 rounded px-0.5",
                         )}
                       >
                         {section.leftText}{" "}
@@ -208,7 +231,7 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                   <div
                     className={cn(
                       "rounded-lg border p-3 text-sm leading-relaxed max-h-[400px] overflow-y-auto",
-                      getProviderStyles(right.modelId, "thinking")
+                      getProviderStyles(right.modelId, "thinking"),
                     )}
                   >
                     {diffSections.map((section, i) => (
@@ -216,7 +239,7 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                         key={i}
                         className={cn(
                           section.type === "different" &&
-                            "bg-blue-100 dark:bg-blue-900/30 rounded px-0.5"
+                            "bg-blue-100 dark:bg-blue-900/30 rounded px-0.5",
                         )}
                       >
                         {section.rightText}{" "}
@@ -233,12 +256,16 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                         "rounded-lg border p-3",
                         section.type === "different"
                           ? "border-amber-300/50 bg-amber-50/50 dark:bg-amber-950/10"
-                          : "border-border bg-muted/20"
+                          : "border-border bg-muted/20",
                       )}
                     >
                       <div className="grid grid-cols-2 gap-3 text-sm">
-                        <p className="text-muted-foreground">{section.leftText}</p>
-                        <p className="text-muted-foreground">{section.rightText}</p>
+                        <p className="text-muted-foreground">
+                          {section.leftText}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {section.rightText}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -280,14 +307,16 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                                   "rounded border px-2.5 py-1.5 text-xs",
                                   claim.supported
                                     ? "border-green-300/50 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300"
-                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
+                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300",
                                 )}
                               >
                                 {claim.text}
                               </div>
                             ))
                           ) : (
-                            <p className="text-xs text-muted-foreground">No claims extracted</p>
+                            <p className="text-xs text-muted-foreground">
+                              No claims extracted
+                            </p>
                           )}
                         </div>
                         <div className="space-y-1.5">
@@ -302,14 +331,16 @@ export function ModelComparison({ responses }: ModelComparisonProps) {
                                   "rounded border px-2.5 py-1.5 text-xs",
                                   claim.supported
                                     ? "border-green-300/50 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300"
-                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300"
+                                    : "border-red-300/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300",
                                 )}
                               >
                                 {claim.text}
                               </div>
                             ))
                           ) : (
-                            <p className="text-xs text-muted-foreground">No claims extracted</p>
+                            <p className="text-xs text-muted-foreground">
+                              No claims extracted
+                            </p>
                           )}
                         </div>
                       </div>

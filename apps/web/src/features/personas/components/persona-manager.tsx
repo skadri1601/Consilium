@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -90,7 +96,9 @@ export function PersonaManager() {
       {/* Create/Edit Form */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{editingId ? "Edit Persona" : "Create New Persona"}</CardTitle>
+          <CardTitle>
+            {editingId ? "Edit Persona" : "Create New Persona"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -98,7 +106,9 @@ export function PersonaManager() {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Security Expert"
             />
           </div>
@@ -107,7 +117,9 @@ export function PersonaManager() {
             <Input
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Brief description of this persona"
             />
           </div>
@@ -116,7 +128,9 @@ export function PersonaManager() {
             <Textarea
               id="systemPrompt"
               value={formData.systemPrompt}
-              onChange={(e) => setFormData({ ...formData, systemPrompt: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, systemPrompt: e.target.value })
+              }
               placeholder="Define the persona's perspective and expertise..."
               rows={6}
             />
@@ -126,10 +140,13 @@ export function PersonaManager() {
               {editingId ? "Update" : "Create"} Persona
             </Button>
             {editingId && (
-              <Button variant="outline" onClick={() => {
-                setEditingId(null);
-                setFormData({ name: "", description: "", systemPrompt: "" });
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingId(null);
+                  setFormData({ name: "", description: "", systemPrompt: "" });
+                }}
+              >
                 Cancel
               </Button>
             )}
@@ -197,4 +214,3 @@ export function PersonaManager() {
     </div>
   );
 }
-

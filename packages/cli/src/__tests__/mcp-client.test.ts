@@ -93,7 +93,13 @@ describe("StdioMcpClient", () => {
   });
 
   it("throws if callTool invoked before start", async () => {
-    const client = new StdioMcpClient({ name: "fake", command: process.execPath, args: [fakeServerPath] });
-    await expect(client.callTool("echo", {})).rejects.toThrow(/not initialized|process not started/);
+    const client = new StdioMcpClient({
+      name: "fake",
+      command: process.execPath,
+      args: [fakeServerPath],
+    });
+    await expect(client.callTool("echo", {})).rejects.toThrow(
+      /not initialized|process not started/,
+    );
   });
 });

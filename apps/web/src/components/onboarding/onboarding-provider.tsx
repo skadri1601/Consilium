@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import { WelcomeModal } from "./welcome-modal";
 
 interface OnboardingContextType {
@@ -10,7 +16,9 @@ interface OnboardingContextType {
   setShowWelcome: (show: boolean) => void;
 }
 
-const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
+const OnboardingContext = createContext<OnboardingContextType | undefined>(
+  undefined,
+);
 
 export function useOnboarding() {
   const context = useContext(OnboardingContext);
@@ -53,4 +61,3 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     </OnboardingContext.Provider>
   );
 }
-

@@ -1,13 +1,37 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/components/ui/dialog";
 import { DebateCardSkeleton } from "@/components/council/debate-card-skeleton";
-import { Search, MoreVertical, Pencil, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import {
+  Search,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Archive,
+  ArchiveRestore,
+} from "lucide-react";
 import Link from "next/link";
 
 interface Debate {
@@ -56,7 +80,7 @@ function DebateCardMenu({
         setRenameValue(debate.topic);
       }
     },
-    [handleRenameSubmit, debate.topic]
+    [handleRenameSubmit, debate.topic],
   );
 
   const handleDeleteConfirm = useCallback(() => {
@@ -137,7 +161,8 @@ function DebateCardMenu({
           <DialogHeader>
             <DialogTitle>Delete Debate</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this debate? This action cannot be undone.
+              Are you sure you want to delete this debate? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -210,7 +235,7 @@ export function DebateHistory() {
       });
       if (response.ok) {
         setDebates((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, topic: newTopic } : d))
+          prev.map((d) => (d.id === id ? { ...d, topic: newTopic } : d)),
         );
       }
     } catch {
@@ -239,8 +264,10 @@ export function DebateHistory() {
       if (response.ok) {
         setDebates((prev) =>
           prev.map((d) =>
-            d.id === id ? { ...d, status: archived ? "archived" : "completed" } : d
-          )
+            d.id === id
+              ? { ...d, status: archived ? "archived" : "completed" }
+              : d,
+          ),
         );
       }
     } catch {
@@ -248,26 +275,30 @@ export function DebateHistory() {
     }
   }, []);
 
-  const checkDateFilter = useCallback((dateString: string, filter: string): boolean => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const daysAgo = now.getTime() - date.getTime();
-    const days = daysAgo / (1000 * 60 * 60 * 24);
+  const checkDateFilter = useCallback(
+    (dateString: string, filter: string): boolean => {
+      const date = new Date(dateString);
+      const now = new Date();
+      const daysAgo = now.getTime() - date.getTime();
+      const days = daysAgo / (1000 * 60 * 60 * 24);
 
-    switch (filter) {
-      case "today":
-        return days < 1;
-      case "week":
-        return days < 7;
-      case "month":
-        return days < 30;
-      default:
-        return true;
-    }
-  }, []);
+      switch (filter) {
+        case "today":
+          return days < 1;
+        case "week":
+          return days < 7;
+        case "month":
+          return days < 30;
+        default:
+          return true;
+      }
+    },
+    [],
+  );
 
   const filteredDebates = debates.filter((debate) => {
-    const matchesDate = dateFilter === "all" || checkDateFilter(debate.createdAt, dateFilter);
+    const matchesDate =
+      dateFilter === "all" || checkDateFilter(debate.createdAt, dateFilter);
     const matchesArchive = showArchived
       ? debate.status === "archived"
       : debate.status !== "archived" && debate.status !== "deleted";
@@ -371,9 +402,12 @@ export function DebateHistory() {
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg mb-2 truncate">{debate.topic}</CardTitle>
+                    <CardTitle className="text-lg mb-2 truncate">
+                      {debate.topic}
+                    </CardTitle>
                     <CardDescription>
-                      {new Date(debate.createdAt).toLocaleDateString()} • {debate.status}
+                      {new Date(debate.createdAt).toLocaleDateString()} •{" "}
+                      {debate.status}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">

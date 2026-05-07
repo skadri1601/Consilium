@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { Users, MessageSquare, History, BarChart3, Settings } from "lucide-react";
+import {
+  Users,
+  MessageSquare,
+  History,
+  BarChart3,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 const navigation = [
@@ -35,7 +41,7 @@ export function Sidebar() {
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -51,7 +57,10 @@ export function Sidebar() {
           <div className="flex-1">
             <p className="text-sm font-medium">Account</p>
           </div>
-          <Link href="/settings" className="text-muted-foreground hover:text-foreground">
+          <Link
+            href="/settings"
+            className="text-muted-foreground hover:text-foreground"
+          >
             <Settings className="h-5 w-5" />
           </Link>
         </div>

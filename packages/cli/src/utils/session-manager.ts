@@ -61,13 +61,7 @@ function searchHitsForDebate(
       sessionId,
       sessionName,
       debateTopic: debate.topic,
-      matchSnippet: buildMatchSnippet(
-        debate.topic,
-        lowerQuery,
-        query,
-        20,
-        20,
-      ),
+      matchSnippet: buildMatchSnippet(debate.topic, lowerQuery, query, 20, 20),
       matchType: "topic",
     });
   }

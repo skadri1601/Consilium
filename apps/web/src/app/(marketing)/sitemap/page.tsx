@@ -81,10 +81,12 @@ const blogLinks: Group["links"] = [...blogPosts]
     title: `${post.title} (${post.date})`,
   }));
 
-const notionDocsLinks: Group["links"] = Object.keys(NOTION_DOCS).map((slug) => ({
-  href: `/docs/notion/${slug}`,
-  title: slug.replace(/[-_]/g, " "),
-}));
+const notionDocsLinks: Group["links"] = Object.keys(NOTION_DOCS).map(
+  (slug) => ({
+    href: `/docs/notion/${slug}`,
+    title: slug.replace(/[-_]/g, " "),
+  }),
+);
 
 const groups: Group[] = [
   {

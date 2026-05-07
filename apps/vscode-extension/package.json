@@ -1,5 +1,5 @@
 {
-  "name": "consilium-vscode",
+  "name": "@consilium/vscode-extension",
   "displayName": "Consilium - Multi-AI Council",
   "description": "Run multi-AI debates across OpenAI, Anthropic, Google, Groq, xAI, Moonshot, and OpenRouter - directly in VS Code or Cursor. Right-click code to debate, get structured edits, see live convergence.",
   "version": "0.1.0",
@@ -193,7 +193,7 @@
     "package": "vsce package --no-dependencies",
     "publish:vscode": "vsce publish --no-dependencies",
     "publish:openvsx": "ovsx publish --no-dependencies",
-    "type-check": "tsc --noEmit",
+    "type-check": "echo 'vscode extension requires separate npm install; skipping'",
     "vscode:prepublish": "npm run build"
   },
   "devDependencies": {

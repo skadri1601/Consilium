@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import { PrismaClient } from "@consilium/database";
 

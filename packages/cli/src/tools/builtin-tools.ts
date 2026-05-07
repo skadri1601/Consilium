@@ -15,7 +15,11 @@ const execFileAsync = promisify(execFile);
 export interface ToolSchemaJson {
   name: string;
   description: string;
-  inputSchema: { type: "object"; properties: Record<string, unknown>; required?: string[] };
+  inputSchema: {
+    type: "object";
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
 }
 
 export interface ToolResult {
@@ -36,9 +40,21 @@ const BASH_TIMEOUT_MS = 30000;
 const BASH_MAX_OUTPUT = 64 * 1024;
 
 const SKIP_DIRS = new Set([
-  "node_modules", ".git", ".next", "dist", "build", ".turbo", ".cache",
-  "coverage", ".vercel", ".pnpm-store", "venv", ".venv", "__pycache__",
-  ".pytest_cache", ".mypy_cache",
+  "node_modules",
+  ".git",
+  ".next",
+  "dist",
+  "build",
+  ".turbo",
+  ".cache",
+  "coverage",
+  ".vercel",
+  ".pnpm-store",
+  "venv",
+  ".venv",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
 ]);
 
 function normalizeInsideRoot(cwd: string, relPath: string): string {
@@ -58,7 +74,11 @@ function normalizeInsideRoot(cwd: string, relPath: string): string {
  */
 function stringArg(value: unknown): string {
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint"
+  ) {
     return String(value);
   }
   return "";
@@ -81,7 +101,9 @@ function ensureReadAllowed(cwd: string): void {
 function ensureWriteAllowed(cwd: string): void {
   const level = getWritePermissionLevel(cwd);
   if (level === "deny" || level === "unset") {
-    throw new Error(`Codebase write not allowed for ${cwd}. Use /apply to grant per-session write.`);
+    throw new Error(
+      `Codebase write not allowed for ${cwd}. Use /apply to grant per-session write.`,
+    );
   }
   if (!consumeWritePermission(cwd)) {
     throw new Error(`Codebase write permission consumed; re-grant via /apply.`);
@@ -98,14 +120,24 @@ export const READ_SCHEMA: ToolSchemaJson = {
     type: "object",
     properties: {
       path: { type: "string", description: "Project-relative file path" },
-      offset: { type: "integer", description: "Starting line (1-indexed)", default: 1 },
-      limit: { type: "integer", description: "Max lines to read (default: 2000)" },
+      offset: {
+        type: "integer",
+        description: "Starting line (1-indexed)",
+        default: 1,
+      },
+      limit: {
+        type: "integer",
+        description: "Max lines to read (default: 2000)",
+      },
     },
     required: ["path"],
   },
 };
 
-export async function handleRead(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleRead(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
   const relPath = stringArg(args.path);
   if (!relPath) return fail("path is required");
@@ -114,15 +146,22 @@ export async function handleRead(args: Record<string, unknown>, ctx: ToolContext
   const stat = fs.statSync(abs);
   if (stat.isDirectory()) return fail(`Path is a directory: ${relPath}`);
   if (stat.size > MAX_FILE_BYTES) {
-    return fail(`File too large: ${relPath} (${stat.size} bytes; max ${MAX_FILE_BYTES})`);
+    return fail(
+      `File too large: ${relPath} (${stat.size} bytes; max ${MAX_FILE_BYTES})`,
+    );
   }
   const content = fs.readFileSync(abs, "utf-8");
   const lines = content.split("\n");
   const offset = Math.max(1, Number(args.offset ?? 1));
   const limit = Math.max(1, Number(args.limit ?? 2000));
   const slice = lines.slice(offset - 1, offset - 1 + limit);
-  const numbered = slice.map((line, i) => `${String(offset + i).padStart(5)}\t${line}`).join("\n");
-  const truncated = offset - 1 + limit < lines.length ? `\n[... ${lines.length - (offset - 1 + limit)} more lines]` : "";
+  const numbered = slice
+    .map((line, i) => `${String(offset + i).padStart(5)}\t${line}`)
+    .join("\n");
+  const truncated =
+    offset - 1 + limit < lines.length
+      ? `\n[... ${lines.length - (offset - 1 + limit)} more lines]`
+      : "";
   return ok(`${relPath}:\n${numbered}${truncated}`);
 }
 
@@ -136,15 +175,25 @@ export const EDIT_SCHEMA: ToolSchemaJson = {
     type: "object",
     properties: {
       path: { type: "string", description: "Project-relative file path" },
-      old_string: { type: "string", description: "Exact text to find. Empty to create new file." },
+      old_string: {
+        type: "string",
+        description: "Exact text to find. Empty to create new file.",
+      },
       new_string: { type: "string", description: "Replacement text" },
-      replace_all: { type: "boolean", description: "Replace all occurrences", default: false },
+      replace_all: {
+        type: "boolean",
+        description: "Replace all occurrences",
+        default: false,
+      },
     },
     required: ["path", "old_string", "new_string"],
   },
 };
 
-export async function handleEdit(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleEdit(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Edit refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
   const relPath = stringArg(args.path);
@@ -184,7 +233,10 @@ export const WRITE_SCHEMA: ToolSchemaJson = {
   },
 };
 
-export async function handleWrite(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleWrite(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Write refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
   const relPath = stringArg(args.path);
@@ -194,7 +246,9 @@ export async function handleWrite(args: Record<string, unknown>, ctx: ToolContex
   const action: EditAction = { kind: "write", path: relPath, content };
   try {
     const result = applyEdits(ctx.cwd, [action]);
-    return ok(`Wrote ${relPath} (${content.length} bytes, snapshot ${result.snapshot.id}).`);
+    return ok(
+      `Wrote ${relPath} (${content.length} bytes, snapshot ${result.snapshot.id}).`,
+    );
   } catch (err) {
     return fail(`Write failed: ${(err as Error).message}`);
   }
@@ -209,8 +263,14 @@ export const GLOB_SCHEMA: ToolSchemaJson = {
   inputSchema: {
     type: "object",
     properties: {
-      pattern: { type: "string", description: "Glob pattern, project-relative" },
-      cwd: { type: "string", description: "Optional subdirectory to search from" },
+      pattern: {
+        type: "string",
+        description: "Glob pattern, project-relative",
+      },
+      cwd: {
+        type: "string",
+        description: "Optional subdirectory to search from",
+      },
     },
     required: ["pattern"],
   },
@@ -219,14 +279,28 @@ export const GLOB_SCHEMA: ToolSchemaJson = {
 // Characters that need to be escaped when copied verbatim into a regex
 // produced by `compileGlob`. Kept as a Set for O(1) membership checks
 // (and to sidestep template-literal escaping pitfalls).
-const GLOB_REGEX_META = new Set([".", "+", "^", "$", "(", ")", "|", "[", "]", "\\"]);
+const GLOB_REGEX_META = new Set([
+  ".",
+  "+",
+  "^",
+  "$",
+  "(",
+  ")",
+  "|",
+  "[",
+  "]",
+  "\\",
+]);
 const GLOB_ALT_META_RE = /[.+^$()|[\]\\]/g;
 
 function escapeGlobAlt(literal: string): string {
   return literal.replaceAll(GLOB_ALT_META_RE, String.raw`\$&`);
 }
 
-function compileGlobAlternation(pattern: string, start: number): { regex: string; nextIndex: number } {
+function compileGlobAlternation(
+  pattern: string,
+  start: number,
+): { regex: string; nextIndex: number } {
   const end = pattern.indexOf("}", start);
   if (end === -1) {
     return { regex: String.raw`\{`, nextIndex: start };
@@ -238,7 +312,10 @@ function compileGlobAlternation(pattern: string, start: number): { regex: string
   return { regex: `(?:${opts.join("|")})`, nextIndex: end };
 }
 
-function compileGlobStar(pattern: string, index: number): { regex: string; nextIndex: number } {
+function compileGlobStar(
+  pattern: string,
+  index: number,
+): { regex: string; nextIndex: number } {
   if (pattern[index + 1] === "*") {
     const after = pattern[index + 2] === "/" ? index + 3 : index + 2;
     return { regex: ".*", nextIndex: after };
@@ -294,7 +371,10 @@ function walkFiles(root: string, base: string, out: string[]): void {
   }
 }
 
-export async function handleGlob(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleGlob(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
   const pattern = stringArg(args.pattern);
   if (!pattern) return fail("pattern is required");
@@ -317,8 +397,13 @@ export async function handleGlob(args: Record<string, unknown>, ctx: ToolContext
     .slice(0, MAX_GLOB_RESULTS)
     .map((x) => x.p);
   if (withMtime.length === 0) return ok(`No matches for ${pattern}`);
-  const truncated = matches.length > withMtime.length ? `\n[... ${matches.length - withMtime.length} more]` : "";
-  return ok(`${withMtime.length} match${withMtime.length === 1 ? "" : "es"}:\n${withMtime.join("\n")}${truncated}`);
+  const truncated =
+    matches.length > withMtime.length
+      ? `\n[... ${matches.length - withMtime.length} more]`
+      : "";
+  return ok(
+    `${withMtime.length} match${withMtime.length === 1 ? "" : "es"}:\n${withMtime.join("\n")}${truncated}`,
+  );
 }
 
 // ───────── Grep ─────────
@@ -331,8 +416,15 @@ export const GREP_SCHEMA: ToolSchemaJson = {
     type: "object",
     properties: {
       pattern: { type: "string", description: "Regex pattern" },
-      glob: { type: "string", description: "Optional file glob to restrict search (e.g. **/*.ts)" },
-      ignore_case: { type: "boolean", description: "Case-insensitive match", default: false },
+      glob: {
+        type: "string",
+        description: "Optional file glob to restrict search (e.g. **/*.ts)",
+      },
+      ignore_case: {
+        type: "boolean",
+        description: "Case-insensitive match",
+        default: false,
+      },
     },
     required: ["pattern"],
   },
@@ -353,7 +445,12 @@ function readFileForGrep(abs: string): string | null {
   }
 }
 
-function collectMatchesInFile(rel: string, content: string, regex: RegExp, matches: string[]): void {
+function collectMatchesInFile(
+  rel: string,
+  content: string,
+  regex: RegExp,
+  matches: string[],
+): void {
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     if (matches.length >= MAX_GREP_RESULTS) break;
@@ -365,7 +462,10 @@ function collectMatchesInFile(rel: string, content: string, regex: RegExp, match
   }
 }
 
-export async function handleGrep(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleGrep(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
   const pattern = stringArg(args.pattern);
   if (!pattern) return fail("pattern is required");
@@ -403,17 +503,31 @@ export const GIT_DIFF_SCHEMA: ToolSchemaJson = {
   inputSchema: {
     type: "object",
     properties: {
-      staged: { type: "boolean", description: "Show staged changes only", default: false },
-      path: { type: "string", description: "Optional path to limit diff scope" },
+      staged: {
+        type: "boolean",
+        description: "Show staged changes only",
+        default: false,
+      },
+      path: {
+        type: "string",
+        description: "Optional path to limit diff scope",
+      },
     },
   },
 };
 
-export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleGitDiff(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   ensureReadAllowed(ctx.cwd);
   const staged = Boolean(args.staged ?? false);
   const subPath = stringArg(args.path) || undefined;
-  const argv = ["diff", ...(staged ? ["--staged"] : []), ...(subPath ? ["--", subPath] : [])];
+  const argv = [
+    "diff",
+    ...(staged ? ["--staged"] : []),
+    ...(subPath ? ["--", subPath] : []),
+  ];
   try {
     const { stdout } = await execFileAsync("git", argv, {
       cwd: ctx.cwd,
@@ -421,7 +535,11 @@ export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolCont
       timeout: BASH_TIMEOUT_MS,
     });
     if (!stdout.trim()) return ok("(no changes)");
-    return ok(stdout.length > BASH_MAX_OUTPUT ? stdout.slice(0, BASH_MAX_OUTPUT) + "\n[... truncated]" : stdout);
+    return ok(
+      stdout.length > BASH_MAX_OUTPUT
+        ? stdout.slice(0, BASH_MAX_OUTPUT) + "\n[... truncated]"
+        : stdout,
+    );
   } catch (err) {
     return fail(`git diff failed: ${(err as Error).message}`);
   }
@@ -429,12 +547,27 @@ export async function handleGitDiff(args: Record<string, unknown>, ctx: ToolCont
 
 // ───────── Bash (gated) ─────────
 
-const BASH_ACCIDENTAL_DESTRUCTIVE_PATTERNS: ReadonlyArray<{ re: RegExp; label: string }> = [
-  { re: /(^|[\s;&|`(])rm(\s+(-[a-zA-Z]{1,8}|--[a-z-]{1,32}))+\s+\/(\s|$)/, label: "rm -rf /" },
+const BASH_ACCIDENTAL_DESTRUCTIVE_PATTERNS: ReadonlyArray<{
+  re: RegExp;
+  label: string;
+}> = [
+  {
+    re: /(^|[\s;&|`(])rm(\s+(-[a-zA-Z]{1,8}|--[a-z-]{1,32}))+\s+\/(\s|$)/,
+    label: "rm -rf /",
+  },
   { re: /(^|[\s;&|`(])sudo(\s|$)/, label: "sudo" },
-  { re: /(^|[\s;&|`(])(curl|wget)\b[^|]{0,200}\|\s*(sh|bash|zsh)(\s|$)/, label: "curl|sh" },
-  { re: /:\s*\(\s*\)\s*\{[^}]{0,40}:\s*\|\s*:\s*&\s*\}\s*;\s*:/, label: "fork bomb" },
-  { re: /(^|[\s;&|`(])dd\s+[^|]{0,100}if=\/dev\/(zero|random|urandom)\b/, label: "dd if=/dev/zero" },
+  {
+    re: /(^|[\s;&|`(])(curl|wget)\b[^|]{0,200}\|\s*(sh|bash|zsh)(\s|$)/,
+    label: "curl|sh",
+  },
+  {
+    re: /:\s*\(\s*\)\s*\{[^}]{0,40}:\s*\|\s*:\s*&\s*\}\s*;\s*:/,
+    label: "fork bomb",
+  },
+  {
+    re: /(^|[\s;&|`(])dd\s+[^|]{0,100}if=\/dev\/(zero|random|urandom)\b/,
+    label: "dd if=/dev/zero",
+  },
   { re: /(^|[\s;&|`(])mkfs(\.[a-z0-9]{1,8})?\b/, label: "mkfs" },
   { re: /(^|[\s;&|`(])shutdown(\s|$)/, label: "shutdown" },
   { re: /(^|[\s;&|`(])reboot(\s|$)/, label: "reboot" },
@@ -450,13 +583,20 @@ export const BASH_SCHEMA: ToolSchemaJson = {
     type: "object",
     properties: {
       command: { type: "string", description: "Shell command to execute" },
-      timeout_ms: { type: "integer", description: "Max execution time in ms (default 30000)", default: 30000 },
+      timeout_ms: {
+        type: "integer",
+        description: "Max execution time in ms (default 30000)",
+        default: 30000,
+      },
     },
     required: ["command"],
   },
 };
 
-export async function handleBash(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+export async function handleBash(
+  args: Record<string, unknown>,
+  ctx: ToolContext,
+): Promise<ToolResult> {
   if (ctx.readOnly) return fail("Bash refused: read-only context");
   ensureWriteAllowed(ctx.cwd);
   const command = stringArg(args.command).trim();
@@ -469,10 +609,14 @@ export async function handleBash(args: Record<string, unknown>, ctx: ToolContext
     }
   }
 
-  const timeoutMs = Math.min(BASH_TIMEOUT_MS, Math.max(1000, Number(args.timeout_ms ?? BASH_TIMEOUT_MS)));
+  const timeoutMs = Math.min(
+    BASH_TIMEOUT_MS,
+    Math.max(1000, Number(args.timeout_ms ?? BASH_TIMEOUT_MS)),
+  );
   try {
     const shell = process.platform === "win32" ? "cmd" : "/bin/sh";
-    const shellArgs = process.platform === "win32" ? ["/c", command] : ["-c", command];
+    const shellArgs =
+      process.platform === "win32" ? ["/c", command] : ["-c", command];
     const { stdout, stderr } = await execFileAsync(shell, shellArgs, {
       cwd: ctx.cwd,
       timeout: timeoutMs,
@@ -484,7 +628,12 @@ export async function handleBash(args: Record<string, unknown>, ctx: ToolContext
     }
     return ok(out || "(no output)");
   } catch (err) {
-    const e = err as { message?: string; stdout?: string; stderr?: string; code?: number };
+    const e = err as {
+      message?: string;
+      stdout?: string;
+      stderr?: string;
+      code?: number;
+    };
     const summary = `exit ${e.code ?? "?"}: ${e.message ?? "unknown"}`;
     const tail = (e.stderr || e.stdout || "").slice(-2000);
     const suffix = tail ? "\n" + tail : "";
@@ -504,7 +653,10 @@ export const BUILTIN_TOOLS: ToolSchemaJson[] = [
   BASH_SCHEMA,
 ];
 
-const HANDLERS: Record<string, (args: Record<string, unknown>, ctx: ToolContext) => Promise<ToolResult>> = {
+const HANDLERS: Record<
+  string,
+  (args: Record<string, unknown>, ctx: ToolContext) => Promise<ToolResult>
+> = {
   [READ_SCHEMA.name]: handleRead,
   [EDIT_SCHEMA.name]: handleEdit,
   [WRITE_SCHEMA.name]: handleWrite,

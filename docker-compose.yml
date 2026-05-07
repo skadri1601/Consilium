@@ -122,8 +122,8 @@ services:
     container_name: consilium-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP
-      - "8025:8025"  # Web UI
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
     networks:
       - consilium-network
 

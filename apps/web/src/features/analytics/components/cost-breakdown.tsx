@@ -1,10 +1,30 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { useCostByModel } from "../hooks/use-analytics";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"];
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884d8",
+  "#82ca9d",
+];
 
 export function CostBreakdown() {
   const { costByModel, isLoading, error } = useCostByModel();
@@ -83,7 +103,10 @@ export function CostBreakdown() {
               labelLine={false}
               label={({ name, percent }) => {
                 const percentage = (percent * 100).toFixed(1);
-                const displayName = name.replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ');
+                const displayName = name
+                  .replace("gpt-", "GPT-")
+                  .replace("claude-", "Claude ")
+                  .replace("gemini-", "Gemini ");
                 return `${displayName} (${percentage}%)`;
               }}
               outerRadius={80}
@@ -91,15 +114,30 @@ export function CostBreakdown() {
               dataKey="value"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
+                <Cell
+                  key={`cell-${entry.name}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`$${value.toFixed(4)}`, 'Cost']}
-              labelFormatter={(label) => label.toString().replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ')}
+              formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+              labelFormatter={(label) =>
+                label
+                  .toString()
+                  .replace("gpt-", "GPT-")
+                  .replace("claude-", "Claude ")
+                  .replace("gemini-", "Gemini ")
+              }
             />
             <Legend
-              formatter={(value) => value.toString().replace('gpt-', 'GPT-').replace('claude-', 'Claude ').replace('gemini-', 'Gemini ')}
+              formatter={(value) =>
+                value
+                  .toString()
+                  .replace("gpt-", "GPT-")
+                  .replace("claude-", "Claude ")
+                  .replace("gemini-", "Gemini ")
+              }
             />
           </PieChart>
         </ResponsiveContainer>

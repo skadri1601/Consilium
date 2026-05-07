@@ -22,21 +22,70 @@ export interface ProjectContext {
   totalSize: number;
 }
 
-const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "__pycache__", ".next", ".venv", "vendor", "build"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  ".git",
+  "__pycache__",
+  ".next",
+  ".venv",
+  "vendor",
+  "build",
+]);
 const MAX_FILES = 200;
 const MAX_FILE_SIZE = 50 * 1024;
 const MAX_TOTAL_SIZE = 2 * 1024 * 1024;
 
-const MANIFEST_NAMES = new Set(["package.json", "Cargo.toml", "pyproject.toml", "go.mod", "pom.xml", "build.gradle", "setup.py", "setup.cfg"]);
+const MANIFEST_NAMES = new Set([
+  "package.json",
+  "Cargo.toml",
+  "pyproject.toml",
+  "go.mod",
+  "pom.xml",
+  "build.gradle",
+  "setup.py",
+  "setup.cfg",
+]);
 
-const SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".rs", ".go", ".java", ".c", ".cpp", ".h", ".hpp", ".cs", ".rb", ".php", ".swift", ".kt"]);
-const CONFIG_EXTS = new Set([".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".xml", ".env", ".conf"]);
+const SOURCE_EXTS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".py",
+  ".rs",
+  ".go",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".hpp",
+  ".cs",
+  ".rb",
+  ".php",
+  ".swift",
+  ".kt",
+]);
+const CONFIG_EXTS = new Set([
+  ".json",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".ini",
+  ".cfg",
+  ".xml",
+  ".env",
+  ".conf",
+]);
 const DOC_EXTS = new Set([".md", ".txt", ".rst"]);
 
 function loadGitignorePatterns(projectPath: string): Set<string> {
   const patterns = new Set<string>();
   try {
-    const gitignore = fs.readFileSync(path.join(projectPath, ".gitignore"), "utf-8");
+    const gitignore = fs.readFileSync(
+      path.join(projectPath, ".gitignore"),
+      "utf-8",
+    );
     for (const line of gitignore.split("\n")) {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith("#")) {
@@ -54,7 +103,14 @@ function loadGitignorePatterns(projectPath: string): Set<string> {
 
 function shouldSkip(name: string, gitignorePatterns: Set<string>): boolean {
   if (SKIP_DIRS.has(name)) return true;
-  if (name.startsWith(".") && name !== ".github" && name !== ".env.example" && name !== ".env.sample" && name !== ".env.template") return true;
+  if (
+    name.startsWith(".") &&
+    name !== ".github" &&
+    name !== ".env.example" &&
+    name !== ".env.sample" &&
+    name !== ".env.template"
+  )
+    return true;
   return gitignorePatterns.has(name);
 }
 
@@ -79,7 +135,9 @@ function discoverFiles(projectPath: string): FileInfo[] {
       if (shouldSkip(entry.name, gitignorePatterns)) continue;
 
       const fullPath = path.join(dir, entry.name);
-      const relativePath = path.relative(projectPath, fullPath).replaceAll("\\", "/");
+      const relativePath = path
+        .relative(projectPath, fullPath)
+        .replaceAll("\\", "/");
 
       if (entry.isDirectory()) {
         walk(fullPath, depth + 1);
@@ -118,7 +176,13 @@ function prioritizeFiles(files: FileInfo[]): FileInfo[] {
       manifests.push(f);
     } else if (SOURCE_EXTS.has(ext)) {
       source.push(f);
-    } else if (CONFIG_EXTS.has(ext) || basename.startsWith(".") || basename === "Dockerfile" || basename === "Makefile" || basename === "Jenkinsfile") {
+    } else if (
+      CONFIG_EXTS.has(ext) ||
+      basename.startsWith(".") ||
+      basename === "Dockerfile" ||
+      basename === "Makefile" ||
+      basename === "Jenkinsfile"
+    ) {
       config.push(f);
     } else if (DOC_EXTS.has(ext)) {
       docs.push(f);
@@ -127,13 +191,23 @@ function prioritizeFiles(files: FileInfo[]): FileInfo[] {
     }
   }
 
-  source.sort((a, b) => a.relativePath.split("/").length - b.relativePath.split("/").length);
+  source.sort(
+    (a, b) =>
+      a.relativePath.split("/").length - b.relativePath.split("/").length,
+  );
 
   const prioritized = [...manifests, ...source, ...config, ...docs, ...other];
   return prioritized.slice(0, MAX_FILES);
 }
 
-function readFiles(projectPath: string, files: FileInfo[]): { manifests: Map<string, string>; sourceFiles: Map<string, string>; allFiles: Map<string, string> } {
+function readFiles(
+  projectPath: string,
+  files: FileInfo[],
+): {
+  manifests: Map<string, string>;
+  sourceFiles: Map<string, string>;
+  allFiles: Map<string, string>;
+} {
   const manifests = new Map<string, string>();
   const sourceFiles = new Map<string, string>();
   const allFiles = new Map<string, string>();
@@ -173,10 +247,15 @@ function readFiles(projectPath: string, files: FileInfo[]): { manifests: Map<str
   return { manifests, sourceFiles, allFiles };
 }
 
-export async function scanCodebase(projectPath: string): Promise<ProjectContext> {
+export async function scanCodebase(
+  projectPath: string,
+): Promise<ProjectContext> {
   const discovered = discoverFiles(projectPath);
   const prioritized = prioritizeFiles(discovered);
-  const { manifests, sourceFiles, allFiles } = readFiles(projectPath, prioritized);
+  const { manifests, sourceFiles, allFiles } = readFiles(
+    projectPath,
+    prioritized,
+  );
   const fileList = prioritized.map((f) => f.relativePath);
 
   const [structure, architecture, config] = await Promise.all([

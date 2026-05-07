@@ -28,9 +28,7 @@ export class ModelTreeItem extends vscode.TreeItem {
   }
 }
 
-export class ModelsTreeProvider
-  implements vscode.TreeDataProvider<ModelTreeItem>
-{
+export class ModelsTreeProvider implements vscode.TreeDataProvider<ModelTreeItem> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 

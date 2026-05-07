@@ -108,7 +108,10 @@ export const metadata: Metadata = {
         ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
         : {}),
       ...(process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION
-        ? { "yandex-verification": process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION }
+        ? {
+            "yandex-verification":
+              process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION,
+          }
         : {}),
     },
   },

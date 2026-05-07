@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: "0 9 * * 1"
 
 concurrency:
   group: security-${{ github.ref }}
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Poetry
         uses: snok/install-poetry@v1

@@ -128,11 +128,23 @@ async function main(): Promise<void> {
     )
     .option("--git-diff", "(legacy alias - git context is now on by default)")
     .option("--no-git", "Don't auto-attach git diff/branch/recent commits")
-    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools to the council")
+    .option(
+      "--no-tools",
+      "Don't expose Read/Edit/Grep/Bash tools to the council",
+    )
     .option("--no-context", "Disable automatic codebase context loading")
-    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
-    .option("--apply", "Apply structured edits from synthesis directly to files")
-    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
+    .option(
+      "--ticket <id>",
+      "Linear ticket ID to include as context (e.g., MYC-123)",
+    )
+    .option(
+      "--apply",
+      "Apply structured edits from synthesis directly to files",
+    )
+    .option(
+      "--file <paths...>",
+      "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
+    )
     .action(debateCommand);
 
   program
@@ -140,18 +152,33 @@ async function main(): Promise<void> {
     .description("Ask a question (alias for debate)")
     .argument("<topic>", "Question or topic")
     .option("-m, --models <models...>", "Models to use")
-    .option("--mode <mode>", "Debate mode: quick, council, deep, blind, redteam, jury, market, auto")
+    .option(
+      "--mode <mode>",
+      "Debate mode: quick, council, deep, blind, redteam, jury, market, auto",
+    )
     .option(
       "--output <format>",
       "Output format: markdown, cursorrules, claude-md, json",
     )
     .option("--git-diff", "(legacy alias - git context is now on by default)")
     .option("--no-git", "Don't auto-attach git diff/branch/recent commits")
-    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools to the council")
+    .option(
+      "--no-tools",
+      "Don't expose Read/Edit/Grep/Bash tools to the council",
+    )
     .option("--no-context", "Disable automatic codebase context loading")
-    .option("--ticket <id>", "Linear ticket ID to include as context (e.g., MYC-123)")
-    .option("--apply", "Apply structured edits from synthesis directly to files")
-    .option("--file <paths...>", "Files to attach as context (e.g., --file src/auth.ts diagram.png)")
+    .option(
+      "--ticket <id>",
+      "Linear ticket ID to include as context (e.g., MYC-123)",
+    )
+    .option(
+      "--apply",
+      "Apply structured edits from synthesis directly to files",
+    )
+    .option(
+      "--file <paths...>",
+      "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
+    )
     .action(debateCommand);
 
   program
@@ -173,7 +200,10 @@ async function main(): Promise<void> {
   program
     .command("benchmark")
     .description("Run deliberation benchmarks (MMLU, TruthfulQA, HumanEval)")
-    .requiredOption("--benchmark <name>", "Benchmark: mmlu, truthfulqa, humaneval")
+    .requiredOption(
+      "--benchmark <name>",
+      "Benchmark: mmlu, truthfulqa, humaneval",
+    )
     .option("-m, --models <models...>", "Models to use")
     .option("--mode <mode>", "Deliberation mode (default: council)")
     .option("-n, --n <count>", "Number of questions")
@@ -217,25 +247,43 @@ async function main(): Promise<void> {
 
   program
     .command("debate-pr")
-    .description("Fetch a GitHub PR via gh and debate it (review, design, security)")
-    .argument("<pr>", "PR number or URL (e.g. 123, https://github.com/o/r/pull/123)")
+    .description(
+      "Fetch a GitHub PR via gh and debate it (review, design, security)",
+    )
+    .argument(
+      "<pr>",
+      "PR number or URL (e.g. 123, https://github.com/o/r/pull/123)",
+    )
     .option("-m, --models <models...>", "Models to use")
     .option("--mode <mode>", "Debate mode (default: council)")
-    .option("--apply", "Apply structured edits from synthesis directly to files")
+    .option(
+      "--apply",
+      "Apply structured edits from synthesis directly to files",
+    )
     .action(debatePrCommand);
 
   program
     .command("debate-issue")
-    .description("Fetch a GitHub issue (gh) or Linear ticket (MYC-…) and debate the spec")
-    .argument("<id>", "GitHub issue number/URL or Linear ticket id (e.g. 42, MYC-123)")
+    .description(
+      "Fetch a GitHub issue (gh) or Linear ticket (MYC-…) and debate the spec",
+    )
+    .argument(
+      "<id>",
+      "GitHub issue number/URL or Linear ticket id (e.g. 42, MYC-123)",
+    )
     .option("-m, --models <models...>", "Models to use")
     .option("--mode <mode>", "Debate mode (default: council)")
     .action(debateIssueCommand);
 
   program
     .command("debate-failing")
-    .description("Auto-detect test runner, run tests, debate the failure if any")
-    .option("--command <cmd>", "Override the auto-detected test command (e.g. \"vitest run --no-coverage\")")
+    .description(
+      "Auto-detect test runner, run tests, debate the failure if any",
+    )
+    .option(
+      "--command <cmd>",
+      'Override the auto-detected test command (e.g. "vitest run --no-coverage")',
+    )
     .option("-m, --models <models...>", "Models to use")
     .option("--mode <mode>", "Debate mode (default: council)")
     .action((options: { command?: string; models?: string[]; mode?: string }) =>
@@ -251,28 +299,43 @@ async function main(): Promise<void> {
 
   program
     .command("upgrade")
-    .description("Update Consilium CLI to the latest version (auto-detects pnpm/npm/yarn/bun)")
+    .description(
+      "Update Consilium CLI to the latest version (auto-detects pnpm/npm/yarn/bun)",
+    )
     .option("--check", "Only check for a newer version, do not install")
     .action((options: { check?: boolean }) => upgradeCommand(options));
 
   const mcp = program
     .command("mcp")
-    .description("Manage MCP (Model Context Protocol) servers and integrations");
+    .description(
+      "Manage MCP (Model Context Protocol) servers and integrations",
+    );
 
   mcp
     .command("setup", { isDefault: true })
-    .description("Print MCP stdio config for Claude Desktop / Cursor / Claude Code (default when no subcommand)")
+    .description(
+      "Print MCP stdio config for Claude Desktop / Cursor / Claude Code (default when no subcommand)",
+    )
     .option("--json", "Emit only JSON suitable for merging into MCP config")
     .action((opts: { json?: boolean }) => mcpCommand(opts));
 
   mcp
     .command("add <name> <command> [args...]")
-    .description("Register an MCP server so council models can call its tools during debates")
-    .option("--env <KEY=value...>", "Set environment variables for the server process")
+    .description(
+      "Register an MCP server so council models can call its tools during debates",
+    )
+    .option(
+      "--env <KEY=value...>",
+      "Set environment variables for the server process",
+    )
     .option("--json", "Emit JSON result")
     .action(
-      (name: string, command: string, args: string[] | undefined, options: { env?: string[]; json?: boolean }) =>
-        addServerCommand(name, command, args, options),
+      (
+        name: string,
+        command: string,
+        args: string[] | undefined,
+        options: { env?: string[]; json?: boolean },
+      ) => addServerCommand(name, command, args, options),
     );
 
   mcp
@@ -288,20 +351,29 @@ async function main(): Promise<void> {
 
   mcp
     .command("test <name>")
-    .description("Spawn a configured MCP server and list its tools (verifies config)")
+    .description(
+      "Spawn a configured MCP server and list its tools (verifies config)",
+    )
     .option("--json", "Emit as JSON")
-    .action((name: string, opts: { json?: boolean }) => testServerCommand(name, opts));
+    .action((name: string, opts: { json?: boolean }) =>
+      testServerCommand(name, opts),
+    );
 
   mcp
     .command("tools")
-    .description("Spawn all enabled MCP servers and list every tool they expose")
+    .description(
+      "Spawn all enabled MCP servers and list every tool they expose",
+    )
     .option("--json", "Emit as JSON")
     .action((opts: { json?: boolean }) => toolsCommand(opts));
 
   program
     .command("models")
     .description("Show default models, full catalog, and deprecation status")
-    .option("--check", "Exit non-zero if any default model is deprecated/retired")
+    .option(
+      "--check",
+      "Exit non-zero if any default model is deprecated/retired",
+    )
     .option("--json", "Emit as JSON")
     .action((opts: { json?: boolean; check?: boolean }) => modelsCommand(opts));
 
@@ -322,7 +394,10 @@ async function main(): Promise<void> {
     .command("cancel")
     .description("Cancel an in-progress debate")
     .argument("<debateId>", "Debate ID (e.g., dbt_01HY3K...)")
-    .option("--deliberation", "Cancel a deliberation session instead of a classic debate")
+    .option(
+      "--deliberation",
+      "Cancel a deliberation session instead of a classic debate",
+    )
     .action(cancelDebateCommand);
 
   debates
@@ -341,16 +416,25 @@ async function main(): Promise<void> {
     .option("--no-context", "Disable automatic codebase context loading")
     .option("--ticket <id>", "Linear ticket ID to include as context")
     .option("--mcp-tools", "(legacy alias - agent tools are now on by default)")
-    .option("--no-tools", "Don't expose Read/Edit/Grep/Bash tools or MCP server tools to the council")
+    .option(
+      "--no-tools",
+      "Don't expose Read/Edit/Grep/Bash tools or MCP server tools to the council",
+    )
     .action(startDebateCommand);
 
   debates
     .command("stream")
     .description("Attach to a running debate's SSE stream")
     .argument("<debateId>", "Debate or deliberation ID")
-    .option("--deliberation", "Attach to a deliberation stream instead of a classic debate")
+    .option(
+      "--deliberation",
+      "Attach to a deliberation stream instead of a classic debate",
+    )
     .option("--mcp-tools", "(legacy alias - agent tools are now on by default)")
-    .option("--no-tools", "Don't handle tool:call_request events with local Consilium tools / MCP servers")
+    .option(
+      "--no-tools",
+      "Don't handle tool:call_request events with local Consilium tools / MCP servers",
+    )
     .action(streamDebateCommand);
 
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
@@ -384,9 +468,7 @@ async function main(): Promise<void> {
         console.log(
           st.brand(`  ${i + 1}.`),
           displayLabel,
-          st.dim(
-            `(${s.debateCount} debate${debateSuffix}, ${timeAgo})`,
-          ),
+          st.dim(`(${s.debateCount} debate${debateSuffix}, ${timeAgo})`),
         );
         console.log(st.dim(`     ID: ${s.id}`));
       }

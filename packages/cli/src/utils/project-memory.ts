@@ -1,5 +1,5 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * Per-project memory: an append-only markdown log of past debates the
@@ -13,8 +13,8 @@ import path from 'node:path';
  * generated, so the new debate can build on prior conclusions.
  */
 
-const MEMORY_DIR = '.consilium';
-const MEMORY_FILE = 'memory.md';
+const MEMORY_DIR = ".consilium";
+const MEMORY_FILE = "memory.md";
 const MAX_ENTRIES_IN_PROMPT = 5;
 const MAX_SUMMARY_CHARS = 500;
 const MAX_FILE_BYTES = 256 * 1024;
@@ -39,24 +39,24 @@ function ensureMemoryDir(rootPath: string): void {
 }
 
 function summarize(text: string): string {
-  if (!text) return '';
-  const cleaned = text.replace(/\s+/g, ' ').trim();
+  if (!text) return "";
+  const cleaned = text.replace(/\s+/g, " ").trim();
   if (cleaned.length <= MAX_SUMMARY_CHARS) return cleaned;
-  return cleaned.slice(0, MAX_SUMMARY_CHARS - 1) + '…';
+  return cleaned.slice(0, MAX_SUMMARY_CHARS - 1) + "…";
 }
 
 function formatEntry(entry: MemoryEntry): string {
-  const id = entry.debateId ? `  \n_id: ${entry.debateId}_` : '';
+  const id = entry.debateId ? `  \n_id: ${entry.debateId}_` : "";
   return [
     `## ${entry.ts} - ${entry.mode}${id}`,
-    '',
+    "",
     `**Topic:** ${entry.topic}`,
-    '',
+    "",
     entry.summary,
-    '',
-    '---',
-    '',
-  ].join('\n');
+    "",
+    "---",
+    "",
+  ].join("\n");
 }
 
 /** Parse the memory file into structured entries (best-effort). */
@@ -70,16 +70,16 @@ export function loadProjectMemory(rootPath: string): MemoryEntry[] {
     if (stat.size > MAX_FILE_BYTES) {
       // Pathological case - file got huge. Read tail so we still get
       // recent entries, drop the rest. The user can manually rotate.
-      const fd = fs.openSync(file, 'r');
+      const fd = fs.openSync(file, "r");
       try {
         const buf = Buffer.alloc(MAX_FILE_BYTES);
         fs.readSync(fd, buf, 0, MAX_FILE_BYTES, stat.size - MAX_FILE_BYTES);
-        raw = buf.toString('utf-8');
+        raw = buf.toString("utf-8");
       } finally {
         fs.closeSync(fd);
       }
     } else {
-      raw = fs.readFileSync(file, 'utf-8');
+      raw = fs.readFileSync(file, "utf-8");
     }
   } catch {
     return [];
@@ -89,27 +89,34 @@ export function loadProjectMemory(rootPath: string): MemoryEntry[] {
   const sections = raw.split(/\n## /);
   for (const section of sections) {
     if (!section.trim()) continue;
-    const body = section.startsWith('## ') ? section.slice(3) : section;
+    const body = section.startsWith("## ") ? section.slice(3) : section;
     const headerMatch = /^([\dT:.\-Z]+)\s+-\s+(\w+)/.exec(body);
     if (!headerMatch) continue;
-    const ts = headerMatch[1] ?? '';
-    const mode = headerMatch[2] ?? '';
+    const ts = headerMatch[1] ?? "";
+    const mode = headerMatch[2] ?? "";
     const topicMatch = /\*\*Topic:\*\*\s+([^\n]+)/.exec(body);
-    const topic = topicMatch?.[1]?.trim() ?? '';
+    const topic = topicMatch?.[1]?.trim() ?? "";
     const idMatch = /_id:\s+(\S+?)_(?=\s|$)/m.exec(body);
-    const summaryStart = body.indexOf('**Topic:**');
-    const summaryAfterTopic = summaryStart >= 0 ? body.slice(summaryStart) : body;
-    const blankIdx = summaryAfterTopic.indexOf('\n\n');
-    const restAfterTopic = blankIdx >= 0 ? summaryAfterTopic.slice(blankIdx + 2) : '';
-    const cutoff = restAfterTopic.indexOf('\n---');
-    const summary = (cutoff >= 0 ? restAfterTopic.slice(0, cutoff) : restAfterTopic).trim();
+    const summaryStart = body.indexOf("**Topic:**");
+    const summaryAfterTopic =
+      summaryStart >= 0 ? body.slice(summaryStart) : body;
+    const blankIdx = summaryAfterTopic.indexOf("\n\n");
+    const restAfterTopic =
+      blankIdx >= 0 ? summaryAfterTopic.slice(blankIdx + 2) : "";
+    const cutoff = restAfterTopic.indexOf("\n---");
+    const summary = (
+      cutoff >= 0 ? restAfterTopic.slice(0, cutoff) : restAfterTopic
+    ).trim();
     if (!ts || !topic) continue;
     entries.push({ ts, mode, topic, summary, debateId: idMatch?.[1] });
   }
   return entries;
 }
 
-export function appendProjectMemory(rootPath: string, entry: Omit<MemoryEntry, 'ts'> & { ts?: string }): void {
+export function appendProjectMemory(
+  rootPath: string,
+  entry: Omit<MemoryEntry, "ts"> & { ts?: string },
+): void {
   ensureMemoryDir(rootPath);
   const file = memoryPath(rootPath);
   const ts = entry.ts ?? new Date().toISOString();
@@ -123,10 +130,10 @@ export function appendProjectMemory(rootPath: string, entry: Omit<MemoryEntry, '
 
   const isNewFile = !fs.existsSync(file);
   const header = isNewFile
-    ? '# Consilium Project Memory\n\nAuto-generated log of past debates the council has run in this project. Newest entries at the bottom. Safe to commit, hand-edit, or .gitignore - your call.\n\n'
-    : '';
+    ? "# Consilium Project Memory\n\nAuto-generated log of past debates the council has run in this project. Newest entries at the bottom. Safe to commit, hand-edit, or .gitignore - your call.\n\n"
+    : "";
   const block = formatEntry(finalEntry);
-  fs.appendFileSync(file, header + block, 'utf-8');
+  fs.appendFileSync(file, header + block, "utf-8");
 }
 
 /**
@@ -134,16 +141,28 @@ export function appendProjectMemory(rootPath: string, entry: Omit<MemoryEntry, '
  * prepended to the next debate's topic. Returns empty string when no
  * memory exists so callers don't have to special-case.
  */
-export function formatMemoryForPrompt(rootPath: string, limit = MAX_ENTRIES_IN_PROMPT): { text: string; count: number } {
+export function formatMemoryForPrompt(
+  rootPath: string,
+  limit = MAX_ENTRIES_IN_PROMPT,
+): { text: string; count: number } {
   const entries = loadProjectMemory(rootPath);
-  if (entries.length === 0) return { text: '', count: 0 };
+  if (entries.length === 0) return { text: "", count: 0 };
   const recent = entries.slice(-limit);
-  const lines: string[] = ['', '## Prior Council Decisions in This Project', ''];
+  const lines: string[] = [
+    "",
+    "## Prior Council Decisions in This Project",
+    "",
+  ];
   for (const e of recent) {
     lines.push(`- **[${e.mode}] ${e.topic}** - ${e.summary.slice(0, 240)}`);
   }
-  lines.push('', '_(End of prior decisions. Use them to stay consistent unless the new request explicitly contradicts.)_', '', '');
-  return { text: lines.join('\n'), count: entries.length };
+  lines.push(
+    "",
+    "_(End of prior decisions. Use them to stay consistent unless the new request explicitly contradicts.)_",
+    "",
+    "",
+  );
+  return { text: lines.join("\n"), count: entries.length };
 }
 
 export function memoryFileExists(rootPath: string): boolean {

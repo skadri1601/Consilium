@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Settings } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -25,7 +30,7 @@ export function AgentCard({ agent, hasApiKey }: AgentCardProps) {
               "rounded-full px-2 py-0.5 text-xs font-medium",
               agent.free
                 ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
             )}
           >
             {agent.free ? "Free" : "Paid"}
@@ -40,7 +45,7 @@ export function AgentCard({ agent, hasApiKey }: AgentCardProps) {
             <div
               className={cn(
                 "h-2 w-2 rounded-full",
-                available ? "bg-green-500" : "bg-gray-400"
+                available ? "bg-green-500" : "bg-gray-400",
               )}
             />
             <span className="text-xs text-muted-foreground">

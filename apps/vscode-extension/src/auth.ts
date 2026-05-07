@@ -66,10 +66,9 @@ export class AuthManager {
   async signInFlow(): Promise<string | undefined> {
     const cfg = vscode.workspace.getConfiguration("consilium");
     const apiUrl = cfg.get<string>("apiUrl") ?? "https://api.myconsilium.xyz";
-    const webOrigin = apiUrl.replace(/\/api\/?$/, "").replace(
-      /api\.(.+)/,
-      "$1",
-    );
+    const webOrigin = apiUrl
+      .replace(/\/api\/?$/, "")
+      .replace(/api\.(.+)/, "$1");
     const webUrl = webOrigin.startsWith("http")
       ? webOrigin
       : "https://myconsilium.xyz";

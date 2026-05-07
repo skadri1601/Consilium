@@ -1,9 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, DollarSign, MessageSquare, Zap, Terminal } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  TrendingUp,
+  DollarSign,
+  MessageSquare,
+  Zap,
+  Terminal,
+} from "lucide-react";
 
 interface AnalyticsData {
   totalDebates: number;
@@ -92,7 +115,9 @@ export function AnalyticsDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${data.totalCost.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              ${data.totalCost.toFixed(2)}
+            </div>
             <p className="text-xs text-muted-foreground">
               ${data.costThisMonth.toFixed(2)} this month
             </p>
@@ -106,9 +131,7 @@ export function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.debatesThisMonth}</div>
-            <p className="text-xs text-muted-foreground">
-              debates completed
-            </p>
+            <p className="text-xs text-muted-foreground">debates completed</p>
           </CardContent>
         </Card>
 
@@ -119,11 +142,12 @@ export function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${data.totalDebates > 0 ? (data.totalCost / data.totalDebates).toFixed(4) : "0.0000"}
+              $
+              {data.totalDebates > 0
+                ? (data.totalCost / data.totalDebates).toFixed(4)
+                : "0.0000"}
             </div>
-            <p className="text-xs text-muted-foreground">
-              per debate
-            </p>
+            <p className="text-xs text-muted-foreground">per debate</p>
           </CardContent>
         </Card>
       </div>
@@ -168,13 +192,18 @@ export function AnalyticsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ model, percent }) => `${model} ${(percent * 100).toFixed(0)}%`}
+                    label={({ model, percent }) =>
+                      `${model} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"
                   >
                     {data.modelUsage.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -193,7 +222,9 @@ export function AnalyticsDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Where debates start</CardTitle>
-            <CardDescription>Web, CLI, MCP, and deliberation sessions</CardDescription>
+            <CardDescription>
+              Web, CLI, MCP, and deliberation sessions
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {(data.debatesBySource ?? []).length > 0 ? (
@@ -216,7 +247,10 @@ export function AnalyticsDashboard() {
                     nameKey="name"
                   >
                     {(data.debatesBySource ?? []).map((_, index) => (
-                      <Cell key={`src-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`src-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -235,16 +269,19 @@ export function AnalyticsDashboard() {
             <Terminal className="h-5 w-5 text-muted-foreground" />
             <div>
               <CardTitle>CLI</CardTitle>
-              <CardDescription>Classic debates started from the Consilium CLI</CardDescription>
+              <CardDescription>
+                Classic debates started from the Consilium CLI
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{data.cliDebateCount ?? 0}</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Run <span className="font-mono text-xs">consilium login</span> then{" "}
-              <span className="font-mono text-xs">consilium debate</span> or{" "}
-              <span className="font-mono text-xs">consilium chat</span>. Sessions are tagged
-              automatically so they appear here and in the chart.
+              Run <span className="font-mono text-xs">consilium login</span>{" "}
+              then <span className="font-mono text-xs">consilium debate</span>{" "}
+              or <span className="font-mono text-xs">consilium chat</span>.
+              Sessions are tagged automatically so they appear here and in the
+              chart.
             </p>
           </CardContent>
         </Card>

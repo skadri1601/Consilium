@@ -1,6 +1,11 @@
 import { listServers } from "./config";
 import { StdioMcpClient } from "./stdio-client";
-import { McpClientError, McpServerConfig, McpTool, McpToolResult } from "./types";
+import {
+  McpClientError,
+  McpServerConfig,
+  McpTool,
+  McpToolResult,
+} from "./types";
 
 export interface RegisteredTool {
   server: string;
@@ -12,8 +17,12 @@ export class McpRegistry {
   private clients = new Map<string, StdioMcpClient>();
   private tools: RegisteredTool[] = [];
 
-  async startAll(configs?: McpServerConfig[]): Promise<{ started: string[]; failed: Array<{ name: string; error: string }> }> {
-    const effective = configs ?? listServers().filter((c) => c.enabled !== false);
+  async startAll(configs?: McpServerConfig[]): Promise<{
+    started: string[];
+    failed: Array<{ name: string; error: string }>;
+  }> {
+    const effective =
+      configs ?? listServers().filter((c) => c.enabled !== false);
     const started: string[] = [];
     const failed: Array<{ name: string; error: string }> = [];
 
@@ -49,7 +58,8 @@ export class McpRegistry {
       if (r.status === "fulfilled") {
         started.push(r.value);
       } else {
-        const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
+        const reason =
+          r.reason instanceof Error ? r.reason.message : String(r.reason);
         failed.push({ name: cfg.name, error: reason });
       }
     }
@@ -61,10 +71,16 @@ export class McpRegistry {
     return this.tools.slice();
   }
 
-  async callTool(qualifiedName: string, args: Record<string, unknown>): Promise<McpToolResult> {
+  async callTool(
+    qualifiedName: string,
+    args: Record<string, unknown>,
+  ): Promise<McpToolResult> {
     const dotIdx = qualifiedName.indexOf(".");
     if (dotIdx === -1) {
-      throw new McpClientError(qualifiedName, `qualifiedName must be <server>.<tool>`);
+      throw new McpClientError(
+        qualifiedName,
+        `qualifiedName must be <server>.<tool>`,
+      );
     }
     const server = qualifiedName.slice(0, dotIdx);
     const toolName = qualifiedName.slice(dotIdx + 1);
@@ -76,7 +92,9 @@ export class McpRegistry {
   }
 
   async stopAll(): Promise<void> {
-    await Promise.allSettled(Array.from(this.clients.values()).map((c) => c.stop()));
+    await Promise.allSettled(
+      Array.from(this.clients.values()).map((c) => c.stop()),
+    );
     this.clients.clear();
     this.tools = [];
   }

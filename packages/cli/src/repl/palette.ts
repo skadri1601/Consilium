@@ -54,7 +54,13 @@ function renderPalette(buffer: string, paletteIndex: number): string {
 
   let scrollStart = 0;
   if (matches.length > MAX_VISIBLE) {
-    scrollStart = Math.max(0, Math.min(paletteIndex - Math.floor(MAX_VISIBLE / 2), matches.length - MAX_VISIBLE));
+    scrollStart = Math.max(
+      0,
+      Math.min(
+        paletteIndex - Math.floor(MAX_VISIBLE / 2),
+        matches.length - MAX_VISIBLE,
+      ),
+    );
   }
   const scrollEnd = Math.min(scrollStart + MAX_VISIBLE, matches.length);
 
@@ -79,7 +85,9 @@ function renderPalette(buffer: string, paletteIndex: number): string {
   if (scrollEnd < matches.length) {
     lines.push(`     ${st.dim(`↓ ${matches.length - scrollEnd} more`)}`);
   }
-  lines.push(`     ${st.dim("↑↓ navigate · enter selects · esc dismiss · tab completes")}`);
+  lines.push(
+    `     ${st.dim("↑↓ navigate · enter selects · esc dismiss · tab completes")}`,
+  );
   return lines.join("\n") + "\n";
 }
 
@@ -90,12 +98,15 @@ export function renderPrompt(buffer: string): string {
   return `${rule}\n${st.brand("❯")} ${buffer}${hint}`;
 }
 
-export function renderFrame(state: PaletteState): { frame: string; lines: number } {
+export function renderFrame(state: PaletteState): {
+  frame: string;
+  lines: number;
+} {
   const palette = isPaletteOpen(state.buffer)
     ? renderPalette(state.buffer, state.paletteIndex)
     : "";
   const frame = palette + renderPrompt(state.buffer);
-  const lines = (frame.match(/\n/g)?.length ?? 0);
+  const lines = frame.match(/\n/g)?.length ?? 0;
   return { frame, lines };
 }
 

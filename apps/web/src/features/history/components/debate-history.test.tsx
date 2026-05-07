@@ -7,9 +7,13 @@ globalThis.fetch = mockFetch;
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 describe("DebateHistory", () => {
@@ -64,7 +68,9 @@ describe("DebateHistory", () => {
     render(<DebateHistory />);
 
     await waitFor(() => {
-      expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
+      expect(
+        screen.getByText("Build a REST API with authentication"),
+      ).toBeInTheDocument();
       expect(screen.getByText("Create a React dashboard")).toBeInTheDocument();
       expect(screen.getByText("Design a database schema")).toBeInTheDocument();
     });
@@ -76,10 +82,12 @@ describe("DebateHistory", () => {
     render(<DebateHistory />);
 
     await waitFor(() => {
-      expect(screen.getByText(/gpt-5\.4-mini, claude-haiku-4-5-20251001/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/gpt-5\.4-mini, claude-haiku-4-5-20251001/),
+      ).toBeInTheDocument();
       expect(screen.getByText(/\$0\.0123/)).toBeInTheDocument();
     });
-    
+
     // Check for Synthesis indicators (there may be multiple)
     const synthesisIndicators = screen.getAllByText("Synthesis");
     expect(synthesisIndicators.length).toBeGreaterThan(0);
@@ -103,7 +111,9 @@ describe("DebateHistory", () => {
     render(<DebateHistory />);
 
     await waitFor(() => {
-      expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
+      expect(
+        screen.getByText("Build a REST API with authentication"),
+      ).toBeInTheDocument();
     });
 
     // Mock fetch to return only the matching debate for the search query
@@ -117,9 +127,13 @@ describe("DebateHistory", () => {
 
     // Wait for debounce and re-fetch
     await waitFor(() => {
-      expect(screen.queryByText("Build a REST API with authentication")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Build a REST API with authentication"),
+      ).not.toBeInTheDocument();
       expect(screen.getByText("Create a React dashboard")).toBeInTheDocument();
-      expect(screen.queryByText("Design a database schema")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Design a database schema"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -135,8 +149,12 @@ describe("DebateHistory", () => {
 
     // Only today's debate should be visible
     await waitFor(() => {
-      expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
-      expect(screen.queryByText("Design a database schema")).not.toBeInTheDocument();
+      expect(
+        screen.getByText("Build a REST API with authentication"),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("Design a database schema"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -152,7 +170,9 @@ describe("DebateHistory", () => {
 
     // Today and yesterday's debates should be visible
     await waitFor(() => {
-      expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
+      expect(
+        screen.getByText("Build a REST API with authentication"),
+      ).toBeInTheDocument();
       expect(screen.getByText("Create a React dashboard")).toBeInTheDocument();
     });
   });
@@ -181,7 +201,9 @@ describe("DebateHistory", () => {
     render(<DebateHistory />);
 
     await waitFor(() => {
-      expect(screen.getByText("Build a REST API with authentication")).toBeInTheDocument();
+      expect(
+        screen.getByText("Build a REST API with authentication"),
+      ).toBeInTheDocument();
     });
 
     // Mock fetch to return empty results for the search query
@@ -191,11 +213,15 @@ describe("DebateHistory", () => {
     });
 
     const searchInput = screen.getByPlaceholderText(/search debates/i);
-    fireEvent.change(searchInput, { target: { value: "nonexistent query xyz" } });
+    fireEvent.change(searchInput, {
+      target: { value: "nonexistent query xyz" },
+    });
 
     // Wait for debounce and re-fetch to complete
     await waitFor(() => {
-      expect(screen.getByText(/no debates match your search/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no debates match your search/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -219,4 +245,3 @@ describe("DebateHistory", () => {
     });
   });
 });
-

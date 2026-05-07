@@ -73,7 +73,10 @@ export function activate(context: vscode.ExtensionContext): void {
       guarded(debateFailingCommand),
     ),
     vscode.commands.registerCommand("consilium.applyEdits", applyEditsCommand),
-    vscode.commands.registerCommand("consilium.openHistory", openHistoryCommand),
+    vscode.commands.registerCommand(
+      "consilium.openHistory",
+      openHistoryCommand,
+    ),
     vscode.commands.registerCommand("consilium.openDebate", openDebateCommand),
     vscode.commands.registerCommand("consilium.signIn", async () => {
       await auth.signInFlow();

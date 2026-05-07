@@ -262,14 +262,19 @@ export function CostDashboard({
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                 <span>Spend Progress</span>
                 <span>
-                  {formatCurrency(data.totalCost)} / {formatCurrency(data.estimate.estimatedTotal)}
+                  {formatCurrency(data.totalCost)} /{" "}
+                  {formatCurrency(data.estimate.estimatedTotal)}
                 </span>
               </div>
               <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                 <motion.div
                   className={cn(
                     "h-full rounded-full",
-                    spendProgress > 90 ? "bg-red-500" : spendProgress > 70 ? "bg-yellow-500" : "bg-green-500"
+                    spendProgress > 90
+                      ? "bg-red-500"
+                      : spendProgress > 70
+                        ? "bg-yellow-500"
+                        : "bg-green-500",
                   )}
                   initial={{ width: 0 }}
                   animate={{ width: `${spendProgress}%` }}
@@ -282,7 +287,10 @@ export function CostDashboard({
                 </span>
                 {data.estimate.estimatedTotal > data.totalCost && (
                   <span className="text-[10px] text-green-600 dark:text-green-400">
-                    {formatCurrency(data.estimate.estimatedTotal - data.totalCost)} remaining
+                    {formatCurrency(
+                      data.estimate.estimatedTotal - data.totalCost,
+                    )}{" "}
+                    remaining
                   </span>
                 )}
               </div>
@@ -290,43 +298,47 @@ export function CostDashboard({
           )}
 
           <AnimatePresence>
-            {data.estimate && data.estimate.estimatedTotal > 0 && data.totalCost > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className={cn(
-                  "mb-4 rounded-lg border p-3",
-                  data.totalCost <= data.estimate.estimatedTotal
-                    ? "border-green-400/30 bg-gradient-to-r from-green-50 to-transparent dark:from-green-950/20 dark:to-transparent"
-                    : "border-red-400/30 bg-gradient-to-r from-red-50 to-transparent dark:from-red-950/20 dark:to-transparent"
-                )}
-              >
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Estimated vs Actual</span>
-                  <div className="flex items-center gap-3">
+            {data.estimate &&
+              data.estimate.estimatedTotal > 0 &&
+              data.totalCost > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className={cn(
+                    "mb-4 rounded-lg border p-3",
+                    data.totalCost <= data.estimate.estimatedTotal
+                      ? "border-green-400/30 bg-gradient-to-r from-green-50 to-transparent dark:from-green-950/20 dark:to-transparent"
+                      : "border-red-400/30 bg-gradient-to-r from-red-50 to-transparent dark:from-red-950/20 dark:to-transparent",
+                  )}
+                >
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Est: {formatCurrency(data.estimate.estimatedTotal)}
+                      Estimated vs Actual
                     </span>
-                    <span className="font-semibold">
-                      Actual: {formatCurrency(data.totalCost)}
-                    </span>
-                    <span
-                      className={cn(
-                        "font-bold text-xs px-1.5 py-0.5 rounded",
-                        data.totalCost <= data.estimate.estimatedTotal
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                      )}
-                    >
-                      {data.totalCost <= data.estimate.estimatedTotal
-                        ? `-${formatCurrency(data.estimate.estimatedTotal - data.totalCost)}`
-                        : `+${formatCurrency(data.totalCost - data.estimate.estimatedTotal)}`}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground">
+                        Est: {formatCurrency(data.estimate.estimatedTotal)}
+                      </span>
+                      <span className="font-semibold">
+                        Actual: {formatCurrency(data.totalCost)}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-bold text-xs px-1.5 py-0.5 rounded",
+                          data.totalCost <= data.estimate.estimatedTotal
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                        )}
+                      >
+                        {data.totalCost <= data.estimate.estimatedTotal
+                          ? `-${formatCurrency(data.estimate.estimatedTotal - data.totalCost)}`
+                          : `+${formatCurrency(data.totalCost - data.estimate.estimatedTotal)}`}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
           </AnimatePresence>
 
           <div className="flex gap-1 mb-4 border-b">
@@ -338,7 +350,7 @@ export function CostDashboard({
                   "px-3 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px",
                   activeTab === tab
                     ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab}
@@ -354,7 +366,9 @@ export function CostDashboard({
             >
               {hasCosts && pieData.length > 0 && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">Cost by Model</p>
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                    Cost by Model
+                  </p>
                   <div className="h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -371,13 +385,19 @@ export function CostDashboard({
                           {pieData.map((entry) => (
                             <Cell
                               key={entry.modelId}
-                              fill={modelColorMap.get(entry.modelId) || CHART_COLORS[0]}
+                              fill={
+                                modelColorMap.get(entry.modelId) ||
+                                CHART_COLORS[0]
+                              }
                             />
                           ))}
                         </Pie>
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [formatCurrency(value), "Cost"]}
+                          formatter={(value: number) => [
+                            formatCurrency(value),
+                            "Cost",
+                          ]}
                         />
                         <Legend
                           formatter={(value) => (
@@ -413,7 +433,10 @@ export function CostDashboard({
                         />
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [formatCurrency(value), "Total Cost"]}
+                          formatter={(value: number) => [
+                            formatCurrency(value),
+                            "Total Cost",
+                          ]}
                           labelFormatter={(label) => `Round ${label}`}
                         />
                         <Line
@@ -473,14 +496,25 @@ export function CostDashboard({
                           <Tooltip
                             contentStyle={tooltipStyle}
                             formatter={(value: number, name: string) => {
-                              const model = data.modelCosts.find((m) => m.modelId === name);
-                              return [formatCurrency(value), model?.modelName || name];
+                              const model = data.modelCosts.find(
+                                (m) => m.modelId === name,
+                              );
+                              return [
+                                formatCurrency(value),
+                                model?.modelName || name,
+                              ];
                             }}
                           />
                           <Legend
                             formatter={(value) => {
-                              const model = data.modelCosts.find((m) => m.modelId === value);
-                              return <span className="text-xs">{model?.modelName || value}</span>;
+                              const model = data.modelCosts.find(
+                                (m) => m.modelId === value,
+                              );
+                              return (
+                                <span className="text-xs">
+                                  {model?.modelName || value}
+                                </span>
+                              );
                             }}
                           />
                           {data.modelCosts.map((m) => (
@@ -488,7 +522,9 @@ export function CostDashboard({
                               key={m.modelId}
                               dataKey={m.modelId}
                               stackId="cost"
-                              fill={modelColorMap.get(m.modelId) || CHART_COLORS[0]}
+                              fill={
+                                modelColorMap.get(m.modelId) || CHART_COLORS[0]
+                              }
                               radius={[0, 0, 0, 0]}
                               animationDuration={600}
                             />
@@ -503,10 +539,14 @@ export function CostDashboard({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <TrendingUp className="h-4 w-4 text-orange-500" />
-                          <span className="text-sm text-muted-foreground">Most Expensive Round</span>
+                          <span className="text-sm text-muted-foreground">
+                            Most Expensive Round
+                          </span>
                         </div>
                         <div className="text-sm">
-                          <span className="font-semibold">Round {mostExpensiveRound.round}</span>
+                          <span className="font-semibold">
+                            Round {mostExpensiveRound.round}
+                          </span>
                           <span className="text-muted-foreground ml-2">
                             {formatCurrency(mostExpensiveRound.totalCost)}
                           </span>
@@ -536,10 +576,13 @@ export function CostDashboard({
                             key={r.round}
                             className={cn(
                               "border-b last:border-0",
-                              mostExpensiveRound?.round === r.round && "bg-orange-50/50 dark:bg-orange-950/10"
+                              mostExpensiveRound?.round === r.round &&
+                                "bg-orange-50/50 dark:bg-orange-950/10",
                             )}
                           >
-                            <td className="py-2 px-3 font-medium">Round {r.round}</td>
+                            <td className="py-2 px-3 font-medium">
+                              Round {r.round}
+                            </td>
                             <td className="py-2 px-3 text-right font-mono">
                               {formatCurrency(r.totalCost)}
                             </td>
@@ -592,17 +635,23 @@ export function CostDashboard({
                       {data.modelCosts
                         .sort((a, b) => b.cost - a.cost)
                         .map((m) => (
-                          <tr key={m.modelId} className="border-b last:border-0">
+                          <tr
+                            key={m.modelId}
+                            className="border-b last:border-0"
+                          >
                             <td className="py-2 px-3">
                               <div className="flex items-center gap-2">
                                 <div
                                   className="h-2.5 w-2.5 rounded-full shrink-0"
                                   style={{
                                     backgroundColor:
-                                      modelColorMap.get(m.modelId) || CHART_COLORS[0],
+                                      modelColorMap.get(m.modelId) ||
+                                      CHART_COLORS[0],
                                   }}
                                 />
-                                <span className="font-medium">{m.modelName}</span>
+                                <span className="font-medium">
+                                  {m.modelName}
+                                </span>
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">
                                   {m.provider}
                                 </span>
@@ -616,7 +665,9 @@ export function CostDashboard({
                             </td>
                             <td className="py-2 px-3 text-right font-mono font-semibold">
                               {m.cost === 0 ? (
-                                <span className="text-green-600 dark:text-green-400">Free</span>
+                                <span className="text-green-600 dark:text-green-400">
+                                  Free
+                                </span>
                               ) : (
                                 formatCurrency(m.cost)
                               )}

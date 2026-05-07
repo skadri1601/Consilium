@@ -6,11 +6,11 @@ current marketing surface (`apps/web/`) so we can decide what to invest in.
 
 ## TL;DR
 
-| Discipline | What you optimise | Where the user sees you | Primary surface in 2026 |
-|------------|-------------------|--------------------------|--------------------------|
-| **SEO** - Search Engine Optimisation | Ranking of a *link* | Blue-link list on a SERP | Google, Bing |
-| **AEO** - Answer Engine Optimisation | Extraction of a *short answer* | Featured snippet, AI Overview, voice answer | Google AI Overviews, Bing Copilot, Alexa, Siri |
-| **GEO** - Generative Engine Optimisation | Citation inside a *generated paragraph* | Cited reference in a long-form AI answer | ChatGPT, Perplexity, Claude, Gemini, Copilot |
+| Discipline                               | What you optimise                       | Where the user sees you                     | Primary surface in 2026                        |
+| ---------------------------------------- | --------------------------------------- | ------------------------------------------- | ---------------------------------------------- |
+| **SEO** - Search Engine Optimisation     | Ranking of a _link_                     | Blue-link list on a SERP                    | Google, Bing                                   |
+| **AEO** - Answer Engine Optimisation     | Extraction of a _short answer_          | Featured snippet, AI Overview, voice answer | Google AI Overviews, Bing Copilot, Alexa, Siri |
+| **GEO** - Generative Engine Optimisation | Citation inside a _generated paragraph_ | Cited reference in a long-form AI answer    | ChatGPT, Perplexity, Claude, Gemini, Copilot   |
 
 They form a funnel of intent depth, not a replacement chain. Most users still start at Google for navigational queries; they go to ChatGPT/Perplexity for synthesis-heavy or comparison queries - exactly the queries Consilium itself answers.
 
@@ -33,7 +33,7 @@ Consilium status: solid baseline. `apps/web/src/app/layout.tsx` sets canonical, 
 
 ## 2. AEO - getting extracted into the answer box
 
-AEO targets *zero-click* answers. Google's AI Overview, featured snippets, "People Also Ask", voice assistants, and Bing's answer panes all extract a fragment of your page and present it without requiring a click. The deliverable is the extracted span; the success metric is impression share inside the answer surface and (where shown) brand attribution.
+AEO targets _zero-click_ answers. Google's AI Overview, featured snippets, "People Also Ask", voice assistants, and Bing's answer panes all extract a fragment of your page and present it without requiring a click. The deliverable is the extracted span; the success metric is impression share inside the answer surface and (where shown) brand attribution.
 
 What matters:
 
@@ -72,16 +72,16 @@ Consilium status: untouched. We have nothing aimed at this surface today.
 
 Quick audit of each item against the current state of `apps/web/`. This is a sanity check, not a deep audit.
 
-| # | Mistake | Consilium status | Action |
-|---|---------|------------------|--------|
-| 1 | Poor keyword targeting | We rank for "ai council" / "multi-agent debate" - small head terms. Long-tail comparison queries ("Claude vs GPT-5 reasoning", "best multi-LLM debate platform") are not covered. | Build a comparison-query content cluster; see §5. |
-| 2 | Weak on-page SEO | Title/meta/H1 generally present via `metadata` blocks. Some marketing pages lack a single H1 or have multiple. | Audit `apps/web/src/app/(marketing)/**/page.tsx` for single-H1 + descriptive title. |
-| 3 | Low-quality / thin content | Marketing pages are decent; blog cadence is the gap. | Treat blog as the AEO/GEO investment vehicle (§5). |
-| 4 | No backlinks | Limited; relies on organic mentions. | Out-of-scope for this doc, but worth a separate plan. |
-| 5 | Slow website speed | Next.js 15 + Vercel + local font (`Inter.woff2`) is good. CWV not actively tracked in CI. | Add Lighthouse CI on PRs; track LCP/INP/CLS budgets. |
-| 6 | Not mobile-friendly | Tailwind responsive classes used throughout. | No action; spot-check on real devices once per release. |
-| 7 | No indexing / technical issues | `sitemap.ts` and `robots.ts` exist. Unclear whether GSC is wired up for `myconsilium.xyz`. | Verify Google Search Console + Bing Webmaster Tools coverage. |
-| 8 | Ignoring local SEO | N/A - Consilium is a SaaS, not a local business. | Skip. |
+| #   | Mistake                        | Consilium status                                                                                                                                                                  | Action                                                                              |
+| --- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1   | Poor keyword targeting         | We rank for "ai council" / "multi-agent debate" - small head terms. Long-tail comparison queries ("Claude vs GPT-5 reasoning", "best multi-LLM debate platform") are not covered. | Build a comparison-query content cluster; see §5.                                   |
+| 2   | Weak on-page SEO               | Title/meta/H1 generally present via `metadata` blocks. Some marketing pages lack a single H1 or have multiple.                                                                    | Audit `apps/web/src/app/(marketing)/**/page.tsx` for single-H1 + descriptive title. |
+| 3   | Low-quality / thin content     | Marketing pages are decent; blog cadence is the gap.                                                                                                                              | Treat blog as the AEO/GEO investment vehicle (§5).                                  |
+| 4   | No backlinks                   | Limited; relies on organic mentions.                                                                                                                                              | Out-of-scope for this doc, but worth a separate plan.                               |
+| 5   | Slow website speed             | Next.js 15 + Vercel + local font (`Inter.woff2`) is good. CWV not actively tracked in CI.                                                                                         | Add Lighthouse CI on PRs; track LCP/INP/CLS budgets.                                |
+| 6   | Not mobile-friendly            | Tailwind responsive classes used throughout.                                                                                                                                      | No action; spot-check on real devices once per release.                             |
+| 7   | No indexing / technical issues | `sitemap.ts` and `robots.ts` exist. Unclear whether GSC is wired up for `myconsilium.xyz`.                                                                                        | Verify Google Search Console + Bing Webmaster Tools coverage.                       |
+| 8   | Ignoring local SEO             | N/A - Consilium is a SaaS, not a local business.                                                                                                                                  | Skip.                                                                               |
 
 ---
 

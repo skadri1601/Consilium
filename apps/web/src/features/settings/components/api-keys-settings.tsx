@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
@@ -98,9 +104,13 @@ const emptyMasked = (): MaskedKeyMap =>
   Object.fromEntries(PROVIDERS.map((p) => [p.field, null])) as MaskedKeyMap;
 
 const emptyStatus = (): StatusMap =>
-  Object.fromEntries(PROVIDERS.map((p) => [p.id, "idle" as KeyState])) as StatusMap;
+  Object.fromEntries(
+    PROVIDERS.map((p) => [p.id, "idle" as KeyState]),
+  ) as StatusMap;
 
-function readMaskedKeys(data: Partial<Record<KeyField, string | null>>): MaskedKeyMap {
+function readMaskedKeys(
+  data: Partial<Record<KeyField, string | null>>,
+): MaskedKeyMap {
   const out = emptyMasked();
   for (const p of PROVIDERS) {
     out[p.field] = data[p.field] ?? null;
@@ -117,11 +127,21 @@ interface KeyRowProps {
   onTest: () => void;
 }
 
-function KeyRow({ provider, value, masked, state, onChange, onTest }: KeyRowProps) {
+function KeyRow({
+  provider,
+  value,
+  masked,
+  state,
+  onChange,
+  onTest,
+}: KeyRowProps) {
   let buttonContent: React.ReactNode = "Test";
-  if (state === "testing") buttonContent = <Loader2 className="h-4 w-4 animate-spin" />;
-  else if (state === "valid") buttonContent = <CheckCircle2 className="h-4 w-4 text-green-500" />;
-  else if (state === "invalid") buttonContent = <XCircle className="h-4 w-4 text-red-500" />;
+  if (state === "testing")
+    buttonContent = <Loader2 className="h-4 w-4 animate-spin" />;
+  else if (state === "valid")
+    buttonContent = <CheckCircle2 className="h-4 w-4 text-green-500" />;
+  else if (state === "invalid")
+    buttonContent = <XCircle className="h-4 w-4 text-red-500" />;
 
   return (
     <div className="space-y-2">
@@ -147,7 +167,11 @@ function KeyRow({ provider, value, masked, state, onChange, onTest }: KeyRowProp
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
-        <Button variant="outline" onClick={onTest} disabled={state === "testing"}>
+        <Button
+          variant="outline"
+          onClick={onTest}
+          disabled={state === "testing"}
+        >
           {buttonContent}
         </Button>
       </div>
@@ -232,8 +256,8 @@ export function ApiKeysSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           Object.fromEntries(
-            Object.entries(keys).filter(([, value]) => value !== "")
-          )
+            Object.entries(keys).filter(([, value]) => value !== ""),
+          ),
         ),
       });
 
@@ -272,8 +296,9 @@ export function ApiKeysSettings() {
         <CardHeader>
           <CardTitle>API Keys</CardTitle>
           <CardDescription>
-            Add your API keys to use your own credits. Keys are encrypted and stored securely.
-            If you don&apos;t provide keys, the demo instance keys will be used (with rate limits).
+            Add your API keys to use your own credits. Keys are encrypted and
+            stored securely. If you don&apos;t provide keys, the demo instance
+            keys will be used (with rate limits).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -284,7 +309,9 @@ export function ApiKeysSettings() {
               value={keys[provider.field]}
               masked={maskedKeys[provider.field]}
               state={status[provider.id]}
-              onChange={(v) => setKeys((prev) => ({ ...prev, [provider.field]: v }))}
+              onChange={(v) =>
+                setKeys((prev) => ({ ...prev, [provider.field]: v }))
+              }
               onTest={() => testKey(provider.id, keys[provider.field])}
             />
           ))}

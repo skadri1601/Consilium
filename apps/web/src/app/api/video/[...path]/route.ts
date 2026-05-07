@@ -4,7 +4,7 @@ import path from "node:path";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path: segments } = await params;
   const fileName = segments.join("/");

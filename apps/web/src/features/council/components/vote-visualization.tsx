@@ -2,7 +2,12 @@
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 import { Trophy, Award, Shield } from "lucide-react";
 import {
@@ -42,7 +47,7 @@ const CHART_COLORS = [
 export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
   const sortedVotes = useMemo(
     () => [...votes].sort((a, b) => b.bordaScore - a.bordaScore),
-    [votes]
+    [votes],
   );
 
   const chartData = useMemo(
@@ -53,17 +58,17 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
         confidence: vote.confidence,
         modelId: vote.modelId,
       })),
-    [sortedVotes]
+    [sortedVotes],
   );
 
   const maxScore = useMemo(
     () => Math.max(...sortedVotes.map((v) => v.bordaScore), 1),
-    [sortedVotes]
+    [sortedVotes],
   );
 
   const condorcetWinner = useMemo(
     () => sortedVotes.find((v) => v.isCondorcetWinner),
-    [sortedVotes]
+    [sortedVotes],
   );
 
   if (votes.length === 0) return null;
@@ -89,7 +94,8 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
               >
                 <Shield className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                  Condorcet Winner: {getAgentDisplayName(condorcetWinner.modelId)}
+                  Condorcet Winner:{" "}
+                  {getAgentDisplayName(condorcetWinner.modelId)}
                 </span>
               </motion.div>
             )}
@@ -98,7 +104,10 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
         <CardContent>
           <div className="mb-6 h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="name"
@@ -117,12 +126,20 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                     borderRadius: "8px",
                     fontSize: "12px",
                   }}
-                  formatter={(value: number, _name: string, props: { payload?: { confidence: number } }) => [
+                  formatter={(
+                    value: number,
+                    _name: string,
+                    props: { payload?: { confidence: number } },
+                  ) => [
                     `${value} pts (${Math.round((props.payload?.confidence ?? 0) * 100)}% confidence)`,
                     "Borda Score",
                   ]}
                 />
-                <Bar dataKey="score" radius={[6, 6, 0, 0]} animationDuration={800}>
+                <Bar
+                  dataKey="score"
+                  radius={[6, 6, 0, 0]}
+                  animationDuration={800}
+                >
                   {chartData.map((entry, index) => (
                     <Cell
                       key={entry.modelId}
@@ -151,7 +168,7 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                       "relative rounded-lg border p-3 transition-all",
                       isWinner
                         ? "border-amber-400/60 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20"
-                        : "border-border bg-muted/20"
+                        : "border-border bg-muted/20",
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -159,7 +176,12 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                         {isWinner && (
                           <Award className="h-4 w-4 text-amber-500 shrink-0" />
                         )}
-                        <span className={cn("text-sm font-medium", isWinner && "text-amber-700 dark:text-amber-300")}>
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            isWinner && "text-amber-700 dark:text-amber-300",
+                          )}
+                        >
                           {getAgentDisplayName(vote.modelId)}
                         </span>
                         {vote.isCondorcetWinner && (
@@ -193,7 +215,8 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                         transition={{ duration: 0.6, delay: index * 0.1 }}
                         className="h-full rounded-full"
                         style={{
-                          backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                          backgroundColor:
+                            CHART_COLORS[index % CHART_COLORS.length],
                           opacity: isWinner ? 1 : 0.6,
                         }}
                       />

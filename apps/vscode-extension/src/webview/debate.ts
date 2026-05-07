@@ -166,7 +166,8 @@ function renderCard(card: AgentCard): HTMLElement {
 
   const body = document.createElement("div");
   body.className = "agent-body";
-  body.textContent = card.content || (card.status === "thinking" ? "thinking…" : "");
+  body.textContent =
+    card.content || (card.status === "thinking" ? "thinking…" : "");
   wrap.appendChild(body);
   return wrap;
 }
@@ -213,7 +214,8 @@ const HANDLERS: Record<string, (event: DebateEvent) => void> = {
   done(event) {
     state.status = "Done";
     if (event.total_cost !== undefined) state.totalCost = event.total_cost;
-    if (event.total_tokens !== undefined) state.totalTokens = event.total_tokens;
+    if (event.total_tokens !== undefined)
+      state.totalTokens = event.total_tokens;
     const golden = event.golden_prompt ?? event.goldenPrompt;
     if (golden && !state.consensus) state.consensus = golden;
   },

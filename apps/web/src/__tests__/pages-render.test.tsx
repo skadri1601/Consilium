@@ -271,9 +271,8 @@ describe("Marketing Pages", () => {
         screen.getAllByText(/Python SDK|Getting Started - Python SDK/).length,
       ).toBeGreaterThan(0);
       expect(
-        screen.getAllByText(
-          /TypeScript SDK|Getting Started - TypeScript SDK/,
-        ).length,
+        screen.getAllByText(/TypeScript SDK|Getting Started - TypeScript SDK/)
+          .length,
       ).toBeGreaterThan(0);
     });
 

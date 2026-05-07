@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockRegistryStartAll, mockRegistryListTools, mockRegistryCallTool, mockRegistryStopAll } = vi.hoisted(
-  () => ({
-    mockRegistryStartAll: vi.fn(),
-    mockRegistryListTools: vi.fn(),
-    mockRegistryCallTool: vi.fn(),
-    mockRegistryStopAll: vi.fn(),
-  }),
-);
+const {
+  mockRegistryStartAll,
+  mockRegistryListTools,
+  mockRegistryCallTool,
+  mockRegistryStopAll,
+} = vi.hoisted(() => ({
+  mockRegistryStartAll: vi.fn(),
+  mockRegistryListTools: vi.fn(),
+  mockRegistryCallTool: vi.fn(),
+  mockRegistryStopAll: vi.fn(),
+}));
 
 vi.mock("../utils/mcp-client/registry", () => ({
   McpRegistry: vi.fn().mockImplementation(() => ({
@@ -52,21 +55,36 @@ describe("startToolBridge", () => {
   it("returns null when no tools are available and shuts down the registry", async () => {
     mockRegistryStartAll.mockResolvedValue({ started: [], failed: [] });
     mockRegistryListTools.mockReturnValue([]);
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     expect(bridge).toBeNull();
     expect(mockRegistryStopAll).toHaveBeenCalled();
   });
 
   it("returns tools and budget when servers started successfully", async () => {
-    mockRegistryStartAll.mockResolvedValue({ started: ["filesystem"], failed: [] });
+    mockRegistryStartAll.mockResolvedValue({
+      started: ["filesystem"],
+      failed: [],
+    });
     mockRegistryListTools.mockReturnValue([
       {
         server: "filesystem",
         qualifiedName: "filesystem.read_file",
-        tool: { name: "read_file", description: "Reads", inputSchema: { type: "object" } },
+        tool: {
+          name: "read_file",
+          description: "Reads",
+          inputSchema: { type: "object" },
+        },
       },
     ]);
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     expect(bridge).not.toBeNull();
     expect(bridge!.tools).toHaveLength(1);
     expect(bridge!.tools[0]!.qualifiedName).toBe("filesystem.read_file");
@@ -88,7 +106,11 @@ describe("startToolBridge", () => {
       isError: false,
     });
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     await bridge!.handleEvent(
       {
         type: "tool:call_request",
@@ -118,16 +140,28 @@ describe("startToolBridge", () => {
     ]);
     mockRegistryCallTool.mockRejectedValue(new Error("permission denied"));
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     await bridge!.handleEvent(
-      { type: "tool:call_request", callId: "call_2", name: "fs.read", arguments: {} },
+      {
+        type: "tool:call_request",
+        callId: "call_2",
+        name: "fs.read",
+        arguments: {},
+      },
       "dlb_1",
     );
 
-    const call = (fakeClient.postToolResult as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const call = (fakeClient.postToolResult as ReturnType<typeof vi.fn>).mock
+      .calls[0]!;
     expect(call[2]).toMatchObject({
       isError: true,
-      content: [{ type: "text", text: expect.stringContaining("permission denied") }],
+      content: [
+        { type: "text", text: expect.stringContaining("permission denied") },
+      ],
     });
     await bridge!.shutdown();
   });
@@ -142,7 +176,11 @@ describe("startToolBridge", () => {
       },
     ]);
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     await bridge!.handleEvent({ type: "agent_chunk", text: "x" }, "dlb_1");
     expect(mockRegistryCallTool).not.toHaveBeenCalled();
     expect(fakeClient.postToolResult).not.toHaveBeenCalled();
@@ -152,21 +190,40 @@ describe("startToolBridge", () => {
   it("rejects calls beyond the total budget", async () => {
     mockRegistryStartAll.mockResolvedValue({ started: ["fs"], failed: [] });
     mockRegistryListTools.mockReturnValue([
-      { server: "fs", qualifiedName: "fs.x", tool: { name: "x", inputSchema: {} } },
+      {
+        server: "fs",
+        qualifiedName: "fs.x",
+        tool: { name: "x", inputSchema: {} },
+      },
     ]);
-    mockRegistryCallTool.mockResolvedValue({ content: [{ type: "text", text: "ok" }] });
+    mockRegistryCallTool.mockResolvedValue({
+      content: [{ type: "text", text: "ok" }],
+    });
 
-    const bridge = await startToolBridge(fakeClient, { enabled: true, quiet: true, builtinsEnabled: false });
+    const bridge = await startToolBridge(fakeClient, {
+      enabled: true,
+      quiet: true,
+      builtinsEnabled: false,
+    });
     for (let i = 0; i < 51; i++) {
       await bridge!.handleEvent(
-        { type: "tool:call_request", callId: `call_${i}`, name: "fs.x", arguments: {} },
+        {
+          type: "tool:call_request",
+          callId: `call_${i}`,
+          name: "fs.x",
+          arguments: {},
+        },
         "dlb_1",
       );
     }
-    const lastCall = (fakeClient.postToolResult as ReturnType<typeof vi.fn>).mock.calls.at(-1)!;
+    const lastCall = (
+      fakeClient.postToolResult as ReturnType<typeof vi.fn>
+    ).mock.calls.at(-1)!;
     expect(lastCall[2]).toMatchObject({
       isError: true,
-      content: [{ type: "text", text: expect.stringContaining("budget exhausted") }],
+      content: [
+        { type: "text", text: expect.stringContaining("budget exhausted") },
+      ],
     });
     await bridge!.shutdown();
   });

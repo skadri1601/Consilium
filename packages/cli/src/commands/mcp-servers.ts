@@ -1,4 +1,10 @@
-import { addServer, getConfigPath, getServer, listServers, removeServer } from "../utils/mcp-client/config";
+import {
+  addServer,
+  getConfigPath,
+  getServer,
+  listServers,
+  removeServer,
+} from "../utils/mcp-client/config";
 import { StdioMcpClient } from "../utils/mcp-client/stdio-client";
 import { McpRegistry } from "../utils/mcp-client/registry";
 import { style } from "../utils/visual-system";
@@ -61,15 +67,26 @@ export function listServersCommand(options: ListOptions = {}): void {
     return;
   }
   if (servers.length === 0) {
-    console.log(st.dim(`No MCP servers configured. Add one with: consilium mcp add <name> <command>`));
+    console.log(
+      st.dim(
+        `No MCP servers configured. Add one with: consilium mcp add <name> <command>`,
+      ),
+    );
     return;
   }
-  console.log(st.bold(`\n${servers.length} MCP server${servers.length === 1 ? "" : "s"}\n`));
+  console.log(
+    st.bold(
+      `\n${servers.length} MCP server${servers.length === 1 ? "" : "s"}\n`,
+    ),
+  );
   for (const s of servers) {
-    const enabled = s.enabled === false ? st.warning("disabled") : st.dim("enabled");
+    const enabled =
+      s.enabled === false ? st.warning("disabled") : st.dim("enabled");
     console.log(st.brand(`  ${s.name}`) + `  ${enabled}`);
     const argsDisplay = (s.args ?? []).join(" ");
-    console.log(st.dim(`    ${s.command}${argsDisplay ? " " + argsDisplay : ""}`));
+    console.log(
+      st.dim(`    ${s.command}${argsDisplay ? " " + argsDisplay : ""}`),
+    );
     if (s.env && Object.keys(s.env).length > 0) {
       console.log(st.dim(`    env: ${Object.keys(s.env).join(", ")}`));
     }
@@ -91,7 +108,10 @@ export interface TestOptions {
   json?: boolean;
 }
 
-export async function testServerCommand(name: string, options: TestOptions = {}): Promise<void> {
+export async function testServerCommand(
+  name: string,
+  options: TestOptions = {},
+): Promise<void> {
   const cfg = getServer(name);
   if (!cfg) {
     console.error(st.error(`No MCP server named "${name}"`));
@@ -106,7 +126,11 @@ export async function testServerCommand(name: string, options: TestOptions = {})
       console.log(JSON.stringify({ ok: true, tools }, null, 2));
     } else {
       console.log(st.success(`${name}: ready`));
-      console.log(st.dim(`  ${tools.length} tool${tools.length === 1 ? "" : "s"} exposed`));
+      console.log(
+        st.dim(
+          `  ${tools.length} tool${tools.length === 1 ? "" : "s"} exposed`,
+        ),
+      );
       for (const t of tools) {
         const desc = t.description ? ` - ${t.description.slice(0, 60)}` : "";
         console.log(`    ${st.brand(t.name)}${desc}`);
@@ -160,13 +184,21 @@ export async function toolsCommand(options: ToolsOptions = {}): Promise<void> {
   }
 
   if (result.started.length === 0 && result.failed.length === 0) {
-    console.log(st.dim(`No MCP servers configured. Add one with: consilium mcp add <name> <command>`));
+    console.log(
+      st.dim(
+        `No MCP servers configured. Add one with: consilium mcp add <name> <command>`,
+      ),
+    );
     await registry.stopAll();
     return;
   }
 
   if (result.failed.length > 0) {
-    console.log(st.warning(`\n${result.failed.length} server${result.failed.length === 1 ? "" : "s"} failed to start:`));
+    console.log(
+      st.warning(
+        `\n${result.failed.length} server${result.failed.length === 1 ? "" : "s"} failed to start:`,
+      ),
+    );
     for (const f of result.failed) {
       console.log(st.error(`  ${f.name}: ${f.error}`));
     }
@@ -185,11 +217,17 @@ export async function toolsCommand(options: ToolsOptions = {}): Promise<void> {
     byServer.set(t.server, list);
   }
 
-  console.log(st.bold(`\n${allTools.length} tool${allTools.length === 1 ? "" : "s"} from ${byServer.size} server${byServer.size === 1 ? "" : "s"}\n`));
+  console.log(
+    st.bold(
+      `\n${allTools.length} tool${allTools.length === 1 ? "" : "s"} from ${byServer.size} server${byServer.size === 1 ? "" : "s"}\n`,
+    ),
+  );
   for (const [server, tools] of byServer) {
     console.log(st.brand(`  ${server}`));
     for (const t of tools) {
-      const desc = t.tool.description ? ` - ${t.tool.description.slice(0, 60)}` : "";
+      const desc = t.tool.description
+        ? ` - ${t.tool.description.slice(0, 60)}`
+        : "";
       console.log(`    ${t.tool.name}${desc}`);
     }
   }

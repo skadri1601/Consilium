@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext, shouldBypassAuth, isFetchError } from "@/lib/api/auth-helpers";
+import {
+  getAuthContext,
+  shouldBypassAuth,
+  isFetchError,
+} from "@/lib/api/auth-helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -13,7 +17,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(
         { error: "Unauthorized", message: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -33,13 +37,16 @@ export async function GET(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${authContext.token}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
       if (response.status >= 500) {
         console.warn(`[GET /api/debates] Backend returned ${response.status}.`);
-        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
+        return NextResponse.json(
+          { error: "Service temporarily unavailable" },
+          { status: 503 },
+        );
       }
 
       let errorMessage = "Failed to fetch debates";
@@ -58,7 +65,7 @@ export async function GET(request: NextRequest) {
 
       console.error(
         `[GET /api/debates] Backend returned ${response.status}:`,
-        errorMessage
+        errorMessage,
       );
 
       return NextResponse.json(errorData, { status: response.status });
@@ -66,9 +73,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(await response.json());
   } catch (error) {
-      if (isFetchError(error)) {
+    if (isFetchError(error)) {
       console.warn("[GET /api/debates] Backend not reachable (fetch error).");
-      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 },
+      );
     }
 
     const errorMessage =
@@ -80,7 +90,7 @@ export async function GET(request: NextRequest) {
         error: "Internal Server Error",
         message: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -92,7 +102,7 @@ export async function POST(request: NextRequest) {
       if (!shouldBypassAuth(authContext.error)) {
         return NextResponse.json(
           { error: "Unauthorized", message: "User not authenticated" },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
@@ -129,7 +139,7 @@ export async function POST(request: NextRequest) {
 
       console.error(
         `[POST /api/debates] Backend returned ${response.status}:`,
-        errorMessage
+        errorMessage,
       );
 
       return NextResponse.json(errorData, { status: response.status });
@@ -141,7 +151,7 @@ export async function POST(request: NextRequest) {
       console.warn("[POST /api/debates] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
@@ -154,7 +164,7 @@ export async function POST(request: NextRequest) {
         error: "Internal Server Error",
         message: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

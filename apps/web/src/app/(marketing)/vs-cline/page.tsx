@@ -19,8 +19,7 @@ const data: CompetitorComparison = {
   hero: {
     tagline:
       "Cline drives one autonomous agent inside VS Code. Consilium runs a council that disagrees with itself.",
-    hook:
-      "Cline is one of the most capable single-agent extensions for VS Code. Consilium ships a parallel VS Code extension whose mechanic is multi-provider deliberation - and an MCP server that plugs into Cline if you want both.",
+    hook: "Cline is one of the most capable single-agent extensions for VS Code. Consilium ships a parallel VS Code extension whose mechanic is multi-provider deliberation - and an MCP server that plugs into Cline if you want both.",
     intro: [
       "Cline (formerly Claude Dev) helped define the modern in-IDE autonomous-agent experience. You give it a goal, and it plans, edits files, runs commands, drives a browser, and asks for permission at the right moments. The execute-act-observe loop is mature, the Plan/Act split is genuinely useful, and BYOK with broad provider support keeps you in control of cost.",
       "Cline's architecture is deliberately one-model-at-a-time. You pick an OpenAI / Anthropic / Gemini / OpenRouter / Bedrock / Vertex / LiteLLM target, and that one model handles the entire session - planning, editing, tool calls, the lot. Single-voice agentic loops are great for execution but weak at decisions where multiple perspectives matter.",
@@ -68,7 +67,8 @@ const data: CompetitorComparison = {
     {
       feature: "Provider count",
       consilium: "7 first-class adapters",
-      competitor: "Broad - OpenAI/Anthropic/Gemini/OpenRouter/Bedrock/Vertex/LiteLLM/local",
+      competitor:
+        "Broad - OpenAI/Anthropic/Gemini/OpenRouter/Bedrock/Vertex/LiteLLM/local",
       consiliumHas: true,
       competitorHas: true,
     },
@@ -81,14 +81,16 @@ const data: CompetitorComparison = {
     },
     {
       feature: "Plan/Act mode",
-      consilium: "8 deliberation modes (Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto)",
+      consilium:
+        "8 deliberation modes (Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto)",
       competitor: "Plan vs Act toggle",
       consiliumHas: true,
       competitorHas: true,
     },
     {
       feature: "Convergence detection",
-      consilium: "Composite score: 0.4·tau + 0.35·jaccard + 0.25·concession ≥ 0.85",
+      consilium:
+        "Composite score: 0.4·tau + 0.35·jaccard + 0.25·concession ≥ 0.85",
       competitor: "N/A",
       consiliumHas: true,
       competitorHas: false,
@@ -151,7 +153,7 @@ const data: CompetitorComparison = {
     },
     {
       title: "Pre-deploy review",
-      body: "Before running cline auto-approve on something risky, run consilium debate \"<plan>\" through Council mode. If the council converges, your confidence is justified. If it doesn't, you have explicit dissents to think through before you run anything autonomously.",
+      body: 'Before running cline auto-approve on something risky, run consilium debate "<plan>" through Council mode. If the council converges, your confidence is justified. If it doesn\'t, you have explicit dissents to think through before you run anything autonomously.',
     },
   ],
   faq: [
@@ -171,7 +173,8 @@ const data: CompetitorComparison = {
         "Because more rounds with the same model is just longer monologue, not debate. The signal in Consilium comes from disagreement between providers - a Claude that thinks the answer is X and a Grok that thinks the answer is Y produce a much stronger consensus check than one model self-reflecting five times.",
     },
     {
-      question: "Does Consilium's VS Code extension drive my browser like Cline?",
+      question:
+        "Does Consilium's VS Code extension drive my browser like Cline?",
       answer:
         "No - we don't ship browser-drive. Cline is the better tool for that workflow. Our extension focuses on running deliberations from inside the editor and writing the synthesis back to your buffer, with shared SSO so the CLI and extension see the same config.",
     },

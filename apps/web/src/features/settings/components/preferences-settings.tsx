@@ -12,7 +12,11 @@ import { Button } from "@/shared/components/ui/button";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
 import { useUserPreferences } from "@/shared/hooks/use-user-preferences";
-import { AGENTS, MIN_AGENTS_PER_DEBATE, MAX_AGENTS_PER_DEBATE } from "@/shared/lib/constants";
+import {
+  AGENTS,
+  MIN_AGENTS_PER_DEBATE,
+  MAX_AGENTS_PER_DEBATE,
+} from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
 import { DebateModeSelector } from "@/features/council/components/debate-mode-selector";
 import type { CouncilMode } from "@/features/council/types/council.types";
@@ -120,7 +124,8 @@ export function PreferencesSettings() {
 
               let borderStyle = "border-border hover:bg-accent";
               if (isSelected) borderStyle = "border-primary bg-primary/10";
-              else if (isDisabled) borderStyle = "opacity-50 cursor-not-allowed border-border";
+              else if (isDisabled)
+                borderStyle = "opacity-50 cursor-not-allowed border-border";
 
               return (
                 <button
@@ -130,7 +135,7 @@ export function PreferencesSettings() {
                   disabled={isDisabled}
                   className={cn(
                     "w-full rounded-lg border p-3 text-left transition-colors",
-                    borderStyle
+                    borderStyle,
                   )}
                 >
                   <div className="flex items-start justify-between">
@@ -178,7 +183,9 @@ export function PreferencesSettings() {
 
       <Button
         onClick={handleSave}
-        disabled={saving || !dirty || selectedAgents.length < MIN_AGENTS_PER_DEBATE}
+        disabled={
+          saving || !dirty || selectedAgents.length < MIN_AGENTS_PER_DEBATE
+        }
         className="w-full"
       >
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

@@ -1,4 +1,8 @@
-export type BlogCategory = "Benchmarks" | "Research" | "Product" | "Engineering";
+export type BlogCategory =
+  | "Benchmarks"
+  | "Research"
+  | "Product"
+  | "Engineering";
 
 export interface EntityRef {
   /** Display name. Used as the schema name field. */
@@ -36,7 +40,8 @@ export interface BlogPost {
 export const blogPosts: BlogPost[] = [
   {
     slug: "model-freshness-audit-april-2026",
-    title: "What We Found Auditing Our Own Model Catalog Against the Live Provider Docs",
+    title:
+      "What We Found Auditing Our Own Model Catalog Against the Live Provider Docs",
     excerpt:
       "We re-verified every model ID Consilium ships against each provider's own documentation page. Three real bugs surfaced - including an xAI model ID we'd been spelling with a dot when the API uses a dash. Here's the receipts.",
     date: "2026-04-25",
@@ -46,7 +51,8 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "byok-with-a-safety-net",
-    title: "BYOK With a Safety Net: How Consilium Falls Back to a Free Tier Without Touching Your Keys",
+    title:
+      "BYOK With a Safety Net: How Consilium Falls Back to a Free Tier Without Touching Your Keys",
     excerpt:
       "When a debate runs without a user-supplied key for the requested provider, Consilium routes through a platform-hosted Groq or OpenRouter pool - but only as a last step, with full transparency via SSE. Here's the four-step resolver chain.",
     date: "2026-04-22",
@@ -56,7 +62,8 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "model-deprecation-calendar-2026",
-    title: "The Model Deprecation Calendar: What Retires Between June and October 2026",
+    title:
+      "The Model Deprecation Calendar: What Retires Between June and October 2026",
     excerpt:
       "Six widely-used model IDs are scheduled for shutdown in the next six months. We list them, the date each one dies, and how Consilium's alias map keeps apps working past the cutoff.",
     date: "2026-04-15",
@@ -66,22 +73,44 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "benchmark-results-council-deliberation-vs-single-models",
-    title: "Council Deliberation vs Single Models: What Our Benchmarks Actually Show",
+    title:
+      "Council Deliberation vs Single Models: What Our Benchmarks Actually Show",
     excerpt:
       "We ran MMLU, TruthfulQA, and HumanEval through Consilium's council mode. The raw scores are not yet representative - our answer checker is too strict. Here's what we ran, what broke, and the research baselines we measure ourselves against in the meantime.",
     date: "2026-04-01",
     category: "Benchmarks",
     readingTime: "7 min read",
     featured: false,
-    keywords: ["benchmark", "MMLU", "TruthfulQA", "HumanEval", "multi-agent debate"],
+    keywords: [
+      "benchmark",
+      "MMLU",
+      "TruthfulQA",
+      "HumanEval",
+      "multi-agent debate",
+    ],
     mentions: [
-      { name: "Large language model", url: "https://www.wikidata.org/wiki/Q115305900" },
-      { name: "Multi-agent system", url: "https://www.wikidata.org/wiki/Q1429083" },
+      {
+        name: "Large language model",
+        url: "https://www.wikidata.org/wiki/Q115305900",
+      },
+      {
+        name: "Multi-agent system",
+        url: "https://www.wikidata.org/wiki/Q1429083",
+      },
     ],
     citations: [
-      { name: "MMLU (Hendrycks et al.)", url: "https://arxiv.org/abs/2009.03300" },
-      { name: "TruthfulQA (Lin et al.)", url: "https://arxiv.org/abs/2109.07958" },
-      { name: "HumanEval (Chen et al.)", url: "https://arxiv.org/abs/2107.03374" },
+      {
+        name: "MMLU (Hendrycks et al.)",
+        url: "https://arxiv.org/abs/2009.03300",
+      },
+      {
+        name: "TruthfulQA (Lin et al.)",
+        url: "https://arxiv.org/abs/2109.07958",
+      },
+      {
+        name: "HumanEval (Chen et al.)",
+        url: "https://arxiv.org/abs/2107.03374",
+      },
     ],
   },
   {
@@ -93,10 +122,21 @@ export const blogPosts: BlogPost[] = [
     category: "Research",
     readingTime: "6 min read",
     featured: false,
-    keywords: ["multi-agent debate", "deliberation", "orchestration", "AI alignment"],
+    keywords: [
+      "multi-agent debate",
+      "deliberation",
+      "orchestration",
+      "AI alignment",
+    ],
     mentions: [
-      { name: "Multi-agent system", url: "https://www.wikidata.org/wiki/Q1429083" },
-      { name: "Large language model", url: "https://www.wikidata.org/wiki/Q115305900" },
+      {
+        name: "Multi-agent system",
+        url: "https://www.wikidata.org/wiki/Q1429083",
+      },
+      {
+        name: "Large language model",
+        url: "https://www.wikidata.org/wiki/Q115305900",
+      },
     ],
     citations: [
       {
@@ -118,9 +158,17 @@ export const blogPosts: BlogPost[] = [
     category: "Product",
     readingTime: "6 min read",
     featured: false,
-    keywords: ["deliberation modes", "Condorcet method", "Borda count", "voting"],
+    keywords: [
+      "deliberation modes",
+      "Condorcet method",
+      "Borda count",
+      "voting",
+    ],
     mentions: [
-      { name: "Condorcet method", url: "https://www.wikidata.org/wiki/Q839616" },
+      {
+        name: "Condorcet method",
+        url: "https://www.wikidata.org/wiki/Q839616",
+      },
       { name: "Borda count", url: "https://www.wikidata.org/wiki/Q777887" },
       { name: "Ranked pairs", url: "https://www.wikidata.org/wiki/Q1192987" },
     ],

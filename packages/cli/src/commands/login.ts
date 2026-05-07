@@ -44,8 +44,8 @@ function stripQuotes(s: string): string {
 export async function loginFlow(): Promise<boolean> {
   console.log(
     st.brand(
-      "\n╔══════════════════════════════════════╗\n║       Welcome to Consilium          ║\n╚══════════════════════════════════════╝"
-    )
+      "\n╔══════════════════════════════════════╗\n║       Welcome to Consilium          ║\n╚══════════════════════════════════════╝",
+    ),
   );
 
   const config = loadConfig();
@@ -75,16 +75,12 @@ export async function loginFlow(): Promise<boolean> {
       attempts++;
       if (attempts >= maxAttempts) {
         console.log(
-          st.error(
-            "Invalid token format. Token should start with consilium_"
-          )
+          st.error("Invalid token format. Token should start with consilium_"),
         );
         return false;
       }
       console.log(
-        st.warning(
-          "Invalid token format. Token should start with consilium_"
-        )
+        st.warning("Invalid token format. Token should start with consilium_"),
       );
       continue;
     }
@@ -97,9 +93,7 @@ export async function loginFlow(): Promise<boolean> {
       });
     } catch {
       console.log(
-        st.error(
-          `Cannot connect to API at ${apiUrl}. Is the server running?`
-        )
+        st.error(`Cannot connect to API at ${apiUrl}. Is the server running?`),
       );
       return false;
     }
@@ -130,7 +124,11 @@ export async function loginFlow(): Promise<boolean> {
     console.log(st.success(`\n✓ Logged in as ${userName} (${email})`));
     const prefs = await fetchAndCachePreferences();
     if (prefs) {
-      console.log(st.dim(`  Synced preferences: ${prefs.defaultAgents.length} default models, mode=${prefs.defaultMode}`));
+      console.log(
+        st.dim(
+          `  Synced preferences: ${prefs.defaultAgents.length} default models, mode=${prefs.defaultMode}`,
+        ),
+      );
     }
     await printPostLoginProviderHints(apiUrl, token, webUrl);
     return true;
@@ -139,11 +137,13 @@ export async function loginFlow(): Promise<boolean> {
   return false;
 }
 
-export async function loginCommand(options?: { force?: boolean }): Promise<void> {
+export async function loginCommand(options?: {
+  force?: boolean;
+}): Promise<void> {
   if (isLoggedIn() && !options?.force) {
     const config = loadConfig();
     console.log(
-      `Already logged in as ${config.userName || "unknown"} (${config.userEmail || "unknown"}). Use --force to re-authenticate or \`consilium logout\` first.`
+      `Already logged in as ${config.userName || "unknown"} (${config.userEmail || "unknown"}). Use --force to re-authenticate or \`consilium logout\` first.`,
     );
     return;
   }

@@ -33,7 +33,11 @@ export async function runDebate(
 
   panel.reset();
   panel.reveal();
-  panel.postEvent({ type: "debate_start", topic: input.topic, mode: opts.mode });
+  panel.postEvent({
+    type: "debate_start",
+    topic: input.topic,
+    mode: opts.mode,
+  });
 
   const debate = await tryCreateDebate(client, panel, opts);
   if (!debate) return;
@@ -204,11 +208,10 @@ async function collectGitContext(
       timeout: 5000,
       maxBuffer: 4 * 1024 * 1024,
     });
-    const recent = await exec(
-      "git",
-      ["log", "--oneline", "-10"],
-      { cwd, timeout: 5000 },
-    );
+    const recent = await exec("git", ["log", "--oneline", "-10"], {
+      cwd,
+      timeout: 5000,
+    });
     return {
       branch: branch.stdout.trim(),
       diff: diff.stdout.slice(0, 50_000),

@@ -3,10 +3,10 @@
 The VS Code extension lives at `apps/vscode-extension/` and ships
 to two registries:
 
-| Registry | Used by | Tool |
-|---|---|---|
-| Visual Studio Marketplace | VS Code | `vsce` |
-| Open VSX | Cursor, VSCodium, Gitpod, Theia | `ovsx` |
+| Registry                  | Used by                         | Tool   |
+| ------------------------- | ------------------------------- | ------ |
+| Visual Studio Marketplace | VS Code                         | `vsce` |
+| Open VSX                  | Cursor, VSCodium, Gitpod, Theia | `ovsx` |
 
 Cursor mirrors Open VSX, so a single Open VSX publish reaches every
 Cursor user without an additional submission.
@@ -75,7 +75,7 @@ Once smoke-tested manually, automate via `.github/workflows/release-vscode.yml`:
 on:
   push:
     tags:
-      - 'vscode-v*'
+      - "vscode-v*"
 
 jobs:
   publish:
@@ -131,12 +131,12 @@ After publishing, monitor:
 
 ## When to bump the version
 
-| Change | Bump |
-|---|---|
-| New command / contributes.menu entry | minor |
-| Bug fix that doesn't change UX | patch |
-| Settings schema change | minor |
+| Change                                | Bump  |
+| ------------------------------------- | ----- |
+| New command / contributes.menu entry  | minor |
+| Bug fix that doesn't change UX        | patch |
+| Settings schema change                | minor |
 | Breaking change to extension behavior | major |
-| Marketplace icon / README copy only | patch |
+| Marketplace icon / README copy only   | patch |
 
 The Marketplace caches metadata aggressively; non-code changes (icon, README) need a patch bump to force a refresh.

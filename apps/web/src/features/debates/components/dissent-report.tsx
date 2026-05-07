@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import {
   Accordion,
   AccordionContent,
@@ -13,15 +18,19 @@ import { cn } from "@/shared/lib/utils";
 import { AGENTS } from "@/shared/lib/constants";
 import { ChevronDown, Scale, Users, AlertTriangle } from "lucide-react";
 
-const AGENT_NAME_MAP = new Map<string, string>(AGENTS.map((a) => [a.id, a.name]));
+const AGENT_NAME_MAP = new Map<string, string>(
+  AGENTS.map((a) => [a.id, a.name]),
+);
 
 function getModelDisplayName(modelId: string): string {
   return AGENT_NAME_MAP.get(modelId) ?? modelId;
 }
 
 const MODEL_COLORS: Record<string, string> = {
-  OpenAI: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  Anthropic: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  OpenAI:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  Anthropic:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
   Google: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
   Groq: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
   XAI: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
@@ -29,8 +38,12 @@ const MODEL_COLORS: Record<string, string> = {
 
 function getModelBadgeColor(modelId: string): string {
   const agent = AGENTS.find((a) => a.id === modelId);
-  if (!agent) return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-  return MODEL_COLORS[agent.provider] ?? "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+  if (!agent)
+    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+  return (
+    MODEL_COLORS[agent.provider] ??
+    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+  );
 }
 
 interface DissentCluster {
@@ -66,7 +79,7 @@ function ModelBadge({ modelId }: { modelId: string }) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        getModelBadgeColor(modelId)
+        getModelBadgeColor(modelId),
       )}
     >
       {getModelDisplayName(modelId)}
@@ -74,8 +87,15 @@ function ModelBadge({ modelId }: { modelId: string }) {
   );
 }
 
-function AgreementIndicator({ agreeCount, totalModels }: { agreeCount: number; totalModels: number }) {
-  const percentage = totalModels > 0 ? Math.round((agreeCount / totalModels) * 100) : 0;
+function AgreementIndicator({
+  agreeCount,
+  totalModels,
+}: {
+  agreeCount: number;
+  totalModels: number;
+}) {
+  const percentage =
+    totalModels > 0 ? Math.round((agreeCount / totalModels) * 100) : 0;
   const isUnanimous = agreeCount === totalModels;
 
   return (
@@ -93,14 +113,22 @@ function AgreementIndicator({ agreeCount, totalModels }: { agreeCount: number; t
           transition={{ duration: 0.6, ease: "easeOut" }}
           className={cn(
             "h-full rounded-full",
-            isUnanimous ? "bg-emerald-500" : percentage >= 75 ? "bg-amber-500" : "bg-rose-500"
+            isUnanimous
+              ? "bg-emerald-500"
+              : percentage >= 75
+                ? "bg-amber-500"
+                : "bg-rose-500",
           )}
         />
       </div>
-      <span className={cn(
-        "text-sm font-semibold tabular-nums",
-        isUnanimous ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
-      )}>
+      <span
+        className={cn(
+          "text-sm font-semibold tabular-nums",
+          isUnanimous
+            ? "text-emerald-600 dark:text-emerald-400"
+            : "text-muted-foreground",
+        )}
+      >
         {percentage}%
       </span>
     </div>
@@ -141,7 +169,9 @@ function MajoritySection({ cluster }: { cluster: DissentCluster }) {
             <ul className="space-y-1.5">
               {cluster.keyArguments.map((arg, i) => (
                 <li key={i} className="text-sm text-foreground/80 flex gap-2">
-                  <span className="text-muted-foreground shrink-0">{i + 1}.</span>
+                  <span className="text-muted-foreground shrink-0">
+                    {i + 1}.
+                  </span>
                   <span>{arg}</span>
                 </li>
               ))}
@@ -160,7 +190,9 @@ function MajoritySection({ cluster }: { cluster: DissentCluster }) {
               <ol className="space-y-2 pl-4 border-l border-muted">
                 {cluster.reasoningChain.map((step, i) => (
                   <li key={i} className="text-xs text-foreground/70 pl-3">
-                    <span className="font-medium text-muted-foreground">Step {i + 1}:</span>{" "}
+                    <span className="font-medium text-muted-foreground">
+                      Step {i + 1}:
+                    </span>{" "}
                     {step}
                   </li>
                 ))}
@@ -173,7 +205,13 @@ function MajoritySection({ cluster }: { cluster: DissentCluster }) {
   );
 }
 
-function DissentSection({ cluster, index }: { cluster: DissentCluster; index: number }) {
+function DissentSection({
+  cluster,
+  index,
+}: {
+  cluster: DissentCluster;
+  index: number;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -231,7 +269,7 @@ function DissentSection({ cluster, index }: { cluster: DissentCluster; index: nu
             <ChevronDown
               className={cn(
                 "h-3 w-3 transition-transform duration-200",
-                expanded && "rotate-180"
+                expanded && "rotate-180",
               )}
             />
             Full Reasoning Chain
@@ -248,7 +286,9 @@ function DissentSection({ cluster, index }: { cluster: DissentCluster; index: nu
                 <ol className="mt-2 space-y-1.5 pl-4 border-l border-muted">
                   {cluster.reasoningChain.map((step, i) => (
                     <li key={i} className="text-xs text-foreground/60 pl-3">
-                      <span className="font-medium text-muted-foreground">Step {i + 1}:</span>{" "}
+                      <span className="font-medium text-muted-foreground">
+                        Step {i + 1}:
+                      </span>{" "}
                       {step}
                     </li>
                   ))}
@@ -262,7 +302,11 @@ function DissentSection({ cluster, index }: { cluster: DissentCluster; index: nu
   );
 }
 
-export function DissentReport({ report, totalModels, className }: DissentReportProps) {
+export function DissentReport({
+  report,
+  totalModels,
+  className,
+}: DissentReportProps) {
   const majorityCount = report.majority?.models.length ?? 0;
   const isConsensus = report.type === "consensus";
 
@@ -274,7 +318,10 @@ export function DissentReport({ report, totalModels, className }: DissentReportP
             <Scale className="h-5 w-5" />
             {isConsensus ? "Unanimous Opinion" : "Opinion of the Council"}
           </CardTitle>
-          <AgreementIndicator agreeCount={majorityCount} totalModels={totalModels} />
+          <AgreementIndicator
+            agreeCount={majorityCount}
+            totalModels={totalModels}
+          />
         </div>
       </CardHeader>
 
@@ -317,7 +364,9 @@ export function DissentReport({ report, totalModels, className }: DissentReportP
                       <ModelBadge modelId={dp.challenger} />
                       <span className="text-muted-foreground">challenges</span>
                       <ModelBadge modelId={dp.target} />
-                      <span className="text-xs text-muted-foreground ml-1">({dp.type})</span>
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({dp.type})
+                      </span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>

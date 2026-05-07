@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  ALL_COMMANDS,
-  filterCommands,
-  findCommand,
-} from "../repl/commands";
+import { ALL_COMMANDS, filterCommands, findCommand } from "../repl/commands";
 import {
   isPaletteOpen,
   paletteQuery,
@@ -14,14 +10,32 @@ import {
 
 describe("slash command registry", () => {
   it("includes all 8 deliberation modes", () => {
-    const modeNames = ["auto", "quick", "council", "deep", "blind", "redteam", "jury", "market"];
+    const modeNames = [
+      "auto",
+      "quick",
+      "council",
+      "deep",
+      "blind",
+      "redteam",
+      "jury",
+      "market",
+    ];
     for (const name of modeNames) {
       expect(findCommand(name)).toBeDefined();
     }
   });
 
   it("includes core utility commands", () => {
-    for (const name of ["chat", "stats", "config", "login", "logout", "help", "exit", "clear"]) {
+    for (const name of [
+      "chat",
+      "stats",
+      "config",
+      "login",
+      "logout",
+      "help",
+      "exit",
+      "clear",
+    ]) {
       expect(findCommand(name)).toBeDefined();
     }
   });

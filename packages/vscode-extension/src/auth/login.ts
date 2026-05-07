@@ -47,7 +47,9 @@ export async function loginCommand(
     const user = await client.getCurrentUser();
     const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
     const display = name || user.email || "user";
-    vscode.window.showInformationMessage(`Signed in to Consilium as ${display}.`);
+    vscode.window.showInformationMessage(
+      `Signed in to Consilium as ${display}.`,
+    );
     await vscode.commands.executeCommand(
       "setContext",
       "consilium.authenticated",

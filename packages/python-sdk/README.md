@@ -31,16 +31,16 @@ print(result.confidence_scores)
 
 ## Deliberation Modes
 
-| Mode | Description |
-|------|-------------|
-| `auto` | Automatically selects best mode for topic |
-| `quick` | Single round, fastest response |
-| `council` | Multi-round deliberation |
-| `deep` | Multi-round with sub-agent research |
-| `blind` | Names hidden until scored |
-| `redteam` | Adversarial red team assessment |
-| `jury` | Panel deliberation with voting |
-| `market` | Prediction market style confidence aggregation |
+| Mode      | Description                                    |
+| --------- | ---------------------------------------------- |
+| `auto`    | Automatically selects best mode for topic      |
+| `quick`   | Single round, fastest response                 |
+| `council` | Multi-round deliberation                       |
+| `deep`    | Multi-round with sub-agent research            |
+| `blind`   | Names hidden until scored                      |
+| `redteam` | Adversarial red team assessment                |
+| `jury`    | Panel deliberation with voting                 |
+| `market`  | Prediction market style confidence aggregation |
 
 ## Methods
 
@@ -161,6 +161,7 @@ client = ConsiliumClient(
 ```
 
 The client retries failed requests with exponential backoff for:
+
 - HTTP 429 (rate limit) - respects `Retry-After` header
 - HTTP 5xx (server errors)
 - Connection timeouts

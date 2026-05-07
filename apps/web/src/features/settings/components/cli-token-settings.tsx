@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Terminal, Copy, Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/shared/components/ui/use-toast";
@@ -16,7 +22,9 @@ export function CliTokenSettings() {
     setLoading(true);
     setToken(null);
     try {
-      const response = await fetch("/api/api-keys/cli-token", { method: "POST" });
+      const response = await fetch("/api/api-keys/cli-token", {
+        method: "POST",
+      });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to generate token");
@@ -24,12 +32,15 @@ export function CliTokenSettings() {
       setToken(data.token);
       toast({
         title: "CLI token generated",
-        description: "Copy it and run: consilium config set apiKey \"<token>\"",
+        description: 'Copy it and run: consilium config set apiKey "<token>"',
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate CLI token",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate CLI token",
         variant: "destructive",
       });
     } finally {
@@ -58,7 +69,8 @@ export function CliTokenSettings() {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-1">Consilium CLI</h2>
         <p className="text-sm text-muted-foreground">
-          Generate a token to use the Consilium CLI. Sign in here first, then use this token in the CLI.
+          Generate a token to use the Consilium CLI. Sign in here first, then
+          use this token in the CLI.
         </p>
       </div>
 
@@ -69,8 +81,9 @@ export function CliTokenSettings() {
             CLI token
           </CardTitle>
           <CardDescription>
-            Use this token in the CLI so you can run debates and chat without signing in again.
-            Generate a new token anytime; the previous one will stop working.
+            Use this token in the CLI so you can run debates and chat without
+            signing in again. Generate a new token anytime; the previous one
+            will stop working.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -100,10 +113,12 @@ export function CliTokenSettings() {
           <div className="rounded-md border bg-muted/50 p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground mb-1">In the CLI, run:</p>
             <code className="block mt-1 text-foreground">
-              consilium config set apiKey &quot;{token ? "your-token-here" : "consilium_..."}&quot;
+              consilium config set apiKey &quot;
+              {token ? "your-token-here" : "consilium_..."}&quot;
             </code>
             <p className="mt-2">
-              Or use <code className="text-foreground">/api</code> in the interactive chat to set or view your API key.
+              Or use <code className="text-foreground">/api</code> in the
+              interactive chat to set or view your API key.
             </p>
           </div>
         </CardContent>

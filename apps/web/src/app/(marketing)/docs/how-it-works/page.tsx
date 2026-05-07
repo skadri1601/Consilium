@@ -1,7 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, GitBranch, BarChart3, TrendingUp, Split, Gauge, DollarSign } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  ArrowLeft,
+  GitBranch,
+  BarChart3,
+  TrendingUp,
+  Split,
+  Gauge,
+  DollarSign,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -12,23 +25,91 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const stateFields = [
-  { field: "topic", type: "string", desc: "The question or topic being deliberated" },
-  { field: "mode", type: "DeliberationMode", desc: "Active deliberation mode (quick/council/deep/blind/redteam/jury/market/auto)" },
-  { field: "round_number", type: "int", desc: "Current round (increments after convergence check)" },
-  { field: "max_rounds", type: "int", desc: "Maximum rounds before forced output" },
-  { field: "models", type: "list[str]", desc: "Model IDs participating in the debate" },
-  { field: "judge_model", type: "str", desc: "Model used for evaluation and synthesis" },
-  { field: "proposals", type: "list[dict]", desc: "Independent positions from each model" },
-  { field: "challenges", type: "list[dict]", desc: "Cross-examination results with typed objections" },
-  { field: "rebuttals", type: "list[dict]", desc: "Responses: CONCEDE, REFUTE, QUALIFY, or REDIRECT" },
-  { field: "evaluations", type: "list[dict]", desc: "Rubric-based scoring of each proposal" },
-  { field: "votes", type: "list[dict]", desc: "Ranked ballots with confidence weights" },
-  { field: "aggregation_result", type: "dict", desc: "Combined vote results (winner, method, ranking)" },
-  { field: "convergence_result", type: "dict", desc: "Convergence score and recommendation" },
-  { field: "dissent_report", type: "dict", desc: "Majority/minority positions via clustering" },
-  { field: "confidence_scores", type: "dict", desc: "Per-model calibrated confidence" },
-  { field: "audit_trail", type: "list[dict]", desc: "Every step: model, input, output, tokens, cost, latency" },
-  { field: "cost_tracker", type: "dict", desc: "Cost breakdown by model and round" },
+  {
+    field: "topic",
+    type: "string",
+    desc: "The question or topic being deliberated",
+  },
+  {
+    field: "mode",
+    type: "DeliberationMode",
+    desc: "Active deliberation mode (quick/council/deep/blind/redteam/jury/market/auto)",
+  },
+  {
+    field: "round_number",
+    type: "int",
+    desc: "Current round (increments after convergence check)",
+  },
+  {
+    field: "max_rounds",
+    type: "int",
+    desc: "Maximum rounds before forced output",
+  },
+  {
+    field: "models",
+    type: "list[str]",
+    desc: "Model IDs participating in the debate",
+  },
+  {
+    field: "judge_model",
+    type: "str",
+    desc: "Model used for evaluation and synthesis",
+  },
+  {
+    field: "proposals",
+    type: "list[dict]",
+    desc: "Independent positions from each model",
+  },
+  {
+    field: "challenges",
+    type: "list[dict]",
+    desc: "Cross-examination results with typed objections",
+  },
+  {
+    field: "rebuttals",
+    type: "list[dict]",
+    desc: "Responses: CONCEDE, REFUTE, QUALIFY, or REDIRECT",
+  },
+  {
+    field: "evaluations",
+    type: "list[dict]",
+    desc: "Rubric-based scoring of each proposal",
+  },
+  {
+    field: "votes",
+    type: "list[dict]",
+    desc: "Ranked ballots with confidence weights",
+  },
+  {
+    field: "aggregation_result",
+    type: "dict",
+    desc: "Combined vote results (winner, method, ranking)",
+  },
+  {
+    field: "convergence_result",
+    type: "dict",
+    desc: "Convergence score and recommendation",
+  },
+  {
+    field: "dissent_report",
+    type: "dict",
+    desc: "Majority/minority positions via clustering",
+  },
+  {
+    field: "confidence_scores",
+    type: "dict",
+    desc: "Per-model calibrated confidence",
+  },
+  {
+    field: "audit_trail",
+    type: "list[dict]",
+    desc: "Every step: model, input, output, tokens, cost, latency",
+  },
+  {
+    field: "cost_tracker",
+    type: "dict",
+    desc: "Cost breakdown by model and round",
+  },
   { field: "golden_prompt", type: "str", desc: "Final synthesized answer" },
 ];
 
@@ -48,14 +129,15 @@ export default function HowItWorksPage() {
             How the Deliberation Engine Works
           </h1>
           <p className="text-xl text-muted-foreground">
-            A deep technical explanation of the state machine, voting algorithms, convergence detection, dissent clustering, and confidence calibration that power Consilium.
+            A deep technical explanation of the state machine, voting
+            algorithms, convergence detection, dissent clustering, and
+            confidence calibration that power Consilium.
           </p>
         </div>
       </section>
 
       <section className="container mx-auto px-4 pb-24">
         <div className="max-w-5xl mx-auto space-y-16">
-
           <div id="state-machine">
             <div className="flex items-center gap-3 mb-6">
               <GitBranch className="h-6 w-6 text-indigo-400" />
@@ -63,48 +145,93 @@ export default function HowItWorksPage() {
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Consilium&apos;s deliberation engine is built on a LangGraph-based state machine. Each deliberation progresses through a defined sequence of phases, with the state object accumulating results at each step. The state machine enforces the debate protocol: no model can skip a phase, and convergence is checked mathematically before termination.
+                Consilium&apos;s deliberation engine is built on a
+                LangGraph-based state machine. Each deliberation progresses
+                through a defined sequence of phases, with the state object
+                accumulating results at each step. The state machine enforces
+                the debate protocol: no model can skip a phase, and convergence
+                is checked mathematically before termination.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-mono">Phase Pipeline (Council/Deep/Jury/Blind)</CardTitle>
+                  <CardTitle className="text-base font-mono">
+                    Phase Pipeline (Council/Deep/Jury/Blind)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    {["PROPOSAL", "CHALLENGE", "REBUTTAL", "EVALUATION", "VOTING", "AGGREGATION", "CONVERGENCE", "OUTPUT"].map((phase, i) => (
-                      <span key={phase} className="inline-flex items-center gap-1">
-                        <span className="rounded bg-indigo-500/10 px-2.5 py-1.5 text-xs font-mono text-indigo-400">{phase}</span>
-                        {i < 7 && <span className="text-muted-foreground text-xs">→</span>}
+                    {[
+                      "PROPOSAL",
+                      "CHALLENGE",
+                      "REBUTTAL",
+                      "EVALUATION",
+                      "VOTING",
+                      "AGGREGATION",
+                      "CONVERGENCE",
+                      "OUTPUT",
+                    ].map((phase, i) => (
+                      <span
+                        key={phase}
+                        className="inline-flex items-center gap-1"
+                      >
+                        <span className="rounded bg-indigo-500/10 px-2.5 py-1.5 text-xs font-mono text-indigo-400">
+                          {phase}
+                        </span>
+                        {i < 7 && (
+                          <span className="text-muted-foreground text-xs">
+                            →
+                          </span>
+                        )}
                       </span>
                     ))}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Each phase handler processes sequentially. After CONVERGENCE, the engine either loops back to PROPOSAL for another round or proceeds to OUTPUT. Round number increments after each convergence check.
+                    Each phase handler processes sequentially. After
+                    CONVERGENCE, the engine either loops back to PROPOSAL for
+                    another round or proceeds to OUTPUT. Round number increments
+                    after each convergence check.
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">DeliberationState Object</CardTitle>
+                  <CardTitle className="text-base">
+                    DeliberationState Object
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-xl border border-white/[0.06] overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">Field</th>
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">Type</th>
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">Description</th>
+                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
+                            Field
+                          </th>
+                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
+                            Type
+                          </th>
+                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
+                            Description
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {stateFields.map((f) => (
-                          <tr key={f.field} className="border-b border-white/[0.06] last:border-0">
-                            <td className="px-4 py-2 font-mono text-xs text-indigo-400">{f.field}</td>
-                            <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{f.type}</td>
-                            <td className="px-4 py-2 text-xs text-muted-foreground">{f.desc}</td>
+                          <tr
+                            key={f.field}
+                            className="border-b border-white/[0.06] last:border-0"
+                          >
+                            <td className="px-4 py-2 font-mono text-xs text-indigo-400">
+                              {f.field}
+                            </td>
+                            <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                              {f.type}
+                            </td>
+                            <td className="px-4 py-2 text-xs text-muted-foreground">
+                              {f.desc}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -120,28 +247,91 @@ export default function HowItWorksPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">PROPOSAL</span> - Each model independently generates: claims (list of assertions), reasoning chain (step-by-step logic), confidence score, and supporting evidence. No model sees others&apos; proposals.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          PROPOSAL
+                        </span>{" "}
+                        - Each model independently generates: claims (list of
+                        assertions), reasoning chain (step-by-step logic),
+                        confidence score, and supporting evidence. No model sees
+                        others&apos; proposals.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CHALLENGE</span> - Models cross-examine each other. Challenges are typed: factual errors, missing evidence, logical flaws, better alternatives. Each challenge targets a specific claim in another model&apos;s proposal.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          CHALLENGE
+                        </span>{" "}
+                        - Models cross-examine each other. Challenges are typed:
+                        factual errors, missing evidence, logical flaws, better
+                        alternatives. Each challenge targets a specific claim in
+                        another model&apos;s proposal.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">REBUTTAL</span> - Defenders respond with categorized rebuttals: CONCEDE (accept the challenge), REFUTE (counter with evidence), QUALIFY (accept partially with conditions), or REDIRECT (reframe the question). Rebuttal types feed into convergence and confidence metrics.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          REBUTTAL
+                        </span>{" "}
+                        - Defenders respond with categorized rebuttals: CONCEDE
+                        (accept the challenge), REFUTE (counter with evidence),
+                        QUALIFY (accept partially with conditions), or REDIRECT
+                        (reframe the question). Rebuttal types feed into
+                        convergence and confidence metrics.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">EVALUATION</span> - Proposals scored against a rubric with weighted dimensions. Each dimension gets a 0-1 score. The rubric varies by template (e.g., security 30% + correctness 25% for code review).</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          EVALUATION
+                        </span>{" "}
+                        - Proposals scored against a rubric with weighted
+                        dimensions. Each dimension gets a 0-1 score. The rubric
+                        varies by template (e.g., security 30% + correctness 25%
+                        for code review).
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">VOTING</span> - Models cast RankedBallots: an ordered preference list of proposals with a confidence_weight (0-1). Higher confidence = more influence on the final ranking.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          VOTING
+                        </span>{" "}
+                        - Models cast RankedBallots: an ordered preference list
+                        of proposals with a confidence_weight (0-1). Higher
+                        confidence = more influence on the final ranking.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">AGGREGATION</span> - Votes aggregated through the voting pipeline: Borda scores → full ranking → Condorcet check → Ranked Pairs fallback. Produces winner, method used, and confidence level.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          AGGREGATION
+                        </span>{" "}
+                        - Votes aggregated through the voting pipeline: Borda
+                        scores → full ranking → Condorcet check → Ranked Pairs
+                        fallback. Produces winner, method used, and confidence
+                        level.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">CONVERGENCE</span> - Three metrics combined to determine if debate should continue. If converged (score ≥ 0.85) or max rounds reached, proceeds to OUTPUT. Otherwise loops back to PROPOSAL.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          CONVERGENCE
+                        </span>{" "}
+                        - Three metrics combined to determine if debate should
+                        continue. If converged (score ≥ 0.85) or max rounds
+                        reached, proceeds to OUTPUT. Otherwise loops back to
+                        PROPOSAL.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-neutral-900 p-3">
-                      <p className="text-sm"><span className="text-indigo-400 font-medium">OUTPUT</span> - Final synthesis: judge model integrates strongest arguments, applies dissent detection, calibrates confidence, and produces the golden prompt.</p>
+                      <p className="text-sm">
+                        <span className="text-indigo-400 font-medium">
+                          OUTPUT
+                        </span>{" "}
+                        - Final synthesis: judge model integrates strongest
+                        arguments, applies dissent detection, calibrates
+                        confidence, and produces the golden prompt.
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -156,16 +346,25 @@ export default function HowItWorksPage() {
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Consilium implements four formal social choice theory algorithms. These aren&apos;t simple &quot;pick the most popular&quot; mechanisms - they&apos;re mathematically rigorous voting methods used in political science and decision theory.
+                Consilium implements four formal social choice theory
+                algorithms. These aren&apos;t simple &quot;pick the most
+                popular&quot; mechanisms - they&apos;re mathematically rigorous
+                voting methods used in political science and decision theory.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Condorcet Method (Primary)</CardTitle>
+                  <CardTitle className="text-base">
+                    Condorcet Method (Primary)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Checks if any candidate beats ALL others in pairwise matchups. For each pair of candidates (A, B), counts how many voters prefer A over B (weighted by confidence_weight). If one candidate wins every pairwise comparison, it&apos;s the Condorcet winner - the strongest possible consensus.
+                    Checks if any candidate beats ALL others in pairwise
+                    matchups. For each pair of candidates (A, B), counts how
+                    many voters prefer A over B (weighted by confidence_weight).
+                    If one candidate wins every pairwise comparison, it&apos;s
+                    the Condorcet winner - the strongest possible consensus.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each pair (A, B):
@@ -181,11 +380,15 @@ Returns: single winner or None (triggers Ranked Pairs fallback)`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Borda Count (Scoring)</CardTitle>
+                  <CardTitle className="text-base">
+                    Borda Count (Scoring)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Assigns points based on rank position, weighted by voter confidence. Produces a complete ranking of all candidates, not just a winner.
+                    Assigns points based on rank position, weighted by voter
+                    confidence. Produces a complete ranking of all candidates,
+                    not just a winner.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each ballot:
@@ -200,11 +403,15 @@ Used even when Condorcet winner exists, to produce complete ordering`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Ranked Pairs (Tiebreaker)</CardTitle>
+                  <CardTitle className="text-base">
+                    Ranked Pairs (Tiebreaker)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    When no Condorcet winner exists (a cycle: A beats B, B beats C, C beats A), Ranked Pairs resolves by locking the strongest victories first while preventing cycles.
+                    When no Condorcet winner exists (a cycle: A beats B, B beats
+                    C, C beats A), Ranked Pairs resolves by locking the
+                    strongest victories first while preventing cycles.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`1. List all pairwise matchups with victory margins
@@ -221,11 +428,15 @@ Complexity: O(n² log n) where n = number of candidates`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Copeland (Comparative Analysis)</CardTitle>
+                  <CardTitle className="text-base">
+                    Copeland (Comparative Analysis)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Simple win/loss scoring for comparative analysis. Not used for final winner selection, but provides intuitive &quot;how dominant is this candidate?&quot; metric.
+                    Simple win/loss scoring for comparative analysis. Not used
+                    for final winner selection, but provides intuitive &quot;how
+                    dominant is this candidate?&quot; metric.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each candidate:
@@ -241,7 +452,9 @@ Example with 4 candidates:
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Aggregation Pipeline</CardTitle>
+                  <CardTitle className="text-base">
+                    Aggregation Pipeline
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -264,16 +477,23 @@ Example with 4 candidates:
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Convergence detection determines whether the debate has reached a stable consensus or should continue for another round. Three independent metrics are combined into a single score.
+                Convergence detection determines whether the debate has reached
+                a stable consensus or should continue for another round. Three
+                independent metrics are combined into a single score.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Kendall Tau Distance (Ranking Similarity)</CardTitle>
+                  <CardTitle className="text-base">
+                    Kendall Tau Distance (Ranking Similarity)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Measures how similar the vote rankings are between consecutive rounds. Maps items to positions, counts concordant vs discordant pairs. Normalized to [0, 1] where 1.0 = identical rankings across rounds.
+                    Measures how similar the vote rankings are between
+                    consecutive rounds. Maps items to positions, counts
+                    concordant vs discordant pairs. Normalized to [0, 1] where
+                    1.0 = identical rankings across rounds.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`tau = (concordant_pairs - discordant_pairs) / total_pairs
@@ -287,11 +507,15 @@ discordant: pair (i,j) ranked opposite order`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Jaccard Similarity (Proposal Content)</CardTitle>
+                  <CardTitle className="text-base">
+                    Jaccard Similarity (Proposal Content)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Measures how much the actual content of proposals overlaps between rounds. Converts proposals to word sets, computes intersection/union.
+                    Measures how much the actual content of proposals overlaps
+                    between rounds. Converts proposals to word sets, computes
+                    intersection/union.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`For each model's proposals across rounds:
@@ -310,7 +534,9 @@ Average across all model-pair comparisons`}</code>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Fraction of rebuttals where models concede or qualify their positions. High concession = models are willing to adapt, indicating movement toward consensus.
+                    Fraction of rebuttals where models concede or qualify their
+                    positions. High concession = models are willing to adapt,
+                    indicating movement toward consensus.
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-muted-foreground">{`concession_rate = count(rebuttals where type == CONCEDE or QUALIFY) / total_rebuttals`}</code>
@@ -320,7 +546,9 @@ Average across all model-pair comparisons`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Combined Convergence Score</CardTitle>
+                  <CardTitle className="text-base">
+                    Combined Convergence Score
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -348,12 +576,17 @@ Output: { converged, score, components, recommendation }`}</code>
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Dissent detection identifies whether models genuinely agree or if there are distinct camps with fundamentally different positions. Uses agglomerative clustering on proposal content similarity.
+                Dissent detection identifies whether models genuinely agree or
+                if there are distinct camps with fundamentally different
+                positions. Uses agglomerative clustering on proposal content
+                similarity.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Agglomerative Clustering Algorithm</CardTitle>
+                  <CardTitle className="text-base">
+                    Agglomerative Clustering Algorithm
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -380,7 +613,9 @@ Output: { converged, score, components, recommendation }`}</code>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Dissent Report Structure</CardTitle>
+                  <CardTitle className="text-base">
+                    Dissent Report Structure
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -417,12 +652,19 @@ Output: { converged, score, components, recommendation }`}</code>
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Confidence calibration measures how much each model actually stands behind its claims. A model that caves under scrutiny gets a lower confidence score than one that defends its position with evidence. This is based on &quot;explanation stability&quot; - the degree to which a model&apos;s claims survive cross-examination.
+                Confidence calibration measures how much each model actually
+                stands behind its claims. A model that caves under scrutiny gets
+                a lower confidence score than one that defends its position with
+                evidence. This is based on &quot;explanation stability&quot; -
+                the degree to which a model&apos;s claims survive
+                cross-examination.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Calibration Formula</CardTitle>
+                  <CardTitle className="text-base">
+                    Calibration Formula
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -460,12 +702,17 @@ Output: {
             </div>
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Auto mode uses cost-based routing to select the optimal deliberation mode and model count. It extracts features from the query, scores complexity, and routes to the cheapest configuration that meets quality requirements.
+                Auto mode uses cost-based routing to select the optimal
+                deliberation mode and model count. It extracts features from the
+                query, scores complexity, and routes to the cheapest
+                configuration that meets quality requirements.
               </p>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Feature Extraction</CardTitle>
+                  <CardTitle className="text-base">
+                    Feature Extraction
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -482,7 +729,9 @@ has_stakes:       contains "medical", "legal", "financial", "security",
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Complexity Scoring &amp; Routing</CardTitle>
+                  <CardTitle className="text-base">
+                    Complexity Scoring &amp; Routing
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">

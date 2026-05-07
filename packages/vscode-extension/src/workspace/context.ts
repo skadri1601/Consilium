@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
-import { isSensitiveFilename, looksLikeBinary, redactSecrets } from "./file-privacy";
+import {
+  isSensitiveFilename,
+  looksLikeBinary,
+  redactSecrets,
+} from "./file-privacy";
 
 export interface WorkspaceContext {
   files: Array<{ name: string; content: string }>;
@@ -37,7 +41,9 @@ export async function collectWorkspaceContext(
 
   const uris = await vscode.workspace.findFiles("**/*", EXCLUDE_GLOB, 5000);
 
-  const sorted = [...uris].sort((a, b) => priorityScore(a.fsPath) - priorityScore(b.fsPath));
+  const sorted = [...uris].sort(
+    (a, b) => priorityScore(a.fsPath) - priorityScore(b.fsPath),
+  );
 
   const skipped = { secret: 0, binary: 0, payloadLimit: 0 };
   const files: Array<{ name: string; content: string }> = [];
@@ -99,7 +105,8 @@ function priorityScore(absPath: string): number {
   if (base.endsWith(".prisma")) return 1;
   if (absPath.includes("/src/") || absPath.includes("\\src\\")) return 2;
   if (base.toLowerCase() === "readme.md") return 3;
-  if (absPath.includes("/.github/") || absPath.includes("\\.github\\")) return 8;
+  if (absPath.includes("/.github/") || absPath.includes("\\.github\\"))
+    return 8;
   if (absPath.includes("/docs/") || absPath.includes("\\docs\\")) return 7;
   if (
     absPath.includes("/test") ||
@@ -111,7 +118,9 @@ function priorityScore(absPath: string): number {
   return 4;
 }
 
-async function detectMetadata(root: vscode.Uri): Promise<Record<string, unknown>> {
+async function detectMetadata(
+  root: vscode.Uri,
+): Promise<Record<string, unknown>> {
   const ctx: Record<string, unknown> = {
     rootPath: root.fsPath,
     cwd: root.fsPath,
@@ -134,7 +143,9 @@ async function detectMetadata(root: vscode.Uri): Promise<Record<string, unknown>
       has("go.mod"),
       has("Dockerfile"),
       has(".github/workflows"),
-      has("tests").then((v) => v || has("__tests__").then((x) => x || has("test"))),
+      has("tests").then(
+        (v) => v || has("__tests__").then((x) => x || has("test")),
+      ),
       has(".git"),
     ]);
 
@@ -149,7 +160,10 @@ async function detectMetadata(root: vscode.Uri): Promise<Record<string, unknown>
       const buf = await vscode.workspace.fs.readFile(
         vscode.Uri.joinPath(root, "package.json"),
       );
-      const json = JSON.parse(new TextDecoder().decode(buf)) as Record<string, unknown>;
+      const json = JSON.parse(new TextDecoder().decode(buf)) as Record<
+        string,
+        unknown
+      >;
       const deps = {
         ...(json.dependencies as Record<string, string> | undefined),
         ...(json.devDependencies as Record<string, string> | undefined),

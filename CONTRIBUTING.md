@@ -71,13 +71,13 @@ python -m agents.scripts.test_pipeline_e2e
 
 ### Branch Naming
 
-| Prefix | Purpose |
-|--------|---------|
-| `feat/` | New features |
-| `fix/` | Bug fixes |
+| Prefix  | Purpose                        |
+| ------- | ------------------------------ |
+| `feat/` | New features                   |
+| `fix/`  | Bug fixes                      |
 | `test/` | Test additions or improvements |
-| `data/` | Dataset or benchmark changes |
-| `docs/` | Documentation updates |
+| `data/` | Dataset or benchmark changes   |
+| `docs/` | Documentation updates          |
 
 ### PR Process
 

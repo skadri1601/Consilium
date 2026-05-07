@@ -41,7 +41,11 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, "media")],
     };
-    view.webview.html = getWebviewHtml(view.webview, this.extensionUri, makeNonce());
+    view.webview.html = getWebviewHtml(
+      view.webview,
+      this.extensionUri,
+      makeNonce(),
+    );
     view.webview.onDidReceiveMessage((msg) => this.handleMessage(msg));
     void this.refreshAuth();
   }
@@ -165,7 +169,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
   }
 
   async startDeliberation(
-    payload: CreateDeliberationRequest & { kind?: "deliberate" | "redteam" | "blind" },
+    payload: CreateDeliberationRequest & {
+      kind?: "deliberate" | "redteam" | "blind";
+    },
   ): Promise<void> {
     if (this.active) {
       vscode.window.showWarningMessage(
@@ -179,7 +185,10 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
       apiKeys: { ...providerKeys, ...payload.apiKeys },
     };
 
-    this.statusBar.update({ kind: "starting", mode: payload.mode ?? "council" });
+    this.statusBar.update({
+      kind: "starting",
+      mode: payload.mode ?? "council",
+    });
 
     let created: { id: string };
     try {
@@ -269,7 +278,9 @@ export class ChatPanelProvider implements vscode.WebviewViewProvider {
     return models;
   }
 
-  private async gatherProjectContext(): Promise<Record<string, unknown> | undefined> {
+  private async gatherProjectContext(): Promise<
+    Record<string, unknown> | undefined
+  > {
     const cfg = vscode.workspace.getConfiguration("consilium");
     if (!cfg.get<boolean>("includeWorkspaceContext", true)) return undefined;
     const budgetKB = cfg.get<number>("contextBudgetKB", 512);
@@ -368,7 +379,9 @@ async function insertAtCursor(text: string): Promise<void> {
   });
 }
 
-function isValidMode(mode: string): mode is CreateDebateRequest["mode"] & string {
+function isValidMode(
+  mode: string,
+): mode is CreateDebateRequest["mode"] & string {
   return [
     "quick",
     "council",

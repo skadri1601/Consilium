@@ -32,7 +32,7 @@ Add this single line to the Community Servers list, alphabetically (between any 
 
 ## PR body template
 
-```markdown
+````markdown
 ## Adding the Consilium MCP server
 
 **Homepage:** https://myconsilium.xyz
@@ -65,6 +65,7 @@ Consilium runs **multi-model debates across 7 LLM providers** - OpenAI, Anthropi
   }
 }
 ```
+````
 
 Get a free API key at https://myconsilium.xyz/sign-up.
 
@@ -89,6 +90,7 @@ Get a free API key at https://myconsilium.xyz/sign-up.
 - Docs: https://myconsilium.xyz/docs
 
 Happy to answer questions or iterate on the entry.
+
 ```
 
 ---
@@ -98,3 +100,4 @@ Happy to answer questions or iterate on the entry.
 Some directories want a strict one-liner. Use:
 
 > **Consilium** - Multi-AI council MCP server. Debates across 7 LLM providers (OpenAI, Anthropic, Google, Groq, xAI, Moonshot, OpenRouter) on your codebase, with read/edit/grep/bash tools and 8 deliberation modes. `pip install consilium`.
+```

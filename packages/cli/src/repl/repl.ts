@@ -7,7 +7,12 @@ import {
   renderFrame,
   visibleMatches,
 } from "./palette.js";
-import { loadConfig, isLoggedIn, fetchAndCachePreferences, getCachedPreferences } from "../utils/config.js";
+import {
+  loadConfig,
+  isLoggedIn,
+  fetchAndCachePreferences,
+  getCachedPreferences,
+} from "../utils/config.js";
 
 import { style } from "../utils/visual-system.js";
 import { terminal } from "../utils/terminal-capabilities.js";
@@ -43,7 +48,9 @@ function writeBanner(): void {
   const cfg = loadConfig();
   const name = cfg.userName || "you";
   console.log("");
-  console.log(`  ${st.bold(`Consilium`)} ${st.dim("· multi-agent council REPL")}`);
+  console.log(
+    `  ${st.bold(`Consilium`)} ${st.dim("· multi-agent council REPL")}`,
+  );
   console.log(`  ${st.dim(`Welcome back, ${name}.`)}`);
   console.log("");
   console.log(
@@ -131,7 +138,9 @@ async function runReplFallback(): Promise<void> {
 
     const cmd = parsed.command ?? findCommand("auto");
     if (!cmd) {
-      console.log(st.warning("No command available - set a default with /help."));
+      console.log(
+        st.warning("No command available - set a default with /help."),
+      );
       continue;
     }
 
@@ -204,13 +213,19 @@ export async function runRepl(): Promise<void> {
     process.stdin.on("data", onData);
   };
 
-  const executeCommand = async (cmd: SlashCommand, args: string): Promise<void> => {
+  const executeCommand = async (
+    cmd: SlashCommand,
+    args: string,
+  ): Promise<void> => {
     finalizeFrame();
     releaseStdin();
 
     const originalExit = process.exit;
     (process as any).exit = ((code?: number) => {
-      throw Object.assign(new Error(`process.exit(${code ?? 0})`), { __replExit: true, code });
+      throw Object.assign(new Error(`process.exit(${code ?? 0})`), {
+        __replExit: true,
+        code,
+      });
     }) as never;
 
     try {
@@ -322,7 +337,8 @@ export async function runRepl(): Promise<void> {
       if (isPaletteOpen(state.buffer)) {
         const matches = visibleMatches(state.buffer);
         if (matches.length > 0) {
-          state.paletteIndex = (state.paletteIndex - 1 + matches.length) % matches.length;
+          state.paletteIndex =
+            (state.paletteIndex - 1 + matches.length) % matches.length;
           drawFrame();
         }
       }
@@ -384,7 +400,11 @@ export async function runRepl(): Promise<void> {
   }
 
   captureStdin();
-  process.on("exit", () => { try { process.stdin.setRawMode?.(false); } catch {} });
+  process.on("exit", () => {
+    try {
+      process.stdin.setRawMode?.(false);
+    } catch {}
+  });
   drawFrame();
 
   await new Promise<void>((resolve) => {

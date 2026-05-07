@@ -156,7 +156,12 @@ const sections = [
   { title: "Pricing & Costs", faqs: costFaqs },
 ];
 
-const allFaqs = [...generalFaqs, ...technicalFaqs, ...securityFaqs, ...costFaqs];
+const allFaqs = [
+  ...generalFaqs,
+  ...technicalFaqs,
+  ...securityFaqs,
+  ...costFaqs,
+];
 
 const faqSchema = faqPage(
   allFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
@@ -175,7 +180,10 @@ export default function FAQPage() {
       <JsonLd id="ld-faq-breadcrumbs" data={faqBreadcrumbs} />
       <section className="container mx-auto px-4 py-32 md:py-48">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center" data-speakable>
+          <h1
+            className="text-4xl md:text-5xl font-bold mb-4 text-center"
+            data-speakable
+          >
             Frequently Asked Questions
           </h1>
           <p className="text-center text-muted-foreground mb-16" data-speakable>

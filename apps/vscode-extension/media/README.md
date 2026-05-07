@@ -6,6 +6,7 @@
 ## Marketplace icon spec (TODO)
 
 Required:
+
 - 128×128 PNG, 24-bit
 - Drop at `media/consilium-icon.png`
 - The `package.json` already references it via `"icon": "media/consilium-icon.png"`

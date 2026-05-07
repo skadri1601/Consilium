@@ -10,8 +10,8 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
     github-token: ${{ secrets.GITHUB_TOKEN }}
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-    models: 'claude-sonnet-4-6,gpt-5.4'
-    mode: 'redteam'
+    models: "claude-sonnet-4-6,gpt-5.4"
+    mode: "redteam"
 ```
 
 ### With Consilium API (hosted engine)
@@ -23,9 +23,9 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
     api-url: ${{ secrets.CONSILIUM_API_URL }}
-    mode: 'council'
-    max-rounds: '3'
-    fail-on-critical: 'true'
+    mode: "council"
+    max-rounds: "3"
+    fail-on-critical: "true"
 ```
 
 ### Local composite action (monorepo)
@@ -36,23 +36,23 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
     github-token: ${{ secrets.GITHUB_TOKEN }}
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-    models: 'claude-sonnet-4-6'
+    models: "claude-sonnet-4-6"
 ```
 
 ## Inputs
 
-| Input | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `github-token` | Yes | | GitHub token for posting reviews |
-| `anthropic-api-key` | Yes | | Anthropic API key |
-| `openai-api-key` | No | `''` | OpenAI API key |
-| `models` | No | `claude-sonnet-4-6,gpt-5.4` | Comma-separated model IDs |
-| `mode` | No | `redteam` | Deliberation mode |
-| `api-url` | No | `''` | Consilium API URL (direct mode if empty) |
-| `max-rounds` | No | `3` | Maximum deliberation rounds |
-| `max-diff-size` | No | `12000` | Max diff chars (0 = unlimited) |
-| `post-as-review` | No | `true` | Post as PR review vs issue comment |
-| `fail-on-critical` | No | `false` | Fail action on critical findings |
+| Input               | Required | Default                     | Description                              |
+| ------------------- | -------- | --------------------------- | ---------------------------------------- |
+| `github-token`      | Yes      |                             | GitHub token for posting reviews         |
+| `anthropic-api-key` | Yes      |                             | Anthropic API key                        |
+| `openai-api-key`    | No       | `''`                        | OpenAI API key                           |
+| `models`            | No       | `claude-sonnet-4-6,gpt-5.4` | Comma-separated model IDs                |
+| `mode`              | No       | `redteam`                   | Deliberation mode                        |
+| `api-url`           | No       | `''`                        | Consilium API URL (direct mode if empty) |
+| `max-rounds`        | No       | `3`                         | Maximum deliberation rounds              |
+| `max-diff-size`     | No       | `12000`                     | Max diff chars (0 = unlimited)           |
+| `post-as-review`    | No       | `true`                      | Post as PR review vs issue comment       |
+| `fail-on-critical`  | No       | `false`                     | Fail action on critical findings         |
 
 ### Model availability and keys
 
@@ -62,21 +62,21 @@ A GitHub Action that runs multi-model AI deliberation on pull request changes. M
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
-| `review-body` | Formatted review markdown |
-| `findings-count` | Total number of findings |
+| Output           | Description                 |
+| ---------------- | --------------------------- |
+| `review-body`    | Formatted review markdown   |
+| `findings-count` | Total number of findings    |
 | `critical-count` | Number of critical findings |
 
 ## Modes
 
-| Mode | Description |
-|------|-------------|
+| Mode      | Description                                                                                                                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `redteam` | Attack/defend/judge cycle; findings are grouped into five review dimensions (security, bugs, performance, quality, edge cases). Security-style issues can span multiple sub-types within the security dimension. |
-| `council` | Multi-model debate with cross-examination and rebuttal |
-| `blind` | Independent reviews with blind evaluation |
-| `jury` | Ranked-choice voting on findings |
-| `deep` | Extended multi-round deliberation |
+| `council` | Multi-model debate with cross-examination and rebuttal                                                                                                                                                           |
+| `blind`   | Independent reviews with blind evaluation                                                                                                                                                                        |
+| `jury`    | Ranked-choice voting on findings                                                                                                                                                                                 |
+| `deep`    | Extended multi-round deliberation                                                                                                                                                                                |
 
 ## How It Works
 

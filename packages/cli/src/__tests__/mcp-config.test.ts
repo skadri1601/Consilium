@@ -28,7 +28,11 @@ describe("mcp-client/config", () => {
 
   it("writes and reads a server entry", async () => {
     const mod = await import("../utils/mcp-client/config");
-    mod.addServer({ name: "filesystem", command: "mcp-filesystem", args: ["--root", "."] });
+    mod.addServer({
+      name: "filesystem",
+      command: "mcp-filesystem",
+      args: ["--root", "."],
+    });
     const servers = mod.listServers();
     expect(servers).toHaveLength(1);
     expect(servers[0]).toMatchObject({
@@ -37,25 +41,36 @@ describe("mcp-client/config", () => {
       args: ["--root", "."],
     });
 
-    const raw = fs.readFileSync(path.join(tmpHome, ".consilium", "mcp-servers.json"), "utf-8");
-    expect(JSON.parse(raw).servers.filesystem).toMatchObject({ command: "mcp-filesystem" });
+    const raw = fs.readFileSync(
+      path.join(tmpHome, ".consilium", "mcp-servers.json"),
+      "utf-8",
+    );
+    expect(JSON.parse(raw).servers.filesystem).toMatchObject({
+      command: "mcp-filesystem",
+    });
   });
 
   it("rejects duplicate names via addServer", async () => {
     const mod = await import("../utils/mcp-client/config");
     mod.addServer({ name: "github", command: "gh-mcp" });
-    expect(() => mod.addServer({ name: "github", command: "other" })).toThrow(/already exists/);
+    expect(() => mod.addServer({ name: "github", command: "other" })).toThrow(
+      /already exists/,
+    );
   });
 
   it("rejects invalid names", async () => {
     const mod = await import("../utils/mcp-client/config");
-    expect(() => mod.addServer({ name: "bad name", command: "x" })).toThrow(/invalid server name/);
+    expect(() => mod.addServer({ name: "bad name", command: "x" })).toThrow(
+      /invalid server name/,
+    );
     expect(() => mod.addServer({ name: "", command: "x" })).toThrow();
   });
 
   it("rejects missing command", async () => {
     const mod = await import("../utils/mcp-client/config");
-    expect(() => mod.addServer({ name: "foo", command: "" })).toThrow(/command is required/);
+    expect(() => mod.addServer({ name: "foo", command: "" })).toThrow(
+      /command is required/,
+    );
   });
 
   it("removes a server and returns true; false when missing", async () => {
@@ -69,14 +84,22 @@ describe("mcp-client/config", () => {
   it("upsertServer replaces existing entries", async () => {
     const mod = await import("../utils/mcp-client/config");
     mod.addServer({ name: "sentry", command: "sentry-v1" });
-    mod.upsertServer({ name: "sentry", command: "sentry-v2", args: ["--tail"] });
+    mod.upsertServer({
+      name: "sentry",
+      command: "sentry-v2",
+      args: ["--tail"],
+    });
     const got = mod.getServer("sentry");
     expect(got).toMatchObject({ command: "sentry-v2", args: ["--tail"] });
   });
 
   it("loadServers tolerates garbage JSON", async () => {
     fs.mkdirSync(path.join(tmpHome, ".consilium"), { recursive: true });
-    fs.writeFileSync(path.join(tmpHome, ".consilium", "mcp-servers.json"), "not json", "utf-8");
+    fs.writeFileSync(
+      path.join(tmpHome, ".consilium", "mcp-servers.json"),
+      "not json",
+      "utf-8",
+    );
     const mod = await import("../utils/mcp-client/config");
     expect(() => mod.listServers()).toThrow();
   });

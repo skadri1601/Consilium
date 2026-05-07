@@ -81,7 +81,9 @@ export function generateId(entity: EntityType): string {
   return `${prefix}_${timePart}${randomPart}`;
 }
 
-export function parseId(id: string): { entity: EntityType; timestamp: Date; raw: string } | null {
+export function parseId(
+  id: string,
+): { entity: EntityType; timestamp: Date; raw: string } | null {
   const sepIdx = id.indexOf("_");
   if (sepIdx === -1) return null;
   const prefix = id.substring(0, sepIdx);

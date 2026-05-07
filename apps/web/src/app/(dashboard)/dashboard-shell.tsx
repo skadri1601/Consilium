@@ -4,7 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
-import { Menu, X, Settings, History, BarChart3, Users, Bot } from "lucide-react";
+import {
+  Menu,
+  X,
+  Settings,
+  History,
+  BarChart3,
+  Users,
+  Bot,
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
 import { Logo } from "@/components/shared/logo";
@@ -41,7 +49,11 @@ export default function DashboardShell({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -56,7 +68,7 @@ export default function DashboardShell({
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-3 border-b last:border-b-0",
-                    pathname === item.href && "bg-muted font-semibold"
+                    pathname === item.href && "bg-muted font-semibold",
                   )}
                 >
                   {Icon && <Icon className="h-4 w-4" />}
@@ -83,31 +95,38 @@ export default function DashboardShell({
                     "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
-                      : "hover:bg-muted"
+                      : "hover:bg-muted",
                   )}
                 >
-                  {Icon && <Icon className={cn("h-4 w-4 shrink-0", isActive && "opacity-90")} />}
+                  {Icon && (
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0",
+                        isActive && "opacity-90",
+                      )}
+                    />
+                  )}
                   {item.label}
                 </Link>
               );
             })}
           </div>
-          
+
           <div className="mt-auto pt-4 border-t space-y-4">
-             <div className="flex items-center gap-3 px-2">
-                <UserButton
-                  userProfileMode="navigation"
-                  userProfileUrl="/settings"
-                />
-                <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-medium truncate">
-                    {user?.fullName || user?.username || "User"}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {user?.primaryEmailAddress?.emailAddress}
-                  </span>
-                </div>
-             </div>
+            <div className="flex items-center gap-3 px-2">
+              <UserButton
+                userProfileMode="navigation"
+                userProfileUrl="/settings"
+              />
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-medium truncate">
+                  {user?.fullName || user?.username || "User"}
+                </span>
+                <span className="text-xs text-muted-foreground truncate">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </span>
+              </div>
+            </div>
             <KeyboardShortcutsHelp />
           </div>
         </div>

@@ -87,7 +87,9 @@ export class ConsiliumApiClient {
     private readonly getToken: () => Promise<string | undefined>,
   ) {}
 
-  private async headers(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  private async headers(
+    extra: Record<string, string> = {},
+  ): Promise<Record<string, string>> {
     const token = await this.getToken();
     const h: Record<string, string> = {
       "Content-Type": "application/json",
@@ -132,9 +134,9 @@ export class ConsiliumApiClient {
     if (!res.ok && res.status !== 404) throw await asError(res, "cancelDebate");
   }
 
-  async listDebates(opts: { limit?: number; search?: string } = {}): Promise<
-    DebateSummary[]
-  > {
+  async listDebates(
+    opts: { limit?: number; search?: string } = {},
+  ): Promise<DebateSummary[]> {
     const url = new URL(`${this.apiUrl}/api/v1/debates`);
     if (opts.limit) url.searchParams.set("limit", String(opts.limit));
     if (opts.search) url.searchParams.set("search", opts.search);
@@ -142,8 +144,10 @@ export class ConsiliumApiClient {
       headers: await this.headers(),
     });
     if (!res.ok) throw await asError(res, "listDebates");
-    const body = (await res.json()) as DebateSummary[] | { items?: DebateSummary[] };
-    return Array.isArray(body) ? body : body.items ?? [];
+    const body = (await res.json()) as
+      | DebateSummary[]
+      | { items?: DebateSummary[] };
+    return Array.isArray(body) ? body : (body.items ?? []);
   }
 
   async postToolResult(
@@ -193,7 +197,10 @@ interface SseFrame {
   isDone: boolean;
 }
 
-function parseSseLine(line: string, currentEvent: string | null): {
+function parseSseLine(
+  line: string,
+  currentEvent: string | null,
+): {
   nextEvent: string | null;
   frame?: SseFrame;
 } {
@@ -270,7 +277,6 @@ export function getApiClient(
   getToken: () => Promise<string | undefined>,
 ): ConsiliumApiClient {
   const cfg = vscode.workspace.getConfiguration("consilium");
-  const apiUrl =
-    cfg.get<string>("apiUrl") ?? "https://api.myconsilium.xyz";
+  const apiUrl = cfg.get<string>("apiUrl") ?? "https://api.myconsilium.xyz";
   return new ConsiliumApiClient(apiUrl.replace(/\/$/, ""), getToken);
 }

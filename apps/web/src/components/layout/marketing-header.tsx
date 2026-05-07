@@ -51,11 +51,12 @@ function AuthButtons() {
   );
 }
 
-function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => void }>) {
+function MobileMenu({
+  items,
+  onClose,
+}: Readonly<NavProps & { onClose: () => void }>) {
   return (
-    <div
-      className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden animate-in fade-in slide-in-from-top-4 duration-200"
-    >
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[400px] rounded-2xl bg-black/60 backdrop-blur-xl border border-white/[0.08] p-4 md:hidden animate-in fade-in slide-in-from-top-4 duration-200">
       <nav className="flex flex-col gap-1">
         {items?.map((item) => (
           <Link
@@ -64,7 +65,7 @@ function MobileMenu({ items, onClose }: Readonly<NavProps & { onClose: () => voi
             onClick={onClose}
             className={cn(
               "rounded-lg px-3 py-2.5 text-sm text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors",
-              item.disabled && "cursor-not-allowed opacity-60"
+              item.disabled && "cursor-not-allowed opacity-60",
             )}
             target={item.external ? "_blank" : undefined}
             rel={item.external ? "noreferrer" : undefined}
@@ -111,7 +112,7 @@ export function MarketingHeader(props: Readonly<NavProps>) {
       <header
         className={cn(
           "fixed top-4 inset-x-0 mx-auto z-50 w-fit max-w-[calc(100vw-2rem)] transition-all duration-300 ease-in-out",
-          visible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0"
+          visible ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0",
         )}
       >
         <div className="flex h-14 items-center gap-6 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] px-5 md:px-6">
@@ -133,7 +134,7 @@ export function MarketingHeader(props: Readonly<NavProps>) {
                 href={item.disabled ? "#" : item.href}
                 className={cn(
                   "relative px-3 py-1.5 text-sm text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/[0.06]",
-                  item.disabled && "cursor-not-allowed opacity-60"
+                  item.disabled && "cursor-not-allowed opacity-60",
                 )}
                 target={item.external ? "_blank" : undefined}
                 rel={item.external ? "noreferrer" : undefined}

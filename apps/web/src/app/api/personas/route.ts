@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthContext, shouldBypassAuth, isFetchError } from "@/lib/api/auth-helpers";
+import {
+  getAuthContext,
+  shouldBypassAuth,
+  isFetchError,
+} from "@/lib/api/auth-helpers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -23,14 +27,21 @@ export async function GET() {
     if (!response.ok) {
       if (response.status >= 500) {
         console.warn("[GET /api/personas] Backend unavailable.");
-        return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
+        return NextResponse.json(
+          { error: "Service temporarily unavailable" },
+          { status: 503 },
+        );
       }
 
       const errorText = await response.text();
-      console.error("[GET /api/personas] Backend error:", response.status, errorText);
+      console.error(
+        "[GET /api/personas] Backend error:",
+        response.status,
+        errorText,
+      );
       return NextResponse.json(
         { error: "Failed to fetch personas" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -38,7 +49,10 @@ export async function GET() {
   } catch (error) {
     if (isFetchError(error)) {
       console.warn("[GET /api/personas] Backend not reachable.");
-      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 },
+      );
     }
 
     const errorMessage =
@@ -47,7 +61,7 @@ export async function GET() {
 
     return NextResponse.json(
       { error: "Failed to fetch personas", message: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,8 +72,11 @@ export async function POST(request: NextRequest) {
     if (!authContext.userId || !authContext.token) {
       if (shouldBypassAuth(authContext.error)) {
         return NextResponse.json(
-          { error: "Unauthorized", message: "Authentication is disabled in test mode" },
-          { status: 401 }
+          {
+            error: "Unauthorized",
+            message: "Authentication is disabled in test mode",
+          },
+          { status: 401 },
         );
       }
 
@@ -79,10 +96,14 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[POST /api/personas] Backend error:", response.status, errorText);
+      console.error(
+        "[POST /api/personas] Backend error:",
+        response.status,
+        errorText,
+      );
       return NextResponse.json(
         { error: "Failed to create persona" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -92,17 +113,21 @@ export async function POST(request: NextRequest) {
       console.warn("[POST /api/personas] Backend not reachable.");
       return NextResponse.json(
         { error: "Service Unavailable", message: "Backend is not reachable" },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    console.error("[POST /api/personas] Unexpected error:", errorMessage, error);
+    console.error(
+      "[POST /api/personas] Unexpected error:",
+      errorMessage,
+      error,
+    );
 
     return NextResponse.json(
       { error: "Failed to create persona", message: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
