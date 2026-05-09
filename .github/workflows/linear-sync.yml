@@ -16,68 +16,167 @@ env:
   TICKET_PREFIX: MYC
 
 jobs:
+  # Single source of truth for "issue opened on GitHub". Searches
+  # Linear by title; if it finds an exact match, links the GitHub
+  # issue to that ticket. If not, creates a new ticket. Replaces the
+  # old `issue-to-linear` + `github-issue-sync` pair, which both
+  # fired on the same event and caused two Linear tickets to be
+  # created for every new GitHub issue.
   issue-to-linear:
-    name: Create Linear Ticket from GitHub Issue
-    if: github.event_name == 'issues'
+    name: Sync GitHub Issue → Linear
+    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - name: Create Linear issue
-        id: linear
+      - name: Search Linear for existing ticket by title
+        id: search
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg q "$ISSUE_TITLE" \
+              '{query: "query($q: String!) { issueSearch(query: $q, first: 5) { nodes { id identifier number title url team { id key } } } }", variables: {q: $q}}')")
+
+          ISSUE_ID=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
+            '.data.issueSearch.nodes[] | select(.title == $t) | .id' | head -1)
+          IDENTIFIER=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
+            '.data.issueSearch.nodes[] | select(.title == $t) | .identifier' | head -1)
+          ISSUE_URL=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
+            '.data.issueSearch.nodes[] | select(.title == $t) | .url' | head -1)
+
+          {
+            echo "issue_id=$ISSUE_ID"
+            echo "identifier=$IDENTIFIER"
+            echo "url=$ISSUE_URL"
+            echo "found=$([ -n "$ISSUE_ID" ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Look up default team ID for new ticket
+        id: team
+        if: steps.search.outputs.found == 'false'
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           LINEAR_TEAM_ID: ${{ secrets.LINEAR_TEAM_ID }}
+        run: |
+          if [ -n "$LINEAR_TEAM_ID" ]; then
+            echo "id=$LINEAR_TEAM_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"query": "query { teams { nodes { id key } } }"}')
+          TEAM_ID=$(echo "$RESPONSE" | jq -r \
+            --arg key "$TICKET_PREFIX" '.data.teams.nodes[] | select(.key == $key) | .id')
+          echo "id=$TEAM_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Create Linear ticket
+        id: create
+        if: steps.search.outputs.found == 'false' && steps.team.outputs.id != ''
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          TEAM_ID: ${{ steps.team.outputs.id }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
+          GH_ISSUE_NUM: ${{ github.event.issue.number }}
+          GH_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
         run: |
-          DESCRIPTION="**GitHub Issue #${ISSUE_NUMBER}** by @${ISSUE_AUTHOR}: ${ISSUE_URL}"$'\n\n'"${ISSUE_BODY}"
+          DESCRIPTION=$(printf '**GitHub Issue #%s** by @%s: %s\n\n%s' \
+            "$GH_ISSUE_NUM" "$GH_ISSUE_AUTHOR" "$GH_ISSUE_URL" "$ISSUE_BODY")
 
           RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
             -H "Authorization: $LINEAR_API_KEY" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
-              --arg teamId "$LINEAR_TEAM_ID" \
+              --arg teamId "$TEAM_ID" \
               --arg title "$ISSUE_TITLE" \
               --arg desc "$DESCRIPTION" \
-              '{query: "mutation($teamId: String!, $title: String!, $desc: String!) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { success issue { identifier url } } }", variables: {teamId: $teamId, title: $title, desc: $desc}}')")
+              '{query: "mutation($teamId: String!, $title: String!, $desc: String!) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { issue { id identifier url } } }", variables: {teamId: $teamId, title: $title, desc: $desc}}')")
 
-          IDENTIFIER=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.identifier // empty')
-          LINEAR_URL=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.url // empty')
-          echo "identifier=$IDENTIFIER" >> "$GITHUB_OUTPUT"
-          echo "url=$LINEAR_URL" >> "$GITHUB_OUTPUT"
+          {
+            echo "issue_id=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.id // empty')"
+            echo "identifier=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.identifier // empty')"
+            echo "url=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.url // empty')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Attach GitHub issue link
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.search.outputs.issue_id || steps.create.outputs.issue_id }}
+          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
+          GH_ISSUE_NUM: ${{ github.event.issue.number }}
+        if: ${{ steps.search.outputs.issue_id != '' || steps.create.outputs.issue_id != '' }}
+        run: |
+          curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg id "$ISSUE_ID" \
+              --arg url "$GH_ISSUE_URL" \
+              --arg title "GitHub Issue #$GH_ISSUE_NUM" \
+              '{query: "mutation($id: String!, $url: String!, $title: String!) { attachmentCreate(input: { issueId: $id, url: $url, title: $title }) { success } }", variables: {id: $id, url: $url, title: $title}}')"
+
+      - name: Comment link on existing Linear ticket
+        if: steps.search.outputs.found == 'true'
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          ISSUE_ID: ${{ steps.search.outputs.issue_id }}
+          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
+          GH_ISSUE_NUM: ${{ github.event.issue.number }}
+          GH_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          curl -sf -X POST https://api.linear.app/graphql \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg id "$ISSUE_ID" \
+              --arg body "Linked to GitHub issue #$GH_ISSUE_NUM opened by $GH_ISSUE_AUTHOR: $GH_ISSUE_URL" \
+              '{query: "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", variables: {id: $id, body: $body}}')"
 
       - name: Comment ticket ID on GitHub issue
-        if: steps.linear.outputs.identifier != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          IDENTIFIER: ${{ steps.linear.outputs.identifier }}
-          LINEAR_URL: ${{ steps.linear.outputs.url }}
+          IDENTIFIER: ${{ steps.search.outputs.identifier || steps.create.outputs.identifier }}
+          LINEAR_URL: ${{ steps.search.outputs.url || steps.create.outputs.url }}
           REPO: ${{ github.repository }}
+          FOUND: ${{ steps.search.outputs.found }}
+        if: ${{ steps.search.outputs.identifier != '' || steps.create.outputs.identifier != '' }}
         run: |
+          if [ "$FOUND" = "true" ]; then
+            BODY="Linked to existing Linear ticket: [${IDENTIFIER}](${LINEAR_URL})"
+          else
+            BODY="Linear ticket created: [${IDENTIFIER}](${LINEAR_URL})"
+          fi
           curl -sf -X POST "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}/comments" \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg body "Linear ticket created: [${IDENTIFIER}](${LINEAR_URL})" \
-              '{body: $body}')"
+            -d "$(jq -n --arg body "$BODY" '{body: $body}')"
 
       - name: Notify Slack
-        if: steps.linear.outputs.identifier != ''
+        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          IDENTIFIER: ${{ steps.linear.outputs.identifier }}
-          LINEAR_URL: ${{ steps.linear.outputs.url }}
+          FOUND: ${{ steps.search.outputs.found }}
+          EXISTING_ID: ${{ steps.search.outputs.identifier }}
+          NEW_ID: ${{ steps.create.outputs.identifier }}
+          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
+          GH_ISSUE_NUM: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
-          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
         run: |
+          if [ "$FOUND" = "true" ]; then
+            MSG=":link: GitHub issue #${GH_ISSUE_NUM} linked to existing ${EXISTING_ID}: _${ISSUE_TITLE}_ — <${GH_ISSUE_URL}|View>"
+          elif [ -n "$NEW_ID" ]; then
+            MSG=":new: GitHub issue #${GH_ISSUE_NUM} → created ${NEW_ID}: _${ISSUE_TITLE}_ — <${GH_ISSUE_URL}|View>"
+          else
+            MSG=":warning: GitHub issue #${GH_ISSUE_NUM} opened but Linear sync failed: _${ISSUE_TITLE}_"
+          fi
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            MSG=":linear: <${LINEAR_URL}|${IDENTIFIER}> created from GitHub issue by ${ISSUE_AUTHOR} — <${ISSUE_URL}|${ISSUE_TITLE}>"
             curl -sf -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d "$(jq -n --arg text "$MSG" '{text: $text}')"
@@ -87,13 +186,20 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Extract ticket ID
+      - name: Extract primary ticket ID
         id: ticket
         env:
           BRANCH: ${{ github.head_ref }}
           TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
         run: |
-          TICKET=$(echo "$BRANCH $TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          # Case-insensitive match across branch, title, AND body. The
+          # first hit becomes the "primary" ticket; additional ids are
+          # discovered separately for issue relations.
+          TICKET=$(printf '%s\n%s\n%s' "$BRANCH" "$TITLE" "$BODY" \
+            | grep -oiP "${TICKET_PREFIX}-\d+" \
+            | head -1 \
+            | tr '[:lower:]' '[:upper:]')
           echo "id=$TICKET" >> "$GITHUB_OUTPUT"
 
       - name: Determine state and message
@@ -107,23 +213,26 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           TICKET_ID: ${{ steps.ticket.outputs.id }}
         run: |
+          # Comma-separated state name fallbacks survive a workspace
+          # renaming "In Review" to "Ready for Review", "Done" to
+          # "Completed", etc. The Linear lookup uses GraphQL `in:`.
           if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "ready_for_review" ] || [ "$PR_ACTION" = "reopened" ]; then
-            echo "state=In Review" >> "$GITHUB_OUTPUT"
+            echo 'state_names=["In Review","Ready for Review","Code Review","Review"]' >> "$GITHUB_OUTPUT"
             echo "slack_msg=:github: PR #${PR_NUMBER} opened for ${TICKET_ID} by ${PR_AUTHOR} - <${PR_URL}|View PR>" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} opened by ${PR_AUTHOR}: ${PR_URL}" >> "$GITHUB_OUTPUT"
           elif [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
-            echo "state=Done" >> "$GITHUB_OUTPUT"
+            echo 'state_names=["Done","Completed","Closed","Merged","Shipped"]' >> "$GITHUB_OUTPUT"
             echo "slack_msg=:white_check_mark: PR #${PR_NUMBER} merged for ${TICKET_ID} - ticket marked Done" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} merged" >> "$GITHUB_OUTPUT"
           elif [ "$PR_ACTION" = "closed" ]; then
-            echo "state=In Progress" >> "$GITHUB_OUTPUT"
+            echo 'state_names=["In Progress","Started","Doing","Active"]' >> "$GITHUB_OUTPUT"
             echo "slack_msg=:x: PR #${PR_NUMBER} closed for ${TICKET_ID} - back to In Progress" >> "$GITHUB_OUTPUT"
             echo "linear_comment=PR #${PR_NUMBER} closed without merge" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Look up Linear issue
         id: linear
-        if: steps.resolve.outputs.state != ''
+        if: steps.resolve.outputs.state_names != ''
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           TICKET_ID: ${{ steps.ticket.outputs.id }}
@@ -134,10 +243,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$(jq -n --arg q "query { issueSearch(filter: { number: { eq: $TICKET_NUM } }) { nodes { id team { id } } } }" '{query: $q}')")
 
-          ISSUE_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].id // empty')
-          TEAM_ID=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].team.id // empty')
-          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
-          echo "team_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
+          {
+            echo "issue_id=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].id // empty')"
+            echo "team_id=$(echo "$RESPONSE" | jq -r '.data.issueSearch.nodes[0].team.id // empty')"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Update Linear state
         if: steps.linear.outputs.issue_id != ''
@@ -145,12 +254,15 @@ jobs:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           ISSUE_ID: ${{ steps.linear.outputs.issue_id }}
           TEAM_ID: ${{ steps.linear.outputs.team_id }}
-          STATE_NAME: ${{ steps.resolve.outputs.state }}
+          STATE_NAMES: ${{ steps.resolve.outputs.state_names }}
         run: |
           STATE_ID=$(curl -sf -X POST https://api.linear.app/graphql \
             -H "Authorization: $LINEAR_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n --arg q "query { workflowStates(filter: { team: { id: { eq: \"$TEAM_ID\" } }, name: { eq: \"$STATE_NAME\" } }) { nodes { id } } }" '{query: $q}')" \
+            -d "$(jq -n \
+              --arg teamId "$TEAM_ID" \
+              --argjson names "$STATE_NAMES" \
+              '{query: "query($teamId: ID!, $names: [String!]!) { workflowStates(filter: { team: { id: { eq: $teamId } }, name: { in: $names } }) { nodes { id name } } }", variables: {teamId: $teamId, names: $names}}')" \
             | jq -r '.data.workflowStates.nodes[0].id // empty')
 
           if [ -n "$STATE_ID" ]; then
@@ -161,6 +273,8 @@ jobs:
                 --arg id "$ISSUE_ID" \
                 --arg sid "$STATE_ID" \
                 '{query: "mutation($id: String!, $sid: String!) { issueUpdate(id: $id, input: { stateId: $sid }) { success } }", variables: {id: $id, sid: $sid}}')"
+          else
+            echo "::warning::No matching workflow state found in $STATE_NAMES on team $TEAM_ID"
           fi
 
       - name: Add Linear comment
@@ -177,6 +291,60 @@ jobs:
               --arg id "$ISSUE_ID" \
               --arg body "$COMMENT_BODY" \
               '{query: "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", variables: {id: $id, body: $body}}')"
+
+      - name: Parse PR body for Closes/Fixes refs
+        id: refs
+        if: steps.linear.outputs.issue_id != '' && github.event.action == 'opened'
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          PRIMARY: ${{ steps.ticket.outputs.id }}
+        run: |
+          # Match GitHub-standard closing keywords + MYC-NN.
+          # `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`,
+          # `resolve`, `resolves`, `resolved`, plus our own `refs`/`see`.
+          IDS=$(printf '%s' "$BODY" \
+            | grep -oiP '(close[sd]?|fix(es|ed)?|resolve[sd]?|refs?|see)\s*:?\s*'"${TICKET_PREFIX}"'-\d+' \
+            | grep -oiP "${TICKET_PREFIX}-\d+" \
+            | tr '[:lower:]' '[:upper:]' \
+            | grep -v "^${PRIMARY}$" \
+            | sort -u || true)
+          # `jq -R . | jq -s .` turns newline-separated input into a JSON array.
+          IDS_JSON=$(printf '%s' "$IDS" | jq -R . | jq -s 'map(select(length > 0))')
+          {
+            echo "ids_json<<EOF"
+            echo "$IDS_JSON"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create Linear issue relations
+        if: steps.refs.outputs.ids_json != '' && steps.refs.outputs.ids_json != '[]'
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          PRIMARY_ID: ${{ steps.linear.outputs.issue_id }}
+          IDS_JSON: ${{ steps.refs.outputs.ids_json }}
+        run: |
+          echo "$IDS_JSON" | jq -r '.[]' | while read -r REF; do
+            REF_NUM="${REF#*-}"
+            REF_ID=$(curl -sf -X POST https://api.linear.app/graphql \
+              -H "Authorization: $LINEAR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg q "query { issueSearch(filter: { number: { eq: $REF_NUM } }) { nodes { id } } }" '{query: $q}')" \
+              | jq -r '.data.issueSearch.nodes[0].id // empty')
+
+            if [ -z "$REF_ID" ]; then
+              echo "::warning::Linear issue $REF referenced in PR body not found"
+              continue
+            fi
+
+            curl -sf -X POST https://api.linear.app/graphql \
+              -H "Authorization: $LINEAR_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                --arg issueId "$PRIMARY_ID" \
+                --arg relatedId "$REF_ID" \
+                '{query: "mutation($issueId: String!, $relatedId: String!) { issueRelationCreate(input: { issueId: $issueId, relatedIssueId: $relatedId, type: related }) { success } }", variables: {issueId: $issueId, relatedId: $relatedId}}')"
+            echo "Linked $REF as related"
+          done
 
       - name: Notify Slack
         if: steps.resolve.outputs.slack_msg != ''
@@ -199,8 +367,12 @@ jobs:
         env:
           BRANCH: ${{ github.event.pull_request.head.ref }}
           TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
         run: |
-          TICKET=$(echo "$BRANCH $TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          TICKET=$(printf '%s\n%s\n%s' "$BRANCH" "$TITLE" "$BODY" \
+            | grep -oiP "${TICKET_PREFIX}-\d+" \
+            | head -1 \
+            | tr '[:lower:]' '[:upper:]')
           echo "id=$TICKET" >> "$GITHUB_OUTPUT"
 
       - name: Build Slack message
@@ -296,8 +468,12 @@ jobs:
         id: ticket
         env:
           TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
         run: |
-          TICKET=$(echo "$TITLE" | grep -oP "${TICKET_PREFIX}-\d+" | head -1)
+          TICKET=$(printf '%s\n%s' "$TITLE" "$BODY" \
+            | grep -oiP "${TICKET_PREFIX}-\d+" \
+            | head -1 \
+            | tr '[:lower:]' '[:upper:]')
           echo "id=$TICKET" >> "$GITHUB_OUTPUT"
 
       - name: Build message
@@ -350,141 +526,4 @@ jobs:
             curl -sf -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d "$(jq -n --arg text "$SLACK_MSG" '{text: $text}')"
-          fi
-
-  github-issue-sync:
-    name: Sync GitHub Issue → Linear
-    if: github.event_name == 'issues' && github.event.action == 'opened'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Search Linear for existing ticket by title
-        id: search
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-        run: |
-          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n --arg q "$ISSUE_TITLE" \
-              '{"query": "query($q: String!) { issueSearch(query: $q, first: 5) { nodes { id number title team { id key } } } }", "variables": {"q": $q}}')")
-
-          ISSUE_ID=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
-            '.data.issueSearch.nodes[] | select(.title == $t) | .id' | head -1)
-          ISSUE_NUM=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
-            '.data.issueSearch.nodes[] | select(.title == $t) | .number' | head -1)
-          TEAM_ID=$(echo "$RESPONSE" | jq -r --arg t "$ISSUE_TITLE" \
-            '.data.issueSearch.nodes[] | select(.title == $t) | .team.id' | head -1)
-
-          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
-          echo "issue_num=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
-          echo "team_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
-          echo "found=$([ -n "$ISSUE_ID" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-
-      - name: Look up default team ID (for new ticket)
-        id: team
-        if: steps.search.outputs.found == 'false'
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-        run: |
-          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{"query": "query { teams { nodes { id key } } }"}')
-          TEAM_ID=$(echo "$RESPONSE" | jq -r \
-            --arg key "$TICKET_PREFIX" '.data.teams.nodes[] | select(.key == $key) | .id')
-          echo "id=$TEAM_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Create new Linear ticket
-        id: create
-        if: steps.search.outputs.found == 'false' && steps.team.outputs.id != ''
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          TEAM_ID: ${{ steps.team.outputs.id }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
-          GH_ISSUE_NUM: ${{ github.event.issue.number }}
-          GH_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
-        run: |
-          DESCRIPTION=$(printf '%s\n\n---\n*From GitHub issue #%s by %s: %s*' \
-            "$ISSUE_BODY" "$GH_ISSUE_NUM" "$GH_ISSUE_AUTHOR" "$GH_ISSUE_URL")
-
-          RESPONSE=$(curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg teamId "$TEAM_ID" \
-              --arg title "$ISSUE_TITLE" \
-              --arg desc "$DESCRIPTION" \
-              '{"query": "mutation($teamId: String!, $title: String!, $desc: String!) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { issue { id number } } }", "variables": {"teamId": $teamId, "title": $title, "desc": $desc}}')")
-
-          echo "issue_id=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.id // empty')" >> "$GITHUB_OUTPUT"
-          echo "issue_num=$(echo "$RESPONSE" | jq -r '.data.issueCreate.issue.number // empty')" >> "$GITHUB_OUTPUT"
-
-      - name: Attach GitHub issue link (new ticket)
-        if: steps.create.outputs.issue_id != ''
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          ISSUE_ID: ${{ steps.create.outputs.issue_id }}
-          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
-          GH_ISSUE_NUM: ${{ github.event.issue.number }}
-        run: |
-          curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg id "$ISSUE_ID" \
-              --arg url "$GH_ISSUE_URL" \
-              --arg title "GitHub Issue #$GH_ISSUE_NUM" \
-              '{"query": "mutation($id: String!, $url: String!, $title: String!) { attachmentCreate(input: { issueId: $id, url: $url, title: $title }) { success } }", "variables": {"id": $id, "url": $url, "title": $title}}')"
-
-      - name: Link GitHub issue to existing ticket
-        if: steps.search.outputs.found == 'true'
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          ISSUE_ID: ${{ steps.search.outputs.issue_id }}
-          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
-          GH_ISSUE_NUM: ${{ github.event.issue.number }}
-          GH_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
-        run: |
-          curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg id "$ISSUE_ID" \
-              --arg body "Linked to GitHub issue #$GH_ISSUE_NUM opened by $GH_ISSUE_AUTHOR: $GH_ISSUE_URL" \
-              '{"query": "mutation($id: String!, $body: String!) { commentCreate(input: { issueId: $id, body: $body }) { success } }", "variables": {"id": $id, "body": $body}}')"
-
-          curl -sf -X POST https://api.linear.app/graphql \
-            -H "Authorization: $LINEAR_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg id "$ISSUE_ID" \
-              --arg url "$GH_ISSUE_URL" \
-              --arg title "GitHub Issue #$GH_ISSUE_NUM" \
-              '{"query": "mutation($id: String!, $url: String!, $title: String!) { attachmentCreate(input: { issueId: $id, url: $url, title: $title }) { success } }", "variables": {"id": $id, "url": $url, "title": $title}}')"
-
-      - name: Notify Slack
-        if: always()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          FOUND: ${{ steps.search.outputs.found }}
-          EXISTING_NUM: ${{ steps.search.outputs.issue_num }}
-          NEW_NUM: ${{ steps.create.outputs.issue_num }}
-          GH_ISSUE_URL: ${{ github.event.issue.html_url }}
-          GH_ISSUE_NUM: ${{ github.event.issue.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-        run: |
-          if [ "$FOUND" = "true" ]; then
-            MSG=":link: GitHub issue #${GH_ISSUE_NUM} linked to existing ${TICKET_PREFIX}-${EXISTING_NUM}: _${ISSUE_TITLE}_ — <${GH_ISSUE_URL}|View>"
-          elif [ -n "$NEW_NUM" ]; then
-            MSG=":new: GitHub issue #${GH_ISSUE_NUM} → created ${TICKET_PREFIX}-${NEW_NUM}: _${ISSUE_TITLE}_ — <${GH_ISSUE_URL}|View>"
-          else
-            MSG=":warning: GitHub issue #${GH_ISSUE_NUM} opened but Linear sync failed: _${ISSUE_TITLE}_"
-          fi
-          if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            curl -sf -X POST "$SLACK_WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "$(jq -n --arg text "$MSG" '{text: $text}')"
           fi
