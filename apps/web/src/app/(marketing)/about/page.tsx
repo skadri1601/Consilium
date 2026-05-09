@@ -14,9 +14,9 @@ import {
   Heart,
   Layers,
   Mail,
-  Linkedin,
   Globe,
 } from "lucide-react";
+import { LinkedInLogoIcon } from "@radix-ui/react-icons";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbList, personSchema } from "@/lib/structured-data";
 import {
@@ -337,7 +337,7 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
                   aria-label="LinkedIn"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Linkedin className="h-5 w-5" />
+                  <LinkedInLogoIcon className="h-5 w-5" />
                 </a>
                 <a
                   href="mailto:saad@myconsilium.xyz"

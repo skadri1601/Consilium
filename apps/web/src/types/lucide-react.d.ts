@@ -110,7 +110,6 @@ declare module "lucide-react" {
   export const MessageCircle: LucideIcon;
   export const BookOpen: LucideIcon;
   export const Heart: LucideIcon;
-  export const Linkedin: LucideIcon;
   export const Bug: LucideIcon;
   export const Package: LucideIcon;
   export const Server: LucideIcon;

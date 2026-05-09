@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Mail, Linkedin, AlertTriangle, Bug } from "lucide-react";
+import { Mail, AlertTriangle, Bug } from "lucide-react";
+import { LinkedInLogoIcon } from "@radix-ui/react-icons";
 import { Card, CardContent, CardTitle } from "@/shared/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
 
@@ -20,7 +21,7 @@ const channels = [
     description: "General inquiries, partnerships, and enterprise plans",
   },
   {
-    icon: Linkedin,
+    icon: LinkedInLogoIcon,
     title: "LinkedIn",
     value: "Saad Kadri",
     href: "https://www.linkedin.com/in/saad-kadri-58b8bb205",
