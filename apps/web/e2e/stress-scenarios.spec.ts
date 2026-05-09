@@ -1,10 +1,4 @@
-import {
-  test,
-  expect,
-  type Page,
-  type Route,
-  type BrowserContext,
-} from "@playwright/test";
+import { test, expect, type Page, type Route } from "@playwright/test";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
@@ -222,19 +216,6 @@ async function mockDebateDetailEndpoint(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(MOCK_DEBATE_DETAIL),
-    }),
-  );
-}
-
-async function mockApiKeyTestEndpoint(page: Page, valid: boolean) {
-  await page.route("**/api/api-keys/test", (route: Route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        valid,
-        message: valid ? "API key is valid" : "Invalid API key",
-      }),
     }),
   );
 }

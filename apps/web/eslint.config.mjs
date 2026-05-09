@@ -12,7 +12,7 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-export default [
+const config = [
   {
     ignores: [
       ".next/**",
@@ -34,7 +34,6 @@ export default [
   ...compat.config({
     extends: ["next/core-web-vitals", "next/typescript"],
     rules: {
-      // Demote nits to warnings so they don't block CI; real errors still fail.
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -45,4 +44,15 @@ export default [
       "@typescript-eslint/no-require-imports": "warn",
     },
   }),
+  {
+    files: ["src/**/__tests__/**/*.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
+    rules: {
+      "@next/next/no-img-element": "off",
+      "jsx-a11y/alt-text": "off",
+      "react/display-name": "off",
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ];
+
+export default config;

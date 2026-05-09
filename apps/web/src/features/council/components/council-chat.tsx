@@ -35,13 +35,20 @@ interface AgentProgress {
 interface StreamEvent {
   event: string;
   roundNumber?: number;
+  round?: number;
   agentId?: string;
+  agent_id?: string;
+  agent?: string;
   chunk?: string;
+  text?: string;
   content?: string;
+  response?: string;
   goldenPrompt?: string;
+  golden_prompt?: string;
   totalCost?: number;
   total_cost?: number;
   modelsUsed?: string[];
+  models?: string[];
   message?: string;
   consensus?: string;
   error?: string;
@@ -307,9 +314,8 @@ export function CouncilChat() {
 
   const handleStreamEvent = (data: StreamEvent) => {
     const eventName = (data.event || "").replace(/_/g, ":");
-    const agentId =
-      data.agentId || (data as any).agent_id || (data as any).agent;
-    const chunk = data.chunk || (data as any).text;
+    const agentId = data.agentId || data.agent_id || data.agent;
+    const chunk = data.chunk || data.text;
     switch (eventName) {
       case "debate:start": {
         const initialProgress: Record<string, AgentProgress> = {};
@@ -337,7 +343,7 @@ export function CouncilChat() {
       }
 
       case "round:start": {
-        const round = data.roundNumber ?? (data as any).round ?? 1;
+        const round = data.roundNumber ?? data.round ?? 1;
         setCurrentRound(round);
         setRoundDescription(ROUND_DESCRIPTIONS[round] || `Round ${round}`);
         setSynthesizing(false);
@@ -384,10 +390,7 @@ export function CouncilChat() {
             [agentId]: {
               agentId,
               status: "complete",
-              content:
-                data.content ||
-                (data as any).response ||
-                prev[agentId]?.content,
+              content: data.content || data.response || prev[agentId]?.content,
             },
           }));
         }
@@ -406,7 +409,7 @@ export function CouncilChat() {
 
       case "consensus":
         setGoldenPrompt(
-          data.goldenPrompt || (data as any).golden_prompt || data.consensus,
+          data.goldenPrompt || data.golden_prompt || data.consensus || null,
         );
         setSynthesizing(false);
         break;
@@ -417,17 +420,15 @@ export function CouncilChat() {
 
       case "done":
       case "debate:complete": {
-        const finalGolden = data.goldenPrompt || (data as any).golden_prompt;
+        const finalGolden = data.goldenPrompt || data.golden_prompt;
         if (finalGolden) {
           setGoldenPrompt(finalGolden);
         }
-        const finalCost = data.totalCost || (data as any).total_cost;
+        const finalCost = data.totalCost || data.total_cost;
         if (finalCost) {
           setDebateCost(finalCost);
         }
-        setModelsUsed(
-          data.modelsUsed || (data as any).models || selectedAgents,
-        );
+        setModelsUsed(data.modelsUsed || data.models || selectedAgents);
         setStreaming(false);
         setLoading(false);
         setCurrentRound(0);

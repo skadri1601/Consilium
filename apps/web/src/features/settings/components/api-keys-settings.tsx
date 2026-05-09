@@ -16,16 +16,14 @@ import { useToast } from "@/shared/components/ui/use-toast";
 
 type KeyState = "idle" | "testing" | "valid" | "invalid";
 
-const PROVIDER_IDS = [
-  "openai",
-  "anthropic",
-  "google",
-  "groq",
-  "xai",
-  "moonshot",
-  "openrouter",
-] as const;
-type ProviderId = (typeof PROVIDER_IDS)[number];
+type ProviderId =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "groq"
+  | "xai"
+  | "moonshot"
+  | "openrouter";
 type KeyField = `${ProviderId}Key`;
 
 interface ProviderConfig {

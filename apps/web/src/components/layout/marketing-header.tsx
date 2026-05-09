@@ -2,6 +2,7 @@
 
 import { cn } from "@/shared/lib/utils";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
@@ -117,11 +118,12 @@ export function MarketingHeader(props: Readonly<NavProps>) {
       >
         <div className="flex h-14 items-center gap-6 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] px-5 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <img
+            <Image
               src="/brand/consilium-icon.svg"
               alt=""
               width={24}
               height={24}
+              unoptimized
               className="h-6 w-6"
             />
             <span className="font-bold text-white text-sm">Consilium</span>

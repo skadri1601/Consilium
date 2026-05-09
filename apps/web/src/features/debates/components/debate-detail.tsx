@@ -57,7 +57,10 @@ interface StreamEvent {
   chunk?: string;
   content?: string;
   goldenPrompt?: string;
+  golden_prompt?: string;
+  consensus?: string;
   totalCost?: number;
+  total_cost?: number;
   modelsUsed?: string[];
   message?: string;
 }
@@ -287,15 +290,12 @@ export function DebateDetail({ debateId }: { debateId: string }) {
 
           if (eventName === "consensus") {
             const golden =
-              data.goldenPrompt ||
-              (data as any).golden_prompt ||
-              (data as any).consensus;
+              data.goldenPrompt || data.golden_prompt || data.consensus;
             setStreamingGolden(golden || null);
           }
 
           if (eventName === "done" || eventName === "debate:complete") {
-            const finalGolden =
-              data.goldenPrompt || (data as any).golden_prompt;
+            const finalGolden = data.goldenPrompt || data.golden_prompt;
             if (finalGolden) {
               setStreamingGolden(null);
               setDebates((prev) =>
