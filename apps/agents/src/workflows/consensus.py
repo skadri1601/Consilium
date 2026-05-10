@@ -6,7 +6,28 @@ a balanced, comprehensive consensus that incorporates insights
 from all participating agents.
 """
 
+import re
 from typing import List, Dict, Any
+
+
+_WORD_RE = re.compile(r"[a-z0-9]+")
+_STOPWORDS = frozenset({
+    "a", "an", "and", "or", "but", "if", "then", "the", "this", "that",
+    "these", "those", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "of", "in", "on", "at",
+    "to", "for", "with", "by", "from", "as", "it", "its", "into", "about",
+    "than", "so", "such", "not", "no", "nor", "can", "could", "should",
+    "would", "may", "might", "will", "shall", "i", "you", "he", "she",
+    "we", "they", "them", "their", "there", "here", "what", "which",
+    "who", "whom", "whose", "when", "where", "why", "how",
+})
+
+
+def _tokenize(text: str) -> set[str]:
+    return {
+        token for token in _WORD_RE.findall(text.lower())
+        if len(token) > 2 and token not in _STOPWORDS
+    }
 
 
 class ConsensusWorkflow:
@@ -91,8 +112,29 @@ class ConsensusWorkflow:
         responses: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Analyze responses for agreement and disagreement."""
+        token_sets = [
+            _tokenize(resp.get("response", "")) for resp in responses
+        ]
+        token_sets = [tokens for tokens in token_sets if tokens]
+
+        if len(token_sets) < 2:
+            agreement_level = 1.0 if token_sets else 0.0
+        else:
+            similarities = []
+            for i in range(len(token_sets)):
+                for j in range(i + 1, len(token_sets)):
+                    union = token_sets[i] | token_sets[j]
+                    if not union:
+                        continue
+                    intersection = token_sets[i] & token_sets[j]
+                    similarities.append(len(intersection) / len(union))
+            agreement_level = (
+                sum(similarities) / len(similarities)
+                if similarities else 0.0
+            )
+
         return {
-            "agreement_level": 0.85,  # TODO: Calculate actual agreement
+            "agreement_level": round(agreement_level, 4),
             "common_themes": [],
             "divergent_points": [],
             "confidence": 0.8
