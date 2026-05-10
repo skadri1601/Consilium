@@ -8,6 +8,7 @@ import { buildMetadata } from "@/lib/seo";
 export const revalidate = 3600;
 
 export function generateStaticParams() {
+  if (!process.env.NOTION_API_KEY) return [];
   return Object.keys(NOTION_DOCS).map((slug) => ({ slug }));
 }
 
@@ -24,10 +25,16 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
-  const { title } = await fetchNotionPage(pageId);
+  const data = await fetchNotionPage(pageId).catch(() => null);
+  if (!data) {
+    return {
+      title: "Not found",
+      robots: { index: false, follow: false },
+    };
+  }
   return buildMetadata({
-    title,
-    description: `${title} - Consilium documentation.`,
+    title: data.title,
+    description: `${data.title} - Consilium documentation.`,
     path: `/docs/notion/${slug}`,
   });
 }
@@ -41,7 +48,9 @@ export default async function NotionDocPage({
   const pageId = NOTION_DOCS[slug];
   if (!pageId) notFound();
 
-  const { title, html } = await fetchNotionPage(pageId);
+  const data = await fetchNotionPage(pageId).catch(() => null);
+  if (!data) notFound();
+  const { title, html } = data;
 
   return (
     <div className="min-h-screen">
