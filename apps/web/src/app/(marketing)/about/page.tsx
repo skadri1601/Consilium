@@ -220,12 +220,12 @@ export default function AboutPage() {
 
           <div className="space-y-6 text-muted-foreground leading-relaxed">
             <p>
-              Consilium started with a simple observation: every economy needs
-              a judicial system, and the agent economy doesn&apos;t have one.
-              As AI agents gain autonomy over high-stakes decisions -
-              deployments, financial transactions, medical recommendations -
-              there is no governance layer ensuring those decisions are sound.
-              We built that layer.
+              Consilium started with a simple observation: every economy needs a
+              judicial system, and the agent economy doesn&apos;t have one. As
+              AI agents gain autonomy over high-stakes decisions - deployments,
+              financial transactions, medical recommendations - there is no
+              governance layer ensuring those decisions are sound. We built that
+              layer.
             </p>
 
             <p>
@@ -265,7 +265,8 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">Architecture</h2>
           <p className="text-muted-foreground text-center mb-8">
-            Three-tier governance system with a LangGraph deliberation state machine.
+            Three-tier governance system with a LangGraph deliberation state
+            machine.
           </p>
           <div className="rounded-lg border bg-muted/50 p-6 overflow-x-auto">
             <pre className="text-sm text-muted-foreground leading-relaxed">
@@ -445,7 +446,9 @@ Dissent: Agglomerative Clustering → Minority Position Preservation`}</code>
 
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Built for teams deploying agents</h2>
+          <h2 className="text-3xl font-bold mb-4">
+            Built for teams deploying agents
+          </h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             6 MCP tools any AI client can call. BYOK by default, encrypted at
             rest, with a full SDK and CLI story.

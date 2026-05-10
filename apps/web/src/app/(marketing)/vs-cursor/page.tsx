@@ -17,8 +17,7 @@ const data: CompetitorComparison = {
     "agent governance layer",
   ],
   hero: {
-    tagline:
-      "Cursor writes code. Consilium governs the decisions.",
+    tagline: "Cursor writes code. Consilium governs the decisions.",
     hook: "Cursor is a code editor with AI assistance. Consilium is the governance layer that validates critical decisions before any tool acts on them. They're complementary -- Cursor can call Consilium's MCP validate tool before executing risky refactors.",
     intro: [
       "Cursor reimagined the IDE around an inline AI agent. The result is fast, fluid coding with one model in the loop -- Composer for multi-file edits, Agent for autonomous tasks, and tab-complete that's better than every editor that came before it. It's the best tool for writing code quickly.",

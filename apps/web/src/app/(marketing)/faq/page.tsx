@@ -14,7 +14,11 @@ export const metadata: Metadata = buildMetadata({
   description:
     "Answers to common questions about Consilium - agent governance, deliberation modes, MCP tools, compliance, risk scoring, and pricing.",
   path: "/faq",
-  keywords: ["consilium faq", "agent governance faq", "ai compliance questions"],
+  keywords: [
+    "consilium faq",
+    "agent governance faq",
+    "ai compliance questions",
+  ],
 });
 
 const generalFaqs = [

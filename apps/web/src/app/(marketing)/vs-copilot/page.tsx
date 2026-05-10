@@ -18,8 +18,7 @@ const data: CompetitorComparison = {
     "multi-model decision validation",
   ],
   hero: {
-    tagline:
-      "Copilot suggests code. Consilium validates decisions.",
+    tagline: "Copilot suggests code. Consilium validates decisions.",
     hook: "GitHub Copilot provides inline completions from a single model. Consilium provides governance infrastructure for the agent economy -- multi-model review, audit trails, and compliance documentation that copilots don't generate.",
     intro: [
       "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself -- repos, PRs, issues, Actions -- is unique and hard to match.",

@@ -31,7 +31,8 @@ const productJsonLd = {
       "@type": "Offer",
       "@id": `${PRICING_URL}#offer-free`,
       name: "Free + BYOK",
-      description: "Free governance API with BYOK. Unlimited deliberations, audit trails, and risk scoring with your own API keys.",
+      description:
+        "Free governance API with BYOK. Unlimited deliberations, audit trails, and risk scoring with your own API keys.",
       price: "0",
       priceCurrency: "USD",
       url: `${SITE_URL}/sign-up`,

@@ -17,8 +17,7 @@ const data: CompetitorComparison = {
     "agent decision validation",
   ],
   hero: {
-    tagline:
-      "Aider applies edits. Consilium validates the reasoning.",
+    tagline: "Aider applies edits. Consilium validates the reasoning.",
     hook: "Aider is a CLI for AI-driven code editing. Consilium ensures the reasoning behind changes is sound through multi-model adversarial review. Aider could use Consilium's validate MCP tool to get a second opinion before applying changes.",
     intro: [
       "Aider has earned a deserved reputation. It writes commits with sensible messages, applies edits using a structured diff format, builds a repo map for context, and stays out of your way. The whole-file and udiff edit formats it pioneered are now standard practice across the agentic coding ecosystem.",

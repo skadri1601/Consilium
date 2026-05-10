@@ -167,7 +167,11 @@ const comparisonRows = [
     deliberation: true,
     orchestration: false,
   },
-  { feature: "Mandatory dissent preservation", deliberation: true, orchestration: false },
+  {
+    feature: "Mandatory dissent preservation",
+    deliberation: true,
+    orchestration: false,
+  },
   {
     feature: "Compliance-grade audit trail",
     deliberation: true,
@@ -430,7 +434,9 @@ export default function LandingPage() {
         className="container space-y-6 py-8 md:py-12 lg:py-24"
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">How Agent Governance Works</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            How Agent Governance Works
+          </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
             A structured 6-phase governance protocol for autonomous agent
             decisions.
