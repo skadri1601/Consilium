@@ -394,8 +394,10 @@ export function CostDashboard({
                         </Pie>
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [
-                            formatCurrency(value),
+                          formatter={(value) => [
+                            formatCurrency(
+                              typeof value === "number" ? value : 0,
+                            ),
                             "Cost",
                           ]}
                         />
@@ -433,8 +435,10 @@ export function CostDashboard({
                         />
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [
-                            formatCurrency(value),
+                          formatter={(value) => [
+                            formatCurrency(
+                              typeof value === "number" ? value : 0,
+                            ),
                             "Total Cost",
                           ]}
                           labelFormatter={(label) => `Round ${label}`}
@@ -495,13 +499,16 @@ export function CostDashboard({
                           />
                           <Tooltip
                             contentStyle={tooltipStyle}
-                            formatter={(value: number, name: string) => {
+                            formatter={(value, name) => {
+                              const nameStr = String(name ?? "");
                               const model = data.modelCosts.find(
-                                (m) => m.modelId === name,
+                                (m) => m.modelId === nameStr,
                               );
                               return [
-                                formatCurrency(value),
-                                model?.modelName || name,
+                                formatCurrency(
+                                  typeof value === "number" ? value : 0,
+                                ),
+                                model?.modelName || nameStr,
                               ];
                             }}
                           />

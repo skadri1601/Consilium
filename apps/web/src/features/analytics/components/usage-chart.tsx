@@ -110,7 +110,9 @@ export function UsageChart() {
             />
             <Tooltip
               labelFormatter={(value) => new Date(value).toLocaleDateString()}
-              formatter={(value: number) => value.toLocaleString()}
+              formatter={(value) =>
+                (typeof value === "number" ? value : 0).toLocaleString()
+              }
             />
             <Legend />
             <Line
