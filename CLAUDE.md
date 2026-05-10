@@ -1,4 +1,6 @@
-# Consilium - AI Council Platform
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What This Is
 
@@ -22,17 +24,22 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | ------------- | ------------------ | ----------------------------------------- | ------------------------------- |
 | Web App       | apps/web/          | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
 | API           | apps/api/          | NestJS 11, Fastify, BullMQ, Prisma        | Render                          |
-| Debate Engine | apps/agents/       | FastAPI, 5 LLM providers                  | Render / Droplet                |
+| Debate Engine | apps/agents/       | FastAPI, 7 LLM providers                  | Render / Droplet                |
 | Bot/DevOps    | agents/            | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
-| CLI           | packages/cli/      | TypeScript, Commander.js, SSE             | User's machine                  |
+| CLI           | packages/cli/      | TypeScript, Commander.js, SSE             | User's machine (npm)            |
+| TS SDK        | packages/sdk/      | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |
+| Python SDK    | packages/python-sdk/ | httpx + pydantic, sync + async clients  | PyPI (`consilium`)              |
 | Database      | packages/database/ | Prisma, Neon PostgreSQL                   | Neon                            |
 | Shared Types  | packages/shared/   | TypeScript                                | N/A (library)                   |
+| UI library    | packages/ui/       | shadcn/ui primitives                      | N/A (library)                   |
+| VS Code ext   | apps/vscode-extension/, packages/vscode-extension/ | TypeScript                | VS Code marketplace             |
 
 ### Bot Infrastructure (agents/)
 
-- **monitor_agent.py** - Polls Sentry and SonarQube on an interval; logs unresolved errors and gate changes
-- **briefing_agent.py** - Builds a text digest (stdout) from Sentry, Vercel, SonarQube, and DB stats when run
-- **run_all.py** - Orchestrator with max 10 restarts per child process, logs to agents/logs/
+- **agents/bots/monitor_agent.py** - Polls Sentry and SonarQube on an interval; logs unresolved errors and gate changes
+- **agents/bots/briefing_agent.py** - Builds a text digest (stdout) from Sentry, Vercel, SonarQube, and DB stats when run
+- **agents/run_all.py** - Orchestrator with max 10 restarts per child process, logs to agents/logs/
+- **agents/core/** - Shared base, recovery engine, telemetry, worker registry. **agents/tools/** - integration adapters (sentry_api, sonarqube_api, vercel_api, db_lookup).
 
 ### Production URLs (reference)
 
@@ -97,15 +104,17 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ## GitHub Actions Workflows
 
-| Workflow               | Trigger                           | Purpose                                        |
-| ---------------------- | --------------------------------- | ---------------------------------------------- |
-| claude.yml             | @claude mention                   | Claude responds to issues/PRs (write perms)    |
-| claude-code-review.yml | PR open/sync                      | Auto code review (sonnet + haiku fallback)     |
-| linear-sync.yml        | PR/review/CI events               | Single source of truth for GitHub→Linear→Slack |
-| ci.yml                 | PR + push to main                 | Lint + typecheck + tests + build               |
-| e2e.yml                | PR + push to main                 | Playwright E2E (artifacts kept 3 days)         |
-| docker.yml             | PR + push to main (path-filtered) | Test-build Docker images                       |
-| security.yml           | Push to main + weekly             | python-security on push, CodeQL weekly only    |
+| Workflow          | Trigger                           | Purpose                                        |
+| ----------------- | --------------------------------- | ---------------------------------------------- |
+| claude.yml        | @claude mention                   | Claude responds to issues/PRs (write perms)    |
+| linear-sync.yml   | PR/review/CI events               | Single source of truth for GitHub→Linear→Slack |
+| ci.yml            | PR + push to main                 | Lint + typecheck + tests + build               |
+| e2e.yml           | PR + push to main                 | Playwright E2E (artifacts kept 3 days)         |
+| docker.yml        | PR + push to main (path-filtered) | Test-build Docker images                       |
+| security.yml      | Push to main + weekly             | python-security on push, CodeQL weekly only    |
+| publish-npm.yml   | Tag/manual                        | Publish CLI + TS SDK to npm                    |
+| publish-pypi.yml  | Tag/manual                        | Publish Python SDK to PyPI                     |
+| publish.yml       | Tag/manual                        | Coordinated multi-package publish              |
 
 ## Local Gates (pre-commit / pre-push)
 
@@ -118,16 +127,96 @@ Husky hooks in `.husky/` enforce these before code reaches GitHub. They replace 
 **Pre-push (`.husky/pre-push`)**
 
 - `pnpm format:check && pnpm lint && pnpm type-check` - fast feedback before CI re-runs the same checks.
-- `pnpm audit --audit-level=high` - catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
+- `pnpm audit --audit-level=critical` - catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
 
 Hooks install automatically via `"prepare": "husky"` in package.json. To bypass (NOT recommended): `git commit --no-verify` / `git push --no-verify`.
 
-## Testing
+## Common Commands
 
-- Bot tests: `python -m agents.scripts.test_pipeline_e2e` (44 tests)
-- Action diagnostics: `python -m agents.scripts.test_claude_action`
-- Web: Vitest + Playwright
-- API: NestJS spec files
+The monorepo is **pnpm + Turborepo** (`pnpm-workspace.yaml` globs `apps/*` and `packages/*`). `apps/agents/` is Python (Poetry); everything else is TypeScript. Repo root requires Node ≥ 20 and pnpm ≥ 9 (see `package.json` engines).
+
+### Whole-repo (Turbo orchestrates per-package)
+
+```bash
+pnpm install                    # bootstrap workspaces
+pnpm dev                        # turbo dev --filter=@consilium/web --filter=@consilium/api (web + api only)
+pnpm build                      # turbo build (all packages)
+pnpm lint                       # turbo lint
+pnpm type-check                 # turbo type-check
+pnpm test                       # turbo test (root-level test target across packages)
+pnpm format / pnpm format:check # prettier
+pnpm clean                      # turbo clean + rm node_modules
+./run.sh                        # boots web :3000, api :4000, agents :8000 together
+```
+
+### Scoping to a single package (use the smallest scope that proves the change)
+
+```bash
+pnpm --filter @consilium/web    type-check
+pnpm --filter @consilium/api    test                      # Jest
+pnpm --filter @consilium/web    test -- --run             # Vitest, single run
+pnpm --filter @consilium/shared build                     # required before api/web compile
+```
+
+### Python (`apps/agents/` and bot `agents/`)
+
+Poetry must be on PATH (`export PATH="$HOME/.local/bin:$PATH"`). Source `.env.local` so `os.getenv()` works in health checks.
+
+```bash
+cd apps/agents
+poetry install
+poetry run uvicorn src.main:app --reload --port 8000     # dev server
+poetry run pytest tests/                                  # all agents tests
+poetry run pytest tests/deliberation/ -x                  # one folder, stop on first fail
+poetry run pytest tests/path/to/test_file.py::test_name   # single test
+python -m pytest tests/deliberation/ --noconftest         # 137 deliberation tests, no fixtures
+poetry run ruff check src/                                # lint
+```
+
+Bot agents (root-level `agents/`):
+
+```bash
+python -m agents.scripts.test_pipeline_e2e               # 44 E2E pipeline tests
+python -m agents.scripts.test_claude_action              # action wiring diagnostics
+python -m agents.bots.monitor_agent --once               # one-shot prod-error scan
+python -m agents.bots.briefing_agent                     # one-shot status digest
+```
+
+### Database (Prisma → Neon)
+
+```bash
+pnpm db:generate                # regenerate Prisma client (run after schema edits)
+pnpm db:push                    # push schema (first-time bootstrap)
+pnpm db:migrate                 # run migrations
+pnpm db:studio                  # Prisma Studio UI
+```
+
+### CLI (`packages/cli/`)
+
+```bash
+pnpm consilium debate "topic" --mode council             # dev-mode CLI from repo root
+pnpm cli:install                                          # build + global npm install
+```
+
+### Test commands per system (what passes today, per AGENTS.md)
+
+- **API** (Jest): `pnpm --filter @consilium/api test` — 70/79 pass; 9 failures need real Clerk/Resend keys.
+- **Web** (Vitest): `pnpm --filter @consilium/web test -- --run` — 117/118 pass; 1 pre-existing Clerk import in test env.
+- **Web E2E** (Playwright): `pnpm --filter @consilium/web test:e2e`.
+- **Agents** (pytest): `cd apps/agents && poetry run pytest tests/` — 61/72 pass with pre-existing mock issues.
+- **Bot pipeline**: `python -m agents.scripts.test_pipeline_e2e` (44 tests).
+
+### Local dev startup sequence (Cursor Cloud / fresh container)
+
+1. `sudo dockerd &>/tmp/dockerd.log &` (wait ~5s).
+2. `sudo docker compose up postgres redis -d`.
+3. `pnpm db:generate` (and `pnpm db:push` first time).
+4. `pnpm --filter @consilium/shared build` — the API imports from `@consilium/shared/dist/`, so it must be built first.
+5. `pnpm --filter @consilium/api dev` (`:4000`, prefix `/api/v1`, health at `/health`).
+6. `pnpm --filter @consilium/web dev` (`:3000`).
+7. `cd apps/agents && set -a && source /workspace/.env.local && set +a && poetry run uvicorn src.main:app --reload --port 8000`.
+
+Both `.env` and `.env.local` at repo root are required (NestJS reads `.env`/`.env.local`, FastAPI pydantic reads `.env.local`, Next.js reads `.env.local`). Do **not** quote values - pydantic-settings and Next.js read quotes literally. Agents reporting "degraded" health without LLM keys is expected.
 
 ## Sibling Docs (read these instead of re-discovering)
 
