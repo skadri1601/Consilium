@@ -57,6 +57,12 @@ from ..features.agents.base_agent import BaseAgent
 from ..shared.database.redis import RedisClient
 from ..shared.config.models import get_free_fallback_models
 
+try:
+    from .telemetry import get_tracer, create_debate_span, create_round_span, create_agent_span
+    _HAS_OTEL = True
+except ImportError:
+    _HAS_OTEL = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -274,6 +280,11 @@ class DebateOrchestrator:
         self._current_system_prompt: str | None = None
         self._current_sub_agents: bool = False
         self._current_project_context: dict | None = None
+        self._tool_registry = None
+        self._tool_executor = None
+        self._tools_enabled = False
+        self._all_responses_ref: dict[int, dict[str, str]] = {}
+        self._golden_prompt_ref: str = ""
 
     def _journal_log(self, event: str | DebateEventName, data: dict, round_number: int | None = None) -> None:
         if not self._journal:
@@ -677,10 +688,12 @@ class DebateOrchestrator:
         project_context: dict | None = None,
         mode: str = "council",
         user_tier: str | None = None,
+        tools_enabled: bool = False,
     ) -> AsyncGenerator[str, None]:
         self._debate_start_time = time.time()
         self._event_counter = 0
         self._compaction_result = None
+        self._tools_enabled = tools_enabled
 
         self._config = load_debate_config(debate_overrides={
             "max_rounds": round_count,
@@ -757,6 +770,68 @@ class DebateOrchestrator:
 
         if not _has_any_user_key(api_keys):
             model_ids = get_free_fallback_models(count=max(len(model_ids), 2))
+
+        if mode == "auto":
+            try:
+                from .model_router import ModelRouter, RoutingStrategy
+                router = ModelRouter(strategy=RoutingStrategy.BALANCED)
+                panel = router.route_panel(
+                    query=topic[:500],
+                    available_models=model_ids,
+                    panel_size=max(len(model_ids), 3),
+                )
+                model_ids = [r.selected_model for r in panel]
+                yield self._emit(DebateEventName.ROUTING_FALLBACK, {
+                    "strategy": "balanced",
+                    "models": model_ids,
+                    "complexity": panel[0].complexity_score if panel else 0,
+                })
+            except Exception as exc:
+                logger.warning("Model router failed, using original models: %s", _log_exc(exc))
+
+        if tools_enabled:
+            try:
+                from .debate_tools import DebateToolRegistry, ToolPermission
+                from .tool_executor import DebateToolExecutor
+                from .tools import BUILTIN_TOOLS
+                self._tool_registry = DebateToolRegistry()
+                self._tool_executor = DebateToolExecutor(registry=self._tool_registry)
+                for tool_name, tool_cls in BUILTIN_TOOLS.items():
+                    instance = tool_cls()
+                    defn = instance.definition()
+                    self._tool_registry.register(
+                        name=defn["name"],
+                        description=defn["description"],
+                        input_schema=defn["input_schema"],
+                        permission=ToolPermission.EXECUTE,
+                    )
+                    self._tool_executor.register_handler(defn["name"], instance.execute)
+                yield self._emit(DebateEventName.TOOL_LOOP_START, {
+                    "tools": [t.name for t in self._tool_registry.list_tools()],
+                })
+            except Exception as exc:
+                logger.warning("Tool setup failed: %s", _log_exc(exc))
+                self._tools_enabled = False
+
+        if os.getenv("CONSILIUM_MEMORY_ENABLED"):
+            try:
+                from .memory.retriever import MemoryRetriever
+                from .memory.decision_store import DecisionStore
+
+                async def _stub_embed(text: str) -> list[float]:
+                    return [0.0] * 10
+
+                store = DecisionStore()
+                retriever = MemoryRetriever(store=store)
+                memory_context = await retriever.build_context(
+                    topic=topic[:500],
+                    user_id=api_keys.get("user_id", ""),
+                    embed_fn=_stub_embed,
+                )
+                if memory_context:
+                    topic = memory_context + topic
+            except Exception as exc:
+                logger.warning("Memory retrieval failed: %s", _log_exc(exc))
 
         self._task_registry = DebateTaskRegistry(debate_id)
         self._current_topic = topic
@@ -1170,6 +1245,52 @@ class DebateOrchestrator:
 
         async for ev in self._persist_results(debate_id, golden_prompt, judge_model_id, all_responses):
             yield ev
+
+        try:
+            from .audit_trail import AuditTrailExporter
+            exporter = AuditTrailExporter()
+            audit_doc = exporter.export({
+                "debate_id": debate_id,
+                "topic": self._current_topic[:500],
+                "mode": "council",
+                "models": model_ids,
+                "all_responses": all_responses,
+                "golden_prompt": golden_prompt,
+                "costs": self.cost_tracker.to_dict(),
+                "duration_ms": int((time.time() - self._debate_start_time) * 1000),
+                "judge_model": judge_model_id,
+            })
+            self._journal_log(DebateEventName.AUDIT_EXPORTED, {
+                "debate_id": debate_id,
+                "confidence": audit_doc.confidence_score,
+                "dissent_count": len(audit_doc.dissent_points),
+            })
+            yield self._emit(DebateEventName.AUDIT_EXPORTED, {
+                "debate_id": debate_id,
+                "confidence": audit_doc.confidence_score,
+            })
+        except Exception as exc:
+            logger.warning("Audit trail export failed: %s", _log_exc(exc))
+
+        try:
+            from .memory.decision_extractor import DecisionExtractor
+            extractor = DecisionExtractor()
+            decision = extractor.extract(
+                topic=self._current_topic[:500],
+                golden_prompt=golden_prompt,
+                all_responses=all_responses,
+                mode="council",
+                user_id=api_keys.get("user_id", ""),
+                debate_id=debate_id,
+            )
+            logger.info(
+                "Decision extracted for debate %s: confidence=%.2f, dissent=%d",
+                _correlation_token(debate_id),
+                decision.confidence_score,
+                len(decision.dissent_points),
+            )
+        except Exception as exc:
+            logger.warning("Decision extraction failed: %s", _log_exc(exc))
 
     def _format_round_results(
         self,

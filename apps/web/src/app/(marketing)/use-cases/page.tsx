@@ -11,17 +11,18 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Use Cases",
   description:
-    "How teams use Consilium - architecture decisions, code review, research synthesis, model selection, incident retrospectives, and high-stakes prompts.",
+    "How enterprises use Consilium for agent governance - decision validation, compliance audit, risk scoring, policy enforcement, and fleet management.",
   path: "/use-cases",
   keywords: [
-    "ai use cases",
-    "llm council use cases",
-    "ai for engineering teams",
+    "agent governance use cases",
+    "ai compliance",
+    "agent fleet management",
+    "ai risk scoring",
   ],
 });
 import {
-  Code,
-  BookOpen,
+  ShieldCheck,
+  FileCheck,
   ShieldAlert,
   HeartPulse,
   Scale,
@@ -31,73 +32,75 @@ import {
   Eye,
   Shield,
   BarChart3,
+  ScrollText,
+  Network,
 } from "lucide-react";
 
 const useCases = [
   {
-    id: "code-review",
-    icon: Code,
-    title: "Code Review",
+    id: "agent-decision-validation",
+    icon: ShieldCheck,
+    title: "Agent Decision Validation",
     mode: "Red Team",
-    template: "code_review",
+    template: "agent_validation",
     models: 3,
     rounds: 2,
     modeIcon: Target,
     modeColor: "bg-red-500/10 text-red-400 border-red-500/20",
     attackCategories: [
-      "SECURITY_VULN",
-      "LOGICAL_FLAW",
-      "EDGE_CASE",
-      "ROBUSTNESS_TEST",
+      "POLICY_VIOLATION",
+      "RISK_THRESHOLD",
+      "AUTHORITY_SCOPE",
+      "BUDGET_LIMIT",
     ],
     description: [
-      "Three models independently review your code, each generating a comprehensive analysis of potential issues. Unlike traditional code review tools that run static analysis, Consilium's code review puts models into adversarial positions where they actively attack each other's findings, uncovering issues that surface only under cross-examination. The Red Team framework ensures that every vulnerability claim is stress-tested before reaching the final report.",
-      "During the Red Team phase, models issue typed challenges categorized as SECURITY_VULN, LOGICAL_FLAW, EDGE_CASE, or ROBUSTNESS_TEST. A defender model must rebut each challenge with evidence - conceding valid points, refuting false positives, qualifying edge cases, or redirecting to more critical issues. This adversarial dynamic mirrors real security audits where penetration testers and defenders engage in structured conflict to harden systems.",
-      "The judge model synthesizes all findings into a final vulnerability report with severity ratings (critical/high/medium/low), maps each finding to the original code location, and includes the defender's rebuttals. The result is a structured, auditable code review that catches 30-40% more issues than single-model review. Each finding is cross-referenced against OWASP Top 10, CWE identifiers, and SANS 25 categories where applicable.",
+      "Before an AI agent executes a high-stakes action, Consilium runs adversarial multi-model review. The validate MCP tool returns a confidence score, risk assessment, and dissent report. Three models independently evaluate the proposed action - one attacks finding policy violations and risk exposures, one defends proposing mitigations, and a judge evaluates severity and renders a go/no-go decision.",
+      "During the Red Team phase, models issue typed challenges categorized as POLICY_VIOLATION, RISK_THRESHOLD, AUTHORITY_SCOPE, or BUDGET_LIMIT. A defender model must rebut each challenge with evidence - conceding valid violations, refuting false positives, qualifying scope boundaries, or demonstrating budget compliance. This adversarial dynamic mirrors the separation of duties required by SOC 2 and ISO 27001.",
+      "The judge model synthesizes all findings into a validation report with a confidence score (0-1), severity ratings for each identified risk, and a binary approve/deny recommendation with full reasoning chain. Every validation produces a compliance-grade audit document with model attributions, dissent preservation, and cost breakdown. The validate MCP tool can be called by any AI client - Claude Code, Cursor, custom agent frameworks - making governance a single function call.",
     ],
     rubric: [
-      { name: "Security", weight: "30%" },
-      { name: "Correctness", weight: "25%" },
-      { name: "Performance", weight: "20%" },
-      { name: "Maintainability", weight: "15%" },
-      { name: "Style", weight: "10%" },
+      { name: "Policy Compliance", weight: "30%" },
+      { name: "Risk Assessment", weight: "25%" },
+      { name: "Authority Verification", weight: "20%" },
+      { name: "Budget Impact", weight: "15%" },
+      { name: "Audit Quality", weight: "10%" },
     ],
     examplePrompt:
-      "Review this authentication middleware for security vulnerabilities:\n\nasync function authMiddleware(req, res, next) {\n  const token = req.headers.authorization;\n  const decoded = jwt.verify(token, process.env.JWT_SECRET);\n  req.user = await User.findById(decoded.id);\n  next();\n}",
+      "Validate: Sales agent proposing a 25% discount on a $500K enterprise deal. Agent authority limit is 15%. Customer has been in negotiation for 90 days. Competitor offering similar terms.",
     outputDescription:
-      "Vulnerability report with severity ratings (critical/high/medium/low), defender rebuttals for each finding, judge's final assessment with prioritized remediation steps, and OWASP/CWE cross-references.",
+      "Validation report with confidence score (0-1), policy compliance status, risk severity ratings, approve/deny recommendation with full reasoning chain, and compliance-grade audit document.",
     whyDeliberation:
-      "Single models miss 30-40% of security issues. Cross-examination forces models to justify their findings under adversarial pressure, eliminating false positives and surfacing hidden vulnerabilities that no single model catches alone. The Red Team structure ensures the defender cannot dismiss legitimate findings, while the attacker cannot inflate severity without evidence.",
+      "Single-model validation creates a single point of failure for agent governance. Adversarial multi-model review ensures that policy violations, budget overruns, and authority scope breaches are caught before agents act - not after. The Red Team structure prevents rubber-stamp approvals while the dissent report gives human reviewers full visibility into edge cases.",
   },
   {
-    id: "research-synthesis",
-    icon: BookOpen,
-    title: "Research Synthesis",
+    id: "compliance-audit",
+    icon: FileCheck,
+    title: "Compliance & Audit",
     mode: "Council",
-    template: "research_synthesis",
+    template: "compliance_audit",
     models: 3,
     rounds: 3,
     modeIcon: Users,
     modeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
     attackCategories: [],
     description: [
-      "Models explore different perspectives on complex research topics, each bringing independent analysis of available evidence. The Council mode ensures diverse viewpoints are represented before any synthesis occurs, preventing the premature convergence that plagues single-model summarization. Three models deliberate across three rounds, with each round building on the previous one's findings and challenges.",
-      "During deliberation, models challenge each other's source interpretations, flag potential biases in cited research, and identify gaps in evidence coverage. Each claim must be backed by specific evidence, and models rate their confidence in each assertion. The confidence-weighted voting system (Condorcet + Borda count) ensures well-supported conclusions carry more weight than speculative claims.",
-      "The final synthesis includes a comprehensive overview with inline citations, a section of flagged uncertainties where models disagreed, and confidence scores for each major conclusion. Dissenting views are preserved - if one model identified contradictory evidence, that perspective is included alongside the majority position. The output distinguishes between strong consensus, weak consensus, and active disagreement.",
+      "Every deliberation produces a compliance-grade audit document with full reasoning chains, model attributions, and dissent preservation. EU AI Act and SOC 2 ready. Three models deliberate across three rounds, generating a structured record that satisfies the transparency and documentation requirements of major regulatory frameworks.",
+      "During deliberation, models independently evaluate agent decisions against applicable regulatory requirements - GDPR data handling, EU AI Act high-risk obligations, SOC 2 trust service criteria, HIPAA safeguards, or industry-specific regulations. Each model cites specific regulatory articles and maps agent behavior to compliance requirements. Cross-examination forces models to identify gaps in compliance coverage and resolve ambiguities in regulatory interpretation.",
+      "The final audit document includes a regulatory mapping table (agent action to specific regulation clause), compliance status per requirement, remediation recommendations for gaps, and a dissent report preserving minority interpretations where regulations are ambiguous. High-risk AI obligations under the EU AI Act take effect August 2, 2026 - Consilium's audit trail provides the documentation infrastructure required for conformity assessments.",
     ],
     rubric: [
-      { name: "Accuracy", weight: "30%" },
+      { name: "Regulatory Coverage", weight: "30%" },
       { name: "Evidence Quality", weight: "25%" },
-      { name: "Completeness", weight: "20%" },
-      { name: "Bias Awareness", weight: "15%" },
-      { name: "Citation Quality", weight: "10%" },
+      { name: "Gap Identification", weight: "20%" },
+      { name: "Remediation Quality", weight: "15%" },
+      { name: "Documentation", weight: "10%" },
     ],
     examplePrompt:
-      "Synthesize current research on transformer architecture efficiency improvements, including sparse attention mechanisms, mixture of experts, and linear attention variants. Compare their tradeoffs for production deployment.",
+      "Audit this AI agent's loan approval workflow for EU AI Act compliance. The agent accesses credit scores, employment history, and demographic data. It makes approval/denial recommendations with a human-in-the-loop for denials over $100K.",
     outputDescription:
-      "Comprehensive synthesis with inline citations, flagged uncertainties with confidence intervals, per-conclusion confidence scores, and preserved minority opinions where models disagreed on evidence interpretation.",
+      "Compliance audit with regulatory mapping table, per-requirement compliance status, gap analysis with remediation steps, dissent report on ambiguous interpretations, and exportable audit document for conformity assessments.",
     whyDeliberation:
-      "Multiple models reduce single-model hallucination and confirmation bias by up to 15%. When one model cites a finding, others verify it independently - catching fabricated citations and misrepresented conclusions that single-model approaches propagate unchecked. Three rounds of cross-examination force progressively deeper engagement with the evidence.",
+      "Regulatory interpretation is inherently ambiguous. A single model's compliance assessment reflects its training biases - it may over-index on familiar regulations and miss emerging requirements. Three-model deliberation with cross-examination ensures comprehensive regulatory coverage, and dissent preservation captures the interpretive ambiguities that regulators actually care about.",
   },
   {
     id: "risk-assessment",
@@ -111,53 +114,23 @@ const useCases = [
     modeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     attackCategories: [],
     description: [
-      "Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds. Every risk assessment must include minority opinions - no conclusion is presented as unanimous unless mathematically verified through convergence detection (Kendall tau + Jaccard + concession rate >= 0.85). This prevents the groupthink that makes single-model risk assessments dangerously overconfident.",
-      "Each model independently identifies risks, assesses likelihood and impact on standardized scales, and proposes mitigation strategies. During deliberation, models challenge each other's likelihood estimates and impact assessments, forcing quantitative justification. A model claiming 'low probability' must defend that assessment against adversarial questioning from four other models across three rounds.",
-      "The output is a structured risk matrix with likelihood/impact ratings for each identified risk, detailed mitigation strategies with implementation timelines, and mandatory minority opinions. If even one model identifies a catastrophic risk that others dismiss, that dissent is prominently featured in the final report rather than averaged away. Agglomerative clustering groups related risks and surfaces overlooked tail risks.",
+      "Continuous adversarial risk scoring for agent fleets. One model attacks a proposal finding vulnerabilities, another defends proposing mitigations, a judge evaluates severity. Track risk trends and detect drift over time. Five models participate in a structured Jury deliberation with MANDATORY_DISSENT reporting across three rounds - no conclusion is presented as unanimous unless mathematically verified through convergence detection (score >= 0.85).",
+      "Each model independently identifies risks across agent operations, assesses likelihood and impact on standardized scales, and proposes mitigation strategies. During deliberation, models challenge each other's likelihood estimates and impact assessments, forcing quantitative justification. The continuous risk monitor tracks scores over time and detects when an agent's risk profile drifts - surfacing degradation before it becomes a compliance violation.",
+      "The output is a structured risk matrix with likelihood/impact ratings for each identified risk, detailed mitigation strategies with implementation timelines, trend analysis showing risk score evolution, and mandatory minority opinions. If even one model identifies a catastrophic risk that others dismiss, that dissent is prominently featured in the final report. Agglomerative clustering groups related risks and surfaces overlooked tail risks across the entire agent fleet.",
     ],
     rubric: [
       { name: "Risk Identification", weight: "25%" },
       { name: "Likelihood Assessment", weight: "20%" },
       { name: "Impact Analysis", weight: "20%" },
       { name: "Mitigation Quality", weight: "20%" },
-      { name: "Compliance", weight: "15%" },
+      { name: "Trend Detection", weight: "15%" },
     ],
     examplePrompt:
-      "Assess risks of migrating from AWS to multi-cloud architecture (AWS + GCP + Azure). Consider operational complexity, data sovereignty, cost implications, team skill gaps, vendor lock-in tradeoffs, and disaster recovery scenarios.",
+      "Score risk for a customer service agent fleet handling 50K interactions/day. Agents can issue refunds up to $500, modify account settings, and escalate to human agents. Evaluate: authority scope creep, PII exposure, financial loss vectors, and compliance drift.",
     outputDescription:
-      "Risk matrix with likelihood/impact ratings, mitigation strategies with implementation order, mandatory minority opinions from all five models, and a dissent report highlighting risks that only some models identified.",
+      "Risk matrix with likelihood/impact ratings, mitigation strategies with implementation order, risk trend analysis, mandatory minority opinions from all five models, and drift detection alerts for degrading risk profiles.",
     whyDeliberation:
-      "MANDATORY_DISSENT ensures no risks are overlooked due to groupthink. In single-model assessments, the model's training biases determine which risks are emphasized. Five-model Jury deliberation with forced dissent surfaces the full risk landscape - including tail risks that any individual model would dismiss as unlikely.",
-  },
-  {
-    id: "healthcare",
-    icon: HeartPulse,
-    title: "Healthcare Decision Support",
-    mode: "Council",
-    template: "healthcare",
-    models: 3,
-    rounds: 3,
-    modeIcon: Users,
-    modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    attackCategories: [],
-    description: [
-      "Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions. This reflects the medical principle that premature diagnostic closure is the leading cause of diagnostic error - a problem that single-model systems systematically amplify.",
-      "Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning - questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.",
-      "The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. Every recommendation includes a confidence score calibrated by how well it withstood cross-examination - models that changed their diagnosis under pressure receive lower calibration scores.",
-    ],
-    rubric: [
-      { name: "Evidence Quality", weight: "30%" },
-      { name: "Diagnostic Accuracy", weight: "25%" },
-      { name: "Safety Considerations", weight: "20%" },
-      { name: "Completeness", weight: "15%" },
-      { name: "Actionability", weight: "10%" },
-    ],
-    examplePrompt:
-      "Evaluate differential diagnosis for a 45-year-old patient presenting with acute onset chest pain radiating to the left arm, diaphoresis, elevated troponin, but normal ECG. Consider cardiac, pulmonary, and gastrointestinal etiologies.",
-    outputDescription:
-      "Ranked differential diagnosis with evidence chains for each condition, safety flags for critical findings requiring immediate action, dissenting opinions on diagnosis likelihood, and confidence scores calibrated by cross-examination resilience.",
-    whyDeliberation:
-      "Safety-critical decisions need transparent disagreement and evidence chains. A single model might miss a rare but life-threatening diagnosis. REQUIRE_DISSENT ensures uncommon conditions are considered, and REQUIRE_CITATIONS prevents hallucinated medical guidance. Three rounds of deliberation force models to defend their diagnostic reasoning under adversarial scrutiny.",
+      "MANDATORY_DISSENT ensures no risks are overlooked due to groupthink. In single-model assessments, the model's training biases determine which risks are emphasized. Five-model Jury deliberation with forced dissent surfaces the full risk landscape - including tail risks and drift patterns that any individual model would dismiss as unlikely.",
   },
   {
     id: "legal-analysis",
@@ -171,9 +144,9 @@ const useCases = [
     modeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
     attackCategories: [],
     description: [
-      "Legal analysis uses Blind mode with a dialectical structure: one model argues risk, another argues acceptability, and evaluation happens without knowledge of which model produced which argument. This eliminates the brand bias where evaluators unconsciously favor responses from models they perceive as more authoritative. MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are fully explored across three rounds.",
+      "Multi-model deliberation for contract review, liability analysis, and regulatory compliance. Red-team mode stress-tests legal reasoning before filing. Blind mode ensures evaluation happens without knowledge of which model produced which argument, eliminating the brand bias where evaluators unconsciously favor responses from models they perceive as more authoritative. MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are fully explored.",
       "The dialectical format ensures both sides of every legal question are thoroughly explored. The risk-arguing model must identify every potential compliance gap, liability exposure, and regulatory risk. The acceptability-arguing model must demonstrate why current language or practices are legally defensible. Neither model knows the other's position during initial analysis, and the judge evaluates arguments in multiple orderings to prevent position bias.",
-      "The blind judge evaluates arguments purely on legal merit, producing clause-by-clause risk ratings, regulatory gap analysis, and recommended revisions with alternative language. The final output includes a dissent report showing where the risk and acceptability models fundamentally disagreed, ensuring stakeholders see the full spectrum of legal opinion rather than a false consensus that masks genuine legal ambiguity.",
+      "The blind judge evaluates arguments purely on legal merit, producing clause-by-clause risk ratings, regulatory gap analysis, and recommended revisions with alternative language. For agent governance, this means every agent-executed contract modification, terms acceptance, or regulatory filing is stress-tested by adversarial legal review before execution. The dissent report ensures stakeholders see the full spectrum of legal opinion rather than a false consensus.",
     ],
     rubric: [
       { name: "Legal Accuracy", weight: "30%" },
@@ -190,9 +163,39 @@ const useCases = [
       "Blind evaluation eliminates model bias - the judge cannot favor a 'brand name' model's analysis. The dialectical format with MANDATORY_DISSENT ensures both conservative and permissive legal interpretations are explored across three rounds, giving stakeholders the full picture rather than a single model's risk tolerance.",
   },
   {
-    id: "financial-analysis",
+    id: "healthcare",
+    icon: HeartPulse,
+    title: "Healthcare Decisions",
+    mode: "Council",
+    template: "healthcare",
+    models: 3,
+    rounds: 3,
+    modeIcon: Users,
+    modeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    attackCategories: [],
+    description: [
+      "Diagnostic differentials, drug interaction analysis, and prior authorization appeals evaluated by multiple models with mandatory dissent preservation. Healthcare deliberations enforce REQUIRE_DISSENT and REQUIRE_CITATIONS as non-negotiable constraints. Every diagnostic suggestion must cite specific clinical evidence, and every differential diagnosis must include dissenting opinions.",
+      "Models independently evaluate patient presentations, each generating a ranked differential diagnosis with supporting evidence across three rounds of deliberation. During cross-examination, models challenge each other's diagnostic reasoning - questioning whether symptoms truly support a proposed diagnosis, flagging overlooked conditions, and identifying potential drug interactions or contraindications that any single model might miss.",
+      "The output includes a ranked differential diagnosis list with evidence chains for each condition, safety flags for critical findings that require immediate action, and explicit dissenting opinions where models disagreed on diagnosis likelihood. For agent governance in healthcare, this means every AI-assisted triage, diagnostic recommendation, or treatment suggestion is validated by adversarial multi-model review with full audit trail before reaching clinicians.",
+    ],
+    rubric: [
+      { name: "Evidence Quality", weight: "30%" },
+      { name: "Diagnostic Accuracy", weight: "25%" },
+      { name: "Safety Considerations", weight: "20%" },
+      { name: "Completeness", weight: "15%" },
+      { name: "Actionability", weight: "10%" },
+    ],
+    examplePrompt:
+      "Evaluate differential diagnosis for a 45-year-old patient presenting with acute onset chest pain radiating to the left arm, diaphoresis, elevated troponin, but normal ECG. Consider cardiac, pulmonary, and gastrointestinal etiologies.",
+    outputDescription:
+      "Ranked differential diagnosis with evidence chains for each condition, safety flags for critical findings requiring immediate action, dissenting opinions on diagnosis likelihood, and confidence scores calibrated by cross-examination resilience.",
+    whyDeliberation:
+      "Safety-critical decisions need transparent disagreement and evidence chains. A single model might miss a rare but life-threatening diagnosis. REQUIRE_DISSENT ensures uncommon conditions are considered, and REQUIRE_CITATIONS prevents hallucinated medical guidance. Three rounds of deliberation force models to defend their diagnostic reasoning under adversarial scrutiny.",
+  },
+  {
+    id: "financial-trade-validation",
     icon: TrendingUp,
-    title: "Financial Analysis",
+    title: "Financial Trade Validation",
     mode: "Jury",
     template: "finance",
     models: 3,
@@ -203,23 +206,88 @@ const useCases = [
     metrics: ["VaR", "CVaR", "Sharpe"],
     compliance: ["Basel III", "SOX", "Dodd-Frank", "MiFID II"],
     description: [
-      "Financial analysis uses Jury mode with MANDATORY_DISSENT and requires quantitative metrics in every assessment. Three models must provide specific numerical analysis - VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios - rather than qualitative hand-waving. Compliance mapping covers Basel III, SOX, Dodd-Frank, and MiFID II frameworks. Every quantitative claim is stress-tested across three rounds of deliberation.",
-      "During deliberation, models challenge each other's quantitative assumptions. If one model projects 12% returns, another must stress-test that assumption against historical drawdown scenarios, current market volatility, and macroeconomic indicators. Scenario analysis is mandatory: bull case, base case, bear case, and black swan scenarios must all be addressed with specific numerical projections and probability-weighted outcomes.",
-      "The output includes a comprehensive risk assessment with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, hedging recommendations, and mandatory dissent. If one model identifies a systemic risk that others dismiss, that dissent is preserved with full quantitative backing - preventing the consensus bias that contributed to historical financial crises.",
+      "Before an agent executes a trade, Consilium's quorum voting requires multiple models to independently approve. Budget controls enforce per-agent spending limits. Three models must provide specific numerical analysis - VaR (Value at Risk), CVaR (Conditional Value at Risk), and Sharpe ratios - with MANDATORY_DISSENT ensuring every quantitative claim is stress-tested across three rounds of deliberation.",
+      "During deliberation, models challenge each other's quantitative assumptions. If one model approves a trade projection, another must stress-test that assumption against historical drawdown scenarios, current market volatility, and macroeconomic indicators. Quorum voting means no single model can approve a trade unilaterally - the majority must independently agree that the risk/reward profile falls within policy bounds and budget constraints.",
+      "The output includes a comprehensive trade validation with VaR/CVaR/Sharpe metrics, stress test results across multiple scenarios, regulatory compliance mapping against Basel III, SOX, Dodd-Frank, and MiFID II frameworks, and a binary approve/deny with full reasoning chain. Budget controls automatically enforce per-agent and per-trade spending limits, blocking any execution that exceeds authorized thresholds. Mandatory dissent preserves contrarian risk assessments.",
     ],
     rubric: [
       { name: "Quantitative Rigor", weight: "30%" },
       { name: "Regulatory Alignment", weight: "25%" },
       { name: "Risk Coverage", weight: "20%" },
-      { name: "Scenario Analysis", weight: "15%" },
+      { name: "Budget Compliance", weight: "15%" },
       { name: "Actionability", weight: "10%" },
     ],
     examplePrompt:
-      "Evaluate the risk profile of this investment portfolio under current market conditions: 40% US large-cap equities, 20% international developed markets, 15% emerging markets, 15% investment-grade bonds, 10% REITs. Consider interest rate sensitivity, geopolitical risk, and liquidity constraints.",
+      "Validate: Trading agent proposing to execute a $2M equity swap. Agent daily limit is $5M, $3.2M already committed. Portfolio VaR threshold is 2.5%. Evaluate counterparty risk, liquidity impact, and regulatory compliance.",
     outputDescription:
-      "Risk assessment with VaR/CVaR/Sharpe metrics, stress test results across bull/base/bear/black-swan scenarios, Basel III/SOX/Dodd-Frank/MiFID II compliance mapping, hedging recommendations, and mandatory dissent on risk factors where models disagreed.",
+      "Trade validation with VaR/CVaR/Sharpe metrics, quorum vote result (approve/deny), budget impact analysis, regulatory compliance mapping, stress test results, and mandatory dissent on risk factors where models disagreed.",
     whyDeliberation:
-      "Jury format with MANDATORY_DISSENT prevents consensus bias in financial decisions. Single models tend to anchor on base-case scenarios. Three-model deliberation with forced dissent ensures tail risks and contrarian indicators are quantified and preserved in the final analysis - the kind of minority opinion that gets averaged away in traditional risk committees.",
+      "Quorum voting prevents single-point-of-failure approvals for financial trades. Single models tend to anchor on base-case scenarios. Three-model deliberation with forced dissent and budget controls ensures tail risks are quantified, spending limits are enforced, and contrarian risk indicators are preserved - the kind of minority opinion that gets averaged away in single-model validation.",
+  },
+  {
+    id: "policy-enforcement",
+    icon: ScrollText,
+    title: "Policy Enforcement",
+    mode: "Red Team",
+    template: "policy_enforcement",
+    models: 3,
+    rounds: 2,
+    modeIcon: Target,
+    modeColor: "bg-red-500/10 text-red-400 border-red-500/20",
+    attackCategories: [
+      "POLICY_VIOLATION",
+      "SCOPE_EXCEEDED",
+      "BUDGET_BREACH",
+      "AUTHORITY_GAP",
+    ],
+    description: [
+      "Define governance policies: 'Sales agents can offer up to 15% discount without approval.' Consilium's policy engine evaluates every agent action against organizational rules. Three models independently assess the proposed action - one identifies policy violations and scope breaches, one defends the action's compliance with existing policies, and a judge renders a verdict with full reasoning chain.",
+      "During the Red Team phase, the attacker model issues typed challenges categorized as POLICY_VIOLATION, SCOPE_EXCEEDED, BUDGET_BREACH, or AUTHORITY_GAP. The defender must rebut each challenge by citing specific policy clauses, demonstrating authority chain compliance, or showing budget availability. Policies are expressed as structured rules with conditions, thresholds, and escalation paths - not as vague natural language guidelines.",
+      "The policy engine produces a structured enforcement report: policy compliance status (pass/fail per rule), violation severity ratings, escalation recommendations, and a complete audit trail mapping every agent action to every applicable policy. For organizations deploying agent fleets, this transforms governance from manual review into automated, adversarial policy enforcement that scales with the number of agents.",
+    ],
+    rubric: [
+      { name: "Policy Coverage", weight: "30%" },
+      { name: "Violation Detection", weight: "25%" },
+      { name: "Severity Assessment", weight: "20%" },
+      { name: "Escalation Quality", weight: "15%" },
+      { name: "Audit Trail", weight: "10%" },
+    ],
+    examplePrompt:
+      "Enforce: Procurement agent requesting approval to sign a $75K annual SaaS contract. Policy: agents can approve up to $50K without VP sign-off. Agent has approved $180K in the current quarter against a $200K quarterly limit.",
+    outputDescription:
+      "Policy enforcement report with per-rule compliance status, violation severity ratings, escalation path with required approvers, budget impact analysis, and compliance-grade audit trail.",
+    whyDeliberation:
+      "Static rule engines catch obvious violations but miss context-dependent edge cases. Adversarial multi-model policy enforcement stress-tests every action against the spirit and letter of organizational policies, catching loopholes, scope creep, and authority gaps that rule-based systems miss. The dissent report surfaces policy ambiguities that need human clarification.",
+  },
+  {
+    id: "agent-fleet-governance",
+    icon: Network,
+    title: "Agent Fleet Governance",
+    mode: "Council",
+    template: "fleet_governance",
+    models: 3,
+    rounds: 3,
+    modeIcon: Users,
+    modeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    attackCategories: [],
+    description: [
+      "Delegation hierarchies, budget controls, and quorum voting for enterprise agent deployments. The Active Directory for AI agents. Three models deliberate on fleet-wide governance configurations, evaluating delegation chains, authority scopes, and budget allocations across the entire agent hierarchy to prevent privilege escalation and spending drift.",
+      "During deliberation, models independently assess fleet governance structures - reviewing delegation hierarchies for circular authority, budget allocations for over-provisioning, quorum requirements for appropriate rigor, and escalation paths for completeness. Cross-examination forces models to identify governance gaps: agents with overlapping authority, missing escalation paths, budget pools without spending limits, or delegation chains that bypass required human oversight.",
+      "The output includes a fleet governance assessment with delegation hierarchy visualization, budget allocation analysis, quorum configuration recommendations, escalation path completeness scoring, and a dissent report highlighting governance risks that only some models identified. For enterprises deploying hundreds of AI agents, this provides the structural machinery for who decides what an agent can do, how decisions are audited, and who is accountable.",
+    ],
+    rubric: [
+      { name: "Hierarchy Design", weight: "25%" },
+      { name: "Budget Controls", weight: "25%" },
+      { name: "Authority Scope", weight: "20%" },
+      { name: "Escalation Coverage", weight: "15%" },
+      { name: "Accountability", weight: "15%" },
+    ],
+    examplePrompt:
+      "Evaluate fleet governance for a 200-agent deployment: 50 customer service agents ($500 refund limit), 30 sales agents (15% discount authority), 20 procurement agents ($50K approval limit), 100 internal ops agents. Assess delegation hierarchy, budget controls, and escalation paths.",
+    outputDescription:
+      "Fleet governance assessment with delegation hierarchy analysis, budget allocation review, quorum configuration recommendations, escalation path scoring, privilege escalation risks, and dissent report on governance gaps.",
+    whyDeliberation:
+      "Fleet governance is too complex for single-model assessment. Delegation hierarchies, budget controls, and authority scopes create combinatorial complexity where privilege escalation paths hide in the interactions between agents. Three-model deliberation surfaces governance gaps that emerge from the system-level view - the kind of systemic risks that per-agent review misses entirely.",
   },
 ];
 
@@ -234,7 +302,7 @@ function buildTemplateConfigSnippet(uc: (typeof useCases)[number]): string {
   const requireDissent =
     uc.id === "risk-assessment" ||
     uc.id === "legal-analysis" ||
-    uc.id === "financial-analysis" ||
+    uc.id === "financial-trade-validation" ||
     uc.id === "healthcare";
   lines.push(
     `require_dissent: ${requireDissent ? "true # MANDATORY" : "true"}`,
@@ -246,7 +314,7 @@ function buildTemplateConfigSnippet(uc: (typeof useCases)[number]): string {
   if (
     uc.id === "risk-assessment" ||
     uc.id === "legal-analysis" ||
-    uc.id === "financial-analysis"
+    uc.id === "financial-trade-validation"
   ) {
     lines.push("mandatory_dissent: true");
   }
@@ -268,13 +336,13 @@ export default function UseCasesPage() {
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto text-center">
           <Badge className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
-            6 Vertical Templates
+            8 Governance Templates
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Use Cases</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            How teams use multi-agent deliberation to make better decisions.
-            Each use case maps to a specific deliberation mode, evaluation
-            rubric, and output format proven in peer-reviewed research.
+            How enterprises use Consilium to govern AI agent fleets. Each use
+            case maps to a specific deliberation mode, evaluation rubric, and
+            compliance-grade audit output.
           </p>
         </div>
       </section>

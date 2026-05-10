@@ -46,6 +46,16 @@ export const SSE_EVENT_NAMES = [
   "done",
   "error",
   "debate:cancelled",
+  "tool:call_start",
+  "tool:call_result",
+  "tool:loop_start",
+  "tool:loop_done",
+  "governance:policy_check",
+  "governance:approval_requested",
+  "governance:decision",
+  "risk:scoring_start",
+  "risk:scoring_complete",
+  "audit:exported",
 ] as const;
 
 export type SseEventName = (typeof SSE_EVENT_NAMES)[number];

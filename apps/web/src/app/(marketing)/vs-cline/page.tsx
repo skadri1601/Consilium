@@ -6,185 +6,174 @@ import { buildMetadata } from "@/lib/seo";
 const data: CompetitorComparison = {
   slug: "cline",
   competitor: "Cline",
-  pageTitle: "Consilium vs Cline: Multi-AI Council vs Autonomous Single Agent",
+  pageTitle: "Consilium vs Cline: Governance Layer vs Autonomous Agent",
   metaDescription:
-    "Cline is a powerful autonomous coding agent inside VS Code. Consilium adds something Cline cannot: a council of models from multiple providers that debate and converge.",
+    "Cline executes tasks. Consilium governs which tasks should proceed. Policy enforcement, quorum voting, and risk scoring for autonomous agents.",
   keywords: [
     "cline ai",
     "cline alternative",
     "cline vs consilium",
-    "vscode ai agent",
-    "autonomous coding agent",
+    "agent governance",
+    "autonomous agent governance",
   ],
   hero: {
     tagline:
-      "Cline drives one autonomous agent inside VS Code. Consilium runs a council that disagrees with itself.",
-    hook: "Cline is one of the most capable single-agent extensions for VS Code. Consilium ships a parallel VS Code extension whose mechanic is multi-provider deliberation - and an MCP server that plugs into Cline if you want both.",
+      "Cline executes tasks. Consilium governs which tasks should proceed.",
+    hook: "Cline is an autonomous coding agent. Consilium provides the governance layer -- policy enforcement, quorum voting, and risk scoring -- that prevents autonomous agents from making unchecked high-stakes decisions.",
     intro: [
       "Cline (formerly Claude Dev) helped define the modern in-IDE autonomous-agent experience. You give it a goal, and it plans, edits files, runs commands, drives a browser, and asks for permission at the right moments. The execute-act-observe loop is mature, the Plan/Act split is genuinely useful, and BYOK with broad provider support keeps you in control of cost.",
-      "Cline's architecture is deliberately one-model-at-a-time. You pick an OpenAI / Anthropic / Gemini / OpenRouter / Bedrock / Vertex / LiteLLM target, and that one model handles the entire session - planning, editing, tool calls, the lot. Single-voice agentic loops are great for execution but weak at decisions where multiple perspectives matter.",
-      "Consilium starts from the opposite premise. We run three to five models in parallel, route them into a structured debate (typed challenges, categorized rebuttals, mathematical convergence detection), and produce a synthesis with documented dissent. Eight modes - Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto - each tuned for a different stakes profile.",
-      "The two tools complement each other cleanly. Use Cline when you want one agent to execute a plan. Call Consilium (via its MCP server, its CLI, or its own VS Code extension) when you want a council to weigh the plan first.",
+      "But autonomous agents executing unchecked decisions is exactly the problem the agent economy needs to solve. When Cline proposes a schema migration, a security model change, or a deployment to production -- who validates that the decision is sound? Permission prompts gate execution. Governance gates reasoning.",
+      "Consilium is the governance and deliberation OS for the agent economy. It runs 3-7 models from different vendors in adversarial deliberation, producing risk scores, policy compliance checks, and audit-ready documentation. It's the layer between 'the agent wants to do X' and 'X actually happens.'",
+      "The two tools complement each other cleanly. Use Cline when you want one agent to execute a plan. Call Consilium (via its MCP server, its CLI, or its VS Code extension) when you want a governance review before the plan executes.",
     ],
   },
   competitorStrengths: [
     "Mature autonomous agent loop with sensible permission gating and a clean Plan/Act mode toggle.",
-    "Excellent provider coverage - OpenAI, Anthropic, Gemini, OpenRouter, Bedrock, Vertex, LiteLLM, local models.",
+    "Excellent provider coverage -- OpenAI, Anthropic, Gemini, OpenRouter, Bedrock, Vertex, LiteLLM, local models.",
     "Browser-driving and computer-use integrations are well-engineered and increasingly capable.",
     "Established VS Code extension with active development and a large user base.",
     "Best-in-class for letting one agent grind through a multi-step task autonomously.",
   ],
   consiliumWins: [
     {
-      title: "Parallel multi-model debate",
-      body: "Cline is one agent at a time. Consilium runs three to five models simultaneously inside the same debate, makes them argue, and synthesizes the result. The two operations are not interchangeable - debate catches things one autonomous agent never even considers.",
+      title: "Governance layer for autonomous agents",
+      body: "Cline asks 'do you approve this action?' Consilium asks 'is this the right decision?' -- and answers with 3-7 models from different vendors cross-examining the reasoning. Permission gating and governance are different operations. Autonomous agents need both.",
     },
     {
-      title: "Convergence as an explicit signal",
-      body: "Consilium reports whether the council reached consensus and how strongly. If five models agree, that's a meaningful signal. If they don't, you see the dissent and the cluster of disagreement. Cline produces a single confident output regardless of how shaky the underlying reasoning was.",
+      title: "Policy engine and quorum voting",
+      body: "Consilium ships governance policies that enforce organizational rules -- mandatory review thresholds, quorum requirements, and domain-specific compliance checks. Healthcare and finance modes require forced citations and dissent preservation. Cline has permission prompts but no policy enforcement.",
     },
     {
-      title: "Specialized deliberation modes",
-      body: "Healthcare and legal modes ship with mandatory dissent and forced citations. Finance mode requires VaR/CVaR/Sharpe metrics and Basel III/SOX compliance mapping. Red Team mode runs three models adversarially for security review. Cline runs one agentic loop for everything.",
+      title: "Risk scoring before execution",
+      body: "Before Cline executes a high-stakes task, Consilium's adversarial assessment scores the risk. Red Team mode runs models as attacker/defender with typed challenges. If the risk score exceeds your threshold, the task doesn't proceed. Cline runs one model's plan without adversarial verification.",
     },
     {
-      title: "Multi-surface distribution",
-      body: "Consilium ships as CLI, VS Code extension, MCP server (Cursor / Claude Desktop / Claude Code / Cline itself), Python SDK, and TypeScript SDK. Cline is a VS Code extension. Both are valid; the surface area difference matters when your workflow spans terminal and IDE.",
+      title: "EU AI Act compliant audit trails",
+      body: "Every Consilium deliberation produces a structured audit trail: per-model input, output, tokens, cost, latency, and the challenges/rebuttals exchanged. Required for regulated industries. Cline gives you the conversation; Consilium gives you the governance record.",
     },
     {
-      title: "Audit trail per round",
-      body: "Every Consilium debate produces a structured transcript: per-model input, output, tokens, cost, latency, and the typed challenges/rebuttals exchanged. Required for regulated industries. Cline gives you the conversation; Consilium gives you the debate.",
+      title: "Decision history with vector search recall",
+      body: "Every governance decision is stored and searchable. When Cline faces a similar decision months later, Consilium surfaces how past deliberations resolved, including dissents and outcomes. Cline's history is per-session.",
     },
   ],
   matrix: [
     {
-      feature: "Models per request",
-      consilium: "3–5 in parallel rounds",
-      competitor: "1 model per session",
+      feature: "Multi-model review",
+      consilium: "Yes (3-7 models cross-examine)",
+      competitor: "No (single model)",
       consiliumHas: true,
       competitorHas: false,
     },
     {
-      feature: "Provider count",
-      consilium: "7 first-class adapters",
-      competitor:
-        "Broad - OpenAI/Anthropic/Gemini/OpenRouter/Bedrock/Vertex/LiteLLM/local",
-      consiliumHas: true,
-      competitorHas: true,
-    },
-    {
-      feature: "Cross-examination / debate",
-      consilium: "Typed challenges + rebuttals",
-      competitor: "Single-agent loop",
-      consiliumHas: true,
-      competitorHas: false,
-    },
-    {
-      feature: "Plan/Act mode",
-      consilium:
-        "8 deliberation modes (Quick / Council / Deep / Blind / Red Team / Jury / Market / Auto)",
-      competitor: "Plan vs Act toggle",
-      consiliumHas: true,
-      competitorHas: true,
-    },
-    {
-      feature: "Convergence detection",
-      consilium:
-        "Composite score: 0.4·tau + 0.35·jaccard + 0.25·concession ≥ 0.85",
-      competitor: "N/A",
-      consiliumHas: true,
-      competitorHas: false,
-    },
-    {
-      feature: "Mandatory dissent",
-      consilium: "Required in healthcare/legal/finance",
+      feature: "Governance policies",
+      consilium: "Yes (policy engine, quorum voting)",
       competitor: "No",
       consiliumHas: true,
       competitorHas: false,
     },
     {
-      feature: "Browser / computer-use",
-      consilium: "Not built in (use external tools)",
-      competitor: "Yes - first-class browser drive",
-      consiliumHas: false,
-      competitorHas: true,
-    },
-    {
-      feature: "VS Code extension",
-      consilium: "Yes",
-      competitor: "Yes",
-      consiliumHas: true,
-      competitorHas: true,
-    },
-    {
-      feature: "CLI",
-      consilium: "First-class - REPL, project memory, slash commands",
-      competitor: "No standalone CLI",
-      consiliumHas: true,
-      competitorHas: false,
-    },
-    {
-      feature: "MCP server",
-      consilium: "Yes - exposes deliberation as MCP tool",
-      competitor: "Cline consumes MCP, doesn't expose one",
+      feature: "Risk scoring",
+      consilium: "Yes (adversarial assessment)",
+      competitor: "No",
       consiliumHas: true,
       competitorHas: false,
     },
     {
       feature: "Audit trail",
-      consilium: "Per-round transcripts with tokens/cost/latency",
-      competitor: "Conversation history",
+      consilium: "Yes (EU AI Act compliant)",
+      competitor: "No",
+      consiliumHas: true,
+      competitorHas: false,
+    },
+    {
+      feature: "MCP server",
+      consilium: "Yes (6 tools)",
+      competitor: "Cline consumes MCP, doesn't expose one",
+      consiliumHas: true,
+      competitorHas: false,
+    },
+    {
+      feature: "Decision history",
+      consilium: "Yes (vector search recall)",
+      competitor: "No",
+      consiliumHas: true,
+      competitorHas: false,
+    },
+    {
+      feature: "Multi-vendor neutrality",
+      consilium: "Multiple providers enforced",
+      competitor: "Single vendor per session",
+      consiliumHas: true,
+      competitorHas: false,
+    },
+    {
+      feature: "Autonomous task execution",
+      consilium: "Not a focus -- use Cline for this",
+      competitor: "Best-in-class Plan/Act agent loop",
+      consiliumHas: false,
+      competitorHas: true,
+    },
+    {
+      feature: "Browser / computer-use",
+      consilium: "Not built in (use external tools)",
+      competitor: "Yes -- first-class browser drive",
+      consiliumHas: false,
+      competitorHas: true,
+    },
+    {
+      feature: "CLI",
+      consilium: "First-class -- REPL, governance tools, project memory",
+      competitor: "No standalone CLI",
       consiliumHas: true,
       competitorHas: false,
     },
   ],
   workflows: [
     {
-      title: "Cline executes, Consilium decides",
-      body: "Use Cline to drive a multi-step task autonomously - scaffold the file, wire the route, run the migration. Before you ship, run a Consilium Red Team or Council debate on the diff. You get a single autonomous agent for execution and a council for verification, which is the workflow we recommend most often.",
+      title: "Cline executes, Consilium governs",
+      body: "Use Cline to drive a multi-step task autonomously -- scaffold the file, wire the route, run the migration. Before execution of high-stakes steps, Cline calls Consilium's MCP validate tool. The governance layer runs multi-vendor deliberation and returns a risk-scored decision. If the quorum approves, Cline proceeds.",
     },
     {
       title: "Use Consilium MCP inside Cline",
-      body: "Cline supports MCP. Install Consilium's MCP server (pip install consilium-mcp), add it to Cline's MCP config, and Cline can call any of the eight deliberation modes mid-task. When Cline hits a fork, it can ask the council and integrate the answer into its plan.",
+      body: "Cline supports MCP. Install Consilium's MCP server (pip install consilium-mcp), add it to Cline's MCP config, and Cline gains access to 6 governance tools. When Cline hits a high-stakes decision, it can request a governance review and integrate the result into its plan.",
     },
     {
-      title: "Catch what an autonomous loop misses",
-      body: "Single-agent autonomous loops can confidently stride past subtle issues - race conditions, security holes, regulatory gotchas. Run the same prompt through Consilium's Jury mode (five models, mandatory dissent) and you get a structured surfacing of the things one agent waved past.",
+      title: "Prevent unchecked autonomous decisions",
+      body: "Single-agent autonomous loops can confidently stride past subtle issues -- race conditions, security holes, regulatory gotchas. Consilium's governance layer catches what one model waves past by running adversarial multi-vendor review with mandatory dissent.",
     },
     {
-      title: "Pre-deploy review",
-      body: 'Before running cline auto-approve on something risky, run consilium debate "<plan>" through Council mode. If the council converges, your confidence is justified. If it doesn\'t, you have explicit dissents to think through before you run anything autonomously.',
+      title: "Compliance documentation on autopilot",
+      body: "Consilium generates audit-ready documentation for every governance decision -- who reviewed, what was challenged, where dissent occurred, what the risk score was. Cline produces code. Consilium produces the compliance paper trail.",
     },
   ],
   faq: [
     {
       question: "Does Consilium replace Cline?",
       answer:
-        "Not for autonomous task execution. Cline's agent loop is mature and we recommend it for multi-step grind work. Consilium replaces the parts of Cline's workflow where you wanted multiple opinions - design choices, security review, anything where one agent's confidence is not enough.",
+        "No. Cline is an autonomous execution agent. Consilium is a governance layer. They serve different functions. Use Cline to execute tasks, use Consilium to govern which tasks should proceed and document why.",
     },
     {
       question: "Can I use Consilium and Cline together?",
       answer:
-        "Yes - and many users do. Install Consilium's MCP server in Cline's MCP config so Cline can call the council mid-task, or run consilium debate in a terminal pane next to Cline for higher-friction but more deliberate use.",
+        "Yes -- and that's the recommended architecture. Install Consilium's MCP server in Cline's MCP config so Cline can request governance review mid-task. Autonomous execution with governance oversight.",
     },
     {
-      question: "Why not just give Cline more rounds?",
+      question: "Why not just use Cline's permission prompts?",
       answer:
-        "Because more rounds with the same model is just longer monologue, not debate. The signal in Consilium comes from disagreement between providers - a Claude that thinks the answer is X and a Grok that thinks the answer is Y produce a much stronger consensus check than one model self-reflecting five times.",
+        "Permission prompts gate execution -- 'do you approve this action?' Governance gates reasoning -- 'is this the right decision, validated by multiple independent models from different vendors?' They solve different problems. Critical decisions need both.",
     },
     {
-      question:
-        "Does Consilium's VS Code extension drive my browser like Cline?",
+      question: "What does the audit trail include?",
       answer:
-        "No - we don't ship browser-drive. Cline is the better tool for that workflow. Our extension focuses on running deliberations from inside the editor and writing the synthesis back to your buffer, with shared SSO so the CLI and extension see the same config.",
+        "Per-round transcripts with each model's input, output, tokens, cost, latency, and the typed challenges and rebuttals exchanged. Structured for EU AI Act compliance and regulatory review.",
     },
     {
       question: "What's the cost difference?",
       answer:
-        "Cline runs one model per session, so cost scales with one provider. Consilium runs three to five, so per-debate cost is higher. Use Quick mode (2 models, 1 round) for routine checks, and reserve Council/Deep for the hard stuff. The free tier (Groq + OpenRouter pool) keeps onboarding free.",
+        "Cline runs one model per session. Consilium runs 3-7 for governance decisions, so per-deliberation cost is higher. But governance decisions are infrequent compared to code edits. The free tier (Groq + OpenRouter pool) keeps onboarding free.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-10",
 };
 
 export const metadata: Metadata = buildMetadata({

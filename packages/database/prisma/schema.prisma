@@ -397,3 +397,24 @@ model AuditEntry {
   @@index([modelId])
   @@index([timestamp])
 }
+
+model DecisionRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  debateId        String
+  topic           String   @db.Text
+  decision        String   @db.Text
+  reasoning       String   @db.Text
+  dissentPoints   Json     @default("[]")
+  modelsUsed      Json     @default("[]")
+  mode            String
+  confidenceScore Float    @default(0)
+  vertical        String   @default("general")
+  auditTrailId    String?
+  tags            String[] @default([])
+  embedding       Unsupported("vector(1536)")?
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([debateId])
+}

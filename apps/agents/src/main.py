@@ -6,6 +6,9 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
+from src.core.telemetry import init_telemetry
+init_telemetry()
+
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import posthog
@@ -19,6 +22,9 @@ from src.features.health import health_router
 from src.features.debates import debates_router
 from src.features.deliberation.router import router as deliberation_router
 from src.features.mcp_http.router import router as mcp_http_router
+from src.features.governance.api import router as governance_router
+from src.features.risk.api import router as risk_router
+from src.features.eval.api import router as eval_router
 
 from src.shared.config import settings
 from src.shared.database.redis import redis_client
@@ -122,6 +128,9 @@ app.include_router(streaming_router, prefix=API_V1_PREFIX)
 app.include_router(debates_router, prefix=API_V1_PREFIX)
 app.include_router(deliberation_router, prefix=API_V1_PREFIX)
 app.include_router(mcp_http_router)
+app.include_router(governance_router, prefix=API_V1_PREFIX)
+app.include_router(risk_router, prefix=API_V1_PREFIX)
+app.include_router(eval_router, prefix=API_V1_PREFIX)
 
 
 @app.get("/")

@@ -60,6 +60,19 @@ RECOVERY_APPLIED = SseEvent("recovery:applied")
 DONE = SseEvent("done")
 ERROR = SseEvent("error")
 DEBATE_CANCELLED = SseEvent("debate:cancelled")
+SESSION_COMPACTED = SseEvent("session_compacted")
+ANTI_CAPITULATION = SseEvent("anti_capitulation")
+ANTI_CAPITULATION_REVISED = SseEvent("anti_capitulation_revised")
+TOOL_CALL_START = SseEvent("tool:call_start")
+TOOL_CALL_RESULT = SseEvent("tool:call_result")
+TOOL_LOOP_START = SseEvent("tool:loop_start")
+TOOL_LOOP_DONE = SseEvent("tool:loop_done")
+GOVERNANCE_POLICY_CHECK = SseEvent("governance:policy_check")
+GOVERNANCE_APPROVAL_REQUESTED = SseEvent("governance:approval_requested")
+GOVERNANCE_DECISION = SseEvent("governance:decision")
+RISK_SCORING_START = SseEvent("risk:scoring_start")
+RISK_SCORING_COMPLETE = SseEvent("risk:scoring_complete")
+AUDIT_EXPORTED = SseEvent("audit:exported")
 
 
 KNOWN_EVENTS: frozenset[str] = frozenset(
@@ -98,6 +111,19 @@ KNOWN_EVENTS: frozenset[str] = frozenset(
         DONE,
         ERROR,
         DEBATE_CANCELLED,
+        SESSION_COMPACTED,
+        ANTI_CAPITULATION,
+        ANTI_CAPITULATION_REVISED,
+        TOOL_CALL_START,
+        TOOL_CALL_RESULT,
+        TOOL_LOOP_START,
+        TOOL_LOOP_DONE,
+        GOVERNANCE_POLICY_CHECK,
+        GOVERNANCE_APPROVAL_REQUESTED,
+        GOVERNANCE_DECISION,
+        RISK_SCORING_START,
+        RISK_SCORING_COMPLETE,
+        AUDIT_EXPORTED,
     }
 )
 
