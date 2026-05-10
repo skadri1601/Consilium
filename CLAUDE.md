@@ -20,19 +20,19 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ### Systems
 
-| System        | Path               | Stack                                     | Runs On                         |
-| ------------- | ------------------ | ----------------------------------------- | ------------------------------- |
-| Web App       | apps/web/          | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
-| API           | apps/api/          | NestJS 11, Fastify, BullMQ, Prisma        | Render                          |
-| Debate Engine | apps/agents/       | FastAPI, 7 LLM providers                  | Render / Droplet                |
-| Bot/DevOps    | agents/            | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
-| CLI           | packages/cli/      | TypeScript, Commander.js, SSE             | User's machine (npm)            |
-| TS SDK        | packages/sdk/      | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |
-| Python SDK    | packages/python-sdk/ | httpx + pydantic, sync + async clients  | PyPI (`consilium`)              |
-| Database      | packages/database/ | Prisma, Neon PostgreSQL                   | Neon                            |
-| Shared Types  | packages/shared/   | TypeScript                                | N/A (library)                   |
-| UI library    | packages/ui/       | shadcn/ui primitives                      | N/A (library)                   |
-| VS Code ext   | apps/vscode-extension/, packages/vscode-extension/ | TypeScript                | VS Code marketplace             |
+| System        | Path                                               | Stack                                     | Runs On                         |
+| ------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| Web App       | apps/web/                                          | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
+| API           | apps/api/                                          | NestJS 11, Fastify, BullMQ, Prisma        | Render                          |
+| Debate Engine | apps/agents/                                       | FastAPI, 7 LLM providers                  | Render / Droplet                |
+| Bot/DevOps    | agents/                                            | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
+| CLI           | packages/cli/                                      | TypeScript, Commander.js, SSE             | User's machine (npm)            |
+| TS SDK        | packages/sdk/                                      | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |
+| Python SDK    | packages/python-sdk/                               | httpx + pydantic, sync + async clients    | PyPI (`consilium`)              |
+| Database      | packages/database/                                 | Prisma, Neon PostgreSQL                   | Neon                            |
+| Shared Types  | packages/shared/                                   | TypeScript                                | N/A (library)                   |
+| UI library    | packages/ui/                                       | shadcn/ui primitives                      | N/A (library)                   |
+| VS Code ext   | apps/vscode-extension/, packages/vscode-extension/ | TypeScript                                | VS Code marketplace             |
 
 ### Bot Infrastructure (agents/)
 
@@ -104,17 +104,17 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ## GitHub Actions Workflows
 
-| Workflow          | Trigger                           | Purpose                                        |
-| ----------------- | --------------------------------- | ---------------------------------------------- |
-| claude.yml        | @claude mention                   | Claude responds to issues/PRs (write perms)    |
-| linear-sync.yml   | PR/review/CI events               | Single source of truth for GitHub→Linear→Slack |
-| ci.yml            | PR + push to main                 | Lint + typecheck + tests + build               |
-| e2e.yml           | PR + push to main                 | Playwright E2E (artifacts kept 3 days)         |
-| docker.yml        | PR + push to main (path-filtered) | Test-build Docker images                       |
-| security.yml      | Push to main + weekly             | python-security on push, CodeQL weekly only    |
-| publish-npm.yml   | Tag/manual                        | Publish CLI + TS SDK to npm                    |
-| publish-pypi.yml  | Tag/manual                        | Publish Python SDK to PyPI                     |
-| publish.yml       | Tag/manual                        | Coordinated multi-package publish              |
+| Workflow         | Trigger                           | Purpose                                        |
+| ---------------- | --------------------------------- | ---------------------------------------------- |
+| claude.yml       | @claude mention                   | Claude responds to issues/PRs (write perms)    |
+| linear-sync.yml  | PR/review/CI events               | Single source of truth for GitHub→Linear→Slack |
+| ci.yml           | PR + push to main                 | Lint + typecheck + tests + build               |
+| e2e.yml          | PR + push to main                 | Playwright E2E (artifacts kept 3 days)         |
+| docker.yml       | PR + push to main (path-filtered) | Test-build Docker images                       |
+| security.yml     | Push to main + weekly             | python-security on push, CodeQL weekly only    |
+| publish-npm.yml  | Tag/manual                        | Publish CLI + TS SDK to npm                    |
+| publish-pypi.yml | Tag/manual                        | Publish Python SDK to PyPI                     |
+| publish.yml      | Tag/manual                        | Coordinated multi-package publish              |
 
 ## Local Gates (pre-commit / pre-push)
 
