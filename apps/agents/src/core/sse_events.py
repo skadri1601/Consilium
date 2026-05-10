@@ -55,6 +55,7 @@ PHASE_END = SseEvent("phase_end")
 CONSENSUS = SseEvent("consensus")
 COST_UPDATE = SseEvent("cost_update")
 ROUTING_DECIDED = SseEvent("routing:decided")
+ROUTING_APPLIED = SseEvent("routing:applied")
 ROUTING_FALLBACK = SseEvent("routing:fallback")
 RECOVERY_APPLIED = SseEvent("recovery:applied")
 DONE = SseEvent("done")
@@ -106,6 +107,7 @@ KNOWN_EVENTS: frozenset[str] = frozenset(
         CONSENSUS,
         COST_UPDATE,
         ROUTING_DECIDED,
+        ROUTING_APPLIED,
         ROUTING_FALLBACK,
         RECOVERY_APPLIED,
         DONE,
@@ -152,7 +154,7 @@ _TS_NAMES_RE = re.compile(r'"([^"]+)"\s*,?')
 
 
 def _read_ts_names(ts_path: str) -> set[str]:
-    with open(ts_path, "r", encoding="utf-8") as f:
+    with open(ts_path, encoding="utf-8") as f:
         text = f.read()
     start = text.find("SSE_EVENT_NAMES")
     if start < 0:

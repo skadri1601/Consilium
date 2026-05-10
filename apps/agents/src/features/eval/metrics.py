@@ -47,8 +47,11 @@ def conciseness_score(text: str) -> float:
     filler_words = {"well", "basically", "actually", "literally", "really", "very", "just"}
     filler_count = sum(1 for t in tokens if t in filler_words)
     lower_text = text.lower()
-    filler_count += lower_text.count("in order to")
-    filler_count += lower_text.count("it is worth noting")
+    multi_word_fillers = ["in order to", "it is worth noting"]
+    for phrase in multi_word_fillers:
+        occurrences = lower_text.count(phrase)
+        if occurrences:
+            filler_count += occurrences * len(phrase.split())
     filler_ratio = filler_count / word_count
 
     length_penalty = min(1.0, 200 / word_count)

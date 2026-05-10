@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+_SEVERITY_WEIGHTS = {"low": 10, "medium": 50, "high": 75, "critical": 100}
+_NO_ISSUE_INDICATORS = ["no issues", "no vulnerabilities", "looks good", "no problems"]
 
 
 @dataclass
@@ -34,7 +42,8 @@ def _compute_risk_score(vulnerabilities: list[dict]) -> int:
         return 100
     if "high" in severities:
         return 75
-    if "medium" in severities or len(vulnerabilities) >= 3:
+    significant = sum(1 for s in severities if s in ("medium", "high", "critical"))
+    if "medium" in severities or significant >= 3:
         return 50
     return 25
 
@@ -56,7 +65,8 @@ def _parse_vulnerabilities(attack_text: str) -> list[dict]:
         elif "LOW" in upper:
             sev = "low"
         else:
-            continue
+            sev = "medium"
+            logger.debug("_parse_vulnerabilities: defaulting to 'medium' for line=%r", line)
         category = "general"
         for cat in ["sql injection", "xss", "security", "logic", "edge case", "bias", "injection"]:
             if cat in line.lower():
@@ -84,38 +94,66 @@ class RiskScorer:
         start = time.monotonic()
         models_used: list[str] = []
 
-        attacker = await self._create_agent("attacker")
-        defender = await self._create_agent("defender")
-        judge = await self._create_agent("judge")
+        try:
+            attacker = await self._create_agent("attacker")
+            defender = await self._create_agent("defender")
+            judge = await self._create_agent("judge")
+        except Exception as exc:
+            logger.exception("RiskScorer: failed to create agents: %s", exc)
+            return self._partial_result(start, models_used, "agent factory failed")
 
         prompt_context = f"\nContext: {context}" if context else ""
-        attack_prompt = f"Find vulnerabilities in this proposal:{prompt_context}\n\n{proposal}"
-        attack_response = await attacker.run(attack_prompt)
-        attack_text = self._extract_text(attack_response)
-        models_used.append("attacker")
+        attack_text = ""
+        defense_text = ""
+        judge_text = ""
 
-        defense_prompt = f"Propose mitigations for these findings:\n\n{attack_text}"
-        defense_response = await defender.run(defense_prompt)
-        defense_text = self._extract_text(defense_response)
-        models_used.append("defender")
+        try:
+            attack_response = await attacker.run(
+                f"Find vulnerabilities in this proposal:{prompt_context}\n\n{proposal}"
+            )
+            attack_text = self._extract_text(attack_response)
+            models_used.append("attacker")
+        except Exception as exc:
+            logger.exception("RiskScorer: attacker.run failed: %s", exc)
+            return self._partial_result(start, models_used, f"attacker failed: {exc}")
 
-        judge_prompt = f"Evaluate severity of:\nAttack:\n{attack_text}\nDefense:\n{defense_text}"
-        judge_response = await judge.run(judge_prompt)
-        judge_text = self._extract_text(judge_response)
-        models_used.append("judge")
+        if any(ind in attack_text.lower() for ind in _NO_ISSUE_INDICATORS):
+            elapsed_ms = int((time.monotonic() - start) * 1000)
+            return RiskAssessment(
+                risk_score=0,
+                severity="low",
+                vulnerabilities=[],
+                mitigations=[],
+                confidence=0.9,
+                models_used=models_used,
+                duration_ms=elapsed_ms,
+            )
+
+        try:
+            defense_response = await defender.run(
+                f"Propose mitigations for these findings:\n\n{attack_text}"
+            )
+            defense_text = self._extract_text(defense_response)
+            models_used.append("defender")
+        except Exception as exc:
+            logger.exception("RiskScorer: defender.run failed: %s", exc)
+
+        try:
+            judge_response = await judge.run(
+                f"Evaluate severity of:\nAttack:\n{attack_text}\nDefense:\n{defense_text}"
+            )
+            judge_text = self._extract_text(judge_response)
+            models_used.append("judge")
+        except Exception as exc:
+            logger.exception("RiskScorer: judge.run failed: %s", exc)
 
         vulnerabilities = _parse_vulnerabilities(attack_text)
-        if not vulnerabilities:
+        if not vulnerabilities and judge_text:
             vulnerabilities = _parse_vulnerabilities(judge_text)
 
         mitigations = _parse_mitigations(defense_text)
         risk_score = _compute_risk_score(vulnerabilities)
         severity = _classify_severity(risk_score)
-
-        no_issue_indicators = ["no issues", "no vulnerabilities", "looks good", "no problems"]
-        if any(ind in attack_text.lower() for ind in no_issue_indicators) and not vulnerabilities:
-            risk_score = 0
-            severity = "low"
 
         elapsed_ms = int((time.monotonic() - start) * 1000)
 
@@ -129,10 +167,25 @@ class RiskScorer:
             duration_ms=elapsed_ms,
         )
 
+    def _partial_result(self, start: float, models_used: list[str], reason: str) -> RiskAssessment:
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+        return RiskAssessment(
+            risk_score=0,
+            severity="low",
+            vulnerabilities=[{"category": "scorer_error", "description": reason, "severity": "low"}],
+            mitigations=[],
+            confidence=0.0,
+            models_used=models_used,
+            duration_ms=elapsed_ms,
+        )
+
     async def _create_agent(self, role: str) -> Any:
-        if self._create_agent_fn:
-            return self._create_agent_fn(role)
-        raise RuntimeError("No agent factory configured")
+        if not self._create_agent_fn:
+            raise RuntimeError("No agent factory configured")
+        result = self._create_agent_fn(role)
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
 
     @staticmethod
     def _extract_text(response: Any) -> str:

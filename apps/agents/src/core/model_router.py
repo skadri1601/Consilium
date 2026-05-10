@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import enum
+import logging
 import re
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 
 class RoutingStrategy(str, enum.Enum):
@@ -49,12 +52,18 @@ COMPLEXITY_INDICATORS = [
 def _get_provider(model_id: str) -> str:
     try:
         from src.shared.config.models import get_provider_for_model
-
-        result = get_provider_for_model(model_id)
-        if result:
-            return result
-    except (ImportError, Exception):
-        pass
+    except ImportError as exc:
+        logger.debug("model_router: get_provider_for_model unavailable (%s)", exc)
+    else:
+        try:
+            result = get_provider_for_model(model_id)
+        except (KeyError, ValueError, AttributeError) as exc:
+            logger.warning(
+                "model_router: get_provider_for_model(%r) failed: %s", model_id, exc
+            )
+        else:
+            if result:
+                return result
     if model_id.startswith(("gpt-", "o1-", "o3-")):
         return "openai"
     if model_id.startswith("claude-"):
@@ -153,6 +162,23 @@ class ModelRouter:
             ]
             if affordable:
                 sorted_models = affordable
+            elif sorted_models:
+                cheapest = min(
+                    sorted_models, key=lambda m: TIER_COST_ESTIMATE.get(_get_tier(m), 0.01)
+                )
+                cheapest_cost = TIER_COST_ESTIMATE.get(_get_tier(cheapest), 0.01)
+                logger.warning(
+                    "model_router: no models meet max_cost=%.4f (cheapest=%s @ %.4f); "
+                    "falling back to cheapest available",
+                    self._max_cost,
+                    cheapest,
+                    cheapest_cost,
+                )
+                sorted_models = [cheapest]
+        if not sorted_models:
+            raise ValueError(
+                f"No models available after cost filter (max_cost={self._max_cost})"
+            )
         selected = sorted_models[0]
         tier = _get_tier(selected)
         cost = TIER_COST_ESTIMATE.get(tier, 0.01)

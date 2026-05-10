@@ -23,7 +23,8 @@ const data: CompetitorComparison = {
     intro: [
       "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself -- repos, PRs, issues, Actions -- is unique and hard to match.",
       "But suggesting code and governing decisions are different operations. Copilot gives you one model's completion per request. When autonomous agents are making decisions that affect security, compliance, and production systems, who validates the reasoning? A single-vendor autocomplete doesn't generate governance documentation.",
-      "Consilium is the governance and deliberation OS for the agent economy. It provides policy enforcement, quorum voting, risk scoring, and EU AI Act compliant audit trails. 3-7 models from different vendors generate independent assessments, cross-examine each other, and produce governance decisions with documented dissent.",
+      // TODO(legal): tone hedged from "EU AI Act compliant audit trails" pending legal/compliance sign-off.
+      "Consilium is the governance and deliberation OS for the agent economy. It provides policy enforcement, quorum voting, risk scoring, and audit trails designed to help meet regulatory requirements such as the EU AI Act. 3-7 models from different vendors generate independent assessments, cross-examine each other, and produce governance decisions with documented dissent.",
       "These are different layers, not interchangeable products. Copilot autocompletes faster than you can think. Consilium validates the decisions that matter. The right architecture uses Copilot for inline typing and Consilium for governance -- design choices, security review, regulatory documentation, anything where shipping the wrong decision is expensive.",
     ],
   },

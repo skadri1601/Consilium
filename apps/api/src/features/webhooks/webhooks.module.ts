@@ -4,17 +4,16 @@ import { ClerkWebhooksService } from "./clerk-webhooks.service";
 import { WebhookSecretGuard } from "./guards/webhook-secret.guard";
 import { PrismaModule } from "../../shared/database";
 import { AuditLoggerService } from "../../shared/services/audit-logger.service";
-import { SessionService } from "../../shared/services/session.service";
 import { EmailService } from "../../shared/services/email.service";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
+import { AuthModule } from "../auth";
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [ClerkWebhooksController],
   providers: [
     ClerkWebhooksService,
     AuditLoggerService,
-    SessionService,
     EmailService,
     RateLimitGuard,
     WebhookSecretGuard,

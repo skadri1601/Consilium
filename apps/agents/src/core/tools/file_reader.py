@@ -28,11 +28,10 @@ class FileReaderTool:
             },
         }
 
-    def _is_path_allowed(self, path: str) -> bool:
+    def _is_path_allowed(self, resolved_path: Path) -> bool:
         if self._allowed_roots is None:
             return True
-        resolved = Path(path).resolve()
-        return any(resolved.is_relative_to(root) for root in self._allowed_roots)
+        return any(resolved_path.is_relative_to(root) for root in self._allowed_roots)
 
     async def execute(self, call: ToolCall) -> ToolResult:
         file_path = call.arguments.get("path", "")
@@ -43,23 +42,31 @@ class FileReaderTool:
                 is_error=True,
             )
 
-        if not self._is_path_allowed(file_path):
+        try:
+            resolved_path = Path(file_path).resolve()
+        except OSError as exc:
+            return ToolResult(
+                call_id=call.call_id,
+                content=f"Error: cannot resolve path: {exc}",
+                is_error=True,
+            )
+
+        if not self._is_path_allowed(resolved_path):
             return ToolResult(
                 call_id=call.call_id,
                 content=f"Error: path not allowed: {file_path}",
                 is_error=True,
             )
 
-        p = Path(file_path)
-        if not p.exists():
+        if not resolved_path.is_file():
             return ToolResult(
                 call_id=call.call_id,
-                content=f"Error: file not found: {file_path}",
+                content=f"Error: not a file: {file_path}",
                 is_error=True,
             )
 
         try:
-            size = p.stat().st_size
+            size = resolved_path.stat().st_size
         except OSError as exc:
             return ToolResult(
                 call_id=call.call_id,
@@ -78,7 +85,7 @@ class FileReaderTool:
         end_line = call.arguments.get("end_line", 200)
 
         try:
-            text = p.read_text(encoding="utf-8", errors="replace")
+            text = resolved_path.read_text(encoding="utf-8", errors="replace")
         except OSError as exc:
             return ToolResult(
                 call_id=call.call_id,

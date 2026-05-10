@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import math
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 from src.features.risk.scorer import RiskAssessment
+
+_DRIFT_EPSILON = 1e-9
 
 
 @dataclass
@@ -51,7 +55,7 @@ class ContinuousRiskMonitor:
 
         risk_values = [s.risk_score for s in scores]
         overall_avg = sum(risk_values) / len(risk_values)
-        if overall_avg == 0:
+        if math.isclose(overall_avg, 0.0, abs_tol=_DRIFT_EPSILON):
             return False
 
         recent = risk_values[-window:]
@@ -60,7 +64,7 @@ class ContinuousRiskMonitor:
         return diff > 0.20
 
     @staticmethod
-    def _compute_trend(values: list[int]) -> str:
+    def _compute_trend(values: Sequence[float]) -> str:
         if len(values) < 3:
             return "stable"
         first_half = values[: len(values) // 2]

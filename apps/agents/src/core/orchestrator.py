@@ -4,7 +4,8 @@ import json
 import logging
 import os
 import time
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
+from typing import cast
 
 import sentry_sdk
 
@@ -14,54 +15,47 @@ try:
 except ImportError:
     _HAS_PSUTIL = False
 
+from ..features.agents.base_agent import BaseAgent
+from ..shared.config.models import get_free_fallback_models, get_provider_for_model
+from ..shared.database.redis import RedisClient
 from .agent_factory import AgentFactory, _has_any_user_key
-from .anonymizer import Anonymizer, AnonymityMap
+from .agent_lifecycle import AgentLifecycleRegistry
+from .anonymizer import AnonymityMap, Anonymizer
 from .circuit_breaker import circuit_breaker
-from .rate_limiter import rate_limiter
+from .config_layers import load_debate_config
+from .container_detect import get_container_environment
 from .convergence import check_convergence
 from .cost_tracker import CostTracker
-from .failure_taxonomy import classify, FailureClass
-from .session_compaction import compact_debate_context, build_compacted_prompt, CompactionConfig
-from .session_journal import SessionJournal
+from .debate_hooks import HookContext, HookEvent, debate_hooks
 from .event_types import DebateEventName
-from .config_layers import load_debate_config
+from .failure_taxonomy import classify
 from .permission_enforcer import PermissionEnforcer, PermissionMode
-from .container_detect import get_container_environment
-from .agent_lifecycle import AgentLifecycleRegistry, AgentStatus
-from .task_registry import DebateTaskRegistry
-from .debate_hooks import debate_hooks, HookEvent, HookContext
-from .provider_health import provider_health
-from .session_fork import SessionForkManager, DebateSnapshot
-from ..shared.config.models import get_provider_for_model
 from .prompts import (
+    JUDGE_SYSTEM,
     ROUND_1_SYSTEM,
     ROUND_2_SYSTEM,
     ROUND_3_SYSTEM,
-    JUDGE_SYSTEM,
     SIMPLIFIED_JUDGE_SYSTEM,
+    build_judge_user_prompt,
     build_round_2_user_prompt,
     build_round_3_user_prompt,
-    build_judge_user_prompt,
     build_simplified_judge_prompt,
 )
+from .provider_health import provider_health
+from .rate_limiter import rate_limiter
+from .session_compaction import build_compacted_prompt, compact_debate_context
+from .session_fork import DebateSnapshot, SessionForkManager
+from .session_journal import SessionJournal
 from .shared import (
     FALLBACK_RESPONSE,
     MAX_RETRIES,
-    RETRY_BACKOFF,
-    REDIS_TTL,
     MINIMUM_RESPONSE_LENGTH,
+    REDIS_TTL,
+    RETRY_BACKOFF,
     _now_iso,
     _sse,
 )
-from ..features.agents.base_agent import BaseAgent
-from ..shared.database.redis import RedisClient
-from ..shared.config.models import get_free_fallback_models
-
-try:
-    from .telemetry import get_tracer, create_debate_span, create_round_span, create_agent_span
-    _HAS_OTEL = True
-except ImportError:
-    _HAS_OTEL = False
+from .task_registry import DebateTaskRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +72,12 @@ def _log_exc(exc: BaseException) -> str:
 
 _start_time = time.time()
 
+GPT_54_MINI = "gpt-5.4-mini"
+
 CHEAP_VARIANTS = {
-    "gpt-5.4": "gpt-5.4-mini",
-    "gpt-5.5": "gpt-5.4-mini",
-    "gpt-5.5-pro": "gpt-5.4-mini",
+    "gpt-5.4": GPT_54_MINI,
+    "gpt-5.5": GPT_54_MINI,
+    "gpt-5.5-pro": GPT_54_MINI,
     "claude-sonnet-4-6": "claude-haiku-4-5-20251001",
     "claude-opus-4-7": "claude-haiku-4-5-20251001",
     "claude-opus-4-6": "claude-haiku-4-5-20251001",
@@ -197,7 +193,7 @@ async def _call_agent_single_attempt(
             "Agent %s attempt %d returned insufficient response",
             _correlation_token(model_id), attempt + 1,
         )
-    except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+    except (OSError, RuntimeError) as exc:
         failure_class = classify(exc)
         logger.warning(
             "Agent %s attempt %d [%s]: %s",
@@ -300,11 +296,31 @@ class DebateOrchestrator:
         self._journal_log(event, data, round_number)
         return sse_str
 
+    def _resolve_embed_fn(
+        self, api_keys: dict
+    ) -> Callable[[str], Awaitable[list[float]]] | None:
+        """Return a real embedding callable, or None if no embed service is configured.
+
+        We require an explicit OpenAI/Voyage/Cohere key (or override hook) before
+        enabling memory retrieval - the previous stub returned identical zero
+        vectors, which made cosine similarity meaningless and produced spurious
+        recall. When nothing is configured the caller should skip the memory
+        block entirely rather than fall back to that stub.
+        """
+        embed_override = getattr(self, "_embed_fn", None)
+        if callable(embed_override):
+            return cast(Callable[[str], Awaitable[list[float]]], embed_override)
+        for key in ("openai_api_key", "voyage_api_key", "cohere_api_key"):
+            if api_keys.get(key):
+                logger.debug("memory: %s configured but no real embed adapter wired yet", key)
+                return None
+        return None
+
     async def _persist_event(self, debate_id: str, event_str: str):
         try:
             await self.redis.rpush(f"debate:{debate_id}:events", event_str)
             await self.redis.expire(f"debate:{debate_id}:events", REDIS_TTL)
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to persist event for debate %s: %s",
                 _correlation_token(debate_id), _log_exc(exc),
@@ -317,7 +333,7 @@ class DebateOrchestrator:
                 json.dumps({"last_completed_round": round_number, "timestamp": _now_iso()}),
                 ex=REDIS_TTL,
             )
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to save checkpoint for debate %s round %d: %s",
                 _correlation_token(debate_id), round_number, _log_exc(exc),
@@ -330,7 +346,7 @@ class DebateOrchestrator:
                 json.dumps({"round": round_number, "timestamp": _now_iso()}),
                 ex=300,
             )
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.debug(
                 "Failed to update heartbeat for debate %s: %s",
                 _correlation_token(debate_id), _log_exc(exc),
@@ -344,7 +360,7 @@ class DebateOrchestrator:
             if val:
                 self._cancelled = True
                 return True
-        except (OSError, TimeoutError):
+        except OSError:
             pass
         return False
 
@@ -354,7 +370,7 @@ class DebateOrchestrator:
 
     async def _anti_capitulation_check(
         self,
-        debate_id: str,
+        _debate_id: str,
         agents: dict[str, BaseAgent],
         all_responses: dict[int, dict[str, str]],
     ) -> AsyncGenerator[str, None]:
@@ -369,8 +385,16 @@ class DebateOrchestrator:
             if not r1_text or r1_text == FALLBACK_RESPONSE or not r3_text or r3_text == FALLBACK_RESPONSE:
                 continue
 
-            r1_lines = [l for l in r1_text.splitlines() if l.strip().startswith(("-", "*", "1", "2", "3", "[C"))]
-            r3_lines = [l for l in r3_text.splitlines() if l.strip().startswith(("-", "*", "1", "2", "3", "[C"))]
+            r1_lines = [
+                line
+                for line in r1_text.splitlines()
+                if line.strip().startswith(("-", "*", "1", "2", "3", "[C"))
+            ]
+            r3_lines = [
+                line
+                for line in r3_text.splitlines()
+                if line.strip().startswith(("-", "*", "1", "2", "3", "[C"))
+            ]
 
             if len(r1_lines) < 3:
                 continue
@@ -398,7 +422,7 @@ class DebateOrchestrator:
                         "agent_id": model_id,
                         "cost": cost,
                     })
-            except (asyncio.TimeoutError, OSError, RuntimeError) as exc:
+            except (OSError, RuntimeError) as exc:
                 logger.warning(
                     "Anti-capitulation re-prompt failed for %s: %s",
                     _correlation_token(model_id), _log_exc(exc),
@@ -409,7 +433,7 @@ class DebateOrchestrator:
             raw = await self.redis.get(f"debate:{debate_id}:checkpoint")
             if raw:
                 return json.loads(raw)
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to load checkpoint for debate %s: %s",
                 _correlation_token(debate_id), _log_exc(exc),
@@ -505,7 +529,7 @@ class DebateOrchestrator:
             validated = _validate_response(response)
             if validated != FALLBACK_RESPONSE:
                 return label, validated
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Sub-agent %s timed out", label)
         except (OSError, RuntimeError) as exc:
             logger.warning("Sub-agent %s failed: %s", label, _log_exc(exc))
@@ -763,7 +787,7 @@ class DebateOrchestrator:
                         break
                     ctx_parts.append(f"--- FILE: {name} ---")
                     ctx_parts.append(snippet)
-                    ctx_parts.append(f"--- END FILE ---")
+                    ctx_parts.append("--- END FILE ---")
                     ctx_budget -= len(snippet)
             ctx_parts.append("=== END PROJECT CONTEXT ===")
             topic = chr(10).join(ctx_parts) + chr(10) + chr(10) + topic
@@ -781,13 +805,18 @@ class DebateOrchestrator:
                     panel_size=max(len(model_ids), 3),
                 )
                 model_ids = [r.selected_model for r in panel]
-                yield self._emit(DebateEventName.ROUTING_FALLBACK, {
+                yield self._emit(DebateEventName.ROUTING_APPLIED, {
                     "strategy": "balanced",
                     "models": model_ids,
                     "complexity": panel[0].complexity_score if panel else 0,
                 })
             except Exception as exc:
                 logger.warning("Model router failed, using original models: %s", _log_exc(exc))
+                yield self._emit(DebateEventName.ROUTING_FALLBACK, {
+                    "strategy": "balanced",
+                    "models": model_ids,
+                    "reason": _log_exc(exc),
+                })
 
         if tools_enabled:
             try:
@@ -796,7 +825,7 @@ class DebateOrchestrator:
                 from .tools import BUILTIN_TOOLS
                 self._tool_registry = DebateToolRegistry()
                 self._tool_executor = DebateToolExecutor(registry=self._tool_registry)
-                for tool_name, tool_cls in BUILTIN_TOOLS.items():
+                for tool_cls in BUILTIN_TOOLS.values():
                     instance = tool_cls()
                     defn = instance.definition()
                     self._tool_registry.register(
@@ -809,29 +838,51 @@ class DebateOrchestrator:
                 yield self._emit(DebateEventName.TOOL_LOOP_START, {
                     "tools": [t.name for t in self._tool_registry.list_tools()],
                 })
+                # NOTE: Actual tool-invocation loop (parsing tool requests
+                # out of agent messages and feeding results back) is not
+                # yet wired into the round/response flow. Tools are
+                # registered and exposed to agents that ask for them, but
+                # no per-round consumer iterates self._tool_executor.execute.
+                # Wiring that requires the agent message protocol to
+                # surface tool requests, which is tracked separately.
+                yield self._emit(DebateEventName.TOOL_LOOP_DONE, {
+                    "call_count": 0,
+                    "error_count": 0,
+                })
             except Exception as exc:
                 logger.warning("Tool setup failed: %s", _log_exc(exc))
                 self._tools_enabled = False
 
         if os.getenv("CONSILIUM_MEMORY_ENABLED"):
-            try:
-                from .memory.retriever import MemoryRetriever
-                from .memory.decision_store import DecisionStore
-
-                async def _stub_embed(text: str) -> list[float]:
-                    return [0.0] * 10
-
-                store = DecisionStore()
-                retriever = MemoryRetriever(store=store)
-                memory_context = await retriever.build_context(
-                    topic=topic[:500],
-                    user_id=api_keys.get("user_id", ""),
-                    embed_fn=_stub_embed,
+            embed_fn = self._resolve_embed_fn(api_keys)
+            if embed_fn is None:
+                logger.info(
+                    "memory: CONSILIUM_MEMORY_ENABLED set but no embedding service "
+                    "configured; skipping memory retrieval"
                 )
-                if memory_context:
-                    topic = memory_context + topic
-            except Exception as exc:
-                logger.warning("Memory retrieval failed: %s", _log_exc(exc))
+            else:
+                try:
+                    from .memory.decision_store import DecisionStore
+                    from .memory.decision_store_pg import PostgresDecisionStore
+                    from .memory.retriever import MemoryRetriever
+
+                    memory_user_id = str(api_keys.get("user_id") or "")
+                    pg_dsn = (os.getenv("CONSILIUM_DECISION_DATABASE_URL") or "").strip()
+                    store: DecisionStore
+                    if pg_dsn:
+                        store = PostgresDecisionStore(pg_dsn)
+                    else:
+                        store = DecisionStore()
+                    retriever = MemoryRetriever(store=store)
+                    memory_context = await retriever.build_context(
+                        topic=topic[:500],
+                        user_id=memory_user_id,
+                        embed_fn=embed_fn,
+                    )
+                    if memory_context:
+                        topic = memory_context + topic
+                except Exception as exc:
+                    logger.warning("Memory retrieval failed: %s", _log_exc(exc))
 
         self._task_registry = DebateTaskRegistry(debate_id)
         self._current_topic = topic
@@ -885,7 +936,9 @@ class DebateOrchestrator:
             async for ev in self._iter_subagent_research(topic, model_ids, api_keys):
                 yield ev
 
-        effective_topic = self._subagent_context + topic if self._subagent_context else topic
+        effective_topic = topic
+        if self._subagent_context:
+            effective_topic = self._subagent_context + topic
         all_responses: dict[int, dict[str, str]] = {}
         effective_system = system_prompt or ROUND_1_SYSTEM
 
@@ -987,7 +1040,7 @@ class DebateOrchestrator:
                 json.dumps(responses),
                 ex=REDIS_TTL,
             )
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to persist round %d results for debate %s: %s",
                 round_number, _correlation_token(debate_id), _log_exc(exc),
@@ -1172,7 +1225,7 @@ class DebateOrchestrator:
                 json.dumps({"golden_prompt": golden_prompt, "judge_model": judge_model_id}),
                 ex=REDIS_TTL,
             )
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to persist golden prompt for debate %s: %s",
                 _correlation_token(debate_id), _log_exc(exc),
@@ -1185,7 +1238,7 @@ class DebateOrchestrator:
                 json.dumps(cost_summary),
                 ex=REDIS_TTL,
             )
-        except (OSError, TimeoutError) as exc:
+        except OSError as exc:
             logger.warning(
                 "Failed to persist costs for debate %s: %s",
                 _correlation_token(debate_id), _log_exc(exc),
@@ -1275,12 +1328,13 @@ class DebateOrchestrator:
         try:
             from .memory.decision_extractor import DecisionExtractor
             extractor = DecisionExtractor()
+            extraction_user_id = str(api_keys.get("user_id") or "")
             decision = extractor.extract(
                 topic=self._current_topic[:500],
                 golden_prompt=golden_prompt,
                 all_responses=all_responses,
                 mode="council",
-                user_id=api_keys.get("user_id", ""),
+                user_id=extraction_user_id,
                 debate_id=debate_id,
             )
             logger.info(
@@ -1324,7 +1378,7 @@ class DebateOrchestrator:
             system_prompt=self._current_system_prompt,
             sub_agents=self._current_sub_agents,
             project_context=self._current_project_context,
-            cost_so_far=self.cost_tracker.to_dict().get("total_cost", 0.0),
+            cost_so_far=float(self.cost_tracker.total_cost),
         )
 
     def fork_at_round(

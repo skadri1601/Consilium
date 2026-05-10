@@ -74,6 +74,26 @@ search-path = ["."]
 disable-search-path-heuristics = true
 ignore-missing-imports = [
   "google.generativeai",
+  "sentry_sdk",
+  "psutil",
+  "opentelemetry",
+  "opentelemetry.sdk",
+  "opentelemetry.sdk.resources",
+  "opentelemetry.sdk.trace",
+  "opentelemetry.sdk.trace.export",
+  "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+  "anthropic",
+  "fastapi",
+  "pydantic",
+  "mcp",
+  "mcp.server",
+  "mcp.types",
+  "httpx",
+  "posthog",
+  "uvicorn",
+  "starlette",
+  "starlette.middleware",
+  "starlette.middleware.base",
 ]
 [tool.pyrefly.errors]
 deprecated = false

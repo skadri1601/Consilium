@@ -22,10 +22,36 @@ class EvalDataset:
 
     @classmethod
     def from_json(cls, path: str) -> EvalDataset:
-        with open(path, "r", encoding="utf-8") as f:
-            raw = json.load(f)
-        cases = [EvalCase(**item) for item in raw]
-        return cls(cases=cases)
+        try:
+            with open(path, encoding="utf-8") as f:
+                raw = json.load(f)
+        except FileNotFoundError:
+            raise
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid JSON in {path}: {exc}") from exc
+        except OSError as exc:
+            raise OSError(f"Failed to read {path}: {exc}") from exc
+
+        if isinstance(raw, dict):
+            items = raw.get("cases", [])
+            name = raw.get("name", "default")
+        elif isinstance(raw, list):
+            items = raw
+            name = "default"
+        else:
+            raise ValueError(
+                f"Dataset {path}: expected list or {{cases: [...]}} object, got {type(raw).__name__}"
+            )
+
+        if not isinstance(items, list):
+            raise ValueError(f"Dataset {path}: 'cases' must be a list, got {type(items).__name__}")
+
+        try:
+            cases = [EvalCase(**item) for item in items]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Dataset {path}: invalid case fields: {exc}") from exc
+
+        return cls(cases=cases, name=name)
 
     def filter_by_category(self, category: str) -> EvalDataset:
         return EvalDataset(

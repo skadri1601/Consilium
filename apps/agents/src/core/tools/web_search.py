@@ -30,6 +30,13 @@ class WebSearchTool:
                 is_error=True,
             )
 
+        if not self._api_key:
+            return ToolResult(
+                call_id=call.call_id,
+                content="Error: web search is not configured (missing api_key)",
+                is_error=True,
+            )
+
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(
@@ -37,7 +44,7 @@ class WebSearchTool:
                     headers={
                         "Accept": "application/json",
                         "Accept-Encoding": "gzip",
-                        "X-Subscription-Token": self._api_key or "",
+                        "X-Subscription-Token": self._api_key,
                     },
                     params={"q": query, "count": self._max_results},
                     timeout=15.0,

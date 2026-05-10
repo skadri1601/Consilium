@@ -35,6 +35,14 @@ class QuorumConfig:
     models: list[str] = field(default_factory=list)
     timeout_seconds: int = 30
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.min_votes, int) or self.min_votes < 0:
+            raise ValueError(f"min_votes must be a non-negative integer, got {self.min_votes!r}")
+        if not 0.0 <= self.required_majority <= 1.0:
+            raise ValueError(
+                f"required_majority must be in [0, 1], got {self.required_majority!r}"
+            )
+
 
 @dataclass
 class QuorumVote:
@@ -42,6 +50,12 @@ class QuorumVote:
     approved: bool
     confidence: float
     reasoning: str
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError(
+                f"confidence must be in [0, 1], got {self.confidence!r}"
+            )
 
 
 @dataclass
@@ -51,6 +65,16 @@ class QuorumResult:
     approval_ratio: float
     confidence: float
 
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.approval_ratio <= 1.0:
+            raise ValueError(
+                f"approval_ratio must be in [0, 1], got {self.approval_ratio!r}"
+            )
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError(
+                f"confidence must be in [0, 1], got {self.confidence!r}"
+            )
+
 
 @dataclass
 class BudgetLimit:
@@ -58,9 +82,25 @@ class BudgetLimit:
     daily_limit: float
     monthly_limit: float = 0
 
+    def __post_init__(self) -> None:
+        if self.daily_limit < 0:
+            raise ValueError(
+                f"daily_limit must be >= 0 for agent_id={self.agent_id!r}, "
+                f"got {self.daily_limit!r}"
+            )
+        if self.monthly_limit < 0:
+            raise ValueError(
+                f"monthly_limit must be >= 0 for agent_id={self.agent_id!r}, "
+                f"got {self.monthly_limit!r}"
+            )
+
 
 @dataclass
 class DelegationScope:
     allowed_actions: list[str] = field(default_factory=list)
     max_cost: float = 0
     expires_at: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.max_cost < 0:
+            raise ValueError(f"max_cost must be >= 0, got {self.max_cost!r}")

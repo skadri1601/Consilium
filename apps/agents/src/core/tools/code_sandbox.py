@@ -1,13 +1,20 @@
+import asyncio
 import subprocess
 import sys
-import tempfile
-from pathlib import Path
 from typing import Any
 
 from src.features.agents.base_agent import ToolCall, ToolResult
 
 
 class CodeSandboxTool:
+    """Run a short Python snippet in a subprocess.
+
+    NOTE: This subprocess executor provides NO real isolation; it uses the
+    host Python interpreter. Hardening (containers, seccomp, WASM, etc.)
+    is tracked separately and intentionally out of scope for this fix —
+    callers must already gate untrusted input upstream.
+    """
+
     def __init__(self, timeout_seconds: int = 30, max_output_chars: int = 4000) -> None:
         self._timeout = timeout_seconds
         self._max_output = max_output_chars
@@ -15,16 +22,42 @@ class CodeSandboxTool:
     def definition(self) -> dict[str, Any]:
         return {
             "name": "run_code",
-            "description": "Execute code in a sandboxed environment",
+            "description": "Execute Python code in a sandboxed subprocess and return stdout/stderr.",
             "input_schema": {
                 "type": "object",
                 "properties": {
-                    "code": {"type": "string"},
-                    "language": {"type": "string"},
+                    "code": {"type": "string", "description": "Python source to execute."},
                 },
-                "required": ["code", "language"],
+                "required": ["code"],
             },
         }
+
+    def _run_sync(self, call_id: str, code: str) -> ToolResult:
+        try:
+            completed = subprocess.run(
+                [sys.executable, "-c", code],
+                capture_output=True,
+                text=True,
+                timeout=self._timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return ToolResult(
+                call_id=call_id,
+                content=f"Code execution timeout after {self._timeout}s",
+                is_error=True,
+            )
+        except Exception as exc:
+            return ToolResult(
+                call_id=call_id,
+                content=f"Sandbox error: {type(exc).__name__}: {exc}",
+                is_error=True,
+            )
+        out = ((completed.stdout or "") + (completed.stderr or ""))[: self._max_output]
+        return ToolResult(
+            call_id=call_id,
+            content=out or "(no output)",
+            is_error=completed.returncode != 0,
+        )
 
     async def execute(self, call: ToolCall) -> ToolResult:
         code = call.arguments.get("code", "")
@@ -34,57 +67,4 @@ class CodeSandboxTool:
                 content="Error: code must not be empty",
                 is_error=True,
             )
-
-        tmp = None
-        try:
-            tmp = tempfile.NamedTemporaryFile(
-                mode="w", suffix=".py", delete=False, encoding="utf-8"
-            )
-            tmp.write(code)
-            tmp.flush()
-            tmp.close()
-
-            try:
-                result = subprocess.run(
-                    [sys.executable, tmp.name],
-                    capture_output=True,
-                    timeout=self._timeout,
-                    text=True,
-                )
-            except subprocess.TimeoutExpired:
-                return ToolResult(
-                    call_id=call.call_id,
-                    content=f"Code execution timeout after {self._timeout}s",
-                    is_error=True,
-                )
-
-            output = ""
-            if result.stdout:
-                output += result.stdout
-            if result.stderr:
-                output += result.stderr
-            output = output[: self._max_output]
-
-            return ToolResult(
-                call_id=call.call_id,
-                content=output or "(no output)",
-                is_error=result.returncode != 0,
-            )
-        except subprocess.TimeoutExpired:
-            return ToolResult(
-                call_id=call.call_id,
-                content=f"Code execution timeout after {self._timeout}s",
-                is_error=True,
-            )
-        except Exception as exc:
-            return ToolResult(
-                call_id=call.call_id,
-                content=f"Sandbox error: {exc}",
-                is_error=True,
-            )
-        finally:
-            if tmp:
-                try:
-                    Path(tmp.name).unlink(missing_ok=True)
-                except OSError:
-                    pass
+        return await asyncio.to_thread(self._run_sync, call.call_id, code)

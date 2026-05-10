@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any
 
 
@@ -19,9 +20,27 @@ def get_tool_definitions() -> list[dict[str, Any]]:
                         "type": "string",
                         "enum": ["quick", "council", "deep", "blind", "redteam", "jury", "market", "auto"],
                         "default": "council",
+                        "description": (
+                            "Deliberation mode. quick: single-pass; council: 3 models x 3 rounds with "
+                            "challenge/rebuttal; deep: 5 rounds with stricter convergence; blind: identity-stripped "
+                            "evaluation; redteam: adversarial attack/defend/judge; jury: panel judges; "
+                            "market: probabilistic consensus; auto: route by topic complexity."
+                        ),
                     },
-                    "models": {"type": "array", "items": {"type": "string"}, "description": "Model IDs to use"},
-                    "rounds": {"type": "integer", "minimum": 1, "maximum": 5, "default": 3},
+                    "models": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "Model IDs to use (1-10).",
+                    },
+                    "rounds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "default": 3,
+                        "description": "Number of deliberation rounds (1-5).",
+                    },
                     "persona": {"type": "string", "description": "Custom system prompt for agents"},
                     "project_context": {"type": "string", "description": "Project context to ground the debate"},
                 },
@@ -50,6 +69,11 @@ def get_tool_definitions() -> list[dict[str, Any]]:
                         "type": "string",
                         "enum": ["security", "logic", "bias", "robustness", "all"],
                         "default": "all",
+                        "description": (
+                            "Which attack surface to emphasize. security: vulnerabilities and threats; "
+                            "logic: reasoning flaws and inconsistencies; bias: fairness and discrimination; "
+                            "robustness: edge cases and failure modes; all: every category."
+                        ),
                     },
                 },
                 "required": ["target"],
@@ -62,7 +86,12 @@ def get_tool_definitions() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "prompt": {"type": "string", "description": "The original prompt"},
-                    "responses": {"type": "array", "items": {"type": "string"}, "description": "Responses to evaluate"},
+                    "responses": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 2,
+                        "description": "Responses to evaluate (at least 2 required for comparison).",
+                    },
                 },
                 "required": ["prompt", "responses"],
             },

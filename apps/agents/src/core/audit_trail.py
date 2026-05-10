@@ -1,10 +1,20 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
+
+CONFIDENCE_BASELINE = 0.5
+CONFIDENCE_LONG_PROMPT = 0.9
+CONFIDENCE_MULTI_ROUND = 0.8
+CONFIDENCE_DEFAULT = 0.7
+LONG_PROMPT_CHAR_THRESHOLD = 500
+MULTI_ROUND_THRESHOLD = 2
 
 
 @dataclass
@@ -63,7 +73,7 @@ class AuditTrailExporter:
 
         return AuditDocument(
             debate_id=debate_data.get("debate_id", ""),
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             topic=debate_data.get("topic", ""),
             mode=debate_data.get("mode", ""),
             models_used=models_used,
@@ -73,7 +83,7 @@ class AuditTrailExporter:
             final_decision=final_decision,
             dissent_points=dissent_points,
             confidence_score=confidence_score,
-            cost_breakdown={k: float(v) for k, v in costs.items()},
+            cost_breakdown=self._safe_cost_breakdown(costs),
             duration_ms=debate_data.get("duration_ms", 0),
         )
 
@@ -108,14 +118,48 @@ class AuditTrailExporter:
         ]
 
     @staticmethod
+    def _safe_cost_breakdown(costs: dict) -> dict[str, float]:
+        """Coerce costs to floats, substituting 0.0 for non-numeric values.
+
+        Logs each problematic key/value pair so the audit export never
+        propagates a ValueError/TypeError out of the export path.
+        """
+        result: dict[str, float] = {}
+        for key, value in costs.items():
+            try:
+                result[key] = float(value)
+            except (ValueError, TypeError) as exc:
+                logger.warning(
+                    "audit_trail: invalid cost for key=%r value=%r (%s); using 0.0",
+                    key,
+                    value,
+                    exc,
+                )
+                result[key] = 0.0
+        return result
+
+    @staticmethod
     def _compute_confidence(
         all_responses: dict[int, dict[str, str]], golden_prompt: str
     ) -> float:
+        """Heuristic confidence score in [0, 1].
+
+        Rule order (long prompt rule runs *before* the empty-rounds short
+        circuit so a substantial golden_prompt can lift confidence even
+        when round data is missing):
+
+        1. ``len(golden_prompt) > LONG_PROMPT_CHAR_THRESHOLD`` -> ``CONFIDENCE_LONG_PROMPT``
+           (a fully-formed synthesis is the strongest single signal).
+        2. ``num_rounds == 0`` -> ``CONFIDENCE_BASELINE`` (no data at all).
+        3. ``num_rounds >= MULTI_ROUND_THRESHOLD`` -> ``CONFIDENCE_MULTI_ROUND``
+           (multiple rounds of debate converged).
+        4. Otherwise -> ``CONFIDENCE_DEFAULT`` (single round only).
+        """
         num_rounds = len(all_responses)
+        if len(golden_prompt) > LONG_PROMPT_CHAR_THRESHOLD:
+            return CONFIDENCE_LONG_PROMPT
         if num_rounds == 0:
-            return 0.5
-        if len(golden_prompt) > 500:
-            return 0.9
-        if num_rounds >= 2:
-            return 0.8
-        return 0.7
+            return CONFIDENCE_BASELINE
+        if num_rounds >= MULTI_ROUND_THRESHOLD:
+            return CONFIDENCE_MULTI_ROUND
+        return CONFIDENCE_DEFAULT

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 
@@ -36,6 +36,7 @@ class DebateEventName(Enum):
     RECOVERY_ATTEMPTED = "recovery_attempted"
     FAILURE_CLASSIFIED = "failure_classified"
 
+    ROUTING_APPLIED = "routing:applied"
     ROUTING_FALLBACK = "routing:fallback"
 
     TOOL_CALL_START = "tool:call_start"

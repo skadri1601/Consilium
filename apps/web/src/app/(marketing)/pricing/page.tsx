@@ -32,7 +32,7 @@ const productJsonLd = {
       "@id": `${PRICING_URL}#offer-free`,
       name: "Free + BYOK",
       description:
-        "Free governance API with BYOK. Unlimited deliberations, audit trails, and risk scoring with your own API keys.",
+        "Free governance API with BYOK. 5 deliberations per week (20 per month), audit trails, and risk scoring with your own API keys.",
       price: "0",
       priceCurrency: "USD",
       url: `${SITE_URL}/sign-up`,
@@ -65,7 +65,7 @@ const productJsonLd = {
       "@id": `${PRICING_URL}#offer-max`,
       name: "Max",
       description:
-        "Enterprise agent governance. Unlimited policies, budget controls, delegation hierarchies, compliance exports, and SLA-backed uptime.",
+        "Verified deliberation tier. Conformal safety gate, progressive deepening, debate collapse detection, persistent project memory, searchable audit trail, and SLA-backed uptime.",
       price: "99",
       priceCurrency: "USD",
       priceSpecification: {

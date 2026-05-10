@@ -154,7 +154,7 @@ const data: CompetitorComparison = {
     {
       question: "Can I use Consilium inside Cursor?",
       answer:
-        "Yes. Consilium ships an MCP server with 6 governance tools that plug into Cursor's MCP integration. Cursor can call validate, deliberate, or any of the eight deliberation modes from Cursor's chat surface.",
+        "Yes. Consilium ships an MCP server with 6 governance tools (deliberate, quick_consensus, redteam, blind_eval, validate, score_risk) that plug into Cursor's MCP integration. The deliberate tool dispatches to any of the 8 deliberation modes (quick, council, deep, blind, redteam, jury, market, auto), so the 6 tools and 8 modes are distinct concepts.",
     },
     {
       question: "Why do I need governance if Cursor is already AI-powered?",

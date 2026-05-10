@@ -43,8 +43,10 @@ const data: CompetitorComparison = {
       body: "Consilium ships governance policies that enforce organizational rules -- mandatory review thresholds, quorum requirements, and domain-specific compliance checks. Healthcare and finance modes require forced citations and dissent preservation. Aider has no policy layer.",
     },
     {
-      title: "EU AI Act compliant audit trails",
-      body: "Every Consilium deliberation produces a structured audit trail: per-model input, output, tokens, cost, latency, and the typed challenges/rebuttals exchanged. This is the documentation regulated industries need. Aider produces chat history.",
+      // TODO(legal): the previous copy claimed full "EU AI Act compliant audit trails";
+      // tone neutralized pending legal/compliance sign-off on regulatory wording.
+      title: "Audit trails designed for regulatory needs",
+      body: "Every Consilium deliberation produces a structured audit trail: per-model input, output, tokens, cost, latency, and the typed challenges/rebuttals exchanged. This is the kind of documentation regulated industries can build on. Aider produces chat history.",
     },
     {
       title: "Risk scoring and adversarial assessment",

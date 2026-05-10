@@ -3,29 +3,27 @@ import platform
 import socket
 import sys
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
-from src.core.telemetry import init_telemetry
-init_telemetry()
-
-from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
 import posthog
 import sentry_sdk
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.features.council import council_router
+from src.core.telemetry import init_telemetry
 from src.features.agents import agents_router
-from src.features.streaming import streaming_router
-from src.features.health import health_router
+from src.features.council import council_router
 from src.features.debates import debates_router
 from src.features.deliberation.router import router as deliberation_router
-from src.features.mcp_http.router import router as mcp_http_router
-from src.features.governance.api import router as governance_router
-from src.features.risk.api import router as risk_router
 from src.features.eval.api import router as eval_router
-
+from src.features.governance.api import router as governance_router
+from src.features.health import health_router
+from src.features.mcp_http.router import router as mcp_http_router
+from src.features.risk.api import router as risk_router
+from src.features.streaming import streaming_router
 from src.shared.config import settings
 from src.shared.database.redis import redis_client
 
@@ -92,6 +90,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     logger.info("Starting %s on %s:%s", settings.app_name, settings.host, settings.port)
     redis_client.connect()
     try:
+        init_telemetry()
+    except Exception:
+        logger.exception("init_telemetry failed; continuing without tracing")
+    try:
         yield
     finally:
         logger.info("Shutting down %s", settings.app_name)
@@ -151,6 +153,10 @@ async def root():
             "agents": f"{API_V1_PREFIX}/agents",
             "streaming": f"{API_V1_PREFIX}/streaming",
             "debates": f"{API_V1_PREFIX}/debates",
+            "deliberation": f"{API_V1_PREFIX}/deliberation",
+            "governance": f"{API_V1_PREFIX}/governance",
+            "risk": f"{API_V1_PREFIX}/risk",
+            "eval": f"{API_V1_PREFIX}/eval",
         },
     }
 

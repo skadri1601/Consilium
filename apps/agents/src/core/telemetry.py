@@ -1,25 +1,47 @@
 from __future__ import annotations
-import os
+
 import logging
+import os
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
+from typing import Any
 
 from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.resources import Resource
 
 logger = logging.getLogger(__name__)
 
 _initialized = False
+_init_config: dict[str, Any] = {}
+
+
+def _normalize_otlp_endpoint(endpoint: str) -> str:
+    trimmed = endpoint.rstrip("/")
+    if trimmed.endswith("/v1/traces"):
+        return trimmed
+    return f"{trimmed}/v1/traces"
 
 
 def init_telemetry(
     service_name: str | None = None,
     export_to_console: bool = False,
 ) -> TracerProvider:
-    global _initialized
+    global _initialized, _init_config
     if _initialized:
+        if (
+            _init_config.get("service_name") != service_name
+            or _init_config.get("export_to_console") != export_to_console
+        ):
+            logger.warning(
+                "init_telemetry called again with different parameters "
+                "(service_name=%r vs %r, export_to_console=%r vs %r); ignoring new args",
+                service_name,
+                _init_config.get("service_name"),
+                export_to_console,
+                _init_config.get("export_to_console"),
+            )
         return trace.get_tracer_provider()
 
     name = service_name or os.getenv("OTEL_SERVICE_NAME", "consilium-agents")
@@ -37,13 +59,14 @@ def init_telemetry(
     if otlp_endpoint:
         try:
             from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-            exporter = OTLPSpanExporter(endpoint=f"{otlp_endpoint}/v1/traces")
+            exporter = OTLPSpanExporter(endpoint=_normalize_otlp_endpoint(otlp_endpoint))
             provider.add_span_processor(BatchSpanProcessor(exporter))
         except Exception as exc:
             logger.warning("Failed to initialize OTLP exporter: %s", exc)
 
     trace.set_tracer_provider(provider)
     _initialized = True
+    _init_config = {"service_name": service_name, "export_to_console": export_to_console}
     return provider
 
 
@@ -77,7 +100,7 @@ def create_round_span(
     description: str = "",
 ) -> Generator[trace.Span, None, None]:
     with tracer.start_as_current_span(
-        f"debate.round.{round_number}",
+        "debate.round",
         attributes={
             "debate.id": debate_id,
             "debate.round": round_number,

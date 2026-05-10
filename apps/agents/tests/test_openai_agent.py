@@ -1,7 +1,10 @@
 """Unit tests for OpenAI agent."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from src.features.agents.base_agent import LLMProviderError
 from src.features.agents.openai_agent import OpenAIAgent
 
 
@@ -43,10 +46,10 @@ class TestOpenAIAgent:
             side_effect=Exception("API Error")
         )
 
-        response, tokens = await agent.generate_response("test query")
+        with pytest.raises(LLMProviderError) as exc_info:
+            await agent.generate_response("test query")
 
-        assert "[GPT-4 Error:" in response
-        assert tokens == 0
+        assert exc_info.value.original_error.args[0] == "API Error"
 
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")

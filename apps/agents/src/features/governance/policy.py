@@ -30,7 +30,16 @@ class PolicyEngine:
     def _matches(self, rule: PolicyRule, action: dict) -> bool:
         for key, value in rule.conditions.items():
             if key == "amount_threshold":
-                if action.get("amount", 0) < value:
+                if "amount" not in action:
+                    raise ValueError(
+                        f"rule {rule.id!r} requires 'amount' on action but none was provided"
+                    )
+                amount = action["amount"]
+                if not isinstance(amount, int | float):
+                    raise ValueError(
+                        f"rule {rule.id!r}: 'amount' must be numeric, got {type(amount).__name__}"
+                    )
+                if amount < value:
                     return False
             else:
                 if action.get(key) != value:

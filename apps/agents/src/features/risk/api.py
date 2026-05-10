@@ -1,13 +1,20 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from src.features.risk.monitor import ContinuousRiskMonitor
 from src.features.risk.scorer import RiskAssessment
-from src.features.risk.monitor import ContinuousRiskMonitor, RiskProfile
 
 router = APIRouter(prefix="/risk", tags=["risk"])
-_monitor = ContinuousRiskMonitor()
+
+
+def get_monitor(request: Request) -> ContinuousRiskMonitor:
+    monitor = getattr(request.app.state, "risk_monitor", None)
+    if monitor is None:
+        monitor = ContinuousRiskMonitor()
+        request.app.state.risk_monitor = monitor
+    return monitor
 
 
 class ScoreRequest(BaseModel):
@@ -56,8 +63,16 @@ async def score_proposal(body: ScoreRequest) -> ScoreResponse:
 
 
 @router.get("/agent/{agent_id}/profile", response_model=ProfileResponse)
-async def get_agent_profile(agent_id: str) -> ProfileResponse:
-    profile = _monitor.get_profile(agent_id)
+async def get_agent_profile(
+    agent_id: str,
+    monitor: ContinuousRiskMonitor = Depends(get_monitor),
+) -> ProfileResponse:
+    try:
+        profile = monitor.get_profile(agent_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_id!r} not found") from exc
+    if profile is None or profile.score_count == 0:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_id!r} not found")
     return ProfileResponse(
         agent_id=profile.agent_id,
         avg_score=profile.avg_score,
