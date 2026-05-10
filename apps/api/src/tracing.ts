@@ -10,15 +10,20 @@ function loadTracing(): void {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { NodeSDK } = require("@opentelemetry/sdk-node") as typeof import("@opentelemetry/sdk-node");
+  const { NodeSDK } =
+    require("@opentelemetry/sdk-node") as typeof import("@opentelemetry/sdk-node");
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { getNodeAutoInstrumentations } = require("@opentelemetry/auto-instrumentations-node") as typeof import("@opentelemetry/auto-instrumentations-node");
+  const { getNodeAutoInstrumentations } =
+    require("@opentelemetry/auto-instrumentations-node") as typeof import("@opentelemetry/auto-instrumentations-node");
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-http") as typeof import("@opentelemetry/exporter-trace-otlp-http");
+  const { OTLPTraceExporter } =
+    require("@opentelemetry/exporter-trace-otlp-http") as typeof import("@opentelemetry/exporter-trace-otlp-http");
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { resourceFromAttributes } = require("@opentelemetry/resources") as typeof import("@opentelemetry/resources");
+  const { resourceFromAttributes } =
+    require("@opentelemetry/resources") as typeof import("@opentelemetry/resources");
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { ATTR_SERVICE_NAME } = require("@opentelemetry/semantic-conventions") as typeof import("@opentelemetry/semantic-conventions");
+  const { ATTR_SERVICE_NAME } =
+    require("@opentelemetry/semantic-conventions") as typeof import("@opentelemetry/semantic-conventions");
 
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({
