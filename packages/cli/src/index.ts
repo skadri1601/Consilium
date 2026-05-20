@@ -20,6 +20,8 @@ import {
 import { chatCommand, chatResumeCommand } from "./commands/chat.js";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
+import { setupTokenCommand } from "./commands/setup-token.js";
+import { menuCommand } from "./commands/menu.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
@@ -71,6 +73,8 @@ const KNOWN_SUBCOMMANDS = [
   "debate-failing",
   "debate-staged",
   "upgrade",
+  "setup-token",
+  "share",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -86,14 +90,13 @@ const isOneShot =
 async function main(): Promise<void> {
   if (isDefaultRepl) {
     const { isLoggedIn } = await import("./utils/config.js");
-    const { runRepl } = await import("./repl/index.js");
     if (isLoggedIn()) {
-      await runRepl();
+      await menuCommand();
     } else {
       const { loginFlow } = await import("./commands/login.js");
       const ok = await loginFlow();
       if (ok) {
-        await runRepl();
+        await menuCommand();
       }
     }
     return;
@@ -145,6 +148,26 @@ async function main(): Promise<void> {
       "--file <paths...>",
       "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
     )
+    .option(
+      "--plan",
+      "Plan mode: emit a written plan for approval before any write",
+    )
+    .option(
+      "--output-format <fmt>",
+      "Output format: text|json|stream-json (default: text)",
+    )
+    .option(
+      "--json-schema <path>",
+      "Validate final synthesis against the given JSON Schema file; print as JSON",
+    )
+    .option(
+      "--max-budget-usd <n>",
+      "Abort if running cost estimate exceeds this many USD",
+    )
+    .option(
+      "--max-turns <n>",
+      "Cap the debate at N rounds (overrides mode default)",
+    )
     .action(debateCommand);
 
   program
@@ -178,6 +201,10 @@ async function main(): Promise<void> {
     .option(
       "--file <paths...>",
       "Files to attach as context (e.g., --file src/auth.ts diagram.png)",
+    )
+    .option(
+      "--plan",
+      "Plan mode: emit a written plan for approval before any write",
     )
     .action(debateCommand);
 
@@ -226,6 +253,21 @@ async function main(): Promise<void> {
     .command("logout")
     .description("Sign out and clear stored credentials")
     .action(logoutCommand);
+
+  program
+    .command("setup-token")
+    .description("Generate a long-lived CI token (default 365 days)")
+    .option("-n, --name <name>", 'Token label (e.g. "github-actions")')
+    .option("-d, --days <n>", "Token lifetime in days", "365")
+    .option("--print", "Print only the token (for scripting)")
+    .action(
+      (options: { name?: string; days?: string; print?: boolean }) =>
+        setupTokenCommand({
+          name: options.name,
+          days: options.days,
+          print: options.print,
+        }),
+    );
 
   program
     .command("debug")
@@ -543,6 +585,16 @@ async function main(): Promise<void> {
     .command("list")
     .description("List all configuration")
     .action(configListCommand);
+
+  // === W10: share scaffold ===
+  const { shareCommand } = await import("./commands/share.js");
+  program
+    .command("share <sessionId>")
+    .description("Share a saved session (POSTs to backend; falls back to local JSON export)")
+    .option("--public", "Make the shared session publicly readable (default: link-only)")
+    .action((sessionId: string, opts: { public?: boolean }) =>
+      shareCommand(sessionId, opts),
+    );
 
   program.parse();
 }

@@ -1,0 +1,103 @@
+name: "Consilium Multi-Model Debate"
+description: "Run a Consilium multi-agent debate from a GitHub Actions workflow and capture the synthesis as an output"
+author: "consilium"
+
+branding:
+  icon: "message-circle"
+  color: "purple"
+
+inputs:
+  topic:
+    description: "Topic or question to debate"
+    required: true
+  mode:
+    description: "Deliberation mode (council, quick, deep, blind, redteam, jury, market, auto)"
+    required: false
+    default: "council"
+  models:
+    description: "Comma-separated model IDs (e.g. 'claude-sonnet-4-6,gpt-5.4'). Empty uses user defaults."
+    required: false
+    default: ""
+  api-url:
+    description: "Consilium API base URL. Defaults to the public hosted API."
+    required: false
+    default: ""
+  api-key:
+    description: "Consilium CLI token (starts with consilium_). Required when calling the hosted API."
+    required: false
+    default: ""
+  cli-version:
+    description: "Version of @myconsilium/cli to install (default: latest)"
+    required: false
+    default: "latest"
+  node-version:
+    description: "Node.js version to use"
+    required: false
+    default: "20"
+
+outputs:
+  synthesis:
+    description: "Synthesis text produced by the debate (raw markdown/text)"
+    value: ${{ steps.run.outputs.synthesis }}
+  debate-id:
+    description: "Debate ID, if the JSON output contains one"
+    value: ${{ steps.run.outputs.debate_id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run Consilium debate
+      id: run
+      shell: bash
+      env:
+        CONSILIUM_API_URL: ${{ inputs.api-url }}
+        CONSILIUM_API_KEY: ${{ inputs.api-key }}
+        CONSILIUM_TOPIC: ${{ inputs.topic }}
+        CONSILIUM_MODE: ${{ inputs.mode }}
+        CONSILIUM_MODELS: ${{ inputs.models }}
+        CONSILIUM_CLI_VERSION: ${{ inputs.cli-version }}
+      run: |
+        set -e
+
+        if [ -n "$CONSILIUM_API_KEY" ]; then
+          mkdir -p "$HOME/.consilium"
+          jq -n --arg k "$CONSILIUM_API_KEY" --arg u "$CONSILIUM_API_URL" \
+            '{apiKey:$k} + (if $u == "" then {} else {apiUrl:$u} end)' \
+            > "$HOME/.consilium/config.json"
+        fi
+
+        MODEL_ARGS=""
+        if [ -n "$CONSILIUM_MODELS" ]; then
+          IFS=',' read -ra MODEL_ARR <<< "$CONSILIUM_MODELS"
+          MODEL_ARGS="--models ${MODEL_ARR[*]}"
+        fi
+
+        OUT_FILE="${RUNNER_TEMP:-/tmp}/consilium-debate-output.json"
+        set +e
+        npx -y "@myconsilium/cli@${CONSILIUM_CLI_VERSION}" debate "$CONSILIUM_TOPIC" \
+          --mode "$CONSILIUM_MODE" \
+          --output-format json \
+          $MODEL_ARGS \
+          > "$OUT_FILE"
+        STATUS=$?
+        set -e
+        if [ $STATUS -ne 0 ]; then
+          echo "Consilium debate failed with exit code $STATUS"
+          cat "$OUT_FILE" || true
+          exit $STATUS
+        fi
+
+        SYNTHESIS=$(jq -r '.synthesis // .text // .goldenPrompt // empty' "$OUT_FILE" 2>/dev/null || cat "$OUT_FILE")
+        DEBATE_ID=$(jq -r '.debateId // .id // empty' "$OUT_FILE" 2>/dev/null || echo "")
+
+        {
+          echo "synthesis<<CONSILIUM_EOF"
+          printf '%s\n' "$SYNTHESIS"
+          echo "CONSILIUM_EOF"
+          echo "debate_id=$DEBATE_ID"
+        } >> "$GITHUB_OUTPUT"

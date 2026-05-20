@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
+import { style } from "./visual-system";
 
 const PERMISSIONS_FILE = path.join(
   os.homedir(),
@@ -9,6 +10,54 @@ const PERMISSIONS_FILE = path.join(
   "permissions.json",
 );
 const STORE_VERSION = 2;
+
+const readSessionNoticeShown = new Set<string>();
+const writeSessionNoticeShown = new Set<string>();
+
+function shouldShowNotice(): boolean {
+  return Boolean(process.stdout && process.stdout.isTTY);
+}
+
+function printStoredReadNotice(): void {
+  if (!shouldShowNotice()) return;
+  const st = style();
+  process.stdout.write(
+    `${st.dim("Codebase read access:")} ${st.success("granted (stored)")}${st.dim(". Revoke with:")} ${st.brand("/codebase revoke")}\n`,
+  );
+}
+
+function printSessionReadNotice(scope: string): void {
+  if (!shouldShowNotice()) return;
+  if (readSessionNoticeShown.has(scope)) return;
+  readSessionNoticeShown.add(scope);
+  const st = style();
+  process.stdout.write(
+    `${st.dim("Codebase read access:")} ${st.success("granted (session)")}.\n`,
+  );
+}
+
+function printStoredWriteNotice(): void {
+  if (!shouldShowNotice()) return;
+  const st = style();
+  process.stdout.write(
+    `${st.dim("Codebase write access:")} ${st.success("granted (stored)")}${st.dim(". Revoke with:")} ${st.brand("/codebase revoke")}\n`,
+  );
+}
+
+function printSessionWriteNotice(scope: string): void {
+  if (!shouldShowNotice()) return;
+  if (writeSessionNoticeShown.has(scope)) return;
+  writeSessionNoticeShown.add(scope);
+  const st = style();
+  process.stdout.write(
+    `${st.dim("Codebase write access:")} ${st.success("granted (session)")}.\n`,
+  );
+}
+
+export function _resetPermissionNoticesForTests(): void {
+  readSessionNoticeShown.clear();
+  writeSessionNoticeShown.clear();
+}
 
 export type ReadPermissionLevel = "deny" | "session" | "always";
 export type WritePermissionLevel = "deny" | "one-time" | "session" | "always";
@@ -312,6 +361,11 @@ export async function requestCodebasePermission(
   const existing = getReadPermissionMatch(normalized);
   if (existing) {
     if (existing.level === "deny") return false;
+    if (existing.level === "always") {
+      printStoredReadNotice();
+    } else if (existing.level === "session") {
+      printSessionReadNotice(existing.scopePath);
+    }
     return true;
   }
 
@@ -353,6 +407,15 @@ export async function requestWritePermission(
   directory: string,
 ): Promise<WritePermissionLevel> {
   const normalized = normalizeScope(directory);
+  const match = getWritePermissionMatch(normalized);
+  if (match) {
+    if (match.level === "always") {
+      printStoredWriteNotice();
+    } else if (match.level === "session") {
+      printSessionWriteNotice(match.scopePath);
+    }
+    return match.level as WritePermissionLevel;
+  }
   const existing = getWritePermissionLevel(normalized);
   if (existing !== "unset") return existing;
 
