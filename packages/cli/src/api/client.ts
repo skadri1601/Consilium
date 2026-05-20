@@ -1,4 +1,4 @@
-import EventSource from "eventsource";
+import { EventSource } from "eventsource";
 import { DEFAULT_API_ORIGIN, loadConfig } from "../utils/config";
 
 export interface ToolSchema {
@@ -268,11 +268,18 @@ export class ConsiliumClient {
     const apiKey = this.getApiKey();
     const buildInit = (
       lastEventId: string | null,
-    ): { headers?: Record<string, string> } => {
+    ): ConstructorParameters<typeof EventSource>[1] => {
       const headers: Record<string, string> = {};
       if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
       if (lastEventId) headers["Last-Event-ID"] = lastEventId;
-      return Object.keys(headers).length ? { headers } : {};
+      if (!Object.keys(headers).length) return undefined;
+      return {
+        fetch: (url, init) =>
+          fetch(url, {
+            ...init,
+            headers: { ...init.headers, ...headers },
+          }),
+      };
     };
 
     let attempt = 0;
