@@ -9,11 +9,7 @@ export interface CustomCommand {
   description?: string;
 }
 
-const CUSTOM_COMMANDS_DIR = path.join(
-  os.homedir(),
-  ".consilium",
-  "commands",
-);
+const CUSTOM_COMMANDS_DIR = path.join(os.homedir(), ".consilium", "commands");
 
 export function getCustomCommandsDir(): string {
   return CUSTOM_COMMANDS_DIR;

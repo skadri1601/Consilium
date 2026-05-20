@@ -83,7 +83,9 @@ export function renderPlan(): string {
   return [header, ...lines].join("\n");
 }
 
-export async function promptApproval(): Promise<"approve" | "refine" | "cancel"> {
+export async function promptApproval(): Promise<
+  "approve" | "refine" | "cancel"
+> {
   if (!process.stdin.isTTY) {
     return "approve";
   }
@@ -95,9 +97,8 @@ export async function promptApproval(): Promise<"approve" | "refine" | "cancel">
 
   try {
     const answer = await new Promise<string>((resolve) => {
-      rl.question(
-        st.brand("\n[a]pprove / [r]efine / [c]ancel: "),
-        (raw) => resolve(raw),
+      rl.question(st.brand("\n[a]pprove / [r]efine / [c]ancel: "), (raw) =>
+        resolve(raw),
       );
     });
     const trimmed = answer.trim().toLowerCase();

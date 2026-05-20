@@ -33,24 +33,44 @@ function parseDays(raw: number | string | undefined): number {
 }
 
 function printInstructions(webUrl: string, days: number): void {
-  console.log(st.warning("\n  Long-lived CLI tokens endpoint is not yet enabled on this API."));
+  console.log(
+    st.warning(
+      "\n  Long-lived CLI tokens endpoint is not yet enabled on this API.",
+    ),
+  );
   console.log("");
-  console.log(`  Visit ${st.brand(`${webUrl}/settings#cli-tokens`)} to generate a CI token.`);
-  console.log(st.dim(`  Choose a lifetime of ${days} days (default 365) and copy the value.`));
+  console.log(
+    `  Visit ${st.brand(`${webUrl}/settings#cli-tokens`)} to generate a CI token.`,
+  );
+  console.log(
+    st.dim(
+      `  Choose a lifetime of ${days} days (default 365) and copy the value.`,
+    ),
+  );
   console.log("");
   console.log(st.dim("  Then export it in your CI environment:"));
   console.log(st.brand("    export CONSILIUM_API_KEY=consilium_..."));
   console.log("");
 }
 
-function printTokenBox(token: string, name: string | undefined, days: number): void {
+function printTokenBox(
+  token: string,
+  name: string | undefined,
+  days: number,
+): void {
   const label = name ? ` (label: ${name})` : "";
   console.log("");
-  console.log(st.success(`✓ Generated CI token${label}, valid for ${days} days.`));
+  console.log(
+    st.success(`✓ Generated CI token${label}, valid for ${days} days.`),
+  );
   console.log("");
-  console.log("  ┌─────────────────────────────────────────────────────────────┐");
+  console.log(
+    "  ┌─────────────────────────────────────────────────────────────┐",
+  );
   console.log(`  │  ${st.bold(token)}`);
-  console.log("  └─────────────────────────────────────────────────────────────┘");
+  console.log(
+    "  └─────────────────────────────────────────────────────────────┘",
+  );
   console.log("");
   console.log(st.dim("  Store it now — you will not see it again."));
   console.log("");
@@ -59,7 +79,9 @@ function printTokenBox(token: string, name: string | undefined, days: number): v
   console.log("");
 }
 
-export async function setupTokenCommand(opts: SetupTokenOptions = {}): Promise<void> {
+export async function setupTokenCommand(
+  opts: SetupTokenOptions = {},
+): Promise<void> {
   if (!isLoggedIn()) {
     console.log(st.error("Not logged in. Run `consilium login` first."));
     process.exitCode = 1;
@@ -93,7 +115,9 @@ export async function setupTokenCommand(opts: SetupTokenOptions = {}): Promise<v
 
   if (res.status === 404) {
     if (printOnly) {
-      console.error(`Endpoint not available. Generate manually at ${webUrl}/settings#cli-tokens`);
+      console.error(
+        `Endpoint not available. Generate manually at ${webUrl}/settings#cli-tokens`,
+      );
       process.exitCode = 1;
       return;
     }
@@ -102,14 +126,22 @@ export async function setupTokenCommand(opts: SetupTokenOptions = {}): Promise<v
   }
 
   if (res.status === 401 || res.status === 403) {
-    console.log(st.error("Authentication failed. Run `consilium login` to refresh your token."));
+    console.log(
+      st.error(
+        "Authentication failed. Run `consilium login` to refresh your token.",
+      ),
+    );
     process.exitCode = 1;
     return;
   }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.log(st.error(`Failed to create token (status ${res.status}). ${body.slice(0, 200)}`));
+    console.log(
+      st.error(
+        `Failed to create token (status ${res.status}). ${body.slice(0, 200)}`,
+      ),
+    );
     process.exitCode = 1;
     return;
   }
@@ -118,7 +150,9 @@ export async function setupTokenCommand(opts: SetupTokenOptions = {}): Promise<v
   try {
     data = (await res.json()) as CliTokenResponse;
   } catch {
-    console.log(st.error("Unexpected response from API (could not parse JSON)."));
+    console.log(
+      st.error("Unexpected response from API (could not parse JSON)."),
+    );
     process.exitCode = 1;
     return;
   }

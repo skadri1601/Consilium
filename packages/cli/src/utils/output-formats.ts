@@ -62,12 +62,15 @@ function validateNode(
   if (schema.type !== undefined) {
     const actual = typeOf(value);
     if (!typeMatches(schema.type, actual)) {
-      const want = Array.isArray(schema.type) ? schema.type.join("|") : schema.type;
+      const want = Array.isArray(schema.type)
+        ? schema.type.join("|")
+        : schema.type;
       errors.push(`${path || "<root>"}: expected ${want}, got ${actual}`);
       return;
     }
     if (
-      (schema.type === "integer" || (Array.isArray(schema.type) && schema.type.includes("integer"))) &&
+      (schema.type === "integer" ||
+        (Array.isArray(schema.type) && schema.type.includes("integer"))) &&
       typeof value === "number" &&
       !Number.isInteger(value)
     ) {
@@ -110,9 +113,7 @@ function validateNode(
       const allowed = new Set(Object.keys(schema.properties));
       for (const key of Object.keys(obj)) {
         if (!allowed.has(key)) {
-          errors.push(
-            `${path || "<root>"}: unexpected property "${key}"`,
-          );
+          errors.push(`${path || "<root>"}: unexpected property "${key}"`);
         }
       }
     }
@@ -125,7 +126,12 @@ function validateNode(
     if (!Array.isArray(value)) return;
     if (schema.items) {
       value.forEach((item, idx) => {
-        validateNode(item, schema.items as SchemaNode, `${path}[${idx}]`, errors);
+        validateNode(
+          item,
+          schema.items as SchemaNode,
+          `${path}[${idx}]`,
+          errors,
+        );
       });
     }
   }
@@ -140,7 +146,10 @@ export function validateAgainstSchema(
     schemaSource = fs.readFileSync(schemaPath, "utf-8");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return { ok: false, errors: [`failed to read schema "${schemaPath}": ${msg}`] };
+    return {
+      ok: false,
+      errors: [`failed to read schema "${schemaPath}": ${msg}`],
+    };
   }
 
   let schema: SchemaNode;

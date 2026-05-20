@@ -47,17 +47,16 @@ describe("renderStatusLine", () => {
   it("default template renders question marks when context is empty", () => {
     const out = renderStatusLine({ cwd: "" });
     expect(out).toContain("?");
-    expect(out).toBe(DEFAULT_STATUS_LINE_TEMPLATE.replace("{cwd}", "?")
-      .replace("{branch}", "?")
-      .replace("{model}", "?")
-      .replace("{cost}", "?"));
+    expect(out).toBe(
+      DEFAULT_STATUS_LINE_TEMPLATE.replace("{cwd}", "?")
+        .replace("{branch}", "?")
+        .replace("{model}", "?")
+        .replace("{cost}", "?"),
+    );
   });
 
   it("formats cost with 4 decimals when below one cent", () => {
-    const out = renderStatusLine(
-      { cwd: "/x", costUsd: 0.0042 },
-      "{cost}",
-    );
+    const out = renderStatusLine({ cwd: "/x", costUsd: 0.0042 }, "{cost}");
     expect(out).toBe("0.0042");
   });
 

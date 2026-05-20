@@ -57,7 +57,11 @@ describe("output-formats", () => {
       expect(written).toHaveLength(2);
       const first = JSON.parse(written[0]!.trim());
       const second = JSON.parse(written[1]!.trim());
-      expect(first).toEqual({ type: "round.start", data: { round: 1 }, ts: 100 });
+      expect(first).toEqual({
+        type: "round.start",
+        data: { round: 1 },
+        ts: 100,
+      });
       expect(second.type).toBe("round.end");
       expect(written[0]!.endsWith("\n")).toBe(true);
     });

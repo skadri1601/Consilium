@@ -260,13 +260,12 @@ async function main(): Promise<void> {
     .option("-n, --name <name>", 'Token label (e.g. "github-actions")')
     .option("-d, --days <n>", "Token lifetime in days", "365")
     .option("--print", "Print only the token (for scripting)")
-    .action(
-      (options: { name?: string; days?: string; print?: boolean }) =>
-        setupTokenCommand({
-          name: options.name,
-          days: options.days,
-          print: options.print,
-        }),
+    .action((options: { name?: string; days?: string; print?: boolean }) =>
+      setupTokenCommand({
+        name: options.name,
+        days: options.days,
+        print: options.print,
+      }),
     );
 
   program
@@ -590,8 +589,13 @@ async function main(): Promise<void> {
   const { shareCommand } = await import("./commands/share.js");
   program
     .command("share <sessionId>")
-    .description("Share a saved session (POSTs to backend; falls back to local JSON export)")
-    .option("--public", "Make the shared session publicly readable (default: link-only)")
+    .description(
+      "Share a saved session (POSTs to backend; falls back to local JSON export)",
+    )
+    .option(
+      "--public",
+      "Make the shared session publicly readable (default: link-only)",
+    )
     .action((sessionId: string, opts: { public?: boolean }) =>
       shareCommand(sessionId, opts),
     );

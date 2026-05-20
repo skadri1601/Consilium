@@ -1,9 +1,4 @@
-export type SegmentColor =
-  | "system"
-  | "user"
-  | "assistant"
-  | "tool"
-  | "memory";
+export type SegmentColor = "system" | "user" | "assistant" | "tool" | "memory";
 
 export interface TokenSegment {
   label: string;
@@ -120,7 +115,9 @@ function buildLegend(usage: {
   const parts: string[] = [];
   for (const seg of usage.segments) {
     const color = seg.color ?? "assistant";
-    parts.push(`${paintSwatch(color)} ${seg.label} ${formatNumber(seg.tokens)}`);
+    parts.push(
+      `${paintSwatch(color)} ${seg.label} ${formatNumber(seg.tokens)}`,
+    );
   }
   const free = usage.limit - usage.used;
   parts.push(`${paintSwatch("free")} free ${formatNumber(free)}`);

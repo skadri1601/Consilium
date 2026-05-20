@@ -44,7 +44,9 @@ export async function shareCommand(
   const apiUrl = (config.apiUrl ?? DEFAULT_API_ORIGIN).replace(/\/$/, "");
   const isPublic = opts.public ?? false;
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
 
   let res: Response | null = null;

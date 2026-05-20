@@ -50,7 +50,8 @@ export function renderStatusLine(
   ctx: StatusLineContext,
   template?: string,
 ): string {
-  const tpl = template ?? loadTemplateFromConfig() ?? DEFAULT_STATUS_LINE_TEMPLATE;
+  const tpl =
+    template ?? loadTemplateFromConfig() ?? DEFAULT_STATUS_LINE_TEMPLATE;
 
   return tpl.replace(PLACEHOLDER_RE, (_, key: string) => {
     switch (key) {
@@ -80,7 +81,10 @@ function loadTemplateFromConfig(): string | undefined {
     if (!fs.existsSync(configPath)) return undefined;
     const raw = fs.readFileSync(configPath, "utf-8");
     const parsed = JSON.parse(raw) as { statusLineTemplate?: string };
-    if (typeof parsed.statusLineTemplate === "string" && parsed.statusLineTemplate.length > 0) {
+    if (
+      typeof parsed.statusLineTemplate === "string" &&
+      parsed.statusLineTemplate.length > 0
+    ) {
       return parsed.statusLineTemplate;
     }
   } catch {

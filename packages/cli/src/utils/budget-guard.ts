@@ -35,10 +35,7 @@ export class BudgetGuard {
   }
 
   shouldAbort(): AbortDecision {
-    if (
-      this.maxBudgetUsd !== undefined &&
-      this.totalUsd >= this.maxBudgetUsd
-    ) {
+    if (this.maxBudgetUsd !== undefined && this.totalUsd >= this.maxBudgetUsd) {
       return {
         abort: true,
         reason:
@@ -49,8 +46,7 @@ export class BudgetGuard {
     if (this.maxTurns !== undefined && this.turns >= this.maxTurns) {
       return {
         abort: true,
-        reason:
-          `Turn limit reached: ${this.turns} of ${this.maxTurns} turn cap`,
+        reason: `Turn limit reached: ${this.turns} of ${this.maxTurns} turn cap`,
       };
     }
     return { abort: false };

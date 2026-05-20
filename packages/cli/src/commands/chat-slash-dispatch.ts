@@ -796,9 +796,7 @@ async function slashCheckpoint(
     const snap = mod.snapshotSession(sessionId, name);
     console.log(st.success("Checkpoint created:"), st.brand(snap.id));
     if (snap.label) console.log(st.dim(`  label: ${snap.label}`));
-    console.log(
-      st.dim(`  use /rewind ${snap.id} to restore this snapshot\n`),
-    );
+    console.log(st.dim(`  use /rewind ${snap.id} to restore this snapshot\n`));
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.log(st.warning(`Checkpoint not yet available: ${msg}\n`));
@@ -902,9 +900,7 @@ async function slashFork(
     console.log(
       st.success("Forked session:"),
       st.brand(newId),
-      st.dim(
-        `  resume with: consilium sessions resume ${newId}\n`,
-      ),
+      st.dim(`  resume with: consilium sessions resume ${newId}\n`),
     );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -943,9 +939,7 @@ function slashLoop(args: string[], session: ChatSession): SlashResult {
   const extras = getExtras(session);
   const id = makeLocalId("loop");
   const timer = setInterval(() => {
-    console.log(
-      st.dim(`\n[loop ${id}] tick - prompt queued: ${promptText}\n`),
-    );
+    console.log(st.dim(`\n[loop ${id}] tick - prompt queued: ${promptText}\n`));
   }, intervalMs);
   if (typeof timer.unref === "function") timer.unref();
   extras.loops.set(id, { id, intervalMs, prompt: promptText, timer });
@@ -989,7 +983,7 @@ function slashGoal(args: string[], session: ChatSession): SlashResult {
   extras.goal = text;
   console.log(
     st.success("Session goal set."),
-    st.dim("  Future turns will include: \"Working toward: ...\"\n"),
+    st.dim('  Future turns will include: "Working toward: ..."\n'),
   );
   return "continue";
 }
@@ -1011,9 +1005,7 @@ function slashSchedule(args: string[], session: ChatSession): SlashResult {
   const intervalMs = parseDurationToMs(spec);
   if (!intervalMs || intervalMs < 1000) {
     console.log(
-      st.warning(
-        "Invalid interval. Use 5m, 30m, 1h, daily, hourly, etc.\n",
-      ),
+      st.warning("Invalid interval. Use 5m, 30m, 1h, daily, hourly, etc.\n"),
     );
     return "continue";
   }
@@ -1060,7 +1052,9 @@ function slashSchedule(args: string[], session: ChatSession): SlashResult {
 
   console.log(
     st.success(`Scheduled (${id}).`),
-    st.dim(`  Will run every ${formatDurationMs(intervalMs)} while REPL is open.\n`),
+    st.dim(
+      `  Will run every ${formatDurationMs(intervalMs)} while REPL is open.\n`,
+    ),
   );
   return "continue";
 }
@@ -1128,7 +1122,10 @@ function slashUsage(session: ChatSession): SlashResult {
     (acc, d) => acc + (d.goldenPrompt?.length ?? 0),
     0,
   );
-  const topicChars = debates.reduce((acc, d) => acc + (d.topic?.length ?? 0), 0);
+  const topicChars = debates.reduce(
+    (acc, d) => acc + (d.topic?.length ?? 0),
+    0,
+  );
   const approxTokens = Math.ceil((synthChars + topicChars) / 4);
 
   console.log(st.bold("\nSession usage\n"));
@@ -1138,9 +1135,7 @@ function slashUsage(session: ChatSession): SlashResult {
     approxTokens.toLocaleString(),
   );
   console.log(
-    st.dim(
-      "  Note: token + cost totals come from cost_update SSE events;",
-    ),
+    st.dim("  Note: token + cost totals come from cost_update SSE events;"),
   );
   console.log(
     st.dim(
@@ -1163,9 +1158,7 @@ async function slashCustomCommand(
   try {
     const mod = await import("../utils/custom-commands.js");
     if (typeof mod.executeCustomCommand !== "function") {
-      console.log(
-        st.warning("Custom commands runtime not yet available.\n"),
-      );
+      console.log(st.warning("Custom commands runtime not yet available.\n"));
       return { result: "continue" };
     }
     const prompt = mod.executeCustomCommand(cmd, args);
@@ -1183,9 +1176,7 @@ async function slashCustomCommand(
   }
 }
 
-async function ensureCustomCommandsLoaded(
-  session: ChatSession,
-): Promise<void> {
+async function ensureCustomCommandsLoaded(session: ChatSession): Promise<void> {
   const extras = getExtras(session);
   if (extras.customCommandsLoaded) return;
   extras.customCommandsLoaded = true;
@@ -1205,9 +1196,7 @@ function printExtendedHelp(session: ChatSession): void {
   const extras = getExtras(session);
   console.log(st.bold("\n  Session control"));
   console.log(
-    st.dim(
-      "  /checkpoint [name] - Snapshot current session for later /rewind",
-    ),
+    st.dim("  /checkpoint [name] - Snapshot current session for later /rewind"),
   );
   console.log(
     st.dim(
@@ -1217,14 +1206,10 @@ function printExtendedHelp(session: ChatSession): void {
   console.log(
     st.dim("  /fork [name]    - Clone this session into a new branch"),
   );
-  console.log(
-    st.dim("  /usage          - Show session token + cost summary"),
-  );
+  console.log(st.dim("  /usage          - Show session token + cost summary"));
   console.log(st.bold("\n  Autonomy"));
   console.log(
-    st.dim(
-      "  /loop <min> <prompt>     - Repeat a prompt every N minutes",
-    ),
+    st.dim("  /loop <min> <prompt>     - Repeat a prompt every N minutes"),
   );
   console.log(
     st.dim(
@@ -1398,8 +1383,7 @@ export async function dispatchSlashCommand(
           try {
             await session.debate(outcome.prompt);
           } catch (error) {
-            const msg =
-              error instanceof Error ? error.message : String(error);
+            const msg = error instanceof Error ? error.message : String(error);
             console.log(st.error(`Custom command debate failed: ${msg}\n`));
           }
         }

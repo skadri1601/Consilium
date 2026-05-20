@@ -64,7 +64,8 @@ export async function createWorktree(
 ): Promise<WorktreeRef> {
   ensureWorktreeRoot();
   const cwd = opts.cwd ?? process.cwd();
-  const branchName = branch && branch.trim() ? branch.trim() : defaultBranchName();
+  const branchName =
+    branch && branch.trim() ? branch.trim() : defaultBranchName();
   const targetPath = path.join(WORKTREE_ROOT, generateWorktreeId());
 
   const exists = await branchExists(branchName, cwd);
@@ -118,7 +119,10 @@ export async function listConsiliumWorktrees(
   }
 
   const refs: WorktreeRef[] = [];
-  const blocks = stdout.split(/\n\n+/).map((b) => b.trim()).filter(Boolean);
+  const blocks = stdout
+    .split(/\n\n+/)
+    .map((b) => b.trim())
+    .filter(Boolean);
   for (const block of blocks) {
     const lines = block.split("\n");
     let wtPath = "";
@@ -126,13 +130,19 @@ export async function listConsiliumWorktrees(
     for (const line of lines) {
       if (line.startsWith("worktree ")) wtPath = line.slice(9).trim();
       else if (line.startsWith("branch ")) {
-        branch = line.slice(7).trim().replace(/^refs\/heads\//, "");
+        branch = line
+          .slice(7)
+          .trim()
+          .replace(/^refs\/heads\//, "");
       }
     }
     if (!wtPath) continue;
     const resolvedRoot = path.resolve(WORKTREE_ROOT);
     const resolvedWt = path.resolve(wtPath);
-    if (resolvedWt.startsWith(resolvedRoot + path.sep) || resolvedWt === resolvedRoot) {
+    if (
+      resolvedWt.startsWith(resolvedRoot + path.sep) ||
+      resolvedWt === resolvedRoot
+    ) {
       refs.push({ path: wtPath, branch: branch || "(detached)" });
     }
   }

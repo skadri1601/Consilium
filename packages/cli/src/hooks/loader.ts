@@ -111,9 +111,7 @@ export function loadHooks(hooksPath: string = HOOKS_FILE): HookConfig {
     json = JSON.parse(raw);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[consilium hooks] failed to parse ${hooksPath}: ${message}`,
-    );
+    console.warn(`[consilium hooks] failed to parse ${hooksPath}: ${message}`);
     return { hooks: {} };
   }
   const result = hookConfigSchema.safeParse(json);

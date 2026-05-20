@@ -410,9 +410,6 @@ export function deleteSnapshot(sessionId: string, snapshotId: string): void {
   new SessionManager().deleteSnapshot(sessionId, snapshotId);
 }
 
-export function forkSession(
-  sourceSessionId: string,
-  newName?: string,
-): string {
+export function forkSession(sourceSessionId: string, newName?: string): string {
   return new SessionManager().forkSession(sourceSessionId, newName);
 }

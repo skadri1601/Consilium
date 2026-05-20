@@ -24,9 +24,7 @@ describe("parseAtMentions", () => {
   });
 
   it("extracts multiple @ mentions", () => {
-    const result = parseAtMentions(
-      "compare @a/file.ts and @b/file.ts please",
-    );
+    const result = parseAtMentions("compare @a/file.ts and @b/file.ts please");
     expect(result.mentions).toEqual(["a/file.ts", "b/file.ts"]);
     expect(result.cleanedInput).toBe("compare and please");
   });

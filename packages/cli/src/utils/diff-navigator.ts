@@ -33,11 +33,13 @@ function colorLine(line: string): string {
   return `${ANSI_DIM}${line}${ANSI_RESET}`;
 }
 
-export function renderHunk(hunk: DiffHunk, index: number, total: number): string {
+export function renderHunk(
+  hunk: DiffHunk,
+  index: number,
+  total: number,
+): string {
   const lines: string[] = [];
-  lines.push(
-    `${ANSI_BOLD}${ANSI_CYAN}── ${hunk.filePath} ──${ANSI_RESET}`,
-  );
+  lines.push(`${ANSI_BOLD}${ANSI_CYAN}── ${hunk.filePath} ──${ANSI_RESET}`);
   lines.push(
     `${ANSI_DIM}@@ -${hunk.oldStart} +${hunk.newStart} @@ (hunk ${index + 1}/${total})${ANSI_RESET}`,
   );

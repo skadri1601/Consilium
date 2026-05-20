@@ -123,12 +123,7 @@ describe("sub-agents loader", () => {
   it("rejects files missing required name or description", async () => {
     writeAgent(
       "incomplete",
-      [
-        "---",
-        "name: incomplete",
-        "---",
-        "Missing description.",
-      ].join("\n"),
+      ["---", "name: incomplete", "---", "Missing description."].join("\n"),
     );
     const agents = await loadUserSubAgents(tmpDir);
     expect(agents).toEqual([]);
@@ -138,13 +133,9 @@ describe("sub-agents loader", () => {
   it("rejects files with empty body", async () => {
     writeAgent(
       "empty-body",
-      [
-        "---",
-        "name: empty-body",
-        "description: Has no body",
-        "---",
-        "",
-      ].join("\n"),
+      ["---", "name: empty-body", "description: Has no body", "---", ""].join(
+        "\n",
+      ),
     );
     const agents = await loadUserSubAgents(tmpDir);
     expect(agents).toEqual([]);
@@ -157,23 +148,14 @@ describe("sub-agents loader", () => {
   });
 
   it("sorts results by name", async () => {
-    writeAgent(
-      "zeta",
-      "---\nname: zeta\ndescription: Z\n---\nbody",
-    );
-    writeAgent(
-      "alpha",
-      "---\nname: alpha\ndescription: A\n---\nbody",
-    );
+    writeAgent("zeta", "---\nname: zeta\ndescription: Z\n---\nbody");
+    writeAgent("alpha", "---\nname: alpha\ndescription: A\n---\nbody");
     const agents = await loadUserSubAgents(tmpDir);
     expect(agents.map((a) => a.name)).toEqual(["alpha", "zeta"]);
   });
 
   it("findSubAgent returns matching agent or null", async () => {
-    writeAgent(
-      "needle",
-      "---\nname: needle\ndescription: Find me\n---\nbody",
-    );
+    writeAgent("needle", "---\nname: needle\ndescription: Find me\n---\nbody");
     const found = await findSubAgent("needle", tmpDir);
     expect(found?.name).toBe("needle");
     const missing = await findSubAgent("nope", tmpDir);

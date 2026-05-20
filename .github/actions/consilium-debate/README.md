@@ -19,22 +19,22 @@ Use `id: debate` on the step to read `outputs.synthesis` and `outputs.debate-id`
 
 ## Inputs
 
-| Input          | Required | Default              | Description                                                                                                            |
-| -------------- | -------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `topic`        | yes      |                      | Debate topic or question.                                                                                              |
-| `mode`         | no       | `council`            | Mode: `council`, `quick`, `deep`, `blind`, `redteam`, `jury`, `market`, `auto`.                                        |
-| `models`       | no       | (user defaults)      | Comma-separated model IDs. Empty uses the account's defaults.                                                          |
-| `api-url`      | no       | hosted API           | Override the API origin (e.g., self-hosted Consilium).                                                                 |
-| `api-key`      | no       |                      | Consilium CLI token (`consilium_…`). Required when calling the hosted API.                                             |
-| `cli-version`  | no       | `latest`             | Pin the `@myconsilium/cli` version published to npm.                                                                   |
-| `node-version` | no       | `20`                 | Node version installed by `actions/setup-node`.                                                                        |
+| Input          | Required | Default         | Description                                                                     |
+| -------------- | -------- | --------------- | ------------------------------------------------------------------------------- |
+| `topic`        | yes      |                 | Debate topic or question.                                                       |
+| `mode`         | no       | `council`       | Mode: `council`, `quick`, `deep`, `blind`, `redteam`, `jury`, `market`, `auto`. |
+| `models`       | no       | (user defaults) | Comma-separated model IDs. Empty uses the account's defaults.                   |
+| `api-url`      | no       | hosted API      | Override the API origin (e.g., self-hosted Consilium).                          |
+| `api-key`      | no       |                 | Consilium CLI token (`consilium_…`). Required when calling the hosted API.      |
+| `cli-version`  | no       | `latest`        | Pin the `@myconsilium/cli` version published to npm.                            |
+| `node-version` | no       | `20`            | Node version installed by `actions/setup-node`.                                 |
 
 ## Outputs
 
-| Output       | Description                                                       |
-| ------------ | ----------------------------------------------------------------- |
-| `synthesis`  | Final synthesis text from the debate (raw markdown / plaintext).  |
-| `debate-id`  | Debate ID from the JSON envelope, when present.                   |
+| Output      | Description                                                      |
+| ----------- | ---------------------------------------------------------------- |
+| `synthesis` | Final synthesis text from the debate (raw markdown / plaintext). |
+| `debate-id` | Debate ID from the JSON envelope, when present.                  |
 
 ## How it works
 

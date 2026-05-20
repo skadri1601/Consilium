@@ -165,14 +165,11 @@ describe("matchesRule", () => {
   it("Mcp matches simple glob", () => {
     const rule = mod.parseRule("Mcp(linear/*)");
     expect(
-      mod.matchesRule(
-        { tool: "Mcp", target: "linear/list_issues" },
-        rule,
-      ),
+      mod.matchesRule({ tool: "Mcp", target: "linear/list_issues" }, rule),
     ).toBe(true);
-    expect(
-      mod.matchesRule({ tool: "Mcp", target: "sentry/list" }, rule),
-    ).toBe(false);
+    expect(mod.matchesRule({ tool: "Mcp", target: "sentry/list" }, rule)).toBe(
+      false,
+    );
   });
 });
 
@@ -183,9 +180,9 @@ describe("evaluate", () => {
       deny: [],
       ask: [],
     };
-    expect(
-      mod.evaluate({ tool: "Read", target: "./src/x.ts" }, empty),
-    ).toBe("ask");
+    expect(mod.evaluate({ tool: "Read", target: "./src/x.ts" }, empty)).toBe(
+      "ask",
+    );
   });
 
   it("deny beats allow when both match", () => {
@@ -194,12 +191,12 @@ describe("evaluate", () => {
       deny: [mod.parseRule("Read(./secrets/*)")],
       ask: [],
     };
-    expect(
-      mod.evaluate({ tool: "Read", target: "./secrets/key" }, rules),
-    ).toBe("deny");
-    expect(
-      mod.evaluate({ tool: "Read", target: "./src/x.ts" }, rules),
-    ).toBe("allow");
+    expect(mod.evaluate({ tool: "Read", target: "./secrets/key" }, rules)).toBe(
+      "deny",
+    );
+    expect(mod.evaluate({ tool: "Read", target: "./src/x.ts" }, rules)).toBe(
+      "allow",
+    );
   });
 
   it("ask beats allow when both match", () => {

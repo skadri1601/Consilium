@@ -776,7 +776,9 @@ async function runClassicDebateFlow(
   );
 
   if (aborted) {
-    console.log(st.warning(`Debate aborted: ${abortReason ?? "limit reached"}`));
+    console.log(
+      st.warning(`Debate aborted: ${abortReason ?? "limit reached"}`),
+    );
   } else {
     console.log(st.success("Debate complete.\n"));
   }
@@ -904,9 +906,7 @@ export async function debateCommand(
       const ref = await createWorktree(branch);
       if (!headless) {
         console.log(
-          st.success(
-            `Created worktree at ${ref.path} on branch ${ref.branch}`,
-          ),
+          st.success(`Created worktree at ${ref.path} on branch ${ref.branch}`),
         );
       }
       process.chdir(ref.path);
@@ -969,7 +969,10 @@ export async function debateCommand(
   }
 
   if (options.jsonSchema) {
-    const result = validateAgainstSchema(parseSynthesisForSchema(synthesis), options.jsonSchema);
+    const result = validateAgainstSchema(
+      parseSynthesisForSchema(synthesis),
+      options.jsonSchema,
+    );
     if (!result.ok) {
       const lines = ["Schema validation failed:"];
       for (const e of result.errors ?? []) lines.push("  - " + e);

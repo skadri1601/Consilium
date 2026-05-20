@@ -99,9 +99,13 @@ function printHelp(): void {
     theme.dim("  /ask <topic>    - Run one debate (same as typing the topic)"),
   );
   console.log(
-    theme.dim("  /mode [mode]    - Set debate mode: quick, council, deep, blind"),
+    theme.dim(
+      "  /mode [mode]    - Set debate mode: quick, council, deep, blind",
+    ),
   );
-  console.log(theme.dim("  /estimate       - Show cost estimate for next debate"));
+  console.log(
+    theme.dim("  /estimate       - Show cost estimate for next debate"),
+  );
   console.log(
     theme.dim(
       "  /output [fmt]   - Set output format: markdown, cursorrules, claude-md, json, text",
@@ -115,10 +119,14 @@ function printHelp(): void {
   );
   console.log(theme.dim("  /image <path>   - Add image to context"));
   console.log(
-    theme.dim("  @path/to/file   - Inline a file's content into your next message"),
+    theme.dim(
+      "  @path/to/file   - Inline a file's content into your next message",
+    ),
   );
   console.log(
-    theme.dim("  !cmd            - Run a shell command without sending to a debate"),
+    theme.dim(
+      "  !cmd            - Run a shell command without sending to a debate",
+    ),
   );
   console.log(
     theme.dim("  /workspace      - Detect project and show workspace info"),
@@ -155,7 +163,9 @@ function printHelp(): void {
     ),
   );
   console.log(
-    theme.dim("  /keys [open|status] - Provider LLM keys page or account status"),
+    theme.dim(
+      "  /keys [open|status] - Provider LLM keys page or account status",
+    ),
   );
   console.log(theme.dim("  /track, /insights - Open web analytics (usage)"));
   console.log(
@@ -436,8 +446,7 @@ async function buildAtMentionPrefix(
   for (const mention of limited) {
     const resolved = path.resolve(process.cwd(), mention);
     const root = rootInfo.root;
-    const inScope =
-      resolved === root || resolved.startsWith(root + path.sep);
+    const inScope = resolved === root || resolved.startsWith(root + path.sep);
     if (!inScope) {
       skipped.push(mention);
       continue;
@@ -782,7 +791,10 @@ function runDebateWithMentions(
       },
       (error: any) => {
         console.error(theme.error("\nDebate failed:"), error.message);
-        if (typeof error.message === "string" && error.message.includes("503")) {
+        if (
+          typeof error.message === "string" &&
+          error.message.includes("503")
+        ) {
           console.log(
             theme.warning(
               "Suggestion: Make sure the agents service is running:",
@@ -842,7 +854,9 @@ export async function chatCommand(): Promise<void> {
   }
 
   if (vimState.enabled) {
-    console.log(theme.dim("Vim mode enabled (Esc: NORMAL, i: INSERT, :q to quit)"));
+    console.log(
+      theme.dim("Vim mode enabled (Esc: NORMAL, i: INSERT, :q to quit)"),
+    );
   }
 
   const wsContext = await loadWorkspaceDebateContext({});

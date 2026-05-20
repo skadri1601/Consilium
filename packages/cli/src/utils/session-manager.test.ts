@@ -216,7 +216,10 @@ describe("forkSession", () => {
   });
 
   it("does not copy snapshots to the new fork", () => {
-    writeSessionFile("ses_with_snaps", makeSessionData({ id: "ses_with_snaps" }));
+    writeSessionFile(
+      "ses_with_snaps",
+      makeSessionData({ id: "ses_with_snaps" }),
+    );
     sm.snapshotSession("ses_with_snaps", "snap-a");
     sm.snapshotSession("ses_with_snaps", "snap-b");
     expect(sm.listSnapshots("ses_with_snaps")).toHaveLength(2);

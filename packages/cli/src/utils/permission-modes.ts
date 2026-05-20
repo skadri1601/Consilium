@@ -50,9 +50,10 @@ function persistMode(mode: PermissionMode): void {
     let current: Record<string, unknown> = {};
     if (fs.existsSync(CONFIG_FILE)) {
       try {
-        current = JSON.parse(
-          fs.readFileSync(CONFIG_FILE, "utf-8"),
-        ) as Record<string, unknown>;
+        current = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8")) as Record<
+          string,
+          unknown
+        >;
       } catch {
         current = {};
       }
