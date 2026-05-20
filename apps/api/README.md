@@ -7,7 +7,7 @@ NestJS 11 backend providing REST API, SSE streaming, and job queue orchestration
 | Layer      | Technology                                              |
 | ---------- | ------------------------------------------------------- |
 | Runtime    | NestJS 11 + Fastify                                     |
-| Hosting    | Render free tier (`render.yaml` blueprint)              |
+| Hosting    | DigitalOcean droplet (`docker-compose.droplet.yml`)     |
 | Auth       | Clerk SDK                                               |
 | Database   | Prisma ORM + Neon PostgreSQL                            |
 | Queue      | BullMQ (`debate-jobs`, 3 attempts, exponential backoff) |
@@ -112,7 +112,7 @@ pnpm prisma:migrate   # Run migrations
 
 ## Deployment
 
-Deployed to Render via `render.yaml` blueprint. Push to `main` triggers automatic deploy.
+Deployed to a DigitalOcean droplet via `docker-compose.droplet.yml`. Run `deploy.sh` on the droplet to pull `main`, rebuild containers, and restart services.
 
 Build command: `pnpm install && pnpm build`
 Start command: `pnpm start:prod`
