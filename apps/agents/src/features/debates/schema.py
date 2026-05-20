@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 
 class ApiKeys(BaseModel):
@@ -47,6 +47,14 @@ class DebateStartRequest(BaseModel):
         None,
         description="Codebase context metadata and files from CLI",
     )
+    reasoning_effort: Optional[Literal["low", "medium", "high", "xhigh", "max"]] = Field(
+        None,
+        alias="reasoningEffort",
+        description="Reasoning depth: low|medium|high|xhigh|max. Routed to provider-specific thinking controls.",
+    )
+
+    class Config:
+        populate_by_name = True
 
 
 class DebateStartResponse(BaseModel):

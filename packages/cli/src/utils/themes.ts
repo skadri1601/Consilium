@@ -58,6 +58,38 @@ const PALETTES: Record<string, ThemePalette> = {
     text: "#ffffff",
     dimText: "#cccccc",
   },
+  matrix: {
+    brand: "#00ff41",
+    success: "#00ff41",
+    error: "#ff5555",
+    warning: "#f1fa8c",
+    text: "#a8ffb0",
+    dimText: "#007f1f",
+  },
+  ocean: {
+    brand: "#22d3ee",
+    success: "#10b981",
+    error: "#f87171",
+    warning: "#fbbf24",
+    text: "#cffafe",
+    dimText: "#155e75",
+  },
+  sunset: {
+    brand: "#d946ef",
+    success: "#fbbf24",
+    error: "#ef4444",
+    warning: "#fb923c",
+    text: "#fde68a",
+    dimText: "#fb923c",
+  },
+  monokai: {
+    brand: "#fd971f",
+    success: "#a6e22e",
+    error: "#f92672",
+    warning: "#e6db74",
+    text: "#f8f8f2",
+    dimText: "#8c8c87",
+  },
 };
 
 function buildTheme(palette: ThemePalette): Theme {
@@ -86,6 +118,10 @@ export const THEMES: Record<string, Theme> = {
   dark: buildTheme(PALETTES.dark!),
   light: buildTheme(PALETTES.light!),
   "high-contrast": buildTheme(PALETTES["high-contrast"]!),
+  matrix: buildTheme(PALETTES.matrix!),
+  ocean: buildTheme(PALETTES.ocean!),
+  sunset: buildTheme(PALETTES.sunset!),
+  monokai: buildTheme(PALETTES.monokai!),
 };
 
 export const THEME_PALETTES: Record<string, ThemePalette> = PALETTES;

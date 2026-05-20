@@ -101,13 +101,19 @@ class BaseAgent(ABC):
 
     @abstractmethod
     async def generate_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, int]:
         pass
 
     @abstractmethod
     def stream_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> AsyncIterator[str]:
         ...
 

@@ -41,6 +41,7 @@ interface SessionExtras {
   schedules: Map<string, ScheduleHandle>;
   customCommandsLoaded: boolean;
   customCommands: Map<string, CustomCommandLike>;
+  activeDebateId?: string;
 }
 
 interface CustomCommandLike {
@@ -71,6 +72,17 @@ export function getSessionExtras(
   session: ChatSession,
 ): Readonly<SessionExtras> {
   return getExtras(session);
+}
+
+export function setActiveDebateId(
+  session: ChatSession,
+  debateId: string,
+): void {
+  getExtras(session).activeDebateId = debateId;
+}
+
+export function clearActiveDebateId(session: ChatSession): void {
+  getExtras(session).activeDebateId = undefined;
 }
 
 function parseDurationToMs(input: string): number | null {
@@ -139,6 +151,7 @@ import {
 } from "../utils/rollback";
 import { getGitDiff, getCurrentBranch } from "../utils/git-context";
 import { style } from "../utils/visual-system";
+import { getTUI } from "../utils/tui-renderer";
 import {
   handleConversationsCommand,
   handleContextCommand,
@@ -148,6 +161,13 @@ import {
   handleWorkspaceCommand,
 } from "../utils/chat-commands";
 import { log } from "../utils/logger";
+import { runDiagnostics, renderDiagnostics } from "../utils/diagnostics";
+import { checkAllConfiguredKeys } from "../utils/key-validator";
+import {
+  KeyManager,
+  PROVIDER_DISPLAY_NAMES,
+  type Provider,
+} from "../utils/key-manager";
 
 const st = style();
 
@@ -452,15 +472,182 @@ async function slashKeys(args: string[]): Promise<SlashResult> {
         );
         console.log(st.dim("Add keys:"), st.brand(keysUrl));
       }
+      await printLocalKeyHealth();
       console.log("");
     } catch {
       console.log(st.error("Could not reach API for key status.\n"));
+      await printLocalKeyHealth();
     }
     return "continue";
   }
 
   console.log(st.dim("Usage: /keys [open|status]"));
   console.log("");
+  return "continue";
+}
+
+async function printLocalKeyHealth(): Promise<void> {
+  const km = new KeyManager();
+  const configured = km.getAvailableProviders();
+  if (configured.length === 0) {
+    console.log(
+      st.dim("\nLocal provider keys: none in env or ~/.consilium/config.json"),
+    );
+    return;
+  }
+  console.log(st.bold("\nLocal provider keys (live health)"));
+  let results: Awaited<ReturnType<typeof checkAllConfiguredKeys>> = [];
+  try {
+    results = await checkAllConfiguredKeys();
+  } catch {
+    results = [];
+  }
+  const byProvider = new Map(results.map((r) => [r.provider, r] as const));
+  for (const provider of configured) {
+    const label =
+      (PROVIDER_DISPLAY_NAMES as Record<string, string | undefined>)[
+        provider
+      ] ?? provider;
+    const result = byProvider.get(provider as Provider);
+    if (!result) {
+      console.log(`  ${label.padEnd(16)} ${st.dim("? unknown")}`);
+      continue;
+    }
+    if (result.valid) {
+      const count =
+        typeof result.modelCount === "number"
+          ? ` (${result.modelCount} models)`
+          : "";
+      console.log(
+        `  ${label.padEnd(16)} ${st.success("✓ valid")}${st.dim(count)}`,
+      );
+    } else {
+      const reason = result.error ? st.dim(` - ${result.error}`) : "";
+      console.log(`  ${label.padEnd(16)} ${st.error("✗ invalid")}${reason}`);
+    }
+  }
+}
+
+function slashRecap(session: ChatSession): SlashResult {
+  const debates = (session.debates || []).filter((d) => d?.topic);
+  if (debates.length === 0) {
+    console.log(st.dim("\nNo debates in this session yet.\n"));
+    return "continue";
+  }
+  const lastFive = debates.slice(-5);
+  const parts: string[] = [];
+  for (let i = 0; i < lastFive.length; i++) {
+    const d = lastFive[i];
+    if (!d) continue;
+    const synthesis = d.goldenPrompt?.trim() ?? "";
+    const snippet =
+      synthesis.length > 0
+        ? synthesis.length > 140
+          ? `${synthesis.slice(0, 137)}...`
+          : synthesis
+        : "(no synthesis yet)";
+    parts.push(`(${i + 1}) "${d.topic}" - ${snippet}`);
+  }
+  const sessionLabel = session.name || session.id || "current session";
+  const totalNote =
+    debates.length > lastFive.length
+      ? ` Earlier turns omitted (showing last ${lastFive.length} of ${debates.length}).`
+      : "";
+  const paragraph = `Recap of ${sessionLabel}: across ${debates.length} debate(s), the most recent turns covered: ${parts.join(" ")}.${totalNote}`;
+  console.log(st.bold("\nSession recap\n"));
+  console.log(paragraph);
+  console.log("");
+  return "continue";
+}
+
+async function slashStop(session: ChatSession): Promise<SlashResult> {
+  const extras = getExtras(session);
+  const debateId = extras.activeDebateId;
+  if (!debateId) {
+    console.log(st.dim("\nNo active debate to stop.\n"));
+    return "continue";
+  }
+  try {
+    await session.client.cancelDebate(debateId);
+    extras.activeDebateId = undefined;
+    console.log(
+      st.success(`\nRequested cancel for debate ${debateId}.`),
+      st.dim(" The stream will emit debate:cancelled when the worker acks.\n"),
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`\nCould not cancel debate ${debateId}: ${msg}\n`));
+  }
+  return "continue";
+}
+
+async function slashDoctor(): Promise<SlashResult> {
+  console.log(st.dim("\nRunning diagnostics..."));
+  try {
+    const result = await runDiagnostics();
+    console.log("");
+    console.log(renderDiagnostics(result));
+    console.log("");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`\nDiagnostics failed: ${msg}\n`));
+  }
+  return "continue";
+}
+
+function slashHeapdump(): SlashResult {
+  const dir = path.join(
+    process.env.HOME || process.env.USERPROFILE || "",
+    ".consilium",
+    "diagnostics",
+  );
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`\nCould not create ${dir}: ${msg}\n`));
+    return "continue";
+  }
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const target = path.join(dir, `heap-${ts}.json`);
+  const report = (
+    process as unknown as {
+      report?: {
+        writeReport?: (filename?: string) => string | undefined;
+      };
+    }
+  ).report;
+  if (report && typeof report.writeReport === "function") {
+    try {
+      const written = report.writeReport(target) ?? target;
+      console.log(st.success(`\nHeap diagnostic written: ${written}\n`));
+      return "continue";
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.log(
+        st.warning(`process.report.writeReport failed (${msg}); falling back.`),
+      );
+    }
+  }
+  try {
+    const snapshot = {
+      timestamp: ts,
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch,
+      memoryUsage: process.memoryUsage(),
+      resourceUsage:
+        typeof process.resourceUsage === "function"
+          ? process.resourceUsage()
+          : null,
+      uptimeSeconds: process.uptime(),
+    };
+    fs.writeFileSync(target, JSON.stringify(snapshot, null, 2));
+    console.log(st.success(`\nHeap snapshot fallback written: ${target}\n`));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`\nCould not write heap snapshot: ${msg}\n`));
+  }
   return "continue";
 }
 
@@ -1155,6 +1342,22 @@ function slashEffort(args: string[], session: ChatSession): SlashResult {
   return "continue";
 }
 
+function slashTUI(): SlashResult {
+  if (!process.stdout.isTTY) {
+    console.log(st.warning("Fullscreen mode requires a TTY.\n"));
+    return "continue";
+  }
+  const tui = getTUI();
+  if (tui.isActive()) {
+    tui.leave();
+    console.log(st.dim("Fullscreen mode disabled"));
+  } else {
+    tui.enter();
+    console.log(st.dim("Fullscreen mode enabled. Use /tui again to disable."));
+  }
+  return "continue";
+}
+
 function slashUsage(session: ChatSession): SlashResult {
   const debates = session.debates || [];
   const totalDebates = debates.length;
@@ -1264,6 +1467,23 @@ function printExtendedHelp(session: ChatSession): void {
   console.log(st.dim("  /plan           - Toggle plan mode (writes gated)"));
   console.log(
     st.dim("  /effort <level> - Reasoning depth: low|medium|high|xhigh|max"),
+  );
+  console.log(st.bold("\n  Diagnostics"));
+  console.log(
+    st.dim("  /recap          - One-paragraph summary of last 5 debates"),
+  );
+  console.log(
+    st.dim("  /stop           - Cancel the in-flight debate (if any)"),
+  );
+  console.log(
+    st.dim(
+      "  /doctor         - System + API + provider key + autonomy + disk usage",
+    ),
+  );
+  console.log(
+    st.dim(
+      "  /heapdump       - Write a Node diagnostic report to ~/.consilium/diagnostics/",
+    ),
   );
 
   if (extras.customCommands.size > 0) {
@@ -1414,6 +1634,16 @@ export async function dispatchSlashCommand(
       return slashEffort(args, session);
     case "/usage":
       return slashUsage(session);
+    case "/tui":
+      return slashTUI();
+    case "/recap":
+      return slashRecap(session);
+    case "/stop":
+      return slashStop(session);
+    case "/doctor":
+      return slashDoctor();
+    case "/heapdump":
+      return slashHeapdump();
     default: {
       const name = cmd.startsWith("/") ? cmd.slice(1) : cmd;
       const extras = getExtras(session);

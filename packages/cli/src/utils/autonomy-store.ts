@@ -219,3 +219,101 @@ export function updateScheduleNextRun(
   list[idx] = { ...target, nextRunAt, lastRunAt };
   atomicWriteJson(file, list);
 }
+
+function listSessionIds(baseDir: string): string[] {
+  if (!fs.existsSync(baseDir)) return [];
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const ids: string[] = [];
+  for (const entry of entries) {
+    if (entry.isDirectory()) ids.push(entry.name);
+  }
+  return ids;
+}
+
+export function listAllLoops(
+  baseDir: string = DEFAULT_AUTONOMY_DIR,
+): LoopRegistration[] {
+  const out: LoopRegistration[] = [];
+  for (const sessionId of listSessionIds(baseDir)) {
+    const list = readJsonArray<LoopRegistration>(loopsPath(sessionId, baseDir));
+    for (const reg of list) {
+      if (
+        reg &&
+        typeof reg.id === "string" &&
+        typeof reg.sessionId === "string" &&
+        typeof reg.intervalMs === "number" &&
+        typeof reg.prompt === "string" &&
+        Number.isFinite(reg.intervalMs) &&
+        reg.intervalMs > 0
+      ) {
+        out.push(reg);
+      }
+    }
+  }
+  return out;
+}
+
+export function listAllSchedules(
+  baseDir: string = DEFAULT_AUTONOMY_DIR,
+): ScheduleRegistration[] {
+  const out: ScheduleRegistration[] = [];
+  for (const sessionId of listSessionIds(baseDir)) {
+    const list = readJsonArray<ScheduleRegistration>(
+      schedulesPath(sessionId, baseDir),
+    );
+    for (const reg of list) {
+      if (
+        reg &&
+        typeof reg.id === "string" &&
+        typeof reg.sessionId === "string" &&
+        typeof reg.intervalMs === "number" &&
+        typeof reg.nextRunAt === "number" &&
+        typeof reg.prompt === "string" &&
+        Number.isFinite(reg.intervalMs) &&
+        reg.intervalMs > 0 &&
+        Number.isFinite(reg.nextRunAt)
+      ) {
+        out.push(reg);
+      }
+    }
+  }
+  return out;
+}
+
+export function updateLastRun(
+  sessionId: string,
+  id: string,
+  ts: number,
+  baseDir: string = DEFAULT_AUTONOMY_DIR,
+): void {
+  const loopFile = loopsPath(sessionId, baseDir);
+  if (fs.existsSync(loopFile)) {
+    const list = readJsonArray<LoopRegistration>(loopFile);
+    const idx = list.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      const target = list[idx];
+      if (target) {
+        list[idx] = { ...target, lastRunAt: ts };
+        atomicWriteJson(loopFile, list);
+        return;
+      }
+    }
+  }
+  const schedFile = schedulesPath(sessionId, baseDir);
+  if (fs.existsSync(schedFile)) {
+    const list = readJsonArray<ScheduleRegistration>(schedFile);
+    const idx = list.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      const target = list[idx];
+      if (target) {
+        list[idx] = { ...target, lastRunAt: ts };
+        atomicWriteJson(schedFile, list);
+      }
+    }
+  }
+}

@@ -35,6 +35,7 @@ import {
 import { upgradeCommand } from "./commands/upgrade.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { modelsCommand } from "./commands/models.js";
+import { completionsCommand } from "./commands/completions.js";
 import {
   addServerCommand,
   listServersCommand,
@@ -43,12 +44,32 @@ import {
   toolsCommand,
 } from "./commands/mcp-servers.js";
 import {
+  browseCommand as mcpBrowseCommand,
+  installCommand as mcpInstallCommand,
+  searchCommand as mcpSearchCommand,
+  uninstallCommand as mcpUninstallCommand,
+} from "./commands/mcp-marketplace.js";
+import {
   listDebatesCommand,
   cancelDebateCommand,
   startDebateCommand,
   streamDebateCommand,
 } from "./commands/debates.js";
 import { registerAgentsCommand } from "./commands/agents.js";
+import {
+  schedulerRunDaemonCommand,
+  schedulerStartCommand,
+  schedulerStatusCommand,
+  schedulerStopCommand,
+  schedulerTailCommand,
+} from "./commands/scheduler.js";
+import {
+  linearCreateCommand,
+  linearDebateCommand,
+  linearListCommand,
+  linearUpdateCommand,
+  linearViewCommand,
+} from "./commands/linear.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
 
@@ -78,7 +99,10 @@ const KNOWN_SUBCOMMANDS = [
   "upgrade",
   "setup-token",
   "share",
+  "scheduler",
   "voice",
+  "linear",
+  "completions",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -462,6 +486,43 @@ async function main(): Promise<void> {
     .option("--json", "Emit as JSON")
     .action((opts: { json?: boolean }) => toolsCommand(opts));
 
+  mcp
+    .command("browse")
+    .description("Browse the curated MCP server marketplace")
+    .option("--json", "Emit as JSON")
+    .action((opts: { json?: boolean }) => mcpBrowseCommand(opts));
+
+  mcp
+    .command("search <query>")
+    .description(
+      "Search the MCP server marketplace by name, tag, or description",
+    )
+    .option("--json", "Emit as JSON")
+    .action((query: string, opts: { json?: boolean }) =>
+      mcpSearchCommand(query, opts),
+    );
+
+  mcp
+    .command("install <name>")
+    .description(
+      "Install a marketplace MCP server (npm install -g + add to config)",
+    )
+    .option("--json", "Emit as JSON")
+    .action((name: string, opts: { json?: boolean }) =>
+      mcpInstallCommand(name, opts),
+    );
+
+  mcp
+    .command("uninstall <name>")
+    .description(
+      "Remove an MCP server from config and npm-uninstall its package",
+    )
+    .option("--json", "Emit as JSON")
+    .option("--keep-package", "Remove only the config entry; leave npm package")
+    .action((name: string, opts: { json?: boolean; keepPackage?: boolean }) =>
+      mcpUninstallCommand(name, opts),
+    );
+
   program
     .command("models")
     .description("Show default models, full catalog, and deprecation status")
@@ -518,6 +579,38 @@ async function main(): Promise<void> {
     .action(startDebateCommand);
 
   registerAgentsCommand(program);
+
+  const scheduler = program
+    .command("scheduler")
+    .description(
+      "Standalone daemon that fires persisted /loop and /schedule registrations",
+    );
+
+  scheduler
+    .command("start")
+    .description("Start the scheduler daemon (detached background process)")
+    .action(() => schedulerStartCommand());
+
+  scheduler
+    .command("stop")
+    .description("Stop the running scheduler daemon")
+    .action(() => schedulerStopCommand());
+
+  scheduler
+    .command("status")
+    .description("Show scheduler running state and active loop/schedule counts")
+    .action(() => schedulerStatusCommand());
+
+  scheduler
+    .command("tail")
+    .description("Print the scheduler log")
+    .option("-f, --follow", "Follow the log (like tail -f)")
+    .action((opts: { follow?: boolean }) => schedulerTailCommand(opts));
+
+  scheduler
+    .command("__run__", { hidden: true })
+    .description("Internal: run the scheduler loop in this process")
+    .action(() => schedulerRunDaemonCommand());
 
   debates
     .command("stream")
@@ -654,6 +747,110 @@ async function main(): Promise<void> {
     )
     .action((sessionId: string, opts: { public?: boolean }) =>
       shareCommand(sessionId, opts),
+    );
+
+  program
+    .command("completions <shell>")
+    .description("Print shell completion script (bash|zsh|fish)")
+    .action((shell: string) => completionsCommand(shell));
+
+  const linear = program
+    .command("linear")
+    .description("Manage Linear (MYC-) issues from the CLI");
+
+  linear
+    .command("list")
+    .description("List Linear issues for the MYC team")
+    .option("--mine", "Only list issues assigned to you")
+    .option(
+      "--state <state>",
+      "Filter by workflow state name (e.g. Todo, Done)",
+    )
+    .option("--team <key>", "Linear team key (default: MYC)")
+    .action((opts: { mine?: boolean; state?: string; team?: string }) =>
+      linearListCommand(opts),
+    );
+
+  linear
+    .command("view <id>")
+    .description("Show one Linear issue (description, comments, state, labels)")
+    .option("--team <key>", "Linear team key (default: MYC)")
+    .action((id: string, opts: { team?: string }) =>
+      linearViewCommand(id, opts),
+    );
+
+  linear
+    .command("create <title>")
+    .description("Create a new Linear issue in the MYC team")
+    .option("--description <text>", "Issue description (markdown)")
+    .option("--label <label>", "Label name to apply")
+    .option("--assignee <email>", "Assignee email")
+    .option("--team <key>", "Linear team key (default: MYC)")
+    .action(
+      (
+        title: string,
+        opts: {
+          description?: string;
+          label?: string;
+          assignee?: string;
+          team?: string;
+        },
+      ) => linearCreateCommand(title, opts),
+    );
+
+  linear
+    .command("update <id>")
+    .description(
+      "Update a Linear issue's state, description, label, or assignee",
+    )
+    .option("--state <state>", "Workflow state name (e.g. In Progress, Done)")
+    .option("--description <text>", "Replace the issue description")
+    .option("--label <label>", "Replace labels with this single label")
+    .option("--assignee <email>", "Reassign to this user (by email)")
+    .option("--team <key>", "Linear team key (default: MYC)")
+    .action(
+      (
+        id: string,
+        opts: {
+          state?: string;
+          description?: string;
+          label?: string;
+          assignee?: string;
+          team?: string;
+        },
+      ) => linearUpdateCommand(id, opts),
+    );
+
+  linear
+    .command("debate <id>")
+    .description(
+      "Fetch a Linear issue and run a debate using its title + description as the topic",
+    )
+    .option("--mode <mode>", "Debate mode (default: council)")
+    .option(
+      "--post-comment",
+      "Post the synthesis back as a comment on the issue (placeholder, requires SSE wiring)",
+    )
+    .option("-m, --models <models...>", "Models to use")
+    .option("--team <key>", "Linear team key (default: MYC)")
+    .action(
+      (
+        id: string,
+        opts: {
+          mode?: string;
+          postComment?: boolean;
+          models?: string[];
+          team?: string;
+        },
+      ) =>
+        linearDebateCommand(id, {
+          ...(opts.mode !== undefined && { mode: opts.mode }),
+          ...(opts.postComment !== undefined && {
+            postComment: opts.postComment,
+          }),
+          ...(opts.models !== undefined && { models: opts.models }),
+          ...(opts.team !== undefined && { team: opts.team }),
+        }),
     );
 
   program.parse();

@@ -58,6 +58,39 @@ describe("themes registry", () => {
     expect(names).toContain("high-contrast");
   });
 
+  it("exposes matrix, ocean, sunset, and monokai themes", () => {
+    const names = mod.listThemeNames();
+    expect(names).toContain("matrix");
+    expect(names).toContain("ocean");
+    expect(names).toContain("sunset");
+    expect(names).toContain("monokai");
+  });
+
+  it.each(["matrix", "ocean", "sunset", "monokai"])(
+    "%s theme is gettable via THEMES and THEME_PALETTES",
+    (name) => {
+      const theme = mod.THEMES[name];
+      expect(theme).toBeDefined();
+      expect(typeof theme!.brand).toBe("function");
+      const palette = mod.THEME_PALETTES[name];
+      expect(palette).toBeDefined();
+      expect(palette!.brand).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(palette!.success).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(palette!.error).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(palette!.warning).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(palette!.text).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(palette!.dimText).toMatch(/^#[0-9a-fA-F]{6}$/);
+    },
+  );
+
+  it.each(["matrix", "ocean", "sunset", "monokai"])(
+    "setActiveTheme accepts %s",
+    (name) => {
+      mod.setActiveTheme(name);
+      expect(mod.getActiveThemeName()).toBe(name);
+    },
+  );
+
   it("provides identity functions when color is disabled", () => {
     const theme = mod.THEMES.default!;
     expect(theme.brand("x")).toBe("x");

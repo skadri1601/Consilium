@@ -5,6 +5,7 @@ class XAIAgent(BaseOpenAICompatAgent):
     """X.AI (Grok) agent (OpenAI-compatible API)."""
 
     base_url = "https://api.x.ai/v1"
+    supports_reasoning_effort = True
 
     def __init__(self, model_id: str = "grok-4-20", api_key: str | None = None):
         super().__init__(

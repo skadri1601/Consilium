@@ -39,6 +39,7 @@ import {
   detectImageBase64Mime,
   isImagePath,
 } from "../utils/chat-input-parser";
+import { getTUI } from "../utils/tui-renderer";
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || "",
@@ -946,6 +947,7 @@ export async function chatCommand(): Promise<void> {
     "/rename",
     "/delete",
     "/redo",
+    "/tui",
   ];
 
   function completer(line: string): [string[], string] {
@@ -972,7 +974,11 @@ export async function chatCommand(): Promise<void> {
   installModeCycleKeybinding(rl);
 
   await new Promise<void>((resolve) => {
-    rl.on("close", resolve);
+    rl.on("close", () => {
+      const tui = getTUI();
+      if (tui.isActive()) tui.leave();
+      resolve();
+    });
     runReplLoop(rl, history, session, sessionManager);
   });
 }

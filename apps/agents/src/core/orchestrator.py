@@ -135,9 +135,14 @@ async def _call_agent_try_generate(
     user_prompt: str,
     model_id: str,
     cost_tracker: CostTracker,
+    reasoning_effort: str | None = None,
 ) -> tuple[str, float] | None:
     raw_response, tokens_used = await asyncio.wait_for(
-        agent.generate_response(user_prompt, system_prompt=system_prompt),
+        agent.generate_response(
+            user_prompt,
+            system_prompt=system_prompt,
+            reasoning_effort=reasoning_effort,
+        ),
         timeout=60,
     )
     validated = _validate_response(raw_response)
@@ -177,10 +182,12 @@ async def _call_agent_single_attempt(
     cost_tracker: CostTracker,
     provider: str | None,
     attempt: int,
+    reasoning_effort: str | None = None,
 ) -> tuple[str, float] | None:
     try:
         pair = await _call_agent_try_generate(
             agent, system_prompt, user_prompt, model_id, cost_tracker,
+            reasoning_effort=reasoning_effort,
         )
         if pair is not None:
             validated, cost = pair
@@ -208,6 +215,7 @@ async def _call_agent(
     user_prompt: str,
     model_id: str,
     cost_tracker: CostTracker,
+    reasoning_effort: str | None = None,
 ) -> tuple[str, float]:
     provider = get_provider_for_model(model_id)
 
@@ -225,6 +233,7 @@ async def _call_agent(
         for attempt in range(MAX_RETRIES + 1):
             result = await _call_agent_single_attempt(
                 agent, system_prompt, user_prompt, model_id, cost_tracker, provider, attempt,
+                reasoning_effort=reasoning_effort,
             )
             if result is not None:
                 return result
@@ -274,6 +283,7 @@ class DebateOrchestrator:
         self._current_system_prompt: str | None = None
         self._current_sub_agents: bool = False
         self._current_project_context: dict | None = None
+        self._current_reasoning_effort: str | None = None
 
     def _journal_log(self, event: str | DebateEventName, data: dict, round_number: int | None = None) -> None:
         if not self._journal:
@@ -380,6 +390,7 @@ class DebateOrchestrator:
             try:
                 revised, cost = await _call_agent(
                     agent, ROUND_3_SYSTEM, prompt, model_id, self.cost_tracker,
+                    reasoning_effort=self._current_reasoning_effort,
                 )
                 if revised != FALLBACK_RESPONSE:
                     all_responses[3][model_id] = revised
@@ -677,6 +688,7 @@ class DebateOrchestrator:
         project_context: dict | None = None,
         mode: str = "council",
         user_tier: str | None = None,
+        reasoning_effort: str | None = None,
     ) -> AsyncGenerator[str, None]:
         self._debate_start_time = time.time()
         self._event_counter = 0
@@ -764,6 +776,7 @@ class DebateOrchestrator:
         self._current_system_prompt = system_prompt
         self._current_sub_agents = sub_agents
         self._current_project_context = project_context
+        self._current_reasoning_effort = reasoning_effort
 
         agents: dict[str, BaseAgent] = {}
         for model_id in model_ids:
@@ -943,7 +956,10 @@ class DebateOrchestrator:
                 self._task_registry.create_task(model_id, round_number, prompt_hash)
             yield self._emit(DebateEventName.AGENT_START, {"agent_id": model_id, "round": round_number}, round_number=round_number)
             tasks[model_id] = asyncio.create_task(
-                _call_agent(agent, system_prompt, user_prompt, model_id, self.cost_tracker)
+                _call_agent(
+                    agent, system_prompt, user_prompt, model_id, self.cost_tracker,
+                    reasoning_effort=self._current_reasoning_effort,
+                )
             )
 
         responses: dict[str, str] = {}
@@ -1000,6 +1016,7 @@ class DebateOrchestrator:
         judge_user_prompt = build_judge_user_prompt(topic, anon_r1, anon_r2, anon_r3)
         golden_prompt, _ = await _call_agent(
             judge_agent, JUDGE_SYSTEM, judge_user_prompt, judge_model_id, self.cost_tracker,
+            reasoning_effort=self._current_reasoning_effort,
         )
         if golden_prompt == FALLBACK_RESPONSE:
             raise RuntimeError("Judge returned fallback response")
@@ -1017,6 +1034,7 @@ class DebateOrchestrator:
         simplified_prompt = build_simplified_judge_prompt(topic, anon_r3 or anon_r2 or anon_r1)
         golden_prompt, _ = await _call_agent(
             judge_agent, SIMPLIFIED_JUDGE_SYSTEM, simplified_prompt, judge_model_id, self.cost_tracker,
+            reasoning_effort=self._current_reasoning_effort,
         )
         return golden_prompt
 
