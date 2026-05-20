@@ -91,7 +91,6 @@ rewrite_monorepo_urls() {
     -not -path '*/node_modules/*' -not -path '*/.git/*' \
     -exec sed -i \
       -e "s|github.com/${MONOREPO_OWNER}/${MONOREPO_NAME}|github.com/${MONOREPO_OWNER}/${repo_name}|g" \
-      -e "s|github.com/${MONOREPO_OWNER}/consilium|github.com/${MONOREPO_OWNER}/${repo_name}|g" \
       {} +
 }
 
