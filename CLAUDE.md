@@ -32,7 +32,7 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | Database      | packages/database/                                 | Prisma, Neon PostgreSQL                   | Neon                            |
 | Shared Types  | packages/shared/                                   | TypeScript                                | N/A (library)                   |
 | UI library    | packages/ui/                                       | shadcn/ui primitives                      | N/A (library)                   |
-| VS Code ext   | apps/vscode-extension/, packages/vscode-extension/ | TypeScript                                | VS Code marketplace             |
+| VS Code ext   | apps/vscode-extension/                             | TypeScript                                | VS Code marketplace             |
 
 ### Bot Infrastructure (agents/)
 
