@@ -239,37 +239,26 @@ describe("tailLogFile / attachToAgent", () => {
       cwd: "/tmp",
     });
     fs.writeFileSync(rec.logPath, "line-1\n");
-    let calls = 0;
     killSpy.mockImplementation(() => {
-      calls += 1;
-      if (calls > 2) {
-        const err = new Error("ESRCH") as NodeJS.ErrnoException;
-        err.code = "ESRCH";
-        throw err;
-      }
-      return true;
+      const err = new Error("ESRCH") as NodeJS.ErrnoException;
+      err.code = "ESRCH";
+      throw err;
     });
     const writes: string[] = [];
-    const sink = {
-      write: (chunk: string | Buffer) => {
-        writes.push(
-          typeof chunk === "string" ? chunk : chunk.toString("utf-8"),
-        );
-        return true;
-      },
-    } as unknown as NodeJS.WritableStream;
-    const origStdout = process.stdout.write.bind(process.stdout);
     const stdoutSpy = vi
       .spyOn(process.stdout, "write")
       .mockImplementation((chunk: string | Uint8Array) => {
-        sink.write(chunk as string);
+        writes.push(
+          typeof chunk === "string"
+            ? chunk
+            : Buffer.from(chunk).toString("utf-8"),
+        );
         return true;
       });
     try {
       await attachToAgent(rec.id);
     } finally {
       stdoutSpy.mockRestore();
-      void origStdout;
     }
     expect(writes.join("")).toContain("line-1");
   });

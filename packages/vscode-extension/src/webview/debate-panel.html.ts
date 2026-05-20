@@ -222,6 +222,20 @@ export function renderDebatePanelHtml(opts: DebatePanelHtmlOptions): string {
             </div>
             <span class="dp-status" id="dp-status">Starting…</span>
           </div>
+          <div
+            class="dp-meta"
+            id="dp-session-row"
+            style="margin-top: 6px; display: none;"
+          >
+            <div class="dp-meta-row">
+              <span class="dp-meta-label">Saved</span>
+              <a
+                href="#"
+                id="dp-session-link"
+                style="color: var(--vscode-textLink-foreground); text-decoration: none;"
+              ></a>
+            </div>
+          </div>
         </header>
         <main id="stream"></main>
         <footer class="dp-actions">
@@ -563,6 +577,21 @@ export function renderDebatePanelHtml(opts: DebatePanelHtmlOptions): string {
               else if (kind) appendSystem("[" + kind + "]");
             }
 
+            const sessionRow = document.getElementById("dp-session-row");
+            const sessionLink = document.getElementById("dp-session-link");
+            if (sessionLink) {
+              sessionLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                const id = sessionLink.dataset.sessionId;
+                if (id) {
+                  vscode.postMessage({
+                    type: "openSavedSession",
+                    sessionId: id,
+                  });
+                }
+              });
+            }
+
             const messageHandlers = {
               event: (msg) => handleEvent(msg.payload),
               status: (msg) => setStatus(String(msg.text || "")),
@@ -574,6 +603,16 @@ export function renderDebatePanelHtml(opts: DebatePanelHtmlOptions): string {
               error: (msg) => {
                 appendError(String(msg.message || "Unknown error"));
                 setFinished("Error");
+              },
+              sessionSaved: (msg) => {
+                if (!sessionRow || !sessionLink) return;
+                const title = String(
+                  msg.sessionTitle || msg.sessionId || "session",
+                );
+                sessionLink.textContent = title;
+                sessionLink.dataset.sessionId = String(msg.sessionId || "");
+                sessionRow.style.display = "flex";
+                appendSystem("Saved to session: " + title);
               },
             };
 

@@ -193,6 +193,26 @@ export class ConsiliumClient {
     return this.openSseStream(`/debates/${id}/stream`, onEvent);
   }
 
+  async createSession(name?: string): Promise<{ id: string; title: string }> {
+    const title = (
+      name && name.trim().length > 0 ? name : "VS Code Session"
+    ).slice(0, 200);
+    return this.request<{ id: string; title: string }>(
+      "POST",
+      "/v2/conversations",
+      { title },
+    );
+  }
+
+  async appendDebateToSession(
+    sessionId: string,
+    debateId: string,
+  ): Promise<void> {
+    await this.request<void>("POST", `/v2/conversations/${sessionId}/debates`, {
+      debateId,
+    });
+  }
+
   async createDeliberation(
     payload: CreateDeliberationRequest,
   ): Promise<{ id: string }> {

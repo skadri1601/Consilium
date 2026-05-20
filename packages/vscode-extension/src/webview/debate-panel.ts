@@ -15,6 +15,7 @@ export interface OpenDebatePanelOptions {
   models?: string[];
   initialEtaSeconds?: number;
   viewColumn?: vscode.ViewColumn;
+  sessionId?: string;
 }
 
 export interface AttachExistingDebateOptions {
@@ -23,6 +24,33 @@ export interface AttachExistingDebateOptions {
   mode: string;
   models?: string[];
   viewColumn?: vscode.ViewColumn;
+  sessionId?: string;
+}
+
+interface DebateRoundRecord {
+  phase: string;
+  agentId: string;
+  content: string;
+  timestamp: number;
+}
+
+interface DebateRecord {
+  topic: string;
+  mode: string;
+  models?: string[];
+  synthesis: string;
+  rounds: DebateRoundRecord[];
+  cost?: { totalUsd: number; perAgent: Record<string, number> };
+  durationMs: number;
+  completedAt: number;
+}
+
+let outputChannel: vscode.OutputChannel | undefined;
+function getOutputChannel(): vscode.OutputChannel {
+  if (!outputChannel) {
+    outputChannel = vscode.window.createOutputChannel("Consilium");
+  }
+  return outputChannel;
 }
 
 export class DebatePanel {
@@ -36,6 +64,15 @@ export class DebatePanel {
   private currentRound: number | undefined;
   private readonly mode: string;
   private readonly topic: string;
+  private readonly models: string[];
+  private sessionId: string | undefined;
+  private wasCanceled = false;
+  private persistAttempted = false;
+  private startedAt: number | undefined;
+  private currentPhase = "init";
+  private readonly rounds: DebateRoundRecord[] = [];
+  private readonly agentBuffers = new Map<string, string>();
+  private readonly perAgentCost: Record<string, number> = {};
 
   constructor(
     private readonly client: ConsiliumClient,
@@ -48,10 +85,13 @@ export class DebatePanel {
       models: string[];
       etaSeconds?: number;
       viewColumn?: vscode.ViewColumn;
+      sessionId?: string;
     },
   ) {
     this.topic = init.topic;
     this.mode = init.mode;
+    this.models = init.models;
+    this.sessionId = init.sessionId;
     const nonce = makeNonce();
     this.panel = vscode.window.createWebviewPanel(
       "consilium.debate",
@@ -129,6 +169,7 @@ export class DebatePanel {
 
     this.statusBar.update({ kind: "starting", mode: this.mode });
     this.post({ type: "status", text: "Creating debate…" });
+    this.startedAt = Date.now();
 
     try {
       const created = await this.client.createDebate(payload);
@@ -145,6 +186,7 @@ export class DebatePanel {
 
   async attach(opts: { debateId: string }): Promise<void> {
     this.debateId = opts.debateId;
+    this.startedAt = Date.now();
     this.post({ type: "status", text: "Streaming existing session…" });
     this.statusBar.update({ kind: "running", mode: this.mode });
     this.streamDebate(opts.debateId);
@@ -164,6 +206,7 @@ export class DebatePanel {
           this.post({ type: "completed" });
           this.statusBar.update({ kind: "consensus", cost: this.totalCost });
         }
+        void this.persistDebate();
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
@@ -180,6 +223,42 @@ export class DebatePanel {
     const eventType = event.event ?? event.type;
     if (eventType === "round_start" && typeof event.round === "number") {
       this.currentRound = event.round;
+      this.currentPhase = `round_${event.round}`;
+    }
+    if (eventType === "phase_change" && typeof event.phase === "string") {
+      this.currentPhase = event.phase;
+    }
+    if (eventType === "agent_start") {
+      const agentId =
+        stringField(event, "agentId") ?? stringField(event, "agent");
+      if (agentId) this.agentBuffers.set(agentId, "");
+    }
+    if (eventType === "agent_chunk") {
+      const agentId =
+        stringField(event, "agentId") ?? stringField(event, "agent");
+      const chunk = stringField(event, "chunk");
+      if (agentId && chunk) {
+        const prev = this.agentBuffers.get(agentId) ?? "";
+        this.agentBuffers.set(agentId, prev + chunk);
+      }
+    }
+    if (eventType === "agent_complete") {
+      const agentId =
+        stringField(event, "agentId") ?? stringField(event, "agent");
+      if (agentId) {
+        const content = this.agentBuffers.get(agentId) ?? "";
+        this.rounds.push({
+          phase: this.currentPhase,
+          agentId,
+          content,
+          timestamp: Date.now(),
+        });
+        this.agentBuffers.delete(agentId);
+        if (typeof event.cost === "number") {
+          this.perAgentCost[agentId] =
+            (this.perAgentCost[agentId] ?? 0) + event.cost;
+        }
+      }
     }
     if (eventType === "cost_update" && typeof event.totalCost === "number") {
       this.totalCost = event.totalCost;
@@ -203,6 +282,56 @@ export class DebatePanel {
       !this.goldenPrompt
     ) {
       this.goldenPrompt = event.goldenPrompt;
+    }
+  }
+
+  private async persistDebate(): Promise<void> {
+    if (this.persistAttempted) return;
+    if (this.wasCanceled) return;
+    if (!this.debateId) return;
+    if (!this.goldenPrompt) return;
+    this.persistAttempted = true;
+
+    const record: DebateRecord = {
+      topic: this.topic,
+      mode: this.mode,
+      models: this.models,
+      synthesis: this.goldenPrompt,
+      rounds: [...this.rounds],
+      cost: {
+        totalUsd: this.totalCost,
+        perAgent: { ...this.perAgentCost },
+      },
+      durationMs: this.startedAt ? Date.now() - this.startedAt : 0,
+      completedAt: Date.now(),
+    };
+
+    try {
+      let sessionId = this.sessionId;
+      let sessionTitle = this.topic.slice(0, 60);
+      if (!sessionId) {
+        const created = await this.client.createSession(sessionTitle);
+        sessionId = created.id;
+        sessionTitle = created.title || sessionTitle;
+        this.sessionId = sessionId;
+      }
+      await this.client.appendDebateToSession(sessionId, this.debateId);
+      this.post({
+        type: "sessionSaved",
+        sessionId,
+        sessionTitle,
+        debateId: this.debateId,
+        record,
+      });
+      this.onChanged();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      getOutputChannel().appendLine(
+        `[session-sync] Failed to persist debate ${this.debateId}: ${message}`,
+      );
+      void vscode.window.showWarningMessage(
+        `Debate completed but failed to save: ${message}`,
+      );
     }
   }
 
@@ -235,11 +364,15 @@ export class DebatePanel {
           await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
         }
         return;
+      case "openSavedSession":
+        await vscode.commands.executeCommand("consilium.refresh");
+        return;
     }
   }
 
   async cancel(): Promise<void> {
     if (this.finished) return;
+    this.wasCanceled = true;
     if (this.stream) {
       try {
         this.stream.cancel();
@@ -298,6 +431,7 @@ export async function openDebatePanel(
     models,
     etaSeconds: opts.initialEtaSeconds,
     viewColumn: opts.viewColumn,
+    sessionId: opts.sessionId,
   });
   await panel.start();
   return panel;
@@ -317,9 +451,15 @@ export async function attachExistingDebatePanel(
     mode: opts.mode,
     models,
     viewColumn: opts.viewColumn,
+    sessionId: opts.sessionId,
   });
   await panel.attach({ debateId: opts.debateId });
   return panel;
+}
+
+function stringField(event: SseEnvelope, key: string): string | undefined {
+  const value = event[key];
+  return typeof value === "string" ? value : undefined;
 }
 
 async function insertAtCursor(text: string): Promise<void> {

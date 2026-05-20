@@ -1,9 +1,23 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import type { Interface as ReadlineInterface } from "node:readline";
-import { ChatSession } from "./chat-session";
+import type { ChatSession } from "./chat-session";
 import { SessionManager } from "../utils/session-manager";
+import {
+  clearGoal,
+  getGoalForSession,
+  listLoopsForSession,
+  listSchedulesForSession,
+  persistGoal,
+  persistLoop,
+  persistSchedule,
+  removeLoop,
+  removeSchedule,
+  updateLoopLastRun,
+  updateScheduleNextRun,
+  type LoopRegistration,
+  type ScheduleRegistration,
+} from "../utils/autonomy-store";
 
 type LoopHandle = {
   id: string;
@@ -938,11 +952,29 @@ function slashLoop(args: string[], session: ChatSession): SlashResult {
 
   const extras = getExtras(session);
   const id = makeLocalId("loop");
+  const sessionId = session.id ?? "__pending__";
   const timer = setInterval(() => {
     console.log(st.dim(`\n[loop ${id}] tick - prompt queued: ${promptText}\n`));
+    try {
+      updateLoopLastRun(sessionId, id, Date.now());
+    } catch {
+      // best-effort metadata refresh
+    }
   }, intervalMs);
   if (typeof timer.unref === "function") timer.unref();
   extras.loops.set(id, { id, intervalMs, prompt: promptText, timer });
+
+  try {
+    persistLoop({
+      id,
+      sessionId,
+      intervalMs,
+      prompt: promptText,
+      createdAt: Date.now(),
+    });
+  } catch {
+    // best-effort persistence; loop still runs in-process
+  }
 
   console.log(
     st.success(
@@ -951,7 +983,7 @@ function slashLoop(args: string[], session: ChatSession): SlashResult {
   );
   console.log(
     st.dim(
-      "  Loops run while this REPL is open. Persistence is deferred (--persist).\n",
+      "  Loops persist across /exit and resume on next chat for this session.\n",
     ),
   );
   return "continue";
@@ -959,6 +991,7 @@ function slashLoop(args: string[], session: ChatSession): SlashResult {
 
 function slashGoal(args: string[], session: ChatSession): SlashResult {
   const extras = getExtras(session);
+  const sessionId = session.id ?? "__pending__";
   const sub = args[0]?.toLowerCase();
   if (!args.length) {
     if (extras.goal) {
@@ -972,6 +1005,11 @@ function slashGoal(args: string[], session: ChatSession): SlashResult {
   }
   if (sub === "clear" || sub === "reset" || sub === "remove") {
     extras.goal = undefined;
+    try {
+      clearGoal(sessionId);
+    } catch {
+      // best-effort
+    }
     console.log(st.success("Session goal cleared.\n"));
     return "continue";
   }
@@ -981,6 +1019,11 @@ function slashGoal(args: string[], session: ChatSession): SlashResult {
     return "continue";
   }
   extras.goal = text;
+  try {
+    persistGoal({ sessionId, text, setAt: Date.now() });
+  } catch {
+    // best-effort persistence
+  }
   console.log(
     st.success("Session goal set."),
     st.dim('  Future turns will include: "Working toward: ..."\n'),
@@ -1012,10 +1055,17 @@ function slashSchedule(args: string[], session: ChatSession): SlashResult {
 
   const extras = getExtras(session);
   const id = makeLocalId("sched");
+  const sessionId = session.id ?? "__pending__";
+  const createdAt = Date.now();
   const timer = setInterval(() => {
     console.log(
       st.dim(`\n[schedule ${id}] tick - prompt queued: ${promptText}\n`),
     );
+    try {
+      updateScheduleNextRun(sessionId, id, Date.now() + intervalMs, Date.now());
+    } catch {
+      // best-effort metadata refresh
+    }
   }, intervalMs);
   if (typeof timer.unref === "function") timer.unref();
   extras.schedules.set(id, {
@@ -1027,25 +1077,15 @@ function slashSchedule(args: string[], session: ChatSession): SlashResult {
   });
 
   try {
-    const dir = path.join(os.homedir(), ".consilium", "schedules");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const file = path.join(dir, `${id}.json`);
-    fs.writeFileSync(
-      file,
-      JSON.stringify(
-        {
-          id,
-          sessionId: session.id ?? null,
-          spec,
-          intervalMs,
-          prompt: promptText,
-          createdAt: new Date().toISOString(),
-        },
-        null,
-        2,
-      ),
-      "utf-8",
-    );
+    persistSchedule({
+      id,
+      sessionId,
+      spec,
+      intervalMs,
+      nextRunAt: createdAt + intervalMs,
+      prompt: promptText,
+      createdAt,
+    });
   } catch {
     // best-effort persistence; loop still runs in-process
   }
@@ -1053,7 +1093,7 @@ function slashSchedule(args: string[], session: ChatSession): SlashResult {
   console.log(
     st.success(`Scheduled (${id}).`),
     st.dim(
-      `  Will run every ${formatDurationMs(intervalMs)} while REPL is open.\n`,
+      `  Will run every ${formatDurationMs(intervalMs)} (persists across /exit).\n`,
     ),
   );
   return "continue";
@@ -1395,4 +1435,142 @@ export async function dispatchSlashCommand(
       return "continue";
     }
   }
+}
+
+function rehydrateLoop(session: ChatSession, reg: LoopRegistration): void {
+  const extras = getExtras(session);
+  if (extras.loops.has(reg.id)) return;
+  const timer = setInterval(() => {
+    console.log(
+      st.dim(`\n[loop ${reg.id}] tick - prompt queued: ${reg.prompt}\n`),
+    );
+    try {
+      updateLoopLastRun(reg.sessionId, reg.id, Date.now());
+    } catch {
+      // best-effort
+    }
+  }, reg.intervalMs);
+  if (typeof timer.unref === "function") timer.unref();
+  extras.loops.set(reg.id, {
+    id: reg.id,
+    intervalMs: reg.intervalMs,
+    prompt: reg.prompt,
+    timer,
+  });
+}
+
+function rehydrateSchedule(
+  session: ChatSession,
+  reg: ScheduleRegistration,
+): void {
+  const extras = getExtras(session);
+  if (extras.schedules.has(reg.id)) return;
+  const tick = (): void => {
+    console.log(
+      st.dim(`\n[schedule ${reg.id}] tick - prompt queued: ${reg.prompt}\n`),
+    );
+    try {
+      updateScheduleNextRun(
+        reg.sessionId,
+        reg.id,
+        Date.now() + reg.intervalMs,
+        Date.now(),
+      );
+    } catch {
+      // best-effort
+    }
+  };
+  const now = Date.now();
+  const due = Math.max(0, reg.nextRunAt - now);
+  if (due === 0) {
+    tick();
+  }
+  const timer = setInterval(tick, reg.intervalMs);
+  if (typeof timer.unref === "function") timer.unref();
+  extras.schedules.set(reg.id, {
+    id: reg.id,
+    prompt: reg.prompt,
+    spec: reg.spec,
+    intervalMs: reg.intervalMs,
+    timer,
+  });
+}
+
+export function replayAutonomy(session: ChatSession): {
+  loops: number;
+  schedules: number;
+  goal: boolean;
+} {
+  const sessionId = session.id ?? "__pending__";
+  const extras = getExtras(session);
+  let loops = 0;
+  let schedules = 0;
+  let goalLoaded = false;
+
+  try {
+    const persistedLoops = listLoopsForSession(sessionId);
+    for (const reg of persistedLoops) {
+      rehydrateLoop(session, reg);
+      loops += 1;
+    }
+  } catch {
+    // ignore corrupt persistence; CLI keeps running
+  }
+
+  try {
+    const persistedSchedules = listSchedulesForSession(sessionId);
+    for (const reg of persistedSchedules) {
+      rehydrateSchedule(session, reg);
+      schedules += 1;
+    }
+  } catch {
+    // ignore corrupt persistence
+  }
+
+  try {
+    const goal = getGoalForSession(sessionId);
+    if (goal?.text) {
+      extras.goal = goal.text;
+      goalLoaded = true;
+    }
+  } catch {
+    // ignore
+  }
+
+  return { loops, schedules, goal: goalLoaded };
+}
+
+export function clearAutonomyLoop(session: ChatSession, id: string): boolean {
+  const sessionId = session.id ?? "__pending__";
+  const extras = getExtras(session);
+  const handle = extras.loops.get(id);
+  if (handle) {
+    clearInterval(handle.timer);
+    extras.loops.delete(id);
+  }
+  try {
+    removeLoop(sessionId, id);
+  } catch {
+    // ignore
+  }
+  return handle !== undefined;
+}
+
+export function clearAutonomySchedule(
+  session: ChatSession,
+  id: string,
+): boolean {
+  const sessionId = session.id ?? "__pending__";
+  const extras = getExtras(session);
+  const handle = extras.schedules.get(id);
+  if (handle) {
+    clearInterval(handle.timer);
+    extras.schedules.delete(id);
+  }
+  try {
+    removeSchedule(sessionId, id);
+  } catch {
+    // ignore
+  }
+  return handle !== undefined;
 }

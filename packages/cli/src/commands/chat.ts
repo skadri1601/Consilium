@@ -24,6 +24,12 @@ import { requestCodebasePermission } from "../utils/codebase-permissions";
 import { resolveProjectRoot } from "../utils/project-root";
 import { getActiveTheme, type Theme } from "../utils/themes";
 import {
+  cycleMode,
+  describeMode,
+  getCurrentMode,
+  type PermissionMode,
+} from "../utils/permission-modes";
+import {
   parseAtMentions,
   isShellPassthrough,
   extractShellCommand,
@@ -72,9 +78,24 @@ function vimSuffix(): string {
   return terminal.hasColor ? theme.dim(tag + " ") : tag + " ";
 }
 
+function modeIndicator(): string {
+  let mode: PermissionMode;
+  try {
+    mode = getCurrentMode();
+  } catch {
+    return "";
+  }
+  const tag = `[${mode}]`;
+  if (!terminal.hasColor) return tag + " ";
+  if (mode === "plan") return theme.warning(tag) + " ";
+  if (mode === "bypass") return theme.error(tag) + " ";
+  if (mode === "acceptEdits" || mode === "auto") return theme.brand(tag) + " ";
+  return theme.dim(tag) + " ";
+}
+
 function getPrompt(session: ChatSession): string {
   const base = formatPrompt({ fileCount: session.contextFilePaths.length });
-  return `${vimSuffix()}${base} `;
+  return `${modeIndicator()}${vimSuffix()}${base} `;
 }
 
 function printWelcome(): void {
@@ -584,6 +605,25 @@ async function tryAttachPastedImage(
   return false;
 }
 
+function installModeCycleKeybinding(rl: readline.Interface): void {
+  if (!process.stdin.isTTY) return;
+  try {
+    readline.emitKeypressEvents(process.stdin, rl);
+  } catch {
+    return;
+  }
+  process.stdin.on("keypress", (_str, key) => {
+    if (!key) return;
+    if (key.shift && key.name === "tab") {
+      const next = cycleMode();
+      process.stdout.write(`\n[mode] ${next} - ${describeMode(next)}\n`);
+      const session = currentSessionRef;
+      rl.setPrompt(session ? getPrompt(session) : DEFAULT_PROMPT);
+      rl.prompt(true);
+    }
+  });
+}
+
 function installVimKeybindings(rl: readline.Interface): void {
   if (!vimState.enabled) return;
   if (!process.stdin.isTTY) return;
@@ -929,6 +969,7 @@ export async function chatCommand(): Promise<void> {
   });
 
   installVimKeybindings(rl);
+  installModeCycleKeybinding(rl);
 
   await new Promise<void>((resolve) => {
     rl.on("close", resolve);
@@ -976,6 +1017,7 @@ export async function chatResumeCommand(sessionId: string): Promise<void> {
     });
 
     installVimKeybindings(rl);
+    installModeCycleKeybinding(rl);
     runReplLoop(rl, history, session, sessionManager);
   } catch (error: any) {
     console.error(theme.error("Failed to load session:"), error.message);

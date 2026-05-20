@@ -41,6 +41,7 @@ export interface DebateOptions {
   debateSource?: "web" | "cli" | "mcp";
   tools?: ToolSchema[];
   toolBudget?: ToolBudget;
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh" | "max";
 }
 
 export interface DeliberationOptions {
@@ -424,6 +425,8 @@ export class ConsiliumClient {
       if (Object.keys(pc).length > 0) body.projectContext = pc;
       if (options.tools?.length) body.tools = options.tools;
       if (options.toolBudget) body.toolBudget = options.toolBudget;
+      if (options.reasoningEffort)
+        body.reasoningEffort = options.reasoningEffort;
 
       if (process.env.CONSILIUM_DEBUG) {
         const fileNames = pc.files?.map((f: any) => f.name) || [];

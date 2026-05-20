@@ -3,6 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
 import { style } from "./visual-system";
+import { evaluate, loadRulesFromConfig } from "./permission-grammar";
+import { isPlanModeActive } from "./plan-mode";
+import { getCurrentMode } from "./permission-modes";
 
 const PERMISSIONS_FILE = path.join(
   os.homedir(),
@@ -358,6 +361,12 @@ export async function requestCodebasePermission(
   directory: string,
 ): Promise<boolean> {
   const normalized = normalizeScope(directory);
+
+  const rules = loadRulesFromConfig();
+  const verdict = evaluate({ tool: "Read", target: normalized }, rules);
+  if (verdict === "allow") return true;
+  if (verdict === "deny") return false;
+
   const existing = getReadPermissionMatch(normalized);
   if (existing) {
     if (existing.level === "deny") return false;
@@ -407,6 +416,30 @@ export async function requestWritePermission(
   directory: string,
 ): Promise<WritePermissionLevel> {
   const normalized = normalizeScope(directory);
+
+  const mode = getCurrentMode();
+  if (mode === "plan" || isPlanModeActive()) {
+    if (shouldShowNotice()) {
+      const st = style();
+      process.stdout.write(
+        `${st.warning("[PLAN MODE]")} ${st.dim("Write blocked while plan mode is active.")}\n`,
+      );
+    }
+    return "deny";
+  }
+  if (
+    mode === "bypass" &&
+    (process.env.CONSILIUM_ALLOW_BYPASS === "1" ||
+      process.env.CONSILIUM_ALLOW_BYPASS === "true")
+  ) {
+    return "always";
+  }
+
+  const rules = loadRulesFromConfig();
+  const verdict = evaluate({ tool: "Write", target: normalized }, rules);
+  if (verdict === "allow") return "always";
+  if (verdict === "deny") return "deny";
+
   const match = getWritePermissionMatch(normalized);
   if (match) {
     if (match.level === "always") {
