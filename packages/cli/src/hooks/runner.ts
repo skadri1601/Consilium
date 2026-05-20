@@ -184,3 +184,15 @@ export async function runHooks(
 export function shouldBlock(results: HookResult[]): boolean {
   return results.some((r) => r.block === true);
 }
+
+export async function safeRunHooks(
+  event: HookEvent,
+  payload: Record<string, unknown>,
+  options: HookRunnerOptions = {},
+): Promise<HookResult[]> {
+  try {
+    return await runHooks(event, payload, options);
+  } catch {
+    return [];
+  }
+}

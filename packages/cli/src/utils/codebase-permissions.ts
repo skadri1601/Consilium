@@ -6,6 +6,7 @@ import { style } from "./visual-system";
 import { evaluate, loadRulesFromConfig } from "./permission-grammar";
 import { isPlanModeActive } from "./plan-mode";
 import { getCurrentMode } from "./permission-modes";
+import { safeRunHooks } from "../hooks/runner";
 
 const PERMISSIONS_FILE = path.join(
   os.homedir(),
@@ -382,6 +383,11 @@ export async function requestCodebasePermission(
     return false;
   }
 
+  await safeRunHooks("PermissionRequest", {
+    directory: normalized,
+    level: "read",
+  });
+
   const answer = await askChoice(
     `Consilium wants to read project files under ${normalized}.\nAllow read access? [n/session/always] `,
   );
@@ -455,6 +461,11 @@ export async function requestWritePermission(
   if (!process.stdin.isTTY) {
     return "deny";
   }
+
+  await safeRunHooks("PermissionRequest", {
+    directory: normalized,
+    level: "write",
+  });
 
   const answer = await askChoice(
     `Consilium wants to edit files under ${normalized}.\nAllow write access? [n/once/session/always] `,

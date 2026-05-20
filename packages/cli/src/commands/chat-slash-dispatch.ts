@@ -150,6 +150,8 @@ import {
   type RollbackSnapshot,
 } from "../utils/rollback";
 import { getGitDiff, getCurrentBranch } from "../utils/git-context";
+import { navigateDiffs, parseUnifiedDiff } from "../utils/diff-navigator";
+import readline from "node:readline";
 import { style } from "../utils/visual-system";
 import { getTUI } from "../utils/tui-renderer";
 import {
@@ -651,6 +653,23 @@ function slashHeapdump(): SlashResult {
   return "continue";
 }
 
+async function slashSubAgent(args: string[]): Promise<SlashResult> {
+  const { subAgentsListCommand, subAgentsRunCommand } =
+    await import("./sub-agents.js");
+  if (args.length === 0 || args[0] === "list") {
+    await subAgentsListCommand();
+    return "continue";
+  }
+  const name = args[0];
+  const prompt = args.slice(1).join(" ").trim();
+  if (!name || !prompt) {
+    console.log(st.warning("Usage: /sub-agent <name> <prompt>"));
+    return "continue";
+  }
+  await subAgentsRunCommand(name, prompt);
+  return "continue";
+}
+
 async function slashCodebase(args: string[]): Promise<SlashResult> {
   const rootInfo = resolveProjectRoot(process.cwd());
   const scopePath = rootInfo.root;
@@ -953,6 +972,39 @@ async function slashGitDiff(): Promise<SlashResult> {
   const truncated =
     diff.length > 6000 ? diff.slice(0, 6000) + "\n... (truncated)" : diff;
   console.log(truncated);
+  console.log("");
+
+  if (!process.stdin.isTTY) {
+    return "continue";
+  }
+
+  const answer = await new Promise<string>((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    rl.question(st.dim("Open interactive navigator? [y/N] "), (input) => {
+      rl.close();
+      resolve(input.trim().toLowerCase());
+    });
+  });
+
+  if (answer !== "y" && answer !== "yes") {
+    return "continue";
+  }
+
+  const hunks = parseUnifiedDiff(diff);
+  if (hunks.length === 0) {
+    console.log(st.dim("\nNo diff to navigate.\n"));
+    return "continue";
+  }
+
+  try {
+    await navigateDiffs(hunks);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`\nNavigator error: ${msg}\n`));
+  }
   console.log("");
   return "continue";
 }
@@ -1644,6 +1696,9 @@ export async function dispatchSlashCommand(
       return slashDoctor();
     case "/heapdump":
       return slashHeapdump();
+    case "/sub-agent":
+    case "/sub-agents":
+      return slashSubAgent(args);
     default: {
       const name = cmd.startsWith("/") ? cmd.slice(1) : cmd;
       const extras = getExtras(session);

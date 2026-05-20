@@ -192,6 +192,7 @@ export class ChatSession {
     let goldenPrompt = "";
     const handleEvent = createStreamHandlers({
       topic: userInput,
+      models: this.models,
       onComplete: () => {},
     });
 

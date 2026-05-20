@@ -40,6 +40,8 @@ import {
   isImagePath,
 } from "../utils/chat-input-parser";
 import { getTUI } from "../utils/tui-renderer";
+import { safeRunHooks, shouldBlock } from "../hooks/runner";
+import { renderStatusLine, getCurrentContext } from "../utils/status-line";
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || "",
@@ -738,70 +740,90 @@ function runReplLoop(
 
     pushHistory(history, trimmed);
 
-    if (isShellPassthrough(trimmed)) {
-      const cmd = extractShellCommand(trimmed);
-      if (!cmd) {
-        console.log(theme.warning("[SHELL MODE] Empty command"));
+    void safeRunHooks("UserPromptSubmit", {
+      prompt: trimmed,
+      sessionId: session.id ?? null,
+    }).then((hookResults) => {
+      if (shouldBlock(hookResults)) {
+        console.error(
+          theme.warning("[hooks] UserPromptSubmit blocked this input"),
+        );
         runReplLoop(rl, history, session, sessionManager);
         return;
       }
-      runShellPassthrough(cmd).then(() => {
+      handleReplInput(trimmed, rl, history, session, sessionManager);
+    });
+  });
+}
+
+function handleReplInput(
+  trimmed: string,
+  rl: readline.Interface,
+  history: string[],
+  session: ChatSession,
+  sessionManager: SessionManager,
+): void {
+  if (isShellPassthrough(trimmed)) {
+    const cmd = extractShellCommand(trimmed);
+    if (!cmd) {
+      console.log(theme.warning("[SHELL MODE] Empty command"));
+      runReplLoop(rl, history, session, sessionManager);
+      return;
+    }
+    runShellPassthrough(cmd).then(() => {
+      runReplLoop(rl, history, session, sessionManager);
+    });
+    return;
+  }
+
+  if (trimmed.toLowerCase().startsWith("/ask")) {
+    const topic = trimmed.slice(4).trim();
+    if (!topic) {
+      console.log(theme.warning("Usage: /ask <topic>"));
+      runReplLoop(rl, history, session, sessionManager);
+      return;
+    }
+    runDebateWithMentions(topic, session, sessionManager, rl, history);
+    return;
+  }
+
+  if (trimmed === "/") {
+    printHelp();
+    runReplLoop(rl, history, session, sessionManager);
+    return;
+  }
+
+  if (trimmed.startsWith("/")) {
+    if (trimmed.toLowerCase().startsWith("/delete")) {
+      const parts = trimmed.split(/\s+/);
+      const deleteArgs = parts.slice(1);
+      if (!deleteArgs[0]) {
+        console.log(theme.warning("Usage: /delete <session-id>"));
+        runReplLoop(rl, history, session, sessionManager);
+        return;
+      }
+      handleDeleteCommand(deleteArgs, sessionManager, rl, () => {
         runReplLoop(rl, history, session, sessionManager);
       });
       return;
     }
 
-    if (trimmed.toLowerCase().startsWith("/ask")) {
-      const topic = trimmed.slice(4).trim();
-      if (!topic) {
-        console.log(theme.warning("Usage: /ask <topic>"));
-        runReplLoop(rl, history, session, sessionManager);
+    handleSlashCommand(trimmed, session, sessionManager, rl).then((result) => {
+      if (result === "exit") {
+        rl.close();
         return;
       }
-      runDebateWithMentions(topic, session, sessionManager, rl, history);
-      return;
-    }
+      runReplLoop(rl, history, session, sessionManager);
+    });
+    return;
+  }
 
-    if (trimmed === "/") {
-      printHelp();
+  tryAttachPastedImage(trimmed, session).then((wasImage) => {
+    if (wasImage) {
       runReplLoop(rl, history, session, sessionManager);
       return;
     }
-
-    if (trimmed.startsWith("/")) {
-      if (trimmed.toLowerCase().startsWith("/delete")) {
-        const parts = trimmed.split(/\s+/);
-        const deleteArgs = parts.slice(1);
-        if (!deleteArgs[0]) {
-          console.log(theme.warning("Usage: /delete <session-id>"));
-          runReplLoop(rl, history, session, sessionManager);
-          return;
-        }
-        handleDeleteCommand(deleteArgs, sessionManager, rl, () => {
-          runReplLoop(rl, history, session, sessionManager);
-        });
-        return;
-      }
-
-      handleSlashCommand(trimmed, session, sessionManager, rl).then(
-        (result) => {
-          if (result === "exit") {
-            rl.close();
-            return;
-          }
-          runReplLoop(rl, history, session, sessionManager);
-        },
-      );
-      return;
-    }
-
-    tryAttachPastedImage(trimmed, session).then((wasImage) => {
-      if (wasImage) {
-        runReplLoop(rl, history, session, sessionManager);
-        return;
-      }
-      runDebateWithMentions(trimmed, session, sessionManager, rl, history);
-    });
+    runDebateWithMentions(trimmed, session, sessionManager, rl, history);
   });
 }
 
@@ -872,6 +894,15 @@ export async function chatCommand(): Promise<void> {
   const contextManager = new ContextManager();
   const session = new ChatSession(client, contextManager);
   const sessionManager = new SessionManager(DEFAULT_SESSION_DIR);
+
+  const sessionStartResults = await safeRunHooks("SessionStart", {
+    sessionId: session.id ?? null,
+    cwd: process.cwd(),
+  });
+  if (shouldBlock(sessionStartResults)) {
+    console.error(theme.error("[hooks] SessionStart blocked startup"));
+    return;
+  }
 
   const spinner = ora("Checking API connection...").start();
   const isHealthy = await client.healthCheck();
@@ -977,7 +1008,10 @@ export async function chatCommand(): Promise<void> {
     rl.on("close", () => {
       const tui = getTUI();
       if (tui.isActive()) tui.leave();
-      resolve();
+      void safeRunHooks("Stop", {
+        sessionId: session.id ?? null,
+        reason: "normal",
+      }).finally(() => resolve());
     });
     runReplLoop(rl, history, session, sessionManager);
   });

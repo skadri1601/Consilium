@@ -718,7 +718,7 @@ async function runClassicDebateFlow(
   renderProgress();
 
   let goldenPrompt = "";
-  const handleEvent = headless ? null : createStreamHandlers({ topic });
+  const handleEvent = headless ? null : createStreamHandlers({ topic, models });
   let aborted = false;
   let abortReason: string | undefined;
 

@@ -102,6 +102,8 @@ const KNOWN_SUBCOMMANDS = [
   "scheduler",
   "voice",
   "linear",
+  "sub-agents",
+  "sub-agent",
   "completions",
   "help",
 ];
@@ -747,6 +749,22 @@ async function main(): Promise<void> {
     )
     .action((sessionId: string, opts: { public?: boolean }) =>
       shareCommand(sessionId, opts),
+    );
+
+  const { subAgentsListCommand, subAgentsRunCommand } =
+    await import("./commands/sub-agents.js");
+  const subAgentsCmd = program
+    .command("sub-agents")
+    .description("Manage user-defined sub-agents from ~/.consilium/agents/");
+  subAgentsCmd
+    .command("list")
+    .description("List available sub-agents")
+    .action(() => subAgentsListCommand());
+  program
+    .command("sub-agent <name> <prompt>")
+    .description("Invoke a user-defined sub-agent with a prompt")
+    .action((name: string, prompt: string) =>
+      subAgentsRunCommand(name, prompt),
     );
 
   program
