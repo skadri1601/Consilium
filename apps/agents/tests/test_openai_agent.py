@@ -36,17 +36,20 @@ class TestOpenAIAgent:
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")
     async def test_generate_response_error(self, mock_openai_class, agent):
-        """Test error handling."""
+        """Test error handling raises LLMProviderError after refactor."""
+        from src.features.agents.base_agent import LLMProviderError
+
         mock_client = AsyncMock()
         mock_openai_class.return_value = mock_client
         mock_client.chat.completions.create = AsyncMock(
             side_effect=Exception("API Error")
         )
 
-        response, tokens = await agent.generate_response("test query")
+        with pytest.raises(LLMProviderError) as exc_info:
+            await agent.generate_response("test query")
 
-        assert "[GPT-4 Error:" in response
-        assert tokens == 0
+        assert exc_info.value.provider == "OpenAI"
+        assert "API Error" in str(exc_info.value)
 
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")

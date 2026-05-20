@@ -7,8 +7,12 @@ import {
   type ProviderId,
   type SecretsStore,
 } from "../auth/secrets";
+import type { StatusBarController } from "../status-bar";
 import type { SessionsTreeProvider } from "../views/sessions-tree";
 import type { ChatPanelProvider } from "../webview/chat-panel";
+import { openDebatePanel } from "../webview/debate-panel";
+import { runDebateSelection } from "./debate-selection";
+import { runResumeSession } from "./resume-session";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -16,6 +20,7 @@ export function registerCommands(
   secrets: SecretsStore,
   panel: ChatPanelProvider,
   sessions: SessionsTreeProvider,
+  statusBar: StatusBarController,
 ): void {
   const cfg = () => vscode.workspace.getConfiguration("consilium");
 
@@ -52,25 +57,50 @@ export function registerCommands(
   });
 
   reg("consilium.debateSelection", async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor || editor.selection.isEmpty) {
-      vscode.window.showInformationMessage("Select code to debate first.");
-      return;
-    }
-    panel.reveal();
-    const fileLabel = vscode.workspace.asRelativePath(editor.document.uri);
-    const selected = editor.document.getText(editor.selection);
+    await runDebateSelection({
+      client,
+      secrets,
+      statusBar,
+      onSessionsChanged: () => sessions.refresh(),
+    });
+  });
+
+  reg("consilium.newDebatePanel", async () => {
     const topic = await vscode.window.showInputBox({
-      title: "Debate this selection",
-      prompt: `From ${fileLabel}. Provide a question or instruction.`,
-      placeHolder: "e.g. Is this implementation correct? Suggest improvements.",
+      title: "New Consilium debate",
+      prompt: "Enter the topic or question for the council",
       ignoreFocusOut: true,
     });
     if (!topic?.trim()) return;
     const mode =
       (await pickMode()) ?? cfg().get<string>("defaultMode", "council");
-    const composed = `${topic.trim()}\n\n--- selection from ${fileLabel} ---\n\n\`\`\`\n${selected}\n\`\`\``;
-    await panel.startDebate(composed, mode);
+    await openDebatePanel(
+      client,
+      secrets,
+      statusBar,
+      () => sessions.refresh(),
+      {
+        topic: topic.trim(),
+        mode,
+      },
+    );
+  });
+
+  reg("consilium.resumeSession", async (sessionId: unknown) => {
+    const id = typeof sessionId === "string" ? sessionId : undefined;
+    await runResumeSession(
+      {
+        client,
+        secrets,
+        statusBar,
+        onSessionsChanged: () => sessions.refresh(),
+      },
+      id,
+    );
+  });
+
+  reg("consilium.openStatusBar", async () => {
+    await vscode.commands.executeCommand("workbench.action.focusStatusBar");
   });
 
   reg("consilium.redTeamSelection", async () => {

@@ -11,8 +11,8 @@ export class SessionTreeItem extends vscode.TreeItem {
     this.iconPath = iconForStatus(debate.status);
     this.contextValue = "session";
     this.command = {
-      command: "consilium.openSession",
-      title: "Open Session",
+      command: "consilium.resumeSession",
+      title: "Resume Session",
       arguments: [debate.id],
     };
   }

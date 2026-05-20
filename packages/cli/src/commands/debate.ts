@@ -31,6 +31,11 @@ import {
 import { applyEdits, parseEditsFromSynthesis } from "../utils/apply-edits";
 import { formatEditPreview } from "../utils/diff-preview";
 import {
+  generateImage,
+  ImageGenError,
+  type ImageSize,
+} from "../utils/image-gen-client";
+import {
   consumeWritePermission,
   requestWritePermission,
 } from "../utils/codebase-permissions";
@@ -54,6 +59,7 @@ import {
 } from "../utils/plan-mode";
 import { createWorktree } from "../utils/worktree";
 import { isSandboxAvailable } from "../utils/sandbox-stub";
+import { detectSandboxCapabilities } from "../utils/sandbox-native";
 import {
   emitFinalJson,
   emitStreamEvent,
@@ -63,6 +69,7 @@ import {
   validateAgainstSchema,
 } from "../utils/output-formats";
 import { BudgetGuard } from "../utils/budget-guard";
+import { spawnDetached } from "../utils/agent-supervisor";
 
 const st = style();
 
@@ -113,6 +120,83 @@ export interface DebateCommandOptions {
   maxTurns?: string;
   worktree?: string | boolean;
   sandbox?: boolean;
+  /** When set with --sandbox, do NOT abort if the native sandbox is unavailable. */
+  noSandboxStrict?: boolean;
+  /** Run as a detached background agent and exit immediately. */
+  bg?: boolean;
+  /** Generate an illustration from the final synthesis. */
+  generateImage?: boolean;
+  /** Source of the image prompt: 'synthesis' (default) or 'topic'. */
+  imagePromptFrom?: string;
+  /** Image size, e.g. 1024x1024. */
+  imageSize?: string;
+}
+
+const VALID_IMAGE_SIZES: ReadonlySet<ImageSize> = new Set<ImageSize>([
+  "256x256",
+  "512x512",
+  "1024x1024",
+  "1792x1024",
+  "1024x1792",
+]);
+
+function isValidImageSize(value: string): value is ImageSize {
+  return VALID_IMAGE_SIZES.has(value as ImageSize);
+}
+
+function buildImagePrompt(
+  source: string,
+  topic: string,
+  synthesis: string,
+): string {
+  if (source === "topic") {
+    return `Render an illustration of: ${topic.trim()}`;
+  }
+  const text = (synthesis || topic).trim().replace(/\s+/g, " ");
+  const truncated = text.length > 500 ? text.slice(0, 500) : text;
+  return `Illustrate the key idea of: ${truncated}`;
+}
+
+async function maybeGenerateDebateImage(
+  options: DebateCommandOptions,
+  topic: string,
+  synthesis: string,
+): Promise<void> {
+  if (!options.generateImage) return;
+  const source = (options.imagePromptFrom ?? "synthesis").toLowerCase();
+  const size = options.imageSize ?? "1024x1024";
+  const prompt = buildImagePrompt(source, topic, synthesis);
+  if (!prompt.trim()) {
+    console.log(st.warning("No content available to build image prompt."));
+    return;
+  }
+  if (!isValidImageSize(size)) {
+    console.log(
+      st.warning(`Invalid --image-size "${size}". Falling back to 1024x1024.`),
+    );
+  }
+  const resolvedSize: ImageSize = isValidImageSize(size) ? size : "1024x1024";
+  console.log(st.dim("\n  Generating image..."));
+  try {
+    const result = await generateImage({
+      prompt,
+      size: resolvedSize,
+    });
+    console.log(st.success(`  Image saved: ${result.filePath}`));
+    if (result.revisedPrompt) {
+      console.log(st.dim(`  Revised prompt: ${result.revisedPrompt}`));
+    }
+    if (typeof result.costUsd === "number") {
+      console.log(st.dim(`  Image cost: $${result.costUsd.toFixed(4)}`));
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const providerLabel =
+      err instanceof ImageGenError ? ` [${err.provider}]` : "";
+    console.log(
+      st.warning(`  Image generation failed${providerLabel}: ${msg}`),
+    );
+  }
 }
 
 function parsePositiveNumber(raw: string | undefined): number | undefined {
@@ -864,10 +948,67 @@ export async function loadWorkspaceContext(
   };
 }
 
+function buildDebateBackgroundArgs(
+  topic: string,
+  options: DebateCommandOptions,
+): string[] {
+  const args: string[] = [topic];
+  if (options.mode) args.push("--mode", options.mode);
+  if (options.models && options.models.length > 0) {
+    args.push("--models", ...options.models);
+  }
+  if (options.output) args.push("--output", options.output);
+  if (options.outputFormat) args.push("--output-format", options.outputFormat);
+  if (options.jsonSchema) args.push("--json-schema", options.jsonSchema);
+  if (options.maxBudgetUsd) args.push("--max-budget-usd", options.maxBudgetUsd);
+  if (options.maxTurns) args.push("--max-turns", options.maxTurns);
+  if (options.ticket) args.push("--ticket", options.ticket);
+  if (options.file && options.file.length > 0) {
+    args.push("--file", ...options.file);
+  }
+  if (options.gitDiff) args.push("--git-diff");
+  if (options.git === false) args.push("--no-git");
+  if (options.tools === false) args.push("--no-tools");
+  if (options.context === false) args.push("--no-context");
+  if (options.apply) args.push("--apply");
+  if (options.plan) args.push("--plan");
+  return args;
+}
+
+async function runDebateInBackground(
+  topic: string,
+  options: DebateCommandOptions,
+): Promise<void> {
+  const args = buildDebateBackgroundArgs(topic, options);
+  try {
+    const record = await spawnDetached({ command: "debate", args });
+    console.log(st.success("Debate started in background."));
+    console.log(st.dim(`  id:   ${record.id}`));
+    console.log(st.dim(`  pid:  ${record.pid}`));
+    console.log(st.dim(`  log:  ${record.logPath}`));
+    console.log("");
+    console.log(st.brand("  Attach:"));
+    console.log(st.dim(`    consilium agents attach ${record.id}`));
+    console.log(st.dim(`    consilium agents logs ${record.id} -f`));
+    console.log(st.dim(`    consilium agents stop ${record.id}`));
+    console.log("");
+  } catch (err) {
+    console.error(
+      st.error(`Failed to start background debate: ${(err as Error).message}`),
+    );
+    process.exit(1);
+  }
+}
+
 export async function debateCommand(
   topic: string,
   options: DebateCommandOptions,
 ): Promise<void> {
+  if (options.bg && process.env["CONSILIUM_BG_AGENT"] !== "1") {
+    await runDebateInBackground(topic, options);
+    return;
+  }
+
   await requireAuth();
 
   const mode: DebateMode =
@@ -890,10 +1031,38 @@ export async function debateCommand(
     warnDebateCommandOptions(options, mode, outputFormat);
   }
 
-  if (options.sandbox && !headless) {
-    const availability = isSandboxAvailable();
-    if (!availability.available) {
-      console.log(st.warning(availability.reason ?? "Sandbox unavailable."));
+  if (options.sandbox) {
+    const caps = detectSandboxCapabilities();
+    if (caps.available) {
+      process.env["CONSILIUM_SANDBOX_MODE"] = "1";
+      process.env["CONSILIUM_SANDBOX_MECHANISM"] = caps.mechanism;
+      process.env["CONSILIUM_SANDBOX_PLATFORM"] = caps.platform;
+      if (!headless) {
+        console.log(
+          st.dim(
+            `[SANDBOX] Native sandboxing active (platform: ${caps.platform}, mechanism: ${caps.mechanism}).`,
+          ),
+        );
+      }
+    } else {
+      const availability = isSandboxAvailable();
+      const reason =
+        caps.reason ?? availability.reason ?? "Sandbox unavailable.";
+      if (!headless) {
+        console.log(st.warning(`[SANDBOX] ${reason}`));
+      }
+      if (!options.noSandboxStrict) {
+        if (headless) {
+          process.stderr.write(`[SANDBOX] ${reason}\n`);
+        } else {
+          console.log(
+            st.dim(
+              "Pass --no-sandbox-strict to continue without native sandboxing, or use --worktree for git-level isolation.",
+            ),
+          );
+        }
+        process.exit(1);
+      }
     }
   }
 
@@ -1031,6 +1200,10 @@ export async function debateCommand(
       synthesis,
       wsContext?.rootPath || resolveProjectRoot(process.cwd()).root,
     );
+  }
+
+  if (!headless) {
+    await maybeGenerateDebateImage(options, topic, synthesis);
   }
 
   if (terminal.isTTY && !options.apply && !headless) {

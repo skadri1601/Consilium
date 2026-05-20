@@ -88,10 +88,28 @@
         "icon": "$(comment-discussion)"
       },
       {
+        "command": "consilium.newDebatePanel",
+        "title": "New Debate (Panel)",
+        "category": "Consilium",
+        "icon": "$(window)"
+      },
+      {
         "command": "consilium.debateSelection",
-        "title": "Debate Selection",
+        "title": "Debate Selected Text",
         "category": "Consilium",
         "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "consilium.resumeSession",
+        "title": "Resume Session…",
+        "category": "Consilium",
+        "icon": "$(debug-rerun)"
+      },
+      {
+        "command": "consilium.openStatusBar",
+        "title": "Open Status",
+        "category": "Consilium",
+        "icon": "$(pulse)"
       },
       {
         "command": "consilium.redTeamSelection",
@@ -216,6 +234,15 @@
         {
           "command": "consilium.insertGoldenPrompt",
           "when": "editorIsOpen"
+        },
+        {
+          "command": "consilium.resumeSession"
+        },
+        {
+          "command": "consilium.newDebatePanel"
+        },
+        {
+          "command": "consilium.openStatusBar"
         }
       ]
     },

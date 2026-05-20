@@ -84,7 +84,14 @@ export async function activate(
     ),
   );
 
-  registerCommands(context, client, secrets, chatProvider, sessionsProvider);
+  registerCommands(
+    context,
+    client,
+    secrets,
+    chatProvider,
+    sessionsProvider,
+    statusBar,
+  );
 
   statusBar.update(cachedToken ? { kind: "idle" } : { kind: "signed-out" });
 

@@ -19,6 +19,8 @@ from src.features.health import health_router
 from src.features.debates import debates_router
 from src.features.deliberation.router import router as deliberation_router
 from src.features.mcp_http.router import router as mcp_http_router
+from src.features.web_search.router import router as web_search_router
+from src.features.image_gen.router import router as image_gen_router
 
 from src.shared.config import settings
 from src.shared.database.redis import redis_client
@@ -121,6 +123,8 @@ app.include_router(agents_router, prefix=API_V1_PREFIX)
 app.include_router(streaming_router, prefix=API_V1_PREFIX)
 app.include_router(debates_router, prefix=API_V1_PREFIX)
 app.include_router(deliberation_router, prefix=API_V1_PREFIX)
+app.include_router(web_search_router, prefix=API_V1_PREFIX)
+app.include_router(image_gen_router, prefix=API_V1_PREFIX)
 app.include_router(mcp_http_router)
 
 

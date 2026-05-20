@@ -22,6 +22,7 @@ import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
 import { setupTokenCommand } from "./commands/setup-token.js";
 import { menuCommand } from "./commands/menu.js";
+import { voiceCommand } from "./commands/voice.js";
 import { debugCommand } from "./commands/debug.js";
 import { logsCommand } from "./commands/logs.js";
 import { statsCommand } from "./commands/stats.js";
@@ -47,6 +48,7 @@ import {
   startDebateCommand,
   streamDebateCommand,
 } from "./commands/debates.js";
+import { registerAgentsCommand } from "./commands/agents.js";
 import { SessionManager } from "./utils/session-manager.js";
 import { style } from "./utils/visual-system.js";
 
@@ -54,6 +56,7 @@ const st = style();
 const KNOWN_SUBCOMMANDS = [
   "debate",
   "debates",
+  "agents",
   "ask",
   "chat",
   "config",
@@ -75,6 +78,7 @@ const KNOWN_SUBCOMMANDS = [
   "upgrade",
   "setup-token",
   "share",
+  "voice",
   "help",
 ];
 const args = process.argv.slice(2);
@@ -167,6 +171,24 @@ async function main(): Promise<void> {
     .option(
       "--max-turns <n>",
       "Cap the debate at N rounds (overrides mode default)",
+    )
+    .option(
+      "-b, --bg",
+      "Run the debate as a detached background agent (returns immediately)",
+    )
+    .option(
+      "--generate-image",
+      "Generate an image from the debate synthesis using the agents image-gen tool",
+    )
+    .option(
+      "--image-prompt-from <src>",
+      "Source of image prompt: 'synthesis' (default) or 'topic'",
+      "synthesis",
+    )
+    .option(
+      "--image-size <size>",
+      "Image size for --generate-image (default 1024x1024)",
+      "1024x1024",
     )
     .action(debateCommand);
 
@@ -346,6 +368,38 @@ async function main(): Promise<void> {
     .option("--check", "Only check for a newer version, do not install")
     .action((options: { check?: boolean }) => upgradeCommand(options));
 
+  program
+    .command("voice")
+    .description(
+      "Record audio, transcribe via Whisper, optionally start a debate",
+    )
+    .option("--once", "Record one clip, print transcript, exit")
+    .option("-l, --language <lang>", "BCP-47 language code", "en")
+    .option("--debate", "Pipe transcript into a debate")
+    .option("-m, --mode <mode>", "Debate mode (with --debate)", "council")
+    .option(
+      "--max-seconds <n>",
+      "Maximum recording length in seconds (default 30)",
+    )
+    .action(
+      (options: {
+        once?: boolean;
+        language?: string;
+        debate?: boolean;
+        mode?: string;
+        maxSeconds?: string;
+      }) =>
+        voiceCommand({
+          once: options.once,
+          language: options.language,
+          debate: options.debate,
+          mode: options.mode,
+          maxSeconds: options.maxSeconds
+            ? Number(options.maxSeconds)
+            : undefined,
+        }),
+    );
+
   const mcp = program
     .command("mcp")
     .description(
@@ -462,6 +516,8 @@ async function main(): Promise<void> {
       "Don't expose Read/Edit/Grep/Bash tools or MCP server tools to the council",
     )
     .action(startDebateCommand);
+
+  registerAgentsCommand(program);
 
   debates
     .command("stream")

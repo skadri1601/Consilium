@@ -49,10 +49,16 @@ def _agent() -> AnthropicAgent:
     return AnthropicAgent(model_id="claude-haiku-4-5-20251001")
 
 
+def _make_mock_client():
+    mock_client = MagicMock()
+    mock_client.close = AsyncMock()
+    return mock_client
+
+
 class TestAnthropicToolUse:
     def test_returns_text_when_model_uses_no_tools(self):
         async def run():
-            mock_client = MagicMock()
+            mock_client = _make_mock_client()
             mock_client.messages.create = AsyncMock(
                 return_value=_response([_text_block("hello world")], stop_reason="end_turn")
             )
@@ -74,7 +80,7 @@ class TestAnthropicToolUse:
 
     def test_invokes_executor_for_tool_use_block_then_continues(self):
         async def run():
-            mock_client = MagicMock()
+            mock_client = _make_mock_client()
             first = _response(
                 [_tool_use_block("call_a", "filesystem.read_file", {"path": "x.ts"})],
                 stop_reason="tool_use",
@@ -110,12 +116,11 @@ class TestAnthropicToolUse:
 
     def test_caps_at_max_tool_calls_per_turn(self):
         async def run():
-            mock_client = MagicMock()
+            mock_client = _make_mock_client()
             tool_use_resp = _response(
                 [_tool_use_block("call", "filesystem.read_file", {"path": "x"})],
                 stop_reason="tool_use",
             )
-            # Always returns tool_use → would loop forever without the cap
             mock_client.messages.create = AsyncMock(return_value=tool_use_resp)
             executor = AsyncMock(return_value=ToolResult(call_id="call", content="ok"))
 
@@ -140,7 +145,7 @@ class TestAnthropicToolUse:
 
     def test_propagates_executor_error_via_is_error_flag(self):
         async def run():
-            mock_client = MagicMock()
+            mock_client = _make_mock_client()
             first = _response(
                 [_tool_use_block("call_x", "fs.read", {})],
                 stop_reason="tool_use",

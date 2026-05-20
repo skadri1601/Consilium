@@ -15,6 +15,7 @@ import { ApiKeysModule } from "./features/api-keys";
 import { DebatesModule } from "./features/debates";
 import { DeliberationModule } from "./features/deliberation";
 import { PersonasModule } from "./features/personas";
+import { SharesModule } from "./features/shares/shares.module";
 import { WebhooksModule } from "./features/webhooks";
 import { WaitlistModule } from "./features/waitlist";
 import { DebateQueueModule } from "./shared/queue/debate-queue.module";
@@ -60,6 +61,7 @@ import { HealthController } from "./health.controller";
     DebatesModule,
     DeliberationModule,
     PersonasModule,
+    SharesModule,
     WebhooksModule,
     WaitlistModule,
     DebateQueueModule,

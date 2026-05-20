@@ -1,48 +1,95 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import {
   isSandboxAvailable,
   runInSandbox,
   describeSandboxStub,
 } from "./sandbox-stub";
+import {
+  __setSandboxDepsForTests,
+  __resetSandboxDepsForTests,
+} from "./sandbox-native";
 
-describe("sandbox-stub", () => {
+afterEach(() => {
+  __resetSandboxDepsForTests();
+});
+
+describe("sandbox-stub (delegating wrapper)", () => {
   describe("isSandboxAvailable", () => {
-    it("returns available=false with a descriptive reason", () => {
+    it("returns available=true when native sandbox is detectable (linux+bwrap)", () => {
+      __setSandboxDepsForTests({
+        platformOverride: "linux",
+        which: (cmd) => cmd === "bwrap",
+      });
+      const result = isSandboxAvailable();
+      expect(result.available).toBe(true);
+      expect(result.reason).toBeUndefined();
+    });
+
+    it("returns available=true when native sandbox is detectable (darwin+sandbox-exec)", () => {
+      __setSandboxDepsForTests({
+        platformOverride: "darwin",
+        which: (cmd) => cmd === "sandbox-exec",
+      });
+      const result = isSandboxAvailable();
+      expect(result.available).toBe(true);
+    });
+
+    it("returns available=false with a helpful reason on Windows", () => {
+      __setSandboxDepsForTests({
+        platformOverride: "win32",
+        which: () => true,
+      });
       const result = isSandboxAvailable();
       expect(result.available).toBe(false);
       expect(result.reason).toBeDefined();
-      expect(result.reason).toContain("Native sandbox not yet implemented");
+      expect(result.reason).toMatch(/Windows|worktree/i);
     });
 
-    it("returns a stable reason string referencing the design spec", () => {
+    it("returns available=false with a tooling-missing reason on Linux without bwrap", () => {
+      __setSandboxDepsForTests({
+        platformOverride: "linux",
+        which: () => false,
+      });
       const result = isSandboxAvailable();
-      expect(result.reason).toContain("cli-sandbox-design");
-      expect(result.reason).toContain("--worktree");
+      expect(result.available).toBe(false);
+      expect(result.reason).toMatch(/bwrap/);
     });
   });
 
   describe("describeSandboxStub", () => {
-    it("returns the same description as the availability reason", () => {
-      const desc = describeSandboxStub();
-      const avail = isSandboxAvailable();
-      expect(desc).toBe(avail.reason);
-    });
+    it("returns a non-empty descriptor for both available and unavailable states", () => {
+      __setSandboxDepsForTests({
+        platformOverride: "linux",
+        which: (cmd) => cmd === "bwrap",
+      });
+      const availableDesc = describeSandboxStub();
+      expect(availableDesc.length).toBeGreaterThan(0);
+      expect(availableDesc).toMatch(/available|sandbox/i);
 
-    it("returns a non-empty string", () => {
-      expect(describeSandboxStub().length).toBeGreaterThan(0);
+      __setSandboxDepsForTests({
+        platformOverride: "win32",
+        which: () => false,
+      });
+      const unavailableDesc = describeSandboxStub();
+      expect(unavailableDesc.length).toBeGreaterThan(0);
     });
   });
 
   describe("runInSandbox", () => {
-    it("rejects with an error explaining the stub state", async () => {
-      await expect(runInSandbox("ls", ["-la"])).rejects.toThrow(
-        /Native sandbox not yet implemented/,
-      );
+    it("rejects when native sandbox is unavailable (Windows)", async () => {
+      __setSandboxDepsForTests({
+        platformOverride: "win32",
+        which: () => false,
+      });
+      await expect(runInSandbox("ls", ["-la"])).rejects.toThrow();
     });
 
-    it("rejects regardless of cmd/args", async () => {
-      await expect(runInSandbox("", [])).rejects.toThrow();
-      await expect(runInSandbox("any-cmd", ["a", "b", "c"])).rejects.toThrow();
+    it("rejects when tooling is missing (Linux without bwrap)", async () => {
+      __setSandboxDepsForTests({
+        platformOverride: "linux",
+        which: () => false,
+      });
+      await expect(runInSandbox("ls", ["-la"])).rejects.toThrow(/bwrap/);
     });
   });
 });

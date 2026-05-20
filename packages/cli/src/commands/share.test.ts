@@ -212,6 +212,70 @@ describe("shareCommand", () => {
     expect(init?.headers?.Authorization).toBe("Bearer test-key");
   });
 
+  it("prints token + url when backend returns 201 with { url, token }", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            id: "share_1",
+            token: "abcDEF123",
+            url: "https://app.test/share/abcDEF123",
+            expiresAt: null,
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+    ) as unknown as typeof fetch;
+
+    await shareCommand("ses_201");
+
+    const out = logSpy.mock.calls.flat().join("\n");
+    expect(out).toContain("Shared session ses_201");
+    expect(out).toContain("https://app.test/share/abcDEF123");
+    expect(out).toContain("token: abcDEF123");
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("falls back to local export on 503 response", async () => {
+    globalThis.fetch = vi.fn(
+      async () => new Response("unavailable", { status: 503 }),
+    ) as unknown as typeof fetch;
+    mockLoadSession.mockReturnValue({
+      toJSON: () => ({ id: "ses_503", debates: [] }),
+    });
+
+    await shareCommand("ses_503");
+
+    const out = logSpy.mock.calls.flat().join("\n");
+    expect(out).toContain("Share endpoint not available");
+    const expectedFile = path.join(tmpDir, ".consilium-session-ses_503.json");
+    expect(fs.existsSync(expectedFile)).toBe(true);
+  });
+
+  it("includes payload in POST body when session is available", async () => {
+    const spy = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ token: "t1", url: "https://x.test/share/t1" }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+    mockLoadSession.mockReturnValue({
+      toJSON: () => ({ id: "ses_payload", debates: [{ topic: "x" }] }),
+    });
+
+    await shareCommand("ses_payload", { public: true });
+
+    const calls = spy.mock.calls as unknown as Array<unknown[]>;
+    const init = calls[0]?.[1] as { body?: string } | undefined;
+    const parsed = JSON.parse(init?.body ?? "{}");
+    expect(parsed.public).toBe(true);
+    expect(parsed.payload).toEqual({
+      id: "ses_payload",
+      debates: [{ topic: "x" }],
+    });
+  });
+
   it("omits Authorization header when apiKey is not set", async () => {
     mockLoadConfig.mockReturnValue({ apiUrl: "https://api.test.example" });
     const spy = vi.fn(

@@ -9,30 +9,38 @@ const st = style();
 
 export interface ShareCommandOptions {
   public?: boolean;
+  expiresIn?: number;
 }
 
 interface ShareResponse {
   url?: string;
+  token?: string;
   shareId?: string;
+  id?: string;
   public?: boolean;
+  expiresAt?: string | null;
 }
 
 function localExportPath(sessionId: string): string {
   return path.resolve(process.cwd(), `.consilium-session-${sessionId}.json`);
 }
 
-function exportSessionLocally(sessionId: string): string | null {
+function loadSessionPayload(sessionId: string): unknown | null {
   const sessionDir = path.join(os.homedir(), ".consilium", "sessions");
   const manager = new SessionManager(sessionDir);
-  let session;
   try {
-    session = manager.loadSession(sessionId);
+    const session = manager.loadSession(sessionId);
+    return session.toJSON();
   } catch {
     return null;
   }
-  const data = session.toJSON();
+}
+
+function exportSessionLocally(sessionId: string): string | null {
+  const payload = loadSessionPayload(sessionId);
+  if (!payload) return null;
   const outPath = localExportPath(sessionId);
-  fs.writeFileSync(outPath, JSON.stringify(data, null, 2), "utf-8");
+  fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), "utf-8");
   return outPath;
 }
 
@@ -49,33 +57,63 @@ export async function shareCommand(
   };
   if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
 
+  const payload = loadSessionPayload(sessionId);
+
+  const body: Record<string, unknown> = { public: isPublic };
+  if (payload !== null) body.payload = payload;
+  if (opts.expiresIn) body.expiresIn = opts.expiresIn;
+
   let res: Response | null = null;
   let networkError = false;
   try {
     res = await fetch(`${apiUrl}/api/v1/sessions/${sessionId}/share`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ public: isPublic }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(15000),
     });
   } catch {
     networkError = true;
   }
 
-  if (!networkError && res && res.ok) {
-    let body: ShareResponse = {};
+  const apiAccepted =
+    !networkError &&
+    res &&
+    (res.status === 201 || res.status === 200 || res.ok);
+
+  if (apiAccepted && res) {
+    let parsed: ShareResponse = {};
     try {
-      body = (await res.json()) as ShareResponse;
+      parsed = (await res.json()) as ShareResponse;
     } catch {
-      body = {};
+      parsed = {};
     }
-    const url = body.url;
-    const shareId = body.shareId ?? sessionId;
+    const url = parsed.url;
+    const token = parsed.token;
+    const shareId = parsed.shareId ?? parsed.id ?? sessionId;
+
     console.log(st.success(`Shared session ${sessionId}`));
     if (url) console.log(st.dim(`  ${url}`));
     else console.log(st.dim(`  share id: ${shareId}`));
+    if (token) console.log(st.dim(`  token: ${token}`));
     if (isPublic) console.log(st.dim("  visibility: public"));
     else console.log(st.dim("  visibility: link-only"));
+    if (parsed.expiresAt) console.log(st.dim(`  expires: ${parsed.expiresAt}`));
+    return;
+  }
+
+  const shouldFallback =
+    networkError ||
+    !res ||
+    res.status === 404 ||
+    res.status === 503 ||
+    res.status >= 500;
+
+  if (!shouldFallback && res) {
+    console.log(
+      st.error(`Share request failed: HTTP ${res.status} ${res.statusText}`),
+    );
+    process.exitCode = 1;
     return;
   }
 
