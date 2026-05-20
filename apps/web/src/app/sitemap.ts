@@ -88,6 +88,20 @@ const MARKETING_ROUTES: Route[] = [
     images: DEFAULT_IMAGES,
   },
   {
+    path: "/research/benchmarks",
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SITE_LAST_REVIEWED,
+    images: DEFAULT_IMAGES,
+  },
+  {
+    path: "/glossary",
+    changeFrequency: "monthly",
+    priority: 0.7,
+    lastModified: SITE_LAST_REVIEWED,
+    images: DEFAULT_IMAGES,
+  },
+  {
     path: "/contact",
     changeFrequency: "yearly",
     priority: 0.5,

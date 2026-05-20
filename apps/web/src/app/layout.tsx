@@ -139,7 +139,16 @@ const organizationJsonLd = {
     url: `${SITE_URL}/brand/consilium-logo.svg`,
   },
   founder: { "@id": SAAD_AUTHOR_ID },
-  sameAs: ["https://www.linkedin.com/in/saad-kadri-58b8bb205/"],
+  sameAs: [
+    "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
+    "https://github.com/skadri1601/consilium-cli",
+    "https://github.com/skadri1601/consilium-js",
+    "https://github.com/skadri1601/consilium-python",
+    "https://github.com/skadri1601/consilium-vscode",
+    "https://www.npmjs.com/package/@myconsilium/cli",
+    "https://www.npmjs.com/package/@myconsilium/sdk",
+    "https://pypi.org/project/consilium/",
+  ],
 };
 
 const softwareJsonLd = {

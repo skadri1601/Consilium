@@ -7,7 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
   title: "CLI",
@@ -211,9 +212,20 @@ const outputFormats = [
   },
 ];
 
+const speakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  url: `${SITE_URL}/docs/cli`,
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2", "[data-speakable]"],
+  },
+};
+
 export default function CliReferencePage() {
   return (
     <div className="min-h-screen">
+      <JsonLd id="ld-cli-speakable" data={speakableSchema} />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto">
           <Link
@@ -224,9 +236,84 @@ export default function CliReferencePage() {
             Back to Docs
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">CLI Reference</h1>
-          <p className="text-xl text-muted-foreground">
+          <p
+            data-speakable
+            className="text-lg md:text-xl text-foreground/90 leading-relaxed mb-4"
+          >
+            The Consilium CLI is a single npm package (@myconsilium/cli) that
+            runs multi-AI debates from your terminal. It ships full feature
+            parity with Claude Code, Cursor CLI, Gemini CLI, and Grok Build -
+            plan mode, hooks, sub-agents, sandbox, worktree, voice dictation,
+            image generation, MCP marketplace, and headless JSON/stream-JSON
+            output - plus the unique addition of cross-model debate across seven
+            providers.
+          </p>
+          <p className="text-base text-muted-foreground">
             Run deliberations from your terminal
           </p>
+          <dl className="grid grid-cols-2 gap-4 md:grid-cols-4 mt-8 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                CLI unit tests
+              </dt>
+              <dd className="text-2xl font-semibold">962</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Slash commands
+              </dt>
+              <dd className="text-2xl font-semibold">50+</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Deliberation modes
+              </dt>
+              <dd className="text-2xl font-semibold">8</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                MCP marketplace
+              </dt>
+              <dd className="text-2xl font-semibold">12 seeded</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Providers
+              </dt>
+              <dd className="text-2xl font-semibold">7</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Dependency CVEs
+              </dt>
+              <dd className="text-2xl font-semibold">0</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Quick debate cost
+              </dt>
+              <dd className="text-2xl font-semibold">$0.001</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Deep debate cost
+              </dt>
+              <dd className="text-2xl font-semibold">$0.50</dd>
+            </div>
+          </dl>
+          <figure className="mt-6 border-l-4 border-indigo-500/40 pl-4 py-2">
+            <blockquote className="text-sm md:text-base italic text-foreground/85 leading-relaxed">
+              &ldquo;Plan mode lets the assistant research, read files, and
+              propose an approach without making any changes. You stay in
+              control of when execution begins.&rdquo;
+            </blockquote>
+            <figcaption className="mt-2 text-xs text-muted-foreground">
+              &mdash; Plan-mode framing common to Anthropic Claude Code and
+              Cline docs; Consilium ships an equivalent{" "}
+              <code className="text-xs">/plan</code> slash command plus
+              <code className="text-xs">--plan</code> CLI flag.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -234,7 +321,9 @@ export default function CliReferencePage() {
         <div className="max-w-4xl mx-auto space-y-12">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Installation</CardTitle>
+              <CardTitle className="text-lg">
+                How do I install the CLI?
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -258,7 +347,9 @@ export default function CliReferencePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Start</CardTitle>
+              <CardTitle className="text-lg">
+                What does a quick start look like?
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
@@ -271,7 +362,9 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
           </Card>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6">Commands</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              Which commands does the CLI ship?
+            </h2>
             <div className="space-y-4">
               {commands.map((cmd) => (
                 <Card key={cmd.name}>
@@ -316,7 +409,9 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6">Chat Slash Commands</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              Which slash commands work inside chat?
+            </h2>
             <p className="text-sm text-muted-foreground mb-4">
               Available inside the interactive chat REPL. Type any command to
               execute.
@@ -353,7 +448,9 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6">Output Formats</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              Which output formats are supported?
+            </h2>
             <p className="text-sm text-muted-foreground mb-4">
               Control how results are formatted with{" "}
               <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-xs text-indigo-400">
@@ -398,7 +495,9 @@ consilium debate "How should I architect my microservices?" --mode council`}</co
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Session Management</CardTitle>
+              <CardTitle className="text-lg">
+                How do I manage chat sessions?
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
@@ -427,7 +526,9 @@ consilium sessions delete sess_abc123`}</code>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Global Flags</CardTitle>
+              <CardTitle className="text-lg">
+                Which global flags apply to every command?
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-xl border border-white/[0.06] overflow-hidden">

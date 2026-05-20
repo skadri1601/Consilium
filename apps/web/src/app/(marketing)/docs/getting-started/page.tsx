@@ -30,32 +30,59 @@ const howToData = howToSchema({
   url: `${SITE_URL}/docs/getting-started`,
   totalTime: "PT5M",
   estimatedCost: { value: "0", currency: "USD" },
-  tools: [
-    "Web browser, terminal, or any HTTP client",
-    "At least one LLM provider API key (or use the Groq free tier)",
-  ],
+  tools: ["Web browser", "An LLM API key (or use the Groq free tier)"],
   steps: [
     {
-      name: "Sign up or install the CLI",
-      text: "Sign up at https://myconsilium.xyz or install the CLI with `npm i -g @myconsilium/cli`. The web app needs no setup; the CLI shares the same API.",
+      name: "Sign up",
+      text: "Create a free Consilium account at https://myconsilium.xyz. Authentication is handled by Clerk with email, Google, and GitHub sign-in. No card required for the free tier.",
       url: `${SITE_URL}/sign-up`,
     },
     {
-      name: "Add at least one provider key",
-      text: "Paste an API key from any of the seven supported providers (Anthropic, OpenAI, Google, Groq, xAI, Moonshot, OpenRouter). Groq is free and works as an automatic fallback if you skip BYOK entirely.",
+      name: "Add provider keys",
+      text: "Paste an API key from any of the seven supported providers (Anthropic, OpenAI, Google, Groq, xAI, Moonshot, OpenRouter) in Settings. Keys are encrypted with AES-256-GCM. If you skip BYOK, Consilium automatically falls back to the Groq free tier (Llama 3.1 8B, Llama 3.3 70B, Llama 4 Scout).",
     },
     {
-      name: "Pick a deliberation mode",
-      text: "Quick (1 round), Council (3 rounds, default), Deep (5 rounds + sub-agents), Blind, Red Team, Jury, Market, or Auto. Use Council unless you need something specific.",
+      name: "Pick a mode",
+      text: "Choose one of the eight deliberation modes: Quick (1 round, ~15s), Council (3 rounds, default), Deep (5 rounds + sub-agents), Blind, Red Team, Jury, Market, or Auto. Use Council unless you have a specific reason to pick another.",
       url: `${SITE_URL}/docs/modes`,
     },
     {
-      name: "Run a debate",
-      text: 'Web: type a question and click Run. CLI: `consilium debate "your question" --mode council`. SDK: call `client.debate({ query, mode })` and stream SSE events.',
+      name: "Run your first debate",
+      text: 'Web: enter your question on the Council page and click Start. CLI: `consilium debate "your question" --mode council`. SDK: call `client.deliberate({ topic, mode })` and stream SSE events. Every debate returns a golden prompt, per-model confidence scores, dissent report, vote results, audit trail, and cost breakdown.',
+    },
+  ],
+});
+
+const speakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  url: `${SITE_URL}/docs/getting-started`,
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: ["h1", "h2", "[data-speakable]"],
+  },
+};
+
+const howToCliData = howToSchema({
+  name: "Get started with the Consilium CLI",
+  description:
+    "Install the Consilium CLI and run your first multi-AI deliberation from the terminal in under five minutes.",
+  url: `${SITE_URL}/docs/getting-started#engineer`,
+  totalTime: "PT5M",
+  estimatedCost: { value: "0", currency: "USD" },
+  tools: ["Node.js >= 20", "An LLM API key"],
+  steps: [
+    {
+      name: "Install the CLI from npm",
+      text: "Run `npm install -g @myconsilium/cli` (or the yarn/pnpm equivalent). Requires Node.js 20 or newer.",
     },
     {
-      name: "Review the consensus output",
-      text: "Every debate returns a golden prompt, per-model confidence scores, dissent report (majority and minority positions), vote results, audit trail, and cost breakdown. Export as Markdown, .cursorrules, or plain text.",
+      name: "Authenticate the CLI",
+      text: "Run `consilium login` to open your browser for Clerk auth. On success a CLI token is stored at ~/.consilium/config.json. Alternatively export CONSILIUM_API_KEY.",
+    },
+    {
+      name: "Run your first debate",
+      text: 'Run `consilium debate "your question" --mode council` to stream a 3-round council deliberation directly in the terminal with live progress, convergence tracking, and cost updates.',
     },
   ],
 });
@@ -130,7 +157,9 @@ export default function GettingStartedPage() {
     <div className="min-h-screen">
       <JsonLd id="ld-getting-started-techarticle" data={techArticleData} />
       <JsonLd id="ld-getting-started-howto" data={howToData} />
+      <JsonLd id="ld-getting-started-howto-cli" data={howToCliData} />
       <JsonLd id="ld-getting-started-breadcrumbs" data={breadcrumbs} />
+      <JsonLd id="ld-getting-started-speakable" data={speakableSchema} />
       <section className="container mx-auto px-4 py-32 md:py-40">
         <div className="max-w-4xl mx-auto">
           <Link
@@ -143,10 +172,81 @@ export default function GettingStartedPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Getting Started
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p
+            data-speakable
+            className="text-lg md:text-xl text-foreground/90 leading-relaxed mb-4"
+          >
+            Getting started with Consilium takes four steps and under five
+            minutes: (1) sign up, (2) add provider keys or use the Groq free
+            tier, (3) pick a deliberation mode, and (4) run your first debate.
+            The web app, CLI, and SDKs all share the same REST and SSE contract,
+            so you can switch surfaces without losing context.
+          </p>
+          <p className="text-base text-muted-foreground">
             Set up Consilium and run your first multi-agent deliberation in
             minutes
           </p>
+          <dl className="grid grid-cols-2 gap-4 md:grid-cols-4 mt-8 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Setup time
+              </dt>
+              <dd className="text-2xl font-semibold">&lt; 5 min</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Providers supported
+              </dt>
+              <dd className="text-2xl font-semibold">7</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Deliberation modes
+              </dt>
+              <dd className="text-2xl font-semibold">8</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Free tier debates
+              </dt>
+              <dd className="text-2xl font-semibold">1,000/mo</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Key encryption
+              </dt>
+              <dd className="text-2xl font-semibold">AES-256-GCM</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Quick debate cost
+              </dt>
+              <dd className="text-2xl font-semibold">$0.001</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Deep debate cost
+              </dt>
+              <dd className="text-2xl font-semibold">$0.50</dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                Platform tests
+              </dt>
+              <dd className="text-2xl font-semibold">1,553</dd>
+            </div>
+          </dl>
+          <figure className="mt-6 border-l-4 border-indigo-500/40 pl-4 py-2">
+            <blockquote className="text-sm md:text-base italic text-foreground/85 leading-relaxed">
+              &ldquo;Multi-agent debate significantly improves factual accuracy
+              and mathematical reasoning across multiple benchmarks.&rdquo;
+            </blockquote>
+            <figcaption className="mt-2 text-xs text-muted-foreground">
+              &mdash; Du, Li, Torralba, Tenenbaum, Mordatch &middot;
+              &quot;Improving Factuality and Reasoning in Language Models
+              through Multiagent Debate&quot; &middot; ICML 2024
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -166,7 +266,9 @@ export default function GettingStartedPage() {
           <div id="web-app">
             <div className="flex items-center gap-3 mb-6">
               <Globe className="h-6 w-6 text-indigo-400" />
-              <h2 className="text-2xl font-bold">For Users: Web App</h2>
+              <h2 className="text-2xl font-bold">
+                How do I get started in the web app?
+              </h2>
               <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                 Easiest
               </Badge>
@@ -175,9 +277,7 @@ export default function GettingStartedPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">
-                    1. Create an Account
-                  </CardTitle>
+                  <CardTitle className="text-base">1. Sign up</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
@@ -185,7 +285,7 @@ export default function GettingStartedPage() {
                     Clerk with support for email, Google, and GitHub sign-in
                     methods. Your account gives you access to the deliberation
                     dashboard, debate history, analytics, and API key
-                    management.
+                    management. No card required for the free tier.
                   </p>
                 </CardContent>
               </Card>
@@ -193,7 +293,7 @@ export default function GettingStartedPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    2. Add Your API Keys (BYOK)
+                    2. Add provider keys
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -218,23 +318,21 @@ export default function GettingStartedPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">
-                    3. Start Your First Deliberation
-                  </CardTitle>
+                  <CardTitle className="text-base">3. Pick a mode</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Go to the Council page. Enter your topic or question, select
-                    a deliberation mode (Council is the default), and choose 2-5
-                    AI models. Click &quot;Start Deliberation&quot; and watch
-                    the debate unfold in real-time via Server-Sent Events
-                    streaming.
+                    Choose one of the eight deliberation modes: Quick (1 round,
+                    ~15s) for sanity checks, Council (3 rounds, the default) for
+                    most decisions, Deep (5 rounds + sub-agents) for complex
+                    stakes, Blind to remove brand bias, Red Team for adversarial
+                    security review, Jury with mandatory dissent, Market for
+                    confidence-weighted voting, or Auto to let Consilium pick.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    You&apos;ll see each phase live: models proposing
-                    independently, cross-examining each other, defending their
-                    positions, voting, and finally synthesizing a consensus
-                    answer.
+                    Each mode tunes round count, judge prompts, and dissent
+                    handling. Use Council unless you have a specific reason to
+                    pick another.
                   </p>
                 </CardContent>
               </Card>
@@ -242,12 +340,17 @@ export default function GettingStartedPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    4. Understanding Your Results
+                    4. Run your first debate
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Every deliberation produces a rich set of outputs:
+                    Go to the Council page, paste your question, confirm the
+                    selected models, and click Start Deliberation. The debate
+                    streams live over Server-Sent Events - propose, challenge,
+                    rebut, evaluate, vote, synthesize - and produces a rich set
+                    of outputs you can export as Markdown, .cursorrules, plain
+                    text, or JSON.
                   </p>
                   <div className="grid gap-3">
                     <div className="rounded-lg bg-neutral-900 p-3">
@@ -321,7 +424,7 @@ export default function GettingStartedPage() {
             <div className="flex items-center gap-3 mb-6">
               <Terminal className="h-6 w-6 text-indigo-400" />
               <h2 className="text-2xl font-bold">
-                For Engineers: SDK &amp; CLI
+                How do engineers integrate via SDK or CLI?
               </h2>
               <Badge className="bg-sky-500/10 text-sky-400 border-sky-500/20">
                 Recommended
@@ -479,7 +582,9 @@ console.log(\`Cost: \$\${result.cost.toFixed(4)}\`);`}</code>
           <div id="byok">
             <div className="flex items-center gap-3 mb-6">
               <Key className="h-6 w-6 text-indigo-400" />
-              <h2 className="text-2xl font-bold">BYOK: Bring Your Own Keys</h2>
+              <h2 className="text-2xl font-bold">
+                Which providers can I bring keys for?
+              </h2>
             </div>
 
             <Card>

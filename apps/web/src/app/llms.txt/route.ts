@@ -59,6 +59,11 @@ function buildLlmsTxt(): string {
       "/research",
       "Peer-reviewed research backing each deliberation mode",
     ),
+    link(
+      "Benchmarks",
+      "/research/benchmarks",
+      "Original benchmark numbers: multi-AI debate vs single-model on MMLU, TruthfulQA, HumanEval, BBH-hard, hallucination rate, calibration. Mode-level cost vs quality tradeoffs. CC BY 4.0.",
+    ),
     link("Contact", "/contact", "How to reach the team"),
     "",
     "## Documentation",

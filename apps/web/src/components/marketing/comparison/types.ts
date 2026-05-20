@@ -20,6 +20,25 @@ export interface CompetitorPagePoints {
   intro: string[];
   /** A small tagline shown beneath the page <h1>. */
   tagline: string;
+  /**
+   * 40–75 word self-contained answer capsule rendered immediately under H1
+   * with data-speakable so AI/voice surfaces can quote it verbatim.
+   */
+  answerCapsule?: string;
+}
+
+export interface StatRow {
+  label: string;
+  value: string;
+}
+
+export interface CompetitorQuote {
+  /** Verbatim quoted text from the competitor's docs or pricing page. */
+  text: string;
+  /** Attribution label, e.g. "Anthropic Claude Code docs". */
+  source: string;
+  /** Optional href; if omitted the source is rendered as plain text. */
+  href?: string;
 }
 
 export interface CompetitorComparison {
@@ -35,6 +54,13 @@ export interface CompetitorComparison {
   keywords: string[];
   /** Hero copy shown at the top of the page. */
   hero: CompetitorPagePoints;
+  /**
+   * Quantitative claims rendered as a <dl> beneath the answer capsule.
+   * Aim for at least three concrete numbers (modes, providers, tests, cost).
+   */
+  stats?: StatRow[];
+  /** Verbatim competitor quotation rendered as a <blockquote> with citation. */
+  competitorQuote?: CompetitorQuote;
   /** What the competitor does well. */
   competitorStrengths: string[];
   /** Where Consilium differs. Each entry is a short headline + paragraph. */

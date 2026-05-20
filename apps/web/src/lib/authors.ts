@@ -22,6 +22,7 @@ export const SAAD_AUTHOR = {
   sameAs: [
     "https://saadkadri.dev",
     "https://www.linkedin.com/in/saad-kadri-58b8bb205/",
+    "https://github.com/skadri1601",
   ],
   worksFor: {
     "@type": "Organization",
