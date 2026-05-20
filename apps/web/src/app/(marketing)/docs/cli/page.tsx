@@ -12,9 +12,28 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "CLI",
   description:
-    "Install and use the Consilium CLI - run multi-AI debates from your terminal, stream rounds over SSE, and script deliberation into your workflow.",
+    "Install and use the Consilium CLI - multi-AI debates from your terminal with plan mode, hooks, sub-agents, sandbox, worktree, voice, image gen, web search, autonomy (/loop /goal /schedule), MCP marketplace, headless json/stream-json output, long-lived CI tokens, and 50+ chat slash commands. Feature parity with Claude Code, Gemini CLI, Grok Build, and Cursor CLI.",
   path: "/docs/cli",
-  keywords: ["consilium cli", "ai debate cli", "terminal llm"],
+  keywords: [
+    "consilium cli",
+    "ai debate cli",
+    "terminal llm",
+    "multi-model coding agent",
+    "claude code alternative",
+    "cursor cli alternative",
+    "gemini cli alternative",
+    "grok build alternative",
+    "llm plan mode",
+    "ai sub-agents",
+    "cli hooks",
+    "ai sandbox seatbelt bwrap",
+    "ai worktree isolation",
+    "ai voice dictation whisper",
+    "ai image generation dall-e",
+    "mcp server marketplace",
+    "headless ai cli",
+    "ai cli ci token",
+  ],
 });
 
 const commands = [
