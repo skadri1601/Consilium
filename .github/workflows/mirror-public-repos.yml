@@ -1,0 +1,39 @@
+name: Mirror public repos
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/cli/**'
+      - 'packages/sdk/**'
+      - 'packages/python-sdk/**'
+      - 'apps/vscode-extension/**'
+      - 'packages/shared/src/debates/**'
+      - 'scripts/mirror-public-repos.sh'
+      - 'scripts/mirror/**'
+      - '.github/workflows/mirror-public-repos.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-public-repos
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Sync to public repos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run mirror
+        env:
+          MIRROR_PAT: ${{ secrets.MIRROR_PAT }}
+        run: bash scripts/mirror-public-repos.sh
