@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import readline from "node:readline";
+import { getTrustLevel, trustPath } from "./workspace-trust";
 
 const execFileAsync = promisify(execFile);
 
@@ -291,6 +293,48 @@ async function runWithExecFile(
   }
 }
 
+async function askWorkspaceTrust(
+  cwd: string,
+): Promise<"no" | "session" | "always"> {
+  if (!process.stdin.isTTY) return "no";
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  const answer = await new Promise<string>((resolve) => {
+    rl.question(
+      `This is your first run in ${cwd}. Trust this workspace? [no/session/always] `,
+      resolve,
+    );
+  });
+  rl.close();
+  const lower = answer.trim().toLowerCase();
+  if (lower === "always" || lower === "a") return "always";
+  if (
+    lower === "session" ||
+    lower === "s" ||
+    lower === "y" ||
+    lower === "yes"
+  ) {
+    return "session";
+  }
+  return "no";
+}
+
+export async function ensureWorkspaceTrust(cwd: string): Promise<{
+  trusted: boolean;
+  level: "always" | "session" | null;
+}> {
+  const existing = getTrustLevel(cwd);
+  if (existing === "always" || existing === "session") {
+    return { trusted: true, level: existing };
+  }
+  const choice = await askWorkspaceTrust(cwd);
+  if (choice === "no") return { trusted: false, level: null };
+  trustPath(cwd, choice);
+  return { trusted: true, level: choice };
+}
+
 export async function runInSandboxNative(
   cmd: string,
   args: string[],
@@ -302,13 +346,19 @@ export async function runInSandboxNative(
   if (!Array.isArray(args)) {
     throw new Error("runInSandboxNative: args must be an array");
   }
+  const cwd = opts.cwd ?? process.cwd();
+
+  const trustLevel = getTrustLevel(cwd);
+  if (trustLevel === "always") {
+    return runWithExecFile(cmd, args, cwd, opts.env);
+  }
+
   const caps = detectSandboxCapabilities();
   if (!caps.available) {
     throw new Error(
       `Sandbox unavailable on ${caps.platform}: ${caps.reason ?? "no mechanism"}`,
     );
   }
-  const cwd = opts.cwd ?? process.cwd();
   if (caps.mechanism === "seatbelt") {
     const profile = buildSeatbeltProfile({ ...opts, cwd });
     const sandboxArgs = ["-p", profile, cmd, ...args];

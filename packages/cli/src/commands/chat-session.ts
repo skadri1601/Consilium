@@ -7,6 +7,7 @@ import { DebateMode, getDefaultMode } from "../utils/debate-modes";
 import { OutputFormat } from "../utils/output-formatter";
 import { type ScanManifest, type ScannedFile } from "../utils/project-scanner";
 import { getSessionExtras, replayAutonomy } from "./chat-slash-dispatch";
+import { maybeAppendFromSynthesis } from "../utils/auto-memory";
 const MAX_CONTEXT_CHARS = 80_000;
 
 export interface DebateRecord {
@@ -215,6 +216,15 @@ export class ChatSession {
 
     if (goldenPrompt) {
       this.decisionLog.addFromSynthesis(goldenPrompt, userInput, debateIndex);
+      try {
+        maybeAppendFromSynthesis({
+          topic: userInput,
+          synthesis: goldenPrompt,
+          source: debate.id || this.id,
+        });
+      } catch {
+        // best-effort; never block on memory writes
+      }
     }
 
     if (!this.name && this.debates.length === 1) {

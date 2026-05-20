@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import type { Interface as ReadlineInterface } from "node:readline";
 import type { ChatSession } from "./chat-session";
@@ -413,14 +414,54 @@ function slashOutput(args: string[], session: ChatSession): SlashResult {
   return "continue";
 }
 
-function slashInsights(): SlashResult {
-  const config = loadConfig();
-  const webUrl =
-    config.webUrl || process.env.CONSILIUM_WEB_URL || DEFAULT_WEB_ORIGIN;
-  const url = `${webUrl.replace(/\/$/, "")}/analytics`;
-  console.log(st.brand("Opening usage and analytics in browser..."));
-  openBrowser(url);
-  console.log(st.success("Opened:"), url);
+async function slashInsights(): Promise<SlashResult> {
+  console.log(st.dim("Analyzing sessions..."));
+  const { analyzeSessions, renderInsights } =
+    await import("../utils/session-analytics.js");
+  try {
+    const insights = await analyzeSessions({ sinceDays: 30 });
+    console.log(renderInsights(insights));
+    console.log("");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(st.error(`Insight analysis failed: ${msg}`));
+  }
+  return "continue";
+}
+
+function expandHome(target: string): string {
+  if (target.startsWith("~")) return path.join(os.homedir(), target.slice(1));
+  return target;
+}
+
+async function slashTeamOnboarding(args: string[]): Promise<SlashResult> {
+  const target = args[0] || "~/.consilium/onboarding-guide.md";
+  console.log(st.dim("Generating onboarding guide..."));
+  const { analyzeSessions, renderOnboardingGuide } =
+    await import("../utils/session-analytics.js");
+  try {
+    const insights = await analyzeSessions({ sinceDays: 30 });
+    const guide = renderOnboardingGuide(insights);
+    const outPath = expandHome(target);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, guide, "utf-8");
+    console.log(st.success(`Onboarding guide saved to ${outPath}`));
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(st.error(`Onboarding generation failed: ${msg}`));
+  }
+  return "continue";
+}
+
+async function slashMemory(): Promise<SlashResult> {
+  const { loadMemory, renderMemoryForPrompt } =
+    await import("../utils/auto-memory.js");
+  const mem = loadMemory();
+  if (!mem) {
+    console.log(st.dim("No memory notes yet for this project."));
+    return "continue";
+  }
+  console.log(renderMemoryForPrompt(mem));
   console.log("");
   return "continue";
 }
@@ -653,6 +694,116 @@ function slashHeapdump(): SlashResult {
   return "continue";
 }
 
+async function slashTrust(args: string[]): Promise<SlashResult> {
+  const sub = (args[0] ?? "status").toLowerCase();
+  const trustMod = await import("../utils/workspace-trust.js");
+
+  if (sub === "list") {
+    const entries = trustMod.listTrustedPaths();
+    if (entries.length === 0) {
+      console.log(st.dim("\nNo trusted workspaces.\n"));
+      return "continue";
+    }
+    console.log(st.bold("\nTrusted workspaces\n"));
+    for (const entry of entries) {
+      const ts = new Date(entry.trustedAt).toLocaleString();
+      console.log(
+        st.brand(entry.path),
+        st.dim(`  level=${entry.level} since ${ts}`),
+      );
+    }
+    console.log("");
+    return "continue";
+  }
+
+  if (sub === "add") {
+    const target = args[1];
+    if (!target) {
+      console.log(st.warning("Usage: /trust add <path> [session|always]"));
+      return "continue";
+    }
+    const levelArg = (args[2] ?? "always").toLowerCase();
+    const level = levelArg === "session" ? "session" : ("always" as const);
+    trustMod.trustPath(target, level);
+    console.log(st.success(`Trusted ${target} (${level}).\n`));
+    return "continue";
+  }
+
+  if (sub === "remove" || sub === "rm") {
+    const target = args[1];
+    if (!target) {
+      console.log(st.warning("Usage: /trust remove <path>"));
+      return "continue";
+    }
+    trustMod.untrustPath(target);
+    console.log(st.success(`Removed trust for ${target}.\n`));
+    return "continue";
+  }
+
+  if (sub === "status") {
+    const cwd = process.cwd();
+    const level = trustMod.getTrustLevel(cwd);
+    console.log(st.bold("\nWorkspace trust\n"));
+    console.log(st.brand("CWD:"), cwd);
+    if (level) {
+      console.log(st.brand("Trust:"), st.success(level));
+    } else {
+      console.log(st.brand("Trust:"), st.dim("not set"));
+    }
+    console.log("");
+    return "continue";
+  }
+
+  console.log(
+    st.dim(
+      "Usage: /trust list | /trust add <path> [session|always] | /trust remove <path> | /trust status\n",
+    ),
+  );
+  return "continue";
+}
+
+async function slashVerify(args: string[]): Promise<SlashResult> {
+  const url = args[0];
+  if (!url) {
+    console.log(st.warning("Usage: /verify <url> [selector]"));
+    return "continue";
+  }
+  const selector = args[1];
+  try {
+    const { runVerify } = await import("../utils/verify-runner.js");
+    const r = await runVerify({ url, selector });
+    console.log(st.success(`Screenshot saved: ${r.screenshotPath}`));
+    if (r.videoPath) console.log(st.dim(`Video: ${r.videoPath}`));
+    console.log(st.dim(`Page: ${r.domSummary}`));
+    console.log(st.dim(`Duration: ${r.durationMs}ms\n`));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(msg));
+  }
+  return "continue";
+}
+
+async function slashDream(args: string[]): Promise<SlashResult> {
+  const prompt = args.join(" ").trim();
+  if (!prompt) {
+    console.log(st.warning("Usage: /dream <prompt>"));
+    return "continue";
+  }
+  console.log(st.dim("Generating image..."));
+  try {
+    const { generateImage } = await import("../utils/image-gen-client.js");
+    const r = await generateImage({ prompt });
+    console.log(st.success(`Image saved: ${r.filePath}`));
+    if (r.revisedPrompt) {
+      console.log(st.dim(`Revised prompt: ${r.revisedPrompt}`));
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(msg));
+  }
+  return "continue";
+}
+
 async function slashSubAgent(args: string[]): Promise<SlashResult> {
   const { subAgentsListCommand, subAgentsRunCommand } =
     await import("./sub-agents.js");
@@ -667,6 +818,76 @@ async function slashSubAgent(args: string[]): Promise<SlashResult> {
     return "continue";
   }
   await subAgentsRunCommand(name, prompt);
+  return "continue";
+}
+
+async function slashBatch(args: string[]): Promise<SlashResult> {
+  if (args.length < 2 || !/^\d+$/.test(args[0] ?? "")) {
+    console.log(st.warning("Usage: /batch <N> <task description>"));
+    return "continue";
+  }
+  const count = parseInt(args[0]!, 10);
+  const topic = args.slice(1).join(" ").trim();
+  if (count < 1 || count > 30) {
+    console.log(st.error("Batch count must be 1..30"));
+    return "continue";
+  }
+  if (!topic) {
+    console.log(st.warning("Usage: /batch <N> <task description>"));
+    return "continue";
+  }
+  console.log(st.dim(`Spawning ${count} batch worker(s)...`));
+  try {
+    const { runBatch } = await import("../utils/batch-executor.js");
+    const results = await runBatch({ count, topic, openPRs: false });
+    for (const r of results) {
+      const marker =
+        r.status === "success" ? st.success("ok") : st.error(r.status);
+      console.log(
+        `${marker} ${r.task.id}: ${r.task.worktreePath} (${r.durationMs}ms)`,
+      );
+      if (r.prUrl) console.log(st.dim(`  PR: ${r.prUrl}`));
+      if (r.error) console.log(st.dim(`  ${r.error}`));
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`Batch failed: ${msg}`));
+  }
+  return "continue";
+}
+
+async function slashSimplify(): Promise<SlashResult> {
+  console.log(st.dim("Running simplify review with 3 parallel reviewers..."));
+  const { runSimplify } = await import("../utils/simplify-runner.js");
+  const { getGitDiff } = await import("../utils/git-context.js");
+  const diff = getGitDiff();
+  if (!diff) {
+    console.log(st.warning("No recent edits to review (git diff empty)"));
+    return "continue";
+  }
+  try {
+    const result = await runSimplify({ recentEdits: diff });
+    console.log(st.bold(`\nFindings (${result.findings.length}):`));
+    for (const f of result.findings) {
+      const sev =
+        f.severity === "critical"
+          ? st.error(f.severity)
+          : f.severity === "major"
+            ? st.warning(f.severity)
+            : st.dim(f.severity);
+      const loc = f.file ? `${f.file}${f.line ? ":" + f.line : ""} ` : "";
+      console.log(`  [${sev}] ${f.reviewer}: ${loc}${f.message}`);
+    }
+    if (result.consensusFixes.length > 0) {
+      console.log(st.bold("\nConsensus fixes:"));
+      for (const fix of result.consensusFixes) {
+        console.log(`  - ${fix}`);
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(st.error(`Simplify failed: ${msg}`));
+  }
   return "continue";
 }
 
@@ -1537,6 +1758,16 @@ function printExtendedHelp(session: ChatSession): void {
       "  /heapdump       - Write a Node diagnostic report to ~/.consilium/diagnostics/",
     ),
   );
+  console.log(st.bold("\n  Memory & Analytics"));
+  console.log(
+    st.dim("  /memory         - Show project memory notes (auto-curated)"),
+  );
+  console.log(
+    st.dim("  /insights       - Analyze recent sessions for friction patterns"),
+  );
+  console.log(
+    st.dim("  /team-onboarding [path] - Generate a shareable onboarding guide"),
+  );
 
   if (extras.customCommands.size > 0) {
     console.log(st.bold("\n  Custom (~/.consilium/commands/*.md)"));
@@ -1546,6 +1777,44 @@ function printExtendedHelp(session: ChatSession): void {
     }
   }
   console.log("");
+}
+
+async function slashUltraPlan(args: string[]): Promise<SlashResult> {
+  const topic = args.join(" ").trim();
+  if (!topic) {
+    console.log(st.warning("Usage: /ultraplan <topic>"));
+    return "continue";
+  }
+  console.log(st.dim("Running multi-agent plan generation..."));
+  try {
+    const { runUltraPlan } = await import("../utils/ultraplan.js");
+    const result = await runUltraPlan({ topic, save: true });
+    console.log(result.markdown);
+    if (result.savedTo) {
+      console.log(st.success(`\nPlan saved to ${result.savedTo}`));
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(st.error(`UltraPlan failed: ${msg}`));
+  }
+  return "continue";
+}
+
+async function slashUltraReview(args: string[]): Promise<SlashResult> {
+  const branch = args[0];
+  console.log(st.dim("Running multi-agent code review..."));
+  try {
+    const { runUltraReview } = await import("../utils/ultrareview.js");
+    const result = await runUltraReview({ branch });
+    console.log(result.markdown);
+    if (result.blocked) {
+      console.log(st.error("\nReview BLOCKED - address critical issues"));
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(st.error(`UltraReview failed: ${msg}`));
+  }
+  return "continue";
 }
 
 export async function dispatchSlashCommand(
@@ -1585,6 +1854,10 @@ export async function dispatchSlashCommand(
     case "/track":
     case "/insights":
       return slashInsights();
+    case "/team-onboarding":
+      return slashTeamOnboarding(args);
+    case "/memory":
+      return slashMemory();
     case "/codebase":
       return slashCodebase(args);
     case "/permissions":
@@ -1696,9 +1969,24 @@ export async function dispatchSlashCommand(
       return slashDoctor();
     case "/heapdump":
       return slashHeapdump();
+    case "/ultraplan":
+      return slashUltraPlan(args);
+    case "/ultrareview":
+      return slashUltraReview(args);
     case "/sub-agent":
     case "/sub-agents":
       return slashSubAgent(args);
+    case "/batch":
+      return slashBatch(args);
+    case "/simplify":
+      return slashSimplify();
+    case "/trust":
+      return slashTrust(args);
+    case "/verify":
+      return slashVerify(args);
+    case "/dream":
+    case "/imagine":
+      return slashDream(args);
     default: {
       const name = cmd.startsWith("/") ? cmd.slice(1) : cmd;
       const extras = getExtras(session);

@@ -262,12 +262,92 @@ class BraveSearchProvider:
         return results
 
 
+class GoogleSearchProvider:
+    name = "google"
+
+    def __init__(
+        self,
+        *,
+        api_key: str | None = None,
+        engine_id: str | None = None,
+        endpoint: str = "https://www.googleapis.com/customsearch/v1",
+        client: httpx.AsyncClient | None = None,
+        timeout: float = 10.0,
+    ) -> None:
+        self._api_key = api_key or os.getenv("GOOGLE_SEARCH_API_KEY", "")
+        self._engine_id = engine_id or os.getenv("GOOGLE_SEARCH_ENGINE_ID", "")
+        self._endpoint = endpoint
+        self._client = client
+        self._timeout = timeout
+
+    @property
+    def available(self) -> bool:
+        return bool(self._api_key and self._engine_id)
+
+    def is_configured(self) -> bool:
+        return self.available
+
+    async def search(self, query: str, *, limit: int = 5) -> list[WebSearchResult]:
+        if not query.strip():
+            return []
+        if not self.available:
+            raise WebSearchProviderError(
+                "GoogleSearchProvider requires GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID",
+                provider=self.name,
+            )
+        params = {
+            "key": self._api_key,
+            "cx": self._engine_id,
+            "q": query,
+            "num": str(min(max(limit, 1), 10)),
+        }
+        headers = {"Accept": "application/json"}
+        try:
+            if self._client is not None:
+                response = await self._client.get(
+                    self._endpoint, params=params, headers=headers, timeout=self._timeout
+                )
+            else:
+                async with httpx.AsyncClient(timeout=self._timeout) as cli:
+                    response = await cli.get(self._endpoint, params=params, headers=headers)
+        except httpx.HTTPError as exc:
+            raise WebSearchProviderError(str(exc), provider=self.name) from exc
+        if response.status_code >= 400:
+            raise WebSearchProviderError(
+                f"HTTP {response.status_code} from Google", provider=self.name
+            )
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise WebSearchProviderError(
+                "Google returned invalid JSON", provider=self.name
+            ) from exc
+        items = data.get("items") or []
+        results: list[WebSearchResult] = []
+        for item in items[:limit]:
+            url = item.get("link") or ""
+            title = item.get("title") or ""
+            if not url or not title:
+                continue
+            results.append(
+                WebSearchResult(
+                    title=_clean(title),
+                    url=url,
+                    snippet=_clean(item.get("snippet") or ""),
+                    source=self.name,
+                )
+            )
+        return results
+
+
 def _build_provider(name: str) -> WebSearchProvider:
     normalized = (name or "").lower().strip()
     if normalized in ("", "duckduckgo", "ddg"):
         return DuckDuckGoHtmlProvider()
     if normalized == "brave":
         return BraveSearchProvider()
+    if normalized == "google":
+        return GoogleSearchProvider()
     raise WebSearchProviderError(f"Unknown provider: {name}", provider=normalized or "unknown")
 
 
@@ -279,7 +359,7 @@ def get_provider(name: str | None = None) -> WebSearchProvider:
 def cascade_providers(primary: str | None = None) -> list[WebSearchProvider]:
     primary_name = (primary or os.getenv("WEB_SEARCH_PROVIDER", "duckduckgo")).lower().strip()
     order = [primary_name]
-    for fallback in ("duckduckgo", "brave"):
+    for fallback in ("duckduckgo", "brave", "google"):
         if fallback not in order:
             order.append(fallback)
     providers: list[WebSearchProvider] = []
@@ -289,6 +369,8 @@ def cascade_providers(primary: str | None = None) -> list[WebSearchProvider]:
         except WebSearchProviderError:
             continue
         if isinstance(provider, BraveSearchProvider) and not provider.available:
+            continue
+        if isinstance(provider, GoogleSearchProvider) and not provider.available:
             continue
         providers.append(provider)
     return providers

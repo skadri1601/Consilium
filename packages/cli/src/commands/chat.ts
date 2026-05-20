@@ -42,6 +42,7 @@ import {
 import { getTUI } from "../utils/tui-renderer";
 import { safeRunHooks, shouldBlock } from "../hooks/runner";
 import { renderStatusLine, getCurrentContext } from "../utils/status-line";
+import { loadMemory } from "../utils/auto-memory";
 
 const DEFAULT_SESSION_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || "",
@@ -925,6 +926,19 @@ export async function chatCommand(): Promise<void> {
     console.log(theme.dim("Ready. Connected."));
   }
 
+  try {
+    const projectMemory = loadMemory(process.cwd());
+    if (projectMemory && projectMemory.notes.length > 0) {
+      console.log(
+        theme.dim(
+          `Loaded ${projectMemory.notes.length} memory note(s) from this project. View with /memory.`,
+        ),
+      );
+    }
+  } catch {
+    // best-effort load; never block startup
+  }
+
   if (vimState.enabled) {
     console.log(
       theme.dim("Vim mode enabled (Esc: NORMAL, i: INSERT, :q to quit)"),
@@ -979,6 +993,9 @@ export async function chatCommand(): Promise<void> {
     "/delete",
     "/redo",
     "/tui",
+    "/insights",
+    "/team-onboarding",
+    "/memory",
   ];
 
   function completer(line: string): [string[], string] {
