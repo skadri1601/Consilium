@@ -20,19 +20,19 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 
 ### Systems
 
-| System        | Path                   | Stack                                     | Runs On                         |
-| ------------- | ---------------------- | ----------------------------------------- | ------------------------------- |
-| Web App       | apps/web/              | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
-| API           | apps/api/              | NestJS 11, Fastify, BullMQ, Prisma        | Render                          |
-| Debate Engine | apps/agents/           | FastAPI, 7 LLM providers                  | Render / Droplet                |
-| Bot/DevOps    | agents/                | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
-| CLI           | packages/cli/          | TypeScript, Commander.js, SSE             | User's machine (npm)            |
-| TS SDK        | packages/sdk/          | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |
-| Python SDK    | packages/python-sdk/   | httpx + pydantic, sync + async clients    | PyPI (`consilium`)              |
-| Database      | packages/database/     | Prisma, Neon PostgreSQL                   | Neon                            |
-| Shared Types  | packages/shared/       | TypeScript                                | N/A (library)                   |
-| UI library    | packages/ui/           | shadcn/ui primitives                      | N/A (library)                   |
-| VS Code ext   | apps/vscode-extension/ | TypeScript                                | VS Code marketplace             |
+| System        | Path                                               | Stack                                     | Runs On                         |
+| ------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| Web App       | apps/web/                                          | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
+| API           | apps/api/                                          | NestJS 11, Fastify, BullMQ, Prisma        | DigitalOcean droplet            |
+| Debate Engine | apps/agents/                                       | FastAPI, 7 LLM providers                  | DigitalOcean droplet            |
+| Bot/DevOps    | agents/                                            | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
+| CLI           | packages/cli/                                      | TypeScript, Commander.js, SSE             | User's machine (npm)            |
+| TS SDK        | packages/sdk/                                      | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |
+| Python SDK    | packages/python-sdk/                               | httpx + pydantic, sync + async clients    | PyPI (`consilium`)              |
+| Database      | packages/database/                                 | Prisma, Neon PostgreSQL                   | Neon                            |
+| Shared Types  | packages/shared/                                   | TypeScript                                | N/A (library)                   |
+| UI library    | packages/ui/                                       | shadcn/ui primitives                      | N/A (library)                   |
+| VS Code ext   | apps/vscode-extension/, packages/vscode-extension/ | TypeScript                                | VS Code marketplace             |
 
 ### Bot Infrastructure (agents/)
 
