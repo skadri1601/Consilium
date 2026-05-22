@@ -36,6 +36,9 @@ SUBAGENT_RESEARCH_START = SseEvent("subagent_research_start")
 SUBAGENT_RESEARCH_DONE = SseEvent("subagent_research_done")
 CONVERGENCE_DETECTED = SseEvent("convergence_detected")
 COMPACTION_APPLIED = SseEvent("compaction_applied")
+SESSION_COMPACTED = SseEvent("session_compacted")
+ANTI_CAPITULATION = SseEvent("anti_capitulation")
+ANTI_CAPITULATION_REVISED = SseEvent("anti_capitulation_revised")
 JUDGE_START = SseEvent("judge_start")
 JUDGE_RETRY = SseEvent("judge_retry")
 JUDGE_ATTEMPT = SseEvent("judge:attempt")
@@ -74,6 +77,9 @@ KNOWN_EVENTS: frozenset[str] = frozenset(
         SUBAGENT_RESEARCH_DONE,
         CONVERGENCE_DETECTED,
         COMPACTION_APPLIED,
+        SESSION_COMPACTED,
+        ANTI_CAPITULATION,
+        ANTI_CAPITULATION_REVISED,
         JUDGE_START,
         JUDGE_RETRY,
         JUDGE_ATTEMPT,

@@ -12,7 +12,8 @@ class TestAgent(BaseAgent):
         super().__init__(
             name="Test Agent",
             provider="Test",
-            model="test-model"
+            model="test-model",
+            api_key_env_var="TEST_API_KEY",
         )
 
     async def generate_response(self, query: str):

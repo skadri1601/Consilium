@@ -56,6 +56,7 @@ class TestAnthropicToolUse:
             mock_client.messages.create = AsyncMock(
                 return_value=_response([_text_block("hello world")], stop_reason="end_turn")
             )
+            mock_client.close = AsyncMock()
             executor = AsyncMock()
 
             with patch("anthropic.AsyncAnthropic", return_value=mock_client):
@@ -81,6 +82,7 @@ class TestAnthropicToolUse:
             )
             second = _response([_text_block("the file says hello")], stop_reason="end_turn")
             mock_client.messages.create = AsyncMock(side_effect=[first, second])
+            mock_client.close = AsyncMock()
 
             executor = AsyncMock(
                 return_value=ToolResult(call_id="call_a", content="export const X=1", is_error=False)
@@ -117,6 +119,7 @@ class TestAnthropicToolUse:
             )
             # Always returns tool_use → would loop forever without the cap
             mock_client.messages.create = AsyncMock(return_value=tool_use_resp)
+            mock_client.close = AsyncMock()
             executor = AsyncMock(return_value=ToolResult(call_id="call", content="ok"))
 
             with patch("anthropic.AsyncAnthropic", return_value=mock_client):
@@ -147,6 +150,7 @@ class TestAnthropicToolUse:
             )
             second = _response([_text_block("ok despite error")], stop_reason="end_turn")
             mock_client.messages.create = AsyncMock(side_effect=[first, second])
+            mock_client.close = AsyncMock()
 
             executor = AsyncMock(
                 return_value=ToolResult(call_id="call_x", content="permission denied", is_error=True)
