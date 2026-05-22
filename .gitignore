@@ -92,6 +92,9 @@ agents/memory/sessions/
 # Vercel
 .vercel/
 
+# Generated at build time from scripts/install.sh (single source of truth).
+apps/web/public/install.sh
+
 # Sentry
 .sentryclirc
 

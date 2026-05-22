@@ -546,28 +546,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/vscode-extension:
-    dependencies:
-      '@consilium/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@myconsilium/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-    devDependencies:
-      '@types/node':
-        specifier: ^25.6.0
-        version: 25.6.0
-      '@types/vscode':
-        specifier: ^1.118.0
-        version: 1.118.0
-      tsup:
-        specifier: ^8.5.1
-        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
 packages:
 
   '@adobe/css-tools@4.4.4':

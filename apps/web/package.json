@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "sync:install-sh": "node scripts/copy-install-sh.mjs",
+    "dev": "node scripts/copy-install-sh.mjs && next dev",
+    "build": "node scripts/copy-install-sh.mjs && next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit",

@@ -1,22 +1,20 @@
 # Homebrew formula for the Consilium CLI.
 #
-# Place this file at:
-#   skadri1601/homebrew-tap/Formula/consilium.rb
-# Then users can:
+# This file is the TEMPLATE. The actual published formula lives at
+# skadri1601/homebrew-tap/Formula/consilium.rb and is rendered + pushed by
+# .github/workflows/release-cli.yml on each cli-v* tag (version is bumped and
+# the four REPLACE_WITH_*_SHA256 placeholders are filled in from the freshly
+# built binaries).
+#
+# Users install via:
 #   brew tap skadri1601/tap
 #   brew install consilium
 #
-# Or, once Consilium hits homebrew-core acceptance criteria (75+ GitHub stars,
-# stable release cadence), submit a PR to homebrew/homebrew-core so users can:
-#   brew install consilium
-# without the tap.
-#
-# RELEASE-TIME ACTIONS (per release):
-#   1. Run: bash packages/cli/scripts/build-binaries.sh
-#   2. Upload binaries to GitHub Releases under tag cli-v<version>
-#   3. Update the `version`, `url`, and `sha256` fields below
-#      (the per-platform sha256s are listed under `on_macos` / `on_linux`)
-#   4. Push the updated formula to the homebrew-tap repo
+# Manual release (only if CI is unavailable):
+#   1. bash packages/cli/scripts/build-binaries.sh
+#   2. Upload packages/cli/dist-binaries/consilium-* to the cli-v<version> release
+#   3. shasum -a 256 packages/cli/dist-binaries/consilium-* and substitute below
+#   4. Push the rendered formula to skadri1601/homebrew-tap
 class Consilium < Formula
   desc "Multi-AI council CLI - debate across providers, edit codebase together"
   homepage "https://myconsilium.xyz"
