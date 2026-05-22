@@ -57,7 +57,7 @@ class TestOpenRouter:
     def test_defaults(self):
         agent = OpenRouterAgent()
         assert agent.provider == "OpenRouter"
-        assert agent.model_id == "meta-llama/llama-3.3-70b-instruct:free"
+        assert agent.model_id == "qwen/qwen3-coder:free"
         assert agent.base_url == "https://openrouter.ai/api/v1"
 
     def test_generate_with_tools_uses_shared_loop(self):

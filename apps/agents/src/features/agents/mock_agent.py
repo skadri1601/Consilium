@@ -119,14 +119,20 @@ class MockAgent(BaseAgent):
         )
 
     async def generate_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, int]:
         await asyncio.sleep(0)
         self._maybe_raise()
         return self._scenario["text"], int(self._scenario.get("tokens", 0))
 
     async def stream_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> AsyncIterator[str]:
         self._maybe_raise()
         text = self._scenario["text"]

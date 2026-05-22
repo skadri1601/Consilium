@@ -397,3 +397,24 @@ model AuditEntry {
   @@index([modelId])
   @@index([timestamp])
 }
+
+// ============================================
+// Session Shares
+// ============================================
+
+model SessionShare {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  sessionId   String
+  userId      String
+  isPublic    Boolean  @default(false)
+  expiresAt   DateTime?
+  payload     Json
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([token])
+}

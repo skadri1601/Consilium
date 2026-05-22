@@ -12,6 +12,7 @@ headers).
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any, Callable, Optional, Tuple
 
@@ -22,6 +23,9 @@ from .base_agent import (
     ToolExecutor,
     ToolUseResponse,
 )
+from .reasoning_effort import normalize_effort, to_openai_effort
+
+logger = logging.getLogger(__name__)
 
 
 ClientFactory = Callable[[], tuple[Any, Any]]
@@ -138,9 +142,26 @@ class BaseOpenAICompatAgent(BaseAgent):
     """
 
     base_url: Optional[str] = None
+    supports_reasoning_effort: bool = False
 
     def _extra_client_kwargs(self) -> dict[str, Any]:
         return {}
+
+    def _build_reasoning_kwargs(self, reasoning_effort: Optional[str]) -> dict[str, Any]:
+        normalized = normalize_effort(reasoning_effort)
+        if normalized is None:
+            return {}
+        if not self.supports_reasoning_effort:
+            if reasoning_effort:
+                logger.debug(
+                    "Provider %s does not support reasoning_effort; ignoring %s",
+                    self.provider, normalized,
+                )
+            return {}
+        mapped = to_openai_effort(normalized)
+        if mapped is None:
+            return {}
+        return {"reasoning_effort": mapped}
 
     def _create_openai_client(self) -> tuple[Any, Any]:
         import openai
@@ -155,7 +176,10 @@ class BaseOpenAICompatAgent(BaseAgent):
         return client, http_client
 
     async def generate_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, int]:
         if not self._validate_api_key():
             self._raise_no_api_key()
@@ -163,6 +187,7 @@ class BaseOpenAICompatAgent(BaseAgent):
         http_client = None
         try:
             client, http_client = self._create_openai_client()
+            extra = self._build_reasoning_kwargs(reasoning_effort)
             response = await client.chat.completions.create(
                 model=self.model_id,
                 messages=[
@@ -171,6 +196,7 @@ class BaseOpenAICompatAgent(BaseAgent):
                 ],
                 temperature=0.7,
                 max_tokens=2000,
+                **extra,
             )
             content = response.choices[0].message.content or ""
             tokens = response.usage.total_tokens if response.usage else 0
@@ -182,7 +208,10 @@ class BaseOpenAICompatAgent(BaseAgent):
                 await http_client.aclose()
 
     async def stream_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> AsyncIterator[str]:
         if not self._validate_api_key():
             self._raise_no_api_key()
@@ -190,6 +219,7 @@ class BaseOpenAICompatAgent(BaseAgent):
         http_client = None
         try:
             client, http_client = self._create_openai_client()
+            extra = self._build_reasoning_kwargs(reasoning_effort)
             stream = await client.chat.completions.create(
                 model=self.model_id,
                 messages=[
@@ -199,6 +229,7 @@ class BaseOpenAICompatAgent(BaseAgent):
                 temperature=0.7,
                 max_tokens=2000,
                 stream=True,
+                **extra,
             )
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:

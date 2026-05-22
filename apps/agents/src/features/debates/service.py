@@ -49,6 +49,7 @@ class DebatesService:
             "sub_agents": sub_agents,
             "debate_source": request.debate_source,
             "project_context": request.project_context,
+            "reasoning_effort": request.reasoning_effort,
             "status": "pending",
         }
 
@@ -136,6 +137,7 @@ class DebatesService:
                 system_prompt=system_prompt,
                 sub_agents=sub_agents,
                 project_context=debate_data.get("project_context"),
+                reasoning_effort=debate_data.get("reasoning_effort"),
             ):
                 yield event
         except Exception as exc:

@@ -149,11 +149,76 @@ const costFaqs = [
   },
 ];
 
+const cliFaqs = [
+  {
+    id: "cli-vs-claude-code",
+    question:
+      "How does the Consilium CLI compare to Claude Code or Cursor CLI?",
+    answer:
+      "The Consilium CLI ships full coding-agent parity with Claude Code, Gemini CLI, Grok Build, and Cursor CLI on every dimension: plan mode, checkpoint/rewind, @file mentions, !shell passthrough, hooks, user-definable sub-agents, MCP server marketplace, sandbox (Seatbelt/bwrap), worktree isolation, voice dictation, image generation, web search grounding, headless output formats (json/stream-json), long-lived CI tokens, autonomy controls (/loop /goal /schedule), and a scheduler daemon. The unique addition is multi-AI debate across 7 providers — no other CLI cross-examines models against each other.",
+  },
+  {
+    id: "cli-install",
+    question: "How do I install the CLI?",
+    answer:
+      "npm install -g @myconsilium/cli, then `consilium login` to authenticate via browser, or `consilium setup-token --name ci` for a 365-day CI token. Shell completions via `consilium completions bash|zsh|fish`. Man page bundled in the npm package.",
+  },
+  {
+    id: "cli-slash-commands",
+    question: "What slash commands does the chat REPL support?",
+    answer:
+      "Over 50 commands across categories: session (/checkpoint, /rewind, /fork, /new, /save), context (/context grid, /diff navigator, /file, /workspace), planning (/plan, /effort), autonomy (/loop, /goal, /schedule), parallel execution (/batch, /simplify, /ultraplan, /ultrareview), diagnostics (/recap, /stop, /doctor, /heapdump, /insights, /team-onboarding, /memory), extensibility (/sub-agent, /trust), media (/dream, /imagine, /verify). Plus user-definable custom commands loaded from ~/.consilium/commands/*.md.",
+  },
+  {
+    id: "cli-hooks",
+    question: "Can I run shell scripts on CLI lifecycle events?",
+    answer:
+      "Yes. Configure ~/.consilium/hooks.json with hooks for SessionStart, SessionEnd, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, and Stop events. Command hooks receive JSON payload on stdin; HTTP hooks POST to allowlisted URLs. Hooks can block actions by returning exit code 2 or setting block:true in their JSON response.",
+  },
+  {
+    id: "cli-sub-agents",
+    question: "Can I define my own sub-agents?",
+    answer:
+      'Yes. Drop markdown files into ~/.consilium/agents/ with YAML frontmatter (name, description, model, allowed-tools). Invoke via `consilium sub-agent <name> "<prompt>"` from the shell or `/sub-agent <name> <prompt>` in the chat REPL.',
+  },
+  {
+    id: "cli-sandbox",
+    question: "Is there a sandbox for tool execution?",
+    answer:
+      "Yes. --sandbox uses macOS Seatbelt (sandbox-exec) or Linux bwrap to isolate file system and network access. Combined with --worktree, every task runs in a fresh git worktree under ~/.consilium/worktrees/<uuid>. Workspace trust file at ~/.consilium/workspace-trust.json lets you bless a directory once with `always` or `session` levels.",
+  },
+  {
+    id: "cli-headless",
+    question: "Can I use the CLI from CI/CD or shell pipes?",
+    answer:
+      "Yes. --output-format text|json|stream-json controls output, --json-schema validates the final synthesis against a schema (exits 2 on mismatch), --max-budget-usd and --max-turns enforce safety caps. `consilium setup-token` generates a 365-day token so CI doesn't need browser login. The GitHub composite action at .github/actions/consilium-debate/ wraps debate runs for workflows.",
+  },
+  {
+    id: "cli-autonomy",
+    question: "How do /loop and /schedule work?",
+    answer:
+      'Inside chat: /loop 5m "<prompt>" repeats the prompt every 5 minutes, /schedule daily "<prompt>" fires once per day, /goal "<text>" injects an overall goal preamble into every debate in the session. Registrations persist to ~/.consilium/autonomy/<sessionId>/ and replay when the session resumes. Run `consilium scheduler start` to keep them firing even when no REPL is open.',
+  },
+  {
+    id: "cli-vscode",
+    question: "Is there a VS Code extension?",
+    answer:
+      "Yes. consilium-vscode adds a sessions tree, status bar, and a webview debate panel that streams SSE events from the agents service and renders agent cards + final synthesis as markdown. Commands include `Consilium: New Debate (Panel)`, `Debate Selected Text` (also in the editor context menu), and `Resume Session...`. Debates persist back to the same session id the CLI and web app see.",
+  },
+  {
+    id: "cli-themes",
+    question: "Can I customize the CLI appearance?",
+    answer:
+      "Yes. 8 themes (default, dark, light, high-contrast, matrix, ocean, sunset, monokai) selectable via `consilium config set theme <name>` or CONSILIUM_THEME env var. CONSILIUM_VIM_MODE=1 enables vim keybindings in chat input. /tui toggles fullscreen alt-screen rendering. Status line template customizable via statusLineTemplate in ~/.consilium/config.json.",
+  },
+];
+
 const sections = [
   { title: "General", faqs: generalFaqs },
   { title: "Technical", faqs: technicalFaqs },
   { title: "Security", faqs: securityFaqs },
   { title: "Pricing & Costs", faqs: costFaqs },
+  { title: "CLI", faqs: cliFaqs },
 ];
 
 const allFaqs = [
@@ -161,6 +226,7 @@ const allFaqs = [
   ...technicalFaqs,
   ...securityFaqs,
   ...costFaqs,
+  ...cliFaqs,
 ];
 
 const faqSchema = faqPage(

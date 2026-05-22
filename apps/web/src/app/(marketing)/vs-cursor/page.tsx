@@ -20,12 +20,27 @@ const data: CompetitorComparison = {
     tagline:
       "Use Cursor for typing speed. Use Consilium when one AI's answer is not enough.",
     hook: "Cursor is an excellent single-agent IDE. Consilium is a multi-agent deliberation engine that runs across CLI, IDE, and MCP - including inside Cursor itself.",
+    answerCapsule:
+      "Consilium is the only CLI and IDE companion that cross-examines models against each other. Cursor pairs you with one selected model per request; Consilium runs three to five models from seven providers in structured rounds, then synthesizes a consensus answer with a Kendall tau plus Jaccard plus concession-rate convergence score. Use Cursor for inline typing, Consilium for the decisions that matter.",
     intro: [
       "Cursor reimagined the IDE around an inline AI agent. The result is fast, fluid coding with one model in the loop - Composer for multi-file edits, Agent for autonomous tasks, and tab-complete that's better than every editor that came before it.",
       "Consilium is built around a different premise: when stakes are high, one model is not enough. We make multiple models from different providers - OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter - argue with each other in a structured deliberation, then synthesize a consensus answer with tracked confidence and preserved dissent.",
       "These tools are not direct competitors. Cursor wins for inline edits and rapid iteration. Consilium wins for architecture decisions, security reviews, regulatory writeups, and any moment when 'I asked Claude / GPT once' is not a good enough answer. And because Consilium ships an MCP server, you can run a full deliberation from inside Cursor with @consilium.",
       "If you're choosing between them, you're probably asking the wrong question. The right question is: do you want a faster typist, or do you want a council that catches what one model would miss?",
     ],
+  },
+  stats: [
+    { label: "Providers", value: "7 first-class" },
+    { label: "Deliberation modes", value: "8" },
+    { label: "Models per request", value: "3–5 in parallel" },
+    { label: "CLI unit tests", value: "962" },
+    { label: "Average quick debate", value: "$0.001" },
+    { label: "Average deep debate", value: "$0.50" },
+  ],
+  competitorQuote: {
+    text: "MAX Mode unlocks the full context window of each model and turns on the most capable agent features. MAX requests are usage-priced and not included in your monthly Pro request allowance.",
+    source: "Cursor pricing & MAX mode docs (cursor.com)",
+    href: "https://cursor.com/pricing",
   },
   competitorStrengths: [
     "Tightest in-IDE inline completion experience available - Tab autocomplete is genuinely best-in-class.",

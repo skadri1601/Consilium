@@ -26,7 +26,7 @@ type Route = {
  * the signal entirely. Bump the date here when the content of the
  * route actually changes.
  */
-const SITE_LAST_REVIEWED = "2026-04-29";
+const SITE_LAST_REVIEWED = "2026-05-20";
 
 const HERO_VIDEO: SitemapVideo = {
   title: "Consilium product walkthrough",
@@ -85,6 +85,20 @@ const MARKETING_ROUTES: Route[] = [
     changeFrequency: "monthly",
     priority: 0.7,
     lastModified: "2026-04-10",
+    images: DEFAULT_IMAGES,
+  },
+  {
+    path: "/research/benchmarks",
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SITE_LAST_REVIEWED,
+    images: DEFAULT_IMAGES,
+  },
+  {
+    path: "/glossary",
+    changeFrequency: "monthly",
+    priority: 0.7,
+    lastModified: SITE_LAST_REVIEWED,
     images: DEFAULT_IMAGES,
   },
   {
@@ -191,6 +205,42 @@ const DOCS_ROUTES: Route[] = [
   },
   {
     path: "/docs/cli",
+    changeFrequency: "weekly",
+    priority: 0.9,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/reference",
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/slash-commands",
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/hooks",
+    changeFrequency: "monthly",
+    priority: 0.7,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/sub-agents",
+    changeFrequency: "monthly",
+    priority: 0.7,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/sandbox",
+    changeFrequency: "monthly",
+    priority: 0.7,
+    lastModified: SITE_LAST_REVIEWED,
+  },
+  {
+    path: "/docs/cli/comparison",
     changeFrequency: "monthly",
     priority: 0.8,
     lastModified: SITE_LAST_REVIEWED,

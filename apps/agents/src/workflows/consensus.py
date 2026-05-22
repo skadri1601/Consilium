@@ -8,6 +8,8 @@ from all participating agents.
 
 from typing import List, Dict, Any
 
+from .consensus_analysis import compute_agreement, extract_key_points
+
 
 class ConsensusWorkflow:
     """
@@ -74,15 +76,7 @@ class ConsensusWorkflow:
         for resp in responses:
             agent_id = resp.get("agent_id", "unknown")
             response_text = resp.get("response", "")
-
-            # TODO: Use NLP to extract actual key points
-            # For now, split by sentences as a simple approach
-            points = [
-                s.strip() for s in response_text.split(".")
-                if len(s.strip()) > 20
-            ][:5]
-
-            key_points[agent_id] = points
+            key_points[agent_id] = extract_key_points([response_text])
 
         return key_points
 
@@ -91,11 +85,14 @@ class ConsensusWorkflow:
         responses: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Analyze responses for agreement and disagreement."""
+        texts = [r.get("response", "") for r in responses]
+        agreement_level = compute_agreement(texts)
+        common_themes = extract_key_points(texts)
         return {
-            "agreement_level": 0.85,  # TODO: Calculate actual agreement
-            "common_themes": [],
+            "agreement_level": agreement_level,
+            "common_themes": common_themes,
             "divergent_points": [],
-            "confidence": 0.8
+            "confidence": max(0.5, min(0.95, 0.5 + agreement_level / 2)),
         }
 
     async def _generate_synthesis(

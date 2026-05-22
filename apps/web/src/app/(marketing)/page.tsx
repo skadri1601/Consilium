@@ -397,11 +397,21 @@ export default function LandingPage() {
       </section>
 
       <section id="hero-content" className="space-y-6 py-24 md:py-32 lg:py-40">
-        <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
+        <div className="container flex max-w-[64rem] flex-col items-center gap-6 text-center">
           <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
             Structured Deliberation Between AI Models
           </h1>
-          <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
+          <p
+            data-speakable
+            className="max-w-[44rem] text-lg leading-relaxed text-foreground/90 sm:text-xl sm:leading-8"
+          >
+            Consilium is a multi-AI council CLI and platform where 7 LLM
+            providers debate, critique, and synthesize a consensus answer across
+            8 deliberation modes. Free to start with BYOK or the Groq free tier.
+            A single CLI replaces Claude Code, Cursor CLI, Gemini CLI, and Grok
+            Build - with the unique addition of cross-model debate.
+          </p>
+          <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-base sm:leading-7">
             Not another orchestration tool. Consilium makes AI models argue,
             challenge, and synthesize - producing answers with tracked
             confidence, dissent, and audit trails.
@@ -423,6 +433,132 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+        <div className="container mx-auto mt-12 max-w-5xl">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 md:p-8">
+            <h2
+              className="text-lg font-semibold mb-4 text-foreground"
+              id="sixty-second-tour"
+            >
+              What does Consilium do in 60 seconds?
+            </h2>
+            <p
+              data-speakable
+              className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6"
+            >
+              You ask one question. Consilium dispatches it to multiple LLMs
+              from different providers (Anthropic, OpenAI, Google, Groq, xAI,
+              Moonshot, OpenRouter). The models argue across rounds using typed
+              challenges and categorized rebuttals. A judge model synthesizes
+              the strongest arguments into a single consensus answer with a
+              convergence score, per-model confidence, and a preserved minority
+              dissent. Total time: 15 seconds (Quick) to 90 seconds (Deep).
+            </p>
+            <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Providers
+                </dt>
+                <dd className="text-2xl font-semibold">7</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Deliberation modes
+                </dt>
+                <dd className="text-2xl font-semibold">8</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  CLI unit tests
+                </dt>
+                <dd className="text-2xl font-semibold">962</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Platform tests
+                </dt>
+                <dd className="text-2xl font-semibold">1,553</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Convergence threshold
+                </dt>
+                <dd className="text-2xl font-semibold">&gt;= 0.85</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Free tier debates
+                </dt>
+                <dd className="text-2xl font-semibold">1,000/mo</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Quick debate cost
+                </dt>
+                <dd className="text-2xl font-semibold">$0.001</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                  Deep debate cost
+                </dt>
+                <dd className="text-2xl font-semibold">$0.50</dd>
+              </div>
+            </dl>
+            <figure className="mt-6 border-l-4 border-indigo-500/40 pl-4 py-2">
+              <blockquote className="text-sm md:text-base italic text-foreground/80 leading-relaxed">
+                &ldquo;Debating with more persuasive LLMs leads to more truthful
+                answers, even when one debater argues for the wrong answer.
+                Multi-agent debate significantly improves factual accuracy and
+                mathematical reasoning across benchmarks.&rdquo;
+              </blockquote>
+              <figcaption className="mt-2 text-xs text-muted-foreground">
+                &mdash; Khan et al. and Du et al., ICML 2024 (cited research
+                shows 8-15% accuracy uplift over single-model prompting)
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="modes"
+        className="container space-y-6 py-8 md:py-12 lg:py-24"
+      >
+        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            Which deliberation modes are available?
+          </h2>
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
+            Consilium ships eight modes - Quick, Council, Deep, Blind, Red Team,
+            Jury, Market, Auto - each tuned for a different stakes profile.
+            Quick (~15s) for sanity checks, Council (~45s) as the default, Deep
+            (~90s) for complex stakes, Red Team for adversarial review.
+          </p>
+        </div>
+        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-4">
+          {modes.map((mode) => (
+            <Card key={mode.key} variant="interactive" className="h-full">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {mode.icon}
+                    <CardTitle className="text-base">{mode.title}</CardTitle>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {mode.time}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {mode.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section
@@ -430,10 +566,16 @@ export default function LandingPage() {
         className="container space-y-6 py-8 md:py-12 lg:py-24"
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">How It Works</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            A structured 6-phase deliberation process inspired by academic
-            debate and jury systems.
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            How does a Consilium debate actually work?
+          </h2>
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
+            Every debate moves through a structured six-phase process inspired
+            by academic debate and jury systems: Propose, Challenge, Rebut,
+            Evaluate, Vote, and Synthesize.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
@@ -462,52 +604,20 @@ export default function LandingPage() {
       </section>
 
       <section
-        id="modes"
-        className="container space-y-6 py-8 md:py-12 lg:py-24"
-      >
-        <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">
-            8 Deliberation Modes
-          </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Choose the right deliberation strategy for your use case.
-          </p>
-        </div>
-        <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-4">
-          {modes.map((mode) => (
-            <Card key={mode.key} variant="interactive" className="h-full">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {mode.icon}
-                    <CardTitle className="text-base">{mode.title}</CardTitle>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {mode.time}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {mode.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section
         id="features"
         className="container space-y-6 py-8 md:py-12 lg:py-24"
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Why Deliberation {">"} Orchestration
+            Why is deliberation better than orchestration?
           </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
             Orchestration runs models in parallel and picks the best.
-            Deliberation makes them argue until the truth emerges.
+            Deliberation makes them argue until the truth emerges. The table
+            below shows the eight capabilities only deliberation provides.
           </p>
         </div>
         <div className="mx-auto max-w-3xl overflow-x-auto">
@@ -558,11 +668,16 @@ export default function LandingPage() {
             One command to get started
           </div>
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Install the CLI
+            How do I install the Consilium CLI?
           </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Run debates from your terminal - pipe in files, diffs, or stdin and
-            stream the deliberation live.
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
+            One npm command, then login and run your first debate. The CLI
+            streams deliberations live, accepts file and diff context, supports
+            50+ chat REPL slash commands, and ships with feature parity to
+            Claude Code, Cursor CLI, Gemini CLI, and Grok Build.
           </p>
         </div>
         <div className="mx-auto max-w-3xl space-y-4">
@@ -589,8 +704,16 @@ export default function LandingPage() {
       <section id="sdk" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">SDK Examples</h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Integrate deliberation into your stack in minutes.
+          <p className="text-base font-medium text-foreground/80">
+            How do I integrate Consilium into my stack?
+          </p>
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
+            Integrate deliberation in minutes via the Python SDK (consilium on
+            PyPI), the TypeScript SDK (@myconsilium/sdk on npm), or the CLI. All
+            three speak SSE for live streaming and share the same REST contract.
           </p>
         </div>
         <div className="mx-auto max-w-3xl">
@@ -622,11 +745,15 @@ export default function LandingPage() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Supported Providers
+            Which LLM providers does Consilium support?
           </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Bring your own API keys. Consilium works with all major LLM
-            providers.
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
+            Consilium ships seven first-class adapters: Anthropic, OpenAI,
+            Google, Groq, xAI, Moonshot, and OpenRouter. Bring your own API keys
+            with zero markup, or start free using the Groq pool fallback.
           </p>
         </div>
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6">
@@ -667,7 +794,7 @@ export default function LandingPage() {
             Available in the CLI and Web app
           </div>
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Models on the Council
+            Which models can sit on the council?
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
             Mix any combination across providers. Models marked{" "}
@@ -753,11 +880,16 @@ export default function LandingPage() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Research Backed
+            What research backs multi-agent deliberation?
           </h2>
-          <p className="max-w-[85%] text-muted-foreground sm:text-lg">
+          <p
+            data-speakable
+            className="max-w-[85%] text-muted-foreground sm:text-lg"
+          >
             Consilium&apos;s deliberation approach is grounded in peer-reviewed
-            research.
+            research from ICML 2024 and AAAI 2024, which together report 8-15%
+            improvements in factual accuracy and reasoning over single-model
+            prompting.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl">
@@ -782,10 +914,13 @@ export default function LandingPage() {
       <section id="byok" className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Your keys. Your control.
+            How does pricing work? BYOK with zero markup.
           </h2>
-          <p className="text-muted-foreground sm:text-lg">
-            Bring your own provider keys and pay only for what you use.
+          <p data-speakable className="text-muted-foreground sm:text-lg">
+            Bring your own provider keys, pay your provider directly, and
+            Consilium adds zero markup. Keys are AES-256-GCM encrypted at rest.
+            Don&apos;t have a key? The Groq + OpenRouter free-tier pool covers
+            up to 1,000 deliberations per month.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">

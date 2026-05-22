@@ -63,20 +63,27 @@ class MockAgent(BaseAgent):
         self._fail_health = fail_health
 
     async def generate_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, int]:
         scripted = self._get_scripted()
         self._call_log.append({
             "call_index": self._call_count - 1,
             "query_hash": hashlib.sha256(query.encode()).hexdigest()[:12],
             "system_prompt_prefix": (system_prompt or "")[:80],
+            "reasoning_effort": reasoning_effort,
         })
         if scripted.raise_error:
             raise scripted.raise_error
         return scripted.content, scripted.tokens
 
     async def stream_response(
-        self, query: str, system_prompt: Optional[str] = None
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ) -> AsyncIterator[str]:
         scripted = self._get_scripted()
         if scripted.raise_error:

@@ -20,12 +20,30 @@ const data: CompetitorComparison = {
     tagline:
       "Cline drives one autonomous agent inside VS Code. Consilium runs a council that disagrees with itself.",
     hook: "Cline is one of the most capable single-agent extensions for VS Code. Consilium ships a parallel VS Code extension whose mechanic is multi-provider deliberation - and an MCP server that plugs into Cline if you want both.",
+    answerCapsule:
+      "Consilium runs three to five LLMs in parallel debate rounds with typed challenges and convergence detection, while Cline drives one autonomous agent through a Plan/Act loop inside VS Code. Cline is best for executing a plan step by step; Consilium is best for weighing the plan first across multiple providers. They compose: Cline can call Consilium's MCP server mid-task whenever it wants a council.",
     intro: [
       "Cline (formerly Claude Dev) helped define the modern in-IDE autonomous-agent experience. You give it a goal, and it plans, edits files, runs commands, drives a browser, and asks for permission at the right moments. The execute-act-observe loop is mature, the Plan/Act split is genuinely useful, and BYOK with broad provider support keeps you in control of cost.",
       "Cline's architecture is deliberately one-model-at-a-time. You pick an OpenAI / Anthropic / Gemini / OpenRouter / Bedrock / Vertex / LiteLLM target, and that one model handles the entire session - planning, editing, tool calls, the lot. Single-voice agentic loops are great for execution but weak at decisions where multiple perspectives matter.",
       "Consilium starts from the opposite premise. We run three to five models in parallel, route them into a structured debate (typed challenges, categorized rebuttals, mathematical convergence detection), and produce a synthesis with documented dissent. Eight modes - Quick, Council, Deep, Blind, Red Team, Jury, Market, Auto - each tuned for a different stakes profile.",
       "The two tools complement each other cleanly. Use Cline when you want one agent to execute a plan. Call Consilium (via its MCP server, its CLI, or its own VS Code extension) when you want a council to weigh the plan first.",
     ],
+  },
+  stats: [
+    { label: "Providers", value: "7 first-class" },
+    { label: "Deliberation modes", value: "8" },
+    {
+      label: "Convergence weights",
+      value: "0.40 tau + 0.35 jaccard + 0.25 concession",
+    },
+    { label: "CLI unit tests", value: "962" },
+    { label: "Free tier", value: "Groq 1,000 / month" },
+    { label: "MCP marketplace servers", value: "12 seeded" },
+  ],
+  competitorQuote: {
+    text: "Plan mode lets Cline ask questions, gather context, and design an approach before switching to Act mode to write code, run commands, and use the browser.",
+    source: "Cline docs (cline.bot)",
+    href: "https://docs.cline.bot/features/plan-and-act",
   },
   competitorStrengths: [
     "Mature autonomous agent loop with sensible permission gating and a clean Plan/Act mode toggle.",
