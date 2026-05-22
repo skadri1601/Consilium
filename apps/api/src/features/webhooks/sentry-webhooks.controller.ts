@@ -97,9 +97,7 @@ export class SentryWebhooksController {
         if (payload.action === "created") {
           return this.webhooksService.handleIssueCreated(payload);
         }
-        this.logger.log(
-          `Ignored sentry issue action: ${payload.action}`,
-        );
+        this.logger.log(`Ignored sentry issue action: ${payload.action}`);
         return { received: true, ignored: true };
 
       case "event_alert":

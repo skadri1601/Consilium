@@ -179,7 +179,8 @@ describe("SentryWebhooksController (integration)", () => {
     const input = createTicket.mock.calls[0][0];
     expect(input).toMatchObject({
       source: "sentry",
-      title: "[Sentry error] TypeError: Cannot read property 'foo' of undefined",
+      title:
+        "[Sentry error] TypeError: Cannot read property 'foo' of undefined",
       attachmentUrl: "https://sentry.io/organizations/consilium/issues/1001/",
       attachmentTitle: "Sentry CON-42",
       environment: "production",

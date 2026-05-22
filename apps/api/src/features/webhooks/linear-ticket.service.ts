@@ -41,9 +41,7 @@ export class LinearTicketService {
   private get apiKey(): string {
     const key = process.env.LINEAR_API_KEY;
     if (!key) {
-      throw new ServiceUnavailableException(
-        "LINEAR_API_KEY is not configured",
-      );
+      throw new ServiceUnavailableException("LINEAR_API_KEY is not configured");
     }
     return key;
   }
@@ -167,9 +165,7 @@ export class LinearTicketService {
     }>(mutation, { input: { issueId, url, title } });
 
     if (!data.attachmentCreate?.success) {
-      throw new BadGatewayException(
-        "Linear attachmentCreate did not succeed",
-      );
+      throw new BadGatewayException("Linear attachmentCreate did not succeed");
     }
   }
 
@@ -300,9 +296,7 @@ export class LinearTicketService {
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
       this.logger.error(`Linear GraphQL fetch failed: ${message}`);
-      throw new BadGatewayException(
-        `Linear GraphQL fetch failed: ${message}`,
-      );
+      throw new BadGatewayException(`Linear GraphQL fetch failed: ${message}`);
     }
 
     if (!res.ok) {
@@ -310,9 +304,7 @@ export class LinearTicketService {
       this.logger.error(
         `Linear GraphQL HTTP ${res.status}: ${text.slice(0, 500)}`,
       );
-      throw new BadGatewayException(
-        `Linear GraphQL HTTP ${res.status}`,
-      );
+      throw new BadGatewayException(`Linear GraphQL HTTP ${res.status}`);
     }
 
     const json = (await res.json()) as GraphQLResponse<T>;

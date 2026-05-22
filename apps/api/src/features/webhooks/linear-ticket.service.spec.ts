@@ -4,10 +4,7 @@ import {
 } from "@nestjs/common";
 import { LinearTicketService } from "./linear-ticket.service";
 
-type FetchMock = jest.SpyInstance<
-  Promise<Response>,
-  Parameters<typeof fetch>
->;
+type FetchMock = jest.SpyInstance<Promise<Response>, Parameters<typeof fetch>>;
 
 interface MockResponseInit {
   ok?: boolean;
@@ -204,9 +201,7 @@ describe("LinearTicketService", () => {
       expect(issueInput.labelIds).toEqual(["label-prod"]);
       expect(issueInput.description).toContain("**Source**: sentry");
       expect(issueInput.description).toContain("**External ID**: ABC-1");
-      expect(issueInput.description).toContain(
-        "**Environment**: production",
-      );
+      expect(issueInput.description).toContain("**Environment**: production");
       expect(issueInput.description).toContain("**Severity**: error");
       expect(issueInput.description).toContain("Stack trace here");
 
@@ -221,10 +216,7 @@ describe("LinearTicketService", () => {
 
     it("skips label and logs warning when label lookup returns empty", async () => {
       const warnSpy = jest
-        .spyOn(
-          (await import("@nestjs/common")).Logger.prototype,
-          "warn",
-        )
+        .spyOn((await import("@nestjs/common")).Logger.prototype, "warn")
         .mockImplementation(() => undefined);
 
       queueResponses(fetchMock, [

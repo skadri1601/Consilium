@@ -50,10 +50,7 @@ function basePayload(
 describe("SonarqubeWebhooksController integration", () => {
   let app: NestFastifyApplication;
 
-  const findByAttachmentUrl = jest.fn<
-    Promise<LinearTicket | null>,
-    [string]
-  >();
+  const findByAttachmentUrl = jest.fn<Promise<LinearTicket | null>, [string]>();
   const createTicket = jest.fn<Promise<LinearTicket>, [CreateTicketInput]>();
   const addRecurrenceComment = jest.fn<
     Promise<void>,
@@ -136,15 +133,12 @@ describe("SonarqubeWebhooksController integration", () => {
     };
     if (sig) headers[SIGNATURE_HEADER] = sig;
 
-    const res = await app
-      .getHttpAdapter()
-      .getInstance()
-      .inject({
-        method: "POST",
-        url: "/api/v1/webhooks/sonarqube",
-        headers,
-        payload: body,
-      });
+    const res = await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/api/v1/webhooks/sonarqube",
+      headers,
+      payload: body,
+    });
     let parsed: unknown;
     try {
       parsed = JSON.parse(res.body);
