@@ -41,11 +41,22 @@ export const SSE_EVENT_NAMES = [
   "consensus",
   "cost_update",
   "routing:decided",
+  "routing:applied",
   "routing:fallback",
   "recovery:applied",
   "done",
   "error",
   "debate:cancelled",
+  "tool:call_start",
+  "tool:call_result",
+  "tool:loop_start",
+  "tool:loop_done",
+  "governance:policy_check",
+  "governance:approval_requested",
+  "governance:decision",
+  "risk:scoring_start",
+  "risk:scoring_complete",
+  "audit:exported",
 ] as const;
 
 export type SseEventName = (typeof SSE_EVENT_NAMES)[number];
@@ -229,6 +240,84 @@ export interface DebateCancelledEvent {
   reason: string;
 }
 
+export interface RoutingAppliedEvent {
+  event: "routing:applied";
+  strategy: string;
+  models: string[];
+  complexity: number;
+}
+
+export interface ToolCallStartEvent {
+  event: "tool:call_start";
+  tool: string;
+  call_id: string;
+  agent_id?: string;
+  arguments?: Record<string, unknown>;
+}
+
+export interface ToolCallResultEvent {
+  event: "tool:call_result";
+  tool: string;
+  call_id: string;
+  is_error: boolean;
+  content_preview?: string;
+  duration_ms?: number;
+}
+
+export interface ToolLoopStartEvent {
+  event: "tool:loop_start";
+  tools: string[];
+}
+
+export interface ToolLoopDoneEvent {
+  event: "tool:loop_done";
+  call_count: number;
+  error_count: number;
+}
+
+export interface GovernancePolicyCheckEvent {
+  event: "governance:policy_check";
+  policy_id: string;
+  matched: boolean;
+  decision: string;
+}
+
+export interface GovernanceApprovalRequestedEvent {
+  event: "governance:approval_requested";
+  request_id: string;
+  reason: string;
+  required_approvers?: number;
+}
+
+export interface GovernanceDecisionEvent {
+  event: "governance:decision";
+  request_id?: string;
+  approved: boolean;
+  reason: string;
+  matching_rule?: string;
+}
+
+export interface RiskScoringStartEvent {
+  event: "risk:scoring_start";
+  proposal_preview?: string;
+  models?: string[];
+}
+
+export interface RiskScoringCompleteEvent {
+  event: "risk:scoring_complete";
+  risk_score: number;
+  severity: string;
+  vulnerability_count: number;
+  duration_ms: number;
+}
+
+export interface AuditExportedEvent {
+  event: "audit:exported";
+  debate_id: string;
+  audit_trail_id?: string;
+  byte_size?: number;
+}
+
 export type DebateSseEvent =
   | DebateStartEvent
   | RoundStartEvent
@@ -251,11 +340,22 @@ export type DebateSseEvent =
   | ConsensusEvent
   | CostUpdateEvent
   | RoutingDecidedEvent
+  | RoutingAppliedEvent
   | RoutingFallbackEvent
   | RecoveryAppliedEvent
   | DoneEvent
   | DebateErrorEvent
-  | DebateCancelledEvent;
+  | DebateCancelledEvent
+  | ToolCallStartEvent
+  | ToolCallResultEvent
+  | ToolLoopStartEvent
+  | ToolLoopDoneEvent
+  | GovernancePolicyCheckEvent
+  | GovernanceApprovalRequestedEvent
+  | GovernanceDecisionEvent
+  | RiskScoringStartEvent
+  | RiskScoringCompleteEvent
+  | AuditExportedEvent;
 
 /**
  * Backwards-compatible alias of the discriminator field.

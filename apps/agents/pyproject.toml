@@ -23,9 +23,16 @@ pydantic-settings = "^2.6.0"
 # HTTP
 httpx = "^0.28.0"
 
+# MCP
+mcp = {extras = ["cli"], version = ">=1.0.0"}
+
 # Observability
 sentry-sdk = {extras = ["fastapi"], version = "^2.50.0"}
 posthog = "^3.0.0"
+opentelemetry-api = "^1.41.1"
+opentelemetry-sdk = "^1.41.1"
+opentelemetry-exporter-otlp-proto-http = "^1.41.1"
+asyncpg = "^0.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -67,6 +74,26 @@ search-path = ["."]
 disable-search-path-heuristics = true
 ignore-missing-imports = [
   "google.generativeai",
+  "sentry_sdk",
+  "psutil",
+  "opentelemetry",
+  "opentelemetry.sdk",
+  "opentelemetry.sdk.resources",
+  "opentelemetry.sdk.trace",
+  "opentelemetry.sdk.trace.export",
+  "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+  "anthropic",
+  "fastapi",
+  "pydantic",
+  "mcp",
+  "mcp.server",
+  "mcp.types",
+  "httpx",
+  "posthog",
+  "uvicorn",
+  "starlette",
+  "starlette.middleware",
+  "starlette.middleware.base",
 ]
 [tool.pyrefly.errors]
 deprecated = false

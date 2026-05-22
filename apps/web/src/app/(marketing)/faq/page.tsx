@@ -12,9 +12,13 @@ import { breadcrumbList, faqPage } from "@/lib/structured-data";
 export const metadata: Metadata = buildMetadata({
   title: "FAQ",
   description:
-    "Answers to common questions about Consilium - how multi-AI debate works, which models are supported, BYOK, privacy, and pricing.",
+    "Answers to common questions about Consilium - agent governance, deliberation modes, MCP tools, compliance, risk scoring, and pricing.",
   path: "/faq",
-  keywords: ["consilium faq", "ai council faq", "multi-agent debate questions"],
+  keywords: [
+    "consilium faq",
+    "agent governance faq",
+    "ai compliance questions",
+  ],
 });
 
 const generalFaqs = [
@@ -22,13 +26,31 @@ const generalFaqs = [
     id: "what-is",
     question: "What is Consilium?",
     answer:
-      "Consilium is a multi-AI deliberation platform. Not orchestration - it implements formal debate where models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals (concede/refute/qualify), vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85). The result is a golden prompt with confidence scores, dissent reports, and a complete audit trail.",
+      "Consilium is the governance and deliberation infrastructure for the agent economy. When AI agents need to make high-stakes decisions, they call Consilium for multi-model adversarial review with compliance-grade audit trails. Models propose claims, challenge each other with typed challenges, defend positions with categorized rebuttals, vote using social choice theory (Condorcet/Borda/Ranked Pairs), and converge only when mathematically verified (score >= 0.85).",
   },
   {
-    id: "difference",
-    question: "How is this different from ChatGPT or Claude?",
+    id: "difference-orchestration",
+    question: "How is Consilium different from LangGraph/CrewAI/AutoGen?",
     answer:
-      "Single models give you one perspective. Consilium orchestrates structured debate between multiple models - Claude, GPT-4o, Gemini, Grok, Llama - making them cross-examine each other before synthesizing. Research shows multi-agent deliberation improves factual accuracy by 8-15% over single-model responses (ICML 2024).",
+      "Those are agent orchestration frameworks. Consilium is the governance layer that sits on top. It provides policy enforcement, quorum voting, risk scoring, and audit trails - the decision-quality infrastructure that orchestration frameworks don't include. You build agents with LangGraph; you govern them with Consilium.",
+  },
+  {
+    id: "difference-observability",
+    question: "How is Consilium different from Sentrial/Moda?",
+    answer:
+      "Observability tools monitor agent failures after they happen. Consilium prevents failures by running adversarial review before agents act. Upstream prevention, not downstream detection. Observability tells you an agent made a bad trade; Consilium blocks the trade before execution.",
+  },
+  {
+    id: "what-is-governance",
+    question: "What is agent governance?",
+    answer:
+      "Governance is the structural machinery for who decides what an agent can do, how decisions are audited, and who is accountable. Unlike guardrails (input/output filtering), governance includes policy engines, quorum voting, budget controls, delegation hierarchies, and audit trails. Consilium provides this infrastructure as MCP tools and APIs.",
+  },
+  {
+    id: "mcp-server",
+    question: "What is the MCP server?",
+    answer:
+      "Consilium exposes 6 MCP tools (validate, deliberate, redteam, score_risk, blind_eval, quick_consensus) that any AI client - Claude Code, Cursor, custom agents - can call for governance review. One function call gives any agent access to multi-model adversarial deliberation with compliance-grade audit trails.",
   },
   {
     id: "modes",
@@ -37,16 +59,16 @@ const generalFaqs = [
       "Quick (1 round, fastest), Council (3 rounds default with cross-examination), Deep (5 rounds with sub-agents), Blind (identity-stripped to eliminate model bias), Red Team (adversarial with 8 attack categories), Jury (mandatory dissent - minority opinions required), Market (probability aggregation using prediction market mechanics), and Auto (complexity-based routing that picks the best mode for your query).",
   },
   {
-    id: "output",
-    question: "What output do I get from a deliberation?",
+    id: "eu-ai-act",
+    question: "Is Consilium EU AI Act compliant?",
     answer:
-      "A golden prompt (the synthesized consensus answer), confidence scores per model, a dissent report showing majority vs minority positions, vote results (Condorcet winner, Borda scores, Ranked Pairs outcome), a full audit trail recording every step with tokens, cost, and latency, and a total cost breakdown by model and round.",
+      "Consilium produces compliance-grade audit documents for every deliberation: full reasoning chains, model attributions, dissent preservation, cost breakdowns, and confidence scores. High-risk AI obligations under the EU AI Act take effect August 2, 2026. Consilium's audit trail provides the documentation infrastructure required for conformity assessments under Article 11 and the transparency requirements under Article 13.",
   },
   {
-    id: "free",
-    question: "Is Consilium free?",
+    id: "risk-scoring",
+    question: "How does risk scoring work?",
     answer:
-      "The hosted version has a free tier (50 deliberations/month) and a Pro tier ($29/month). You pay for LLM API calls through your own keys (BYOK) - Consilium adds zero markup. Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout) are completely free to use.",
+      "One model attacks a proposal finding vulnerabilities, another defends proposing mitigations, a judge evaluates severity. The continuous risk monitor tracks scores over time and detects when an agent's risk profile drifts. Five models participate in Jury mode with MANDATORY_DISSENT - no conclusion is presented as unanimous unless mathematically verified through convergence detection.",
   },
   {
     id: "who-built",

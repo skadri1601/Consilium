@@ -1,28 +1,35 @@
 """Unit tests for base agent class."""
 
+from typing import Optional
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+
 from src.features.agents.base_agent import BaseAgent
 
 
-class TestAgent(BaseAgent):
-    """Test implementation of BaseAgent."""
+class StubAgent(BaseAgent):
+    """Concrete stub for BaseAgent tests."""
 
     def __init__(self):
         super().__init__(
             name="Test Agent",
             provider="Test",
-            model="test-model"
+            model="test-model",
+            api_key_env_var="TEST_STUB_AGENT_API_KEY",
         )
 
-    async def generate_response(self, query: str):
+    async def generate_response(self, query: str, system_prompt: Optional[str] = None):
         """Mock implementation."""
         return "Test response", 100
 
-    async def stream_response(self, query: str):
+    def stream_response(self, query: str, system_prompt: Optional[str] = None):
         """Mock implementation."""
-        yield "Test"
-        yield " response"
+
+        async def _gen():
+            yield "Test"
+            yield " response"
+
+        return _gen()
 
     async def health_check(self) -> bool:
         """Mock implementation."""
@@ -32,16 +39,20 @@ class TestAgent(BaseAgent):
 class TestBaseAgent:
     """Test cases for BaseAgent."""
 
+    @pytest.fixture(autouse=True)
+    def _stub_api_key(self, monkeypatch):
+        monkeypatch.setenv("TEST_STUB_AGENT_API_KEY", "test-key")
+
     def test_init(self):
         """Test agent initialization."""
-        agent = TestAgent()
+        agent = StubAgent()
         assert agent.name == "Test Agent"
         assert agent.provider == "Test"
         assert agent.model == "test-model"
 
     def test_get_system_prompt(self):
         """Test system prompt generation."""
-        agent = TestAgent()
+        agent = StubAgent()
         prompt = agent.get_system_prompt()
         assert isinstance(prompt, str)
         assert len(prompt) > 0
@@ -49,7 +60,7 @@ class TestBaseAgent:
     @pytest.mark.asyncio
     async def test_generate_response(self):
         """Test response generation."""
-        agent = TestAgent()
+        agent = StubAgent()
         response, tokens = await agent.generate_response("test query")
         assert response == "Test response"
         assert tokens == 100
@@ -57,10 +68,9 @@ class TestBaseAgent:
     @pytest.mark.asyncio
     async def test_stream_response(self):
         """Test streaming response."""
-        agent = TestAgent()
+        agent = StubAgent()
         chunks = []
         async for chunk in agent.stream_response("test query"):
             chunks.append(chunk)
         assert len(chunks) == 2
         assert "".join(chunks) == "Test response"
-

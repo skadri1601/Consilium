@@ -26,12 +26,12 @@ type Route = {
  * the signal entirely. Bump the date here when the content of the
  * route actually changes.
  */
-const SITE_LAST_REVIEWED = "2026-04-29";
+const SITE_LAST_REVIEWED = "2026-05-10";
 
 const HERO_VIDEO: SitemapVideo = {
   title: "Consilium product walkthrough",
   description:
-    "30-second tour of Consilium - multi-AI council debating, voting, and synthesizing a consensus answer in real time.",
+    "30-second tour of Consilium - the governance OS for AI agents delivering adversarial review, risk scoring, and trustworthy verdicts in real time.",
   thumbnail_loc: `${SITE_URL}/og.png`,
   content_loc: `${SITE_URL}/brand/consilium-prod.mp4`,
 };

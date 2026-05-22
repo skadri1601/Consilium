@@ -129,7 +129,7 @@ class TestOpenRouterFallback:
         resolution = resolver.resolve("claude-haiku-4-5-20251001", {})
         assert resolution.is_fallback is True
         assert resolution.effective_provider == "openrouter"
-        assert resolution.effective_model == "meta-llama/llama-3.3-70b-instruct:free"
+        assert resolution.effective_model == "qwen/qwen3-coder:free"
         assert resolution.effective_api_key == "or-platform"
 
     def test_groq_preferred_over_openrouter(self, resolver, monkeypatch):

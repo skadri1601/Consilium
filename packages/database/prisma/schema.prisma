@@ -42,6 +42,7 @@ model User {
   debateSessions   DebateSession[]
   personas         AgentPersona[]
   deliberationRuns DeliberationRun[]
+  decisionRecords  DecisionRecord[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -161,6 +162,7 @@ model DebateSession {
   conversation     ConversationV2? @relation(fields: [conversationId], references: [id])
 
   rounds           DebateRound[]
+  decisionRecords  DecisionRecord[]
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
@@ -393,7 +395,39 @@ model AuditEntry {
 
   createdAt       DateTime        @default(now())
 
+  decisionRecords DecisionRecord[]
+
   @@index([deliberationId])
   @@index([modelId])
   @@index([timestamp])
+}
+
+// NOTE(pii): topic / decision / reasoning are free-text and may contain PII.
+// Application-layer encryption, retention metadata, and ingestion-time
+// redaction are intentionally out of scope for this changeset and tracked
+// separately - field-level crypto requires a key-management story plus a
+// schema migration we don't want to ship alongside the relation fixes here.
+model DecisionRecord {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debateId        String
+  debate          DebateSession   @relation(fields: [debateId], references: [id], onDelete: Cascade)
+  topic           String          @db.Text
+  decision        String          @db.Text
+  reasoning       String          @db.Text
+  dissentPoints   Json            @default("[]")
+  modelsUsed      Json            @default("[]")
+  mode            String
+  confidenceScore Float           @default(0)
+  vertical        String          @default("general")
+  auditTrailId    String?
+  auditTrail      AuditEntry?     @relation(fields: [auditTrailId], references: [id])
+  tags            String[]        @default([])
+  embedding       Unsupported("vector(1536)")?
+  createdAt       DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([debateId])
+  @@index([auditTrailId])
 }

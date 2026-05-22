@@ -4,9 +4,9 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_APP_URL ?? "https://myconsilium.xyz"
 ).replace(/\/$/, "");
 export const SITE_NAME = "Consilium";
-export const SITE_TAGLINE = "The AI Council";
+export const SITE_TAGLINE = "The Agent Governance OS";
 export const SITE_DESCRIPTION =
-  "Consilium is a multi-AI council that debates, critiques, and synthesizes consensus answers. Pit GPT, Claude, Gemini, Llama, and Grok against each other and get the best recommendation.";
+  "Consilium is the governance and deliberation infrastructure for the agent economy. When AI agents face high-stakes decisions, they call Consilium for multi-model adversarial review, compliance-grade audit trails, and trustworthy verdicts.";
 export const SITE_TWITTER = "@consiliumai";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og.png`;
 

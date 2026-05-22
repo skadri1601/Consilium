@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import AsyncIterator
 from typing import Optional, Tuple
 from .base_agent import (
@@ -156,7 +157,15 @@ class AnthropicAgent(BaseAgent):
             self._handle_common_errors(e, "tool-use")
         finally:
             if client is not None:
-                await client.close()
+                closer = getattr(client, "close", None)
+                if closer is not None:
+                    try:
+                        out = closer()
+                    except TypeError:
+                        pass
+                    else:
+                        if inspect.isawaitable(out):
+                            await out
 
     async def health_check(self) -> bool:
         """Check if Anthropic API is accessible."""

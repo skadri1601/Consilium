@@ -45,14 +45,14 @@ const steps = [
     icon: <MessageSquare className="h-6 w-6" />,
     title: "Propose",
     description:
-      "Each model independently analyzes the problem and presents its initial position.",
+      "Each model independently evaluates the decision and presents its initial assessment.",
   },
   {
     id: "challenge",
     icon: <AlertTriangle className="h-6 w-6" />,
     title: "Challenge",
     description:
-      "Models cross-examine each other, probing assumptions and identifying weaknesses.",
+      "Models cross-examine each other, probing assumptions and identifying compliance risks.",
   },
   {
     id: "rebut",
@@ -66,7 +66,7 @@ const steps = [
     icon: <Search className="h-6 w-6" />,
     title: "Evaluate",
     description:
-      "A judge model assesses argument quality, evidence strength, and logical consistency.",
+      "A judge model assesses argument quality, risk exposure, and policy compliance.",
   },
   {
     id: "vote",
@@ -80,7 +80,7 @@ const steps = [
     icon: <Sparkles className="h-6 w-6" />,
     title: "Synthesize",
     description:
-      "A final synthesis integrates the best arguments into a single, rigorous answer.",
+      "A final synthesis produces a governed verdict with a compliance-grade audit trail.",
   },
 ];
 
@@ -98,7 +98,7 @@ const modes = [
     icon: <Users className="h-5 w-5" />,
     title: "Council",
     description:
-      "Multi-round deliberation between models. The default mode for most decisions.",
+      "Multi-round governance deliberation. The default mode for most agent decisions.",
     time: "~45s",
   },
   {
@@ -106,7 +106,7 @@ const modes = [
     icon: <FileText className="h-5 w-5" />,
     title: "Deep",
     description:
-      "Extended deliberation with sub-agent research for complex, high-stakes questions.",
+      "Extended governance review with sub-agent research for complex, high-stakes decisions.",
     time: "~90s",
   },
   {
@@ -146,45 +146,49 @@ const modes = [
     icon: <Sparkles className="h-5 w-5" />,
     title: "Auto",
     description:
-      "Automatically selects the best deliberation mode based on topic complexity.",
+      "Automatically selects the best governance mode based on decision complexity and risk.",
     time: "~45s",
   },
 ];
 
 const comparisonRows = [
   {
-    feature: "Multiple model perspectives",
-    deliberation: true,
-    orchestration: true,
-  },
-  {
-    feature: "Models challenge each other",
+    feature: "Structures decisions before execution",
     deliberation: true,
     orchestration: false,
   },
   {
-    feature: "Structured argumentation",
-    deliberation: true,
-    orchestration: false,
-  },
-  { feature: "Dissent tracking", deliberation: true, orchestration: false },
-  {
-    feature: "Confidence-weighted voting",
+    feature: "Multi-vendor adversarial review",
     deliberation: true,
     orchestration: false,
   },
   {
-    feature: "Adversarial red-teaming",
+    feature: "Quorum voting with formal theory",
     deliberation: true,
     orchestration: false,
   },
   {
-    feature: "Blind evaluation mode",
+    feature: "Mandatory dissent preservation",
     deliberation: true,
     orchestration: false,
   },
   {
-    feature: "Audit trail of reasoning",
+    feature: "Compliance-grade audit trail",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Continuous drift detection",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "EU AI Act ready",
+    deliberation: true,
+    orchestration: false,
+  },
+  {
+    feature: "Prevents failures vs. monitors them",
     deliberation: true,
     orchestration: false,
   },
@@ -327,7 +331,7 @@ function CodeBlock({ code }: Readonly<{ code: string }>) {
 const heroVideoSchema = videoObjectSchema({
   name: "Consilium product walkthrough",
   description:
-    "30-second tour of Consilium - multi-AI council debating, voting, and synthesizing a consensus answer in real time.",
+    "30-second tour of Consilium - the governance OS for the agent economy. Policy engines, adversarial review, and compliance-grade audit trails.",
   contentUrl: "/brand/consilium-prod.mp4",
   thumbnailUrl: "/og.png",
   uploadDate: "2026-04-15",
@@ -399,12 +403,12 @@ export default function LandingPage() {
       <section id="hero-content" className="space-y-6 py-24 md:py-32 lg:py-40">
         <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
           <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
-            Structured Deliberation Between AI Models
+            The Governance OS for the Agent Economy
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Not another orchestration tool. Consilium makes AI models argue,
-            challenge, and synthesize - producing answers with tracked
-            confidence, dissent, and audit trails.
+            Every economy needs courts, auditors, and governance bodies. The
+            agent economy has none. Consilium is the decision infrastructure
+            that AI agents call when stakes are high.
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
             <Link
@@ -430,10 +434,12 @@ export default function LandingPage() {
         className="container space-y-6 py-8 md:py-12 lg:py-24"
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold">How It Works</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold">
+            How Agent Governance Works
+          </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            A structured 6-phase deliberation process inspired by academic
-            debate and jury systems.
+            A structured 6-phase governance protocol for autonomous agent
+            decisions.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-3">
@@ -467,10 +473,10 @@ export default function LandingPage() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            8 Deliberation Modes
+            8 Governance Modes
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Choose the right deliberation strategy for your use case.
+            Choose the right governance strategy for your use case.
           </p>
         </div>
         <div className="mx-auto grid gap-4 sm:grid-cols-2 md:max-w-5xl lg:grid-cols-4">
@@ -503,11 +509,11 @@ export default function LandingPage() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Why Deliberation {">"} Orchestration
+            Why Governance {">"} Guardrails
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Orchestration runs models in parallel and picks the best.
-            Deliberation makes them argue until the truth emerges.
+            Guardrails filter outputs after the fact. Governance structures
+            decisions before they ship.
           </p>
         </div>
         <div className="mx-auto max-w-3xl overflow-x-auto">
@@ -516,10 +522,10 @@ export default function LandingPage() {
               <tr className="border-b">
                 <th className="text-left py-3 px-4 font-medium">Capability</th>
                 <th className="text-center py-3 px-4 font-medium">
-                  Deliberation
+                  Governance
                 </th>
                 <th className="text-center py-3 px-4 font-medium text-muted-foreground">
-                  Orchestration
+                  Guardrails
                 </th>
               </tr>
             </thead>
@@ -590,7 +596,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">SDK Examples</h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Integrate deliberation into your stack in minutes.
+            Integrate agent governance into your stack in minutes.
           </p>
         </div>
         <div className="mx-auto max-w-3xl">
@@ -622,11 +628,11 @@ export default function LandingPage() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Supported Providers
+            Multi-Vendor Neutrality
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Bring your own API keys. Consilium works with all major LLM
-            providers.
+            No single LLM vendor honestly reviews its own outputs. Consilium
+            governs across all major providers.
           </p>
         </div>
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6">
@@ -756,7 +762,7 @@ export default function LandingPage() {
             Research Backed
           </h2>
           <p className="max-w-[85%] text-muted-foreground sm:text-lg">
-            Consilium&apos;s deliberation approach is grounded in peer-reviewed
+            Consilium&apos;s governance protocols are grounded in peer-reviewed
             research.
           </p>
         </div>

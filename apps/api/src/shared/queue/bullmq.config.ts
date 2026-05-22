@@ -21,7 +21,7 @@ export const BullMQConfig = BullModule.forRootAsync({
           }
           return Math.min(times * 200, 5000);
         },
-        maxRetriesPerRequest: 1,
+        maxRetriesPerRequest: null,
         enableOfflineQueue: false,
         lazyConnect: true,
       },
