@@ -23,8 +23,8 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | System        | Path                                               | Stack                                     | Runs On                         |
 | ------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------- |
 | Web App       | apps/web/                                          | Next.js 15, Clerk auth, Stripe, shadcn/ui | Vercel                          |
-| API           | apps/api/                                          | NestJS 11, Fastify, BullMQ, Prisma        | Render                          |
-| Debate Engine | apps/agents/                                       | FastAPI, 7 LLM providers                  | Render / Droplet                |
+| API           | apps/api/                                          | NestJS 11, Fastify, BullMQ, Prisma        | DigitalOcean droplet            |
+| Debate Engine | apps/agents/                                       | FastAPI, 7 LLM providers                  | DigitalOcean droplet            |
 | Bot/DevOps    | agents/                                            | Python, Sentry/Sonar poll                 | DigitalOcean droplet (optional) |
 | CLI           | packages/cli/                                      | TypeScript, Commander.js, SSE             | User's machine (npm)            |
 | TS SDK        | packages/sdk/                                      | TypeScript, ESM+CJS, native fetch         | npm (`@myconsilium/sdk`)        |

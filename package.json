@@ -65,6 +65,8 @@
       "protobufjs": ">=8.2.0",
       "minimatch": ">=3.1.5",
       "@eslint/eslintrc>minimatch": "^3.1.5",
+      "js-cookie": ">=3.0.7",
+      "qs": ">=6.15.2",
       "picomatch": ">=4.0.4",
       "micromatch>picomatch": "^2.3.1",
       "flatted": ">=3.4.2",

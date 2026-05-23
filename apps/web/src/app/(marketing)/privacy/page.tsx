@@ -597,7 +597,7 @@ export default function PrivacyPage() {
                     </tr>
                     <tr className="border-b border-border">
                       <td className="p-3 font-medium text-foreground">
-                        Render
+                        DigitalOcean
                       </td>
                       <td className="p-3">API &amp; agent backend hosting</td>
                       <td className="p-3">Application logs, request data</td>
@@ -1152,8 +1152,8 @@ export default function PrivacyPage() {
                   <strong className="text-foreground">
                     Infrastructure Security:
                   </strong>{" "}
-                  The Service is hosted on platforms (Vercel, Render, Neon,
-                  Upstash) that maintain SOC 2 Type II certifications or
+                  The Service is hosted on platforms (Vercel, DigitalOcean,
+                  Neon, Upstash) that maintain SOC 2 Type II certifications or
                   equivalent security standards.
                 </li>
                 <li>
@@ -1524,8 +1524,8 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 mb-4 space-y-1 text-muted-foreground">
                 <li>
                   Data breaches occurring at third-party processors (Clerk,
-                  Stripe, Sentry, PostHog, Neon, Upstash, Vercel, Render, or AI
-                  providers) to the extent caused by their own failures
+                  Stripe, Sentry, PostHog, Neon, Upstash, Vercel, DigitalOcean,
+                  or AI providers) to the extent caused by their own failures
                 </li>
                 <li>
                   Changes to third-party privacy policies or data handling
