@@ -1,38 +1,14 @@
-// ESLint 9 flat-config shim - bridges the legacy Next.js eslint preset into
-// the flat-config world because `next lint` was removed in Next.js 16 and
-// ESLint 9 no longer reads .eslintrc.json.
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const config = [
+const config = defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
-    ignores: [
-      ".next/**",
-      "node_modules/**",
-      "coverage/**",
-      "dist/**",
-      "out/**",
-      "test-results/**",
-      "playwright-report/**",
-      "next-env.d.ts",
-      // Config files use CommonJS require() which Next.js's flat preset
-      // flags; they pre-date the migration and aren't shipping to users.
-      "tailwind.config.ts",
-      "postcss.config.js",
-      "vitest.config.ts",
-      "playwright.config.ts",
-    ],
-  },
-  ...compat.config({
-    extends: ["next/core-web-vitals", "next/typescript"],
+    settings: {
+      react: { version: "19.2" },
+    },
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
@@ -42,8 +18,22 @@ const config = [
       "react/no-unescaped-entities": "warn",
       "react/display-name": "warn",
       "@typescript-eslint/no-require-imports": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/set-state-in-render": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/error-boundaries": "warn",
+      "react-hooks/gating": "warn",
+      "react-hooks/globals": "warn",
+      "react-hooks/static-components": "warn",
+      "react-hooks/unsupported-syntax": "warn",
+      "react-hooks/use-memo": "warn",
+      "react-hooks/incompatible-library": "warn",
+      "react-hooks/config": "warn",
     },
-  }),
+  },
   {
     files: ["src/**/__tests__/**/*.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
     rules: {
@@ -53,6 +43,20 @@ const config = [
       "@typescript-eslint/no-require-imports": "off",
     },
   },
-];
+  globalIgnores([
+    ".next/**",
+    "node_modules/**",
+    "coverage/**",
+    "dist/**",
+    "out/**",
+    "test-results/**",
+    "playwright-report/**",
+    "next-env.d.ts",
+    "tailwind.config.ts",
+    "postcss.config.js",
+    "vitest.config.ts",
+    "playwright.config.ts",
+  ]),
+]);
 
 export default config;

@@ -27,17 +27,18 @@
     "prepare": "husky || true"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@sentry/nextjs": "^10.53.1",
+    "@types/node": "^25.9.1",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.2",
+    "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
-    "prisma": "^6.19.1",
+    "prisma": "^7.8.0",
     "turbo": "^2.9.14",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
   },
   "lint-staged": {
@@ -48,9 +49,6 @@
     "*.{json,md}": [
       "prettier --write"
     ]
-  },
-  "dependencies": {
-    "@sentry/nextjs": "^10.52.0"
   },
   "pnpm": {
     "overrides": {
