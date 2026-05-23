@@ -61,6 +61,7 @@ export class EncryptionService {
     } catch (error) {
       throw new Error(
         `Encryption failed: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
       );
     }
   }
@@ -93,6 +94,7 @@ export class EncryptionService {
     } catch (error) {
       throw new Error(
         `Decryption failed: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
       );
     }
   }

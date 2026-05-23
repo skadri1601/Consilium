@@ -1,21 +1,57 @@
-module.exports = {
-  parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "prettier"],
-  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
-  rules: {
-    "prettier/prettier": "error",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-    ],
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "no-console": ["warn", { allow: ["warn", "error"] }],
+const js = require("@eslint/js");
+const tseslintPlugin = require("@typescript-eslint/eslint-plugin");
+const tseslintParser = require("@typescript-eslint/parser");
+const eslintConfigPrettier = require("eslint-config-prettier/flat");
+const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
+
+module.exports = [
+  {
+    ignores: ["node_modules/", "dist/", ".next/", "coverage/"],
   },
-  env: {
-    node: true,
-    es2022: true,
+  js.configs.recommended,
+  {
+    files: ["**/*.{ts,tsx,mts,cts}"],
+    languageOptions: {
+      parser: tseslintParser,
+      sourceType: "module",
+      ecmaVersion: 2022,
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "readonly",
+        global: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        setImmediate: "readonly",
+        clearImmediate: "readonly",
+        queueMicrotask: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        fetch: "readonly",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslintPlugin,
+    },
+    rules: {
+      ...tseslintPlugin.configs["recommended"].rules,
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
   },
-  ignorePatterns: ["node_modules", "dist", ".next", "coverage"],
-};
+  eslintConfigPrettier,
+  eslintPluginPrettierRecommended,
+];

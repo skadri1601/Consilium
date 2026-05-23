@@ -3,7 +3,7 @@ version: "3.8"
 services:
   # PostgreSQL for local development and self-hosting
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: consilium-postgres
     restart: unless-stopped
     environment:
@@ -22,7 +22,7 @@ services:
 
   # Redis for local development and self-hosting
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: consilium-redis
     restart: unless-stopped
     ports:
