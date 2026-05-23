@@ -1,8 +1,6 @@
 const js = require("@eslint/js");
 const tseslintPlugin = require("@typescript-eslint/eslint-plugin");
 const tseslintParser = require("@typescript-eslint/parser");
-const eslintConfigPrettier = require("eslint-config-prettier/flat");
-const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
 
 module.exports = [
   {
@@ -52,6 +50,4 @@ module.exports = [
       "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
-  eslintConfigPrettier,
-  eslintPluginPrettierRecommended,
 ];
