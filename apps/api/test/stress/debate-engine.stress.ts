@@ -65,9 +65,7 @@ function fireParallelRequests(
   token: string = BEARER_TOKEN,
 ) {
   const promises = Array.from({ length: count }, () => {
-    const req = request(server)
-      [method](`${API_PREFIX}${path}`)
-      .set(AUTH_HEADER, token);
+    const req = request(server)[method](`${API_PREFIX}${path}`).set(AUTH_HEADER, token);
     if (body && method === "post") {
       return req.send(body);
     }

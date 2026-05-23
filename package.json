@@ -16,22 +16,16 @@
     "test:integration": "turbo test:integration",
     "test:e2e": "turbo test:e2e",
     "test:coverage": "turbo test:coverage",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "pnpm --filter @consilium/database db:migrate",
     "db:generate": "pnpm --filter @consilium/database db:generate",
     "db:push": "pnpm --filter @consilium/database db:push",
     "db:studio": "pnpm --filter @consilium/database db:studio",
     "env:sync": "node -e \"require('fs').copyFileSync('.env.local', '.env'); console.log('✓ Synced .env.local → .env')\"",
-    "clean": "turbo clean && rm -rf node_modules",
-    "prepare": "husky || true"
+    "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
     "@sentry/nextjs": "^10.53.1",
     "@types/node": "^25.9.1",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
-    "prettier": "^3.8.3",
     "turbo": "^2.9.14",
     "typescript": "^6.0.3"
   },
@@ -39,15 +33,6 @@
   "engines": {
     "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
   },
   "pnpm": {
     "overrides": {
