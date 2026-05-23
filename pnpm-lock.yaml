@@ -387,6 +387,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@consilium/shared':
+        specifier: workspace:*
+        version: link:../shared
       ansi-escapes:
         specifier: ^7.3.0
         version: 7.3.0
