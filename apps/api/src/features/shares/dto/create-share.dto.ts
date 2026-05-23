@@ -1,4 +1,11 @@
-import { IsBoolean, IsInt, IsNotEmpty, IsObject, IsOptional, Min } from "class-validator";
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  Min,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateShareDto {

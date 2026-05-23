@@ -71,7 +71,12 @@ export const HEADLINE_BENCHMARKS: HeadlineBenchmarkRow[] = [
 ];
 
 export const MODE_COMPARISON: ModeComparisonRow[] = [
-  { mode: "Quick", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
+  {
+    mode: "Quick",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
+  },
   {
     mode: "Council (3 rounds)",
     latency: "Coming soon",
@@ -84,10 +89,30 @@ export const MODE_COMPARISON: ModeComparisonRow[] = [
     cost: "Coming soon",
     mmlu: "Coming soon",
   },
-  { mode: "Red Team", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
-  { mode: "Jury", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
-  { mode: "Market", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
-  { mode: "Blind", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
+  {
+    mode: "Red Team",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
+  },
+  {
+    mode: "Jury",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
+  },
+  {
+    mode: "Market",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
+  },
+  {
+    mode: "Blind",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
+  },
 ];
 
 export const CONVERGENCE_FORMULA =

@@ -12,10 +12,7 @@ import {
   type LoopRegistration,
   type ScheduleRegistration,
 } from "../utils/autonomy-store";
-import {
-  getExtras,
-  type SlashResult,
-} from "./slash/shared-state";
+import { getExtras, type SlashResult } from "./slash/shared-state";
 import { style } from "../utils/visual-system";
 
 import {
@@ -87,7 +84,11 @@ import {
   handleWorkspaceCommand,
 } from "../utils/chat-commands";
 
-export { getSessionExtras, setActiveDebateId, clearActiveDebateId } from "./slash/shared-state";
+export {
+  getSessionExtras,
+  setActiveDebateId,
+  clearActiveDebateId,
+} from "./slash/shared-state";
 export type { SlashResult } from "./slash/shared-state";
 
 const st = style();

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
@@ -15,7 +15,6 @@ import {
   BENCH_REPO_URL,
   BENCHMARK_FAQS,
   CONVERGENCE_FORMULA,
-  CONVERGENCE_THRESHOLD_HIT_RATE,
   HEADLINE_BENCHMARKS,
   METHODOLOGY,
   MODE_COMPARISON,
@@ -182,7 +181,7 @@ export default function BenchmarksPage() {
               correctness), and BBH-hard (multi-step reasoning). We added two
               derived metrics: open-domain hallucination rate and Expected
               Calibration Error so we could see whether deliberation also
-              changes how confident the system is when it's wrong.
+              changes how confident the system is when it&apos;s wrong.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               Setup: {METHODOLOGY.promptsPerSuite} prompts per suite,{" "}
@@ -333,9 +332,9 @@ export default function BenchmarksPage() {
               What does the convergence detector tell us?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Consilium's convergence score ({CONVERGENCE_FORMULA}) uses a 0.85
-              threshold. Convergence rate data across benchmark suites will be
-              published once the benchmark CLI ships. When convergence is not
+              Consilium&apos;s convergence score ({CONVERGENCE_FORMULA}) uses a
+              0.85 threshold. Convergence rate data across benchmark suites will
+              be published once the benchmark CLI ships. When convergence is not
               reached, Consilium surfaces a dissent report instead of a
               synthesized answer.
             </p>
@@ -351,7 +350,7 @@ export default function BenchmarksPage() {
               model is already highly accurate (simple arithmetic, well-known
               facts, exact-match lookups), the latency and cost penalty of
               deliberation may not be worth the marginal accuracy gain.
-              Consilium's Quick mode collapses to a single model for these
+              Consilium&apos;s Quick mode collapses to a single model for these
               cases, and Auto mode routes there automatically when the
               complexity classifier judges the prompt low-stakes.
             </p>

@@ -126,7 +126,10 @@ export function slashGoal(args: string[], session: ChatSession): SlashResult {
   return "continue";
 }
 
-export function slashSchedule(args: string[], session: ChatSession): SlashResult {
+export function slashSchedule(
+  args: string[],
+  session: ChatSession,
+): SlashResult {
   if (args.length < 2) {
     console.log(st.warning("Usage: /schedule <interval> <prompt>"));
     console.log(

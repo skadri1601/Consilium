@@ -99,7 +99,9 @@ function expandHome(target: string): string {
   return target;
 }
 
-export async function slashTeamOnboarding(args: string[]): Promise<SlashResult> {
+export async function slashTeamOnboarding(
+  args: string[],
+): Promise<SlashResult> {
   const target = args[0] || "~/.consilium/onboarding-guide.md";
   console.log(st.dim("Generating onboarding guide..."));
   const { analyzeSessions, renderOnboardingGuide } =
@@ -216,7 +218,9 @@ export async function slashCustomCommand(
   }
 }
 
-export async function ensureCustomCommandsLoaded(session: ChatSession): Promise<void> {
+export async function ensureCustomCommandsLoaded(
+  session: ChatSession,
+): Promise<void> {
   const extras = getExtras(session);
   if (extras.customCommandsLoaded) return;
   extras.customCommandsLoaded = true;
@@ -227,8 +231,7 @@ export async function ensureCustomCommandsLoaded(session: ChatSession): Promise<
     for (const cmd of cmds) {
       extras.customCommands.set(cmd.name, cmd);
     }
-  } catch {
-  }
+  } catch {}
 }
 
 export function printExtendedHelp(session: ChatSession): void {
