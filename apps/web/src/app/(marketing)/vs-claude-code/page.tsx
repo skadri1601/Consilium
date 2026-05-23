@@ -21,7 +21,7 @@ const data: CompetitorComparison = {
       "Claude Code is the best way to use Claude. Consilium is the best way to verify Claude with six other models.",
     hook: "Claude Code is Anthropic's official CLI for Claude. Consilium ships an MCP server that plugs into Claude Code so Claude can call a multi-provider council whenever it needs a second opinion.",
     answerCapsule:
-      "Consilium ships full feature parity with Claude Code on every dimension - plan mode, hooks, sub-agents, sandbox, worktree, voice, image generation, MCP marketplace, and headless JSON or stream-JSON output - while adding multi-AI debate across 7 providers. Claude Code locks you into Anthropic billing; Consilium is BYOK with zero markup plus a Groq free-tier fallback.",
+      "Consilium adds multi-AI debate across 7 providers on top of core CLI features like plan mode, hooks, sub-agents, and headless JSON output. Sandbox, worktree, voice, and image generation are coming soon. Claude Code locks you into Anthropic billing; Consilium is BYOK with zero markup plus a Groq free-tier fallback.",
     intro: [
       "Claude Code is the official Anthropic CLI for Claude. It's deeply integrated with the Claude family - Sonnet, Opus, Haiku - and ships well-engineered primitives: hooks, slash commands, MCP support, status line customization, sub-agents, and tight integration with Anthropic's API. If your team has standardized on Claude, it's the right tool for daily work.",
       "Claude Code's design constraint is its core value: it's Claude-only. There's no architectural way to ask GPT-5.5 or Gemini 3.1 Pro for a second opinion in the same session. You get exactly the model Anthropic ships, with exactly Anthropic's tradeoffs.",

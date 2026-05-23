@@ -3,7 +3,6 @@
 > Consilium JS is the TypeScript / JavaScript SDK for the Consilium multi-AI council platform - call `deliberate()` or `streamDeliberation()` to run a structured debate across Claude, GPT-5, Gemini, Grok, Groq, Kimi, and OpenRouter models and get a synthesized answer with confidence scores and dissent.
 
 [![npm version](https://img.shields.io/npm/v/@myconsilium/sdk)](https://www.npmjs.com/package/@myconsilium/sdk)
-[![license](https://img.shields.io/npm/l/@myconsilium/sdk)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/skadri1601/consilium-js/ci.yml?label=tests)](https://github.com/skadri1601/consilium-js/actions)
 [![node](https://img.shields.io/node/v/@myconsilium/sdk)](https://www.npmjs.com/package/@myconsilium/sdk)
 
@@ -217,7 +216,3 @@ try {
 - [How it works](https://myconsilium.xyz/docs/how-it-works)
 - [Deliberation modes](https://myconsilium.xyz/docs/modes)
 - [Provider catalog](https://myconsilium.xyz/docs/providers)
-
-## License
-
-MIT

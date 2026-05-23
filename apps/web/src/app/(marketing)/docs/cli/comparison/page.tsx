@@ -392,14 +392,6 @@ const rows: {
     cursorCli: "Yes (dashboard)",
   },
   {
-    feature: "Open source (CLI)",
-    consilium: "Yes",
-    claudeCode: "No",
-    geminiCli: "Yes",
-    grokBuild: "Partial",
-    cursorCli: "No",
-  },
-  {
     feature: "VS Code companion extension",
     consilium: "Yes",
     claudeCode: "Yes",

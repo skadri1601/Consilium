@@ -4,7 +4,6 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/consilium)](https://pypi.org/project/consilium/)
 [![Python versions](https://img.shields.io/pypi/pyversions/consilium)](https://pypi.org/project/consilium/)
-[![license](https://img.shields.io/pypi/l/consilium)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/skadri1601/consilium-python/ci.yml?label=tests)](https://github.com/skadri1601/consilium-python/actions)
 
 ## What it is
@@ -264,7 +263,3 @@ across the other 6 providers whenever it wants a second opinion.
 - [How it works](https://myconsilium.xyz/docs/how-it-works)
 - [Deliberation modes](https://myconsilium.xyz/docs/modes)
 - [Provider catalog](https://myconsilium.xyz/docs/providers)
-
-## License
-
-MIT

@@ -30,11 +30,7 @@ export class OptionalClerkAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const auth = request.headers?.authorization;
     if (!auth) return true;
-    try {
-      await this.inner.canActivate(context);
-    } catch {
-      return true;
-    }
+    await this.inner.canActivate(context);
     return true;
   }
 }

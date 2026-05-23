@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
@@ -15,7 +15,6 @@ import {
   BENCH_REPO_URL,
   BENCHMARK_FAQS,
   CONVERGENCE_FORMULA,
-  CONVERGENCE_THRESHOLD_HIT_RATE,
   HEADLINE_BENCHMARKS,
   METHODOLOGY,
   MODE_COMPARISON,
@@ -155,7 +154,7 @@ export default function BenchmarksPage() {
             Back to Research
           </Link>
           <Badge className="mb-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
-            Original benchmark data, published {PUBLISHED}
+            Benchmark methodology (results coming soon)
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-6" data-speakable>
             How accurate is multi-AI debate compared to a single model?
@@ -182,7 +181,7 @@ export default function BenchmarksPage() {
               correctness), and BBH-hard (multi-step reasoning). We added two
               derived metrics: open-domain hallucination rate and Expected
               Calibration Error so we could see whether deliberation also
-              changes how confident the system is when it's wrong.
+              changes how confident the system is when it&apos;s wrong.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               Setup: {METHODOLOGY.promptsPerSuite} prompts per suite,{" "}
@@ -204,12 +203,9 @@ export default function BenchmarksPage() {
               What were the headline numbers?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Council mode beat the strongest single model on every suite. The
-              largest absolute gain was on TruthfulQA (+13.4pp) because
-              cross-examination catches confident-but-false claims that any
-              single model would otherwise commit to. Calibration improved by
-              53% (ECE dropped from 0.087 to 0.041), meaning the council's
-              confidence scores actually track its accuracy.
+              Results will be published once the benchmark CLI ships. The table
+              below shows the planned suites and will be populated with real
+              data from reproducible runs.
             </p>
             <div className="overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/50">
               <table className="w-full text-sm">
@@ -258,8 +254,7 @@ export default function BenchmarksPage() {
             </div>
             <p className="text-xs text-muted-foreground mt-3">
               Council = 3 models (Claude Sonnet 4.6, GPT-5.4, Gemini 3 Flash), 3
-              rounds. Best single model selected per suite from the same three.
-              Values averaged across 3 runs; per-run variance ±0.4pp.
+              rounds. Results will be averaged across 3 runs once available.
             </p>
           </div>
 
@@ -268,12 +263,9 @@ export default function BenchmarksPage() {
               How do the modes compare on cost vs accuracy?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Council mode is the sweet spot: 91.7% MMLU at $0.062 / query. Deep
-              mode squeezes another 1.1pp out of the same suite but triples the
-              cost and latency, so it only pays off on high-stakes calls. Quick
-              mode (single model, single round) is the right default for
-              sub-second UX where the marginal accuracy of deliberation is not
-              worth the wait.
+              Mode-level cost and accuracy comparisons will be published once
+              benchmark runs are complete. The table below shows the planned
+              modes under evaluation.
             </p>
             <div className="overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/50">
               <table className="w-full text-sm">
@@ -322,16 +314,10 @@ export default function BenchmarksPage() {
               What does the cost vs quality curve look like?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Plotting per-mode cost on the x-axis against MMLU accuracy on the
-              y-axis produces a classic diminishing-returns curve. Quick mode
-              sits at the origin (cheap, fast, accurate enough for low-stakes
-              queries). Council mode is the elbow - the largest accuracy gain
-              per dollar. Deep mode is beyond the elbow: roughly 3.4x the cost
-              of council for a 1.1pp absolute gain. Specialist modes (Red Team,
-              Jury, Market, Blind) cluster near council on both axes because
-              they share the same multi-round backbone but optimize for
-              different output shapes (adversarial audit, dissent capture,
-              probability aggregation, bias elimination).
+              A cost-vs-quality chart will be published once benchmark data is
+              available. We expect Council mode to be the sweet spot for most
+              use cases, with Quick mode offering the best value for low-stakes
+              queries and Deep mode for high-stakes decisions.
             </p>
             <p className="text-sm text-muted-foreground">
               Reference chart:{" "}
@@ -346,17 +332,11 @@ export default function BenchmarksPage() {
               What does the convergence detector tell us?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Consilium's convergence score ({CONVERGENCE_FORMULA}) crosses the
-              0.85 threshold on{" "}
-              {Math.round(CONVERGENCE_THRESHOLD_HIT_RATE * 100)}% of council
-              debates within 3 rounds. The remaining 27% either converge in
-              round 4-5 (most common when a single model holds a contrarian
-              position on a borderline question) or terminate without
-              convergence, in which case Consilium surfaces a dissent report
-              instead of a synthesized answer. Across the full benchmark set,
-              the council reaches an explicit "no consensus" verdict on 4.2% of
-              prompts - and those are disproportionately the prompts where the
-              underlying ground truth is itself contested.
+              Consilium&apos;s convergence score ({CONVERGENCE_FORMULA}) uses a
+              0.85 threshold. Convergence rate data across benchmark suites will
+              be published once the benchmark CLI ships. When convergence is not
+              reached, Consilium surfaces a dissent report instead of a
+              synthesized answer.
             </p>
           </div>
 
@@ -365,16 +345,14 @@ export default function BenchmarksPage() {
               When is single-model better than a council?
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              For sub-second decisions where latency-sensitive UX matters more
-              than ground-truth accuracy, and for queries where the strongest
-              single model is already 99%+ accurate (simple arithmetic,
-              well-known facts, exact-match lookups), the latency and cost
-              penalty of deliberation is not worth the marginal accuracy gain.
-              Consilium's Quick mode collapses to a single model for these
-              cases, and Auto mode will route there automatically when the
-              complexity classifier judges the prompt low-stakes. The numbers
-              tell the story: Quick mode hits 87.4% MMLU at $0.001 / query - a
-              perfectly defensible default for high-volume, low-stakes calls.
+              For sub-second decisions where latency matters more than
+              ground-truth accuracy, and for queries where the strongest single
+              model is already highly accurate (simple arithmetic, well-known
+              facts, exact-match lookups), the latency and cost penalty of
+              deliberation may not be worth the marginal accuracy gain.
+              Consilium&apos;s Quick mode collapses to a single model for these
+              cases, and Auto mode routes there automatically when the
+              complexity classifier judges the prompt low-stakes.
             </p>
           </div>
 
@@ -383,25 +361,9 @@ export default function BenchmarksPage() {
               How do I reproduce these numbers?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              The bench harness lives at{" "}
-              <Link
-                href={BENCH_REPO_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1"
-              >
-                {BENCH_REPO_URL.replace("https://", "")}
-                <ExternalLink className="h-3 w-3" aria-hidden />
-              </Link>
-              . Install the CLI, export at least one provider key, and run the
-              commands below. Each suite takes 20-40 minutes of wall time
-              depending on rate limits and which providers you have. Results are
-              written to{" "}
-              <code className="font-mono text-foreground">
-                .consilium/bench/&lt;suite&gt;/run-&lt;n&gt;.json
-              </code>{" "}
-              and aggregated into a markdown report you can diff against the
-              published numbers.
+              The benchmark CLI is under development. Once it ships, you will be
+              able to install the CLI, export at least one provider key, and run
+              the commands below to reproduce results.
             </p>
             <div className="space-y-3">
               {BENCH_CLI_INVOCATIONS.map((entry) => (

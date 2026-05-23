@@ -166,12 +166,13 @@ export default function CliHooksPage() {
             <CardContent className="space-y-3 text-sm text-muted-foreground leading-relaxed">
               <p>
                 Hooks are the deterministic enforcement layer that complements
-                model judgment. Anthropic's Claude Code documentation describes
-                hooks as &ldquo;a way to customize and extend Claude Code&apos;s
-                behavior by registering shell commands.&rdquo; Consilium adopts
-                the same pattern but extends it with HTTP webhook support and a
-                strict URL allowlist so corporate audit pipelines can subscribe
-                without exposing the workstation to arbitrary destinations.
+                model judgment. Anthropic&apos;s Claude Code documentation
+                describes hooks as &ldquo;a way to customize and extend Claude
+                Code&apos;s behavior by registering shell commands.&rdquo;
+                Consilium adopts the same pattern but extends it with HTTP
+                webhook support and a strict URL allowlist so corporate audit
+                pipelines can subscribe without exposing the workstation to
+                arbitrary destinations.
               </p>
               <p>
                 Hooks dispatch in under 10 ms of CLI overhead before your

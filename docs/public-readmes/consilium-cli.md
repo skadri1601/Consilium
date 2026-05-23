@@ -3,7 +3,6 @@
 > Consilium CLI is the multi-AI council command line that runs Claude, GPT-5, Gemini, Grok, Groq, Kimi, and OpenRouter models against the same prompt in parallel, cross-examines them across rounds, and synthesizes a single consensus answer with explicit dissent.
 
 [![npm version](https://img.shields.io/npm/v/@myconsilium/cli)](https://www.npmjs.com/package/@myconsilium/cli)
-[![license](https://img.shields.io/npm/l/@myconsilium/cli)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/skadri1601/consilium-cli/ci.yml?label=tests)](https://github.com/skadri1601/consilium-cli/actions)
 [![node](https://img.shields.io/node/v/@myconsilium/cli)](https://www.npmjs.com/package/@myconsilium/cli)
 
@@ -202,7 +201,3 @@ opinion.
 - [Sandbox](https://myconsilium.xyz/docs/cli/sandbox)
 - [Provider catalog](https://myconsilium.xyz/docs/providers)
 - [Comparison vs Claude Code / Cursor / Aider / Cline / Copilot](https://myconsilium.xyz/docs/cli/comparison)
-
-## License
-
-MIT
