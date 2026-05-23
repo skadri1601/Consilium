@@ -70,7 +70,8 @@ jobs:
           name: cli-binaries
           path: packages/cli/dist-binaries/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
+          compression-level: 9
 
   attach-to-release:
     needs: build-binaries
