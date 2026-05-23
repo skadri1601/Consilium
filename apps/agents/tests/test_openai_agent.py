@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from src.features.agents.openai_agent import OpenAIAgent
+from src.features.agents.base_agent import LLMProviderError
 
 
 class TestOpenAIAgent:
@@ -37,8 +38,6 @@ class TestOpenAIAgent:
     @patch("openai.AsyncOpenAI")
     async def test_generate_response_error(self, mock_openai_class, agent):
         """Test error handling raises LLMProviderError after refactor."""
-        from src.features.agents.base_agent import LLMProviderError
-
         mock_client = AsyncMock()
         mock_openai_class.return_value = mock_client
         mock_client.chat.completions.create = AsyncMock(

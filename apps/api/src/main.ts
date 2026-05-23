@@ -37,6 +37,7 @@ async function bootstrap() {
       logger: { level: resolveFastifyLogLevel() },
       bodyLimit: 5 * 1024 * 1024,
     }),
+    { rawBody: true },
   );
 
   app.setGlobalPrefix("api/v1", {
