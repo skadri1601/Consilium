@@ -4,7 +4,6 @@
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/myconsilium.consilium-vscode?label=marketplace)](https://marketplace.visualstudio.com/items?itemName=myconsilium.consilium-vscode)
 [![installs](https://img.shields.io/visual-studio-marketplace/i/myconsilium.consilium-vscode)](https://marketplace.visualstudio.com/items?itemName=myconsilium.consilium-vscode)
-[![license](https://img.shields.io/github/license/skadri1601/consilium-vscode)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/skadri1601/consilium-vscode/ci.yml?label=tests)](https://github.com/skadri1601/consilium-vscode/actions)
 
 ## What it is
@@ -134,7 +133,7 @@ fallback is engaged.
 | BYOK across 7 providers            | yes                          | no                   | yes                 | yes                | yes                |
 | Free-tier fallback                 | yes - Groq + OpenRouter pool | Copilot subscription | Cursor subscription | no                 | no                 |
 
-## Open-source siblings
+## Related packages
 
 - CLI: [`@myconsilium/cli`](https://www.npmjs.com/package/@myconsilium/cli) on npm
 - TypeScript SDK: [`@myconsilium/sdk`](https://www.npmjs.com/package/@myconsilium/sdk) on npm
@@ -153,7 +152,3 @@ fallback is engaged.
 
 - Issues: <https://github.com/skadri1601/consilium-vscode/issues>
 - Email: <support@myconsilium.xyz>
-
-## License
-
-MIT

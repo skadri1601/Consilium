@@ -43,7 +43,7 @@ export class SharesService {
         ? new Date(Date.now() + dto.expiresIn * 60 * 60 * 1000)
         : null;
 
-    const record = await (this.prisma as any).sessionShare.create({
+    const record = await this.prisma.sessionShare.create({
       data: {
         token,
         sessionId,
@@ -65,7 +65,7 @@ export class SharesService {
   }
 
   async getShare(token: string, requesterId?: string) {
-    const record = await (this.prisma as any).sessionShare.findUnique({
+    const record = await this.prisma.sessionShare.findUnique({
       where: { token },
     });
 
@@ -86,7 +86,7 @@ export class SharesService {
       }
     }
 
-    const updated = await (this.prisma as any).sessionShare.update({
+    const updated = await this.prisma.sessionShare.update({
       where: { id: record.id },
       data: { views: { increment: 1 } },
     });
@@ -104,7 +104,7 @@ export class SharesService {
   }
 
   async deleteShare(userId: string, shareId: string) {
-    const record = await (this.prisma as any).sessionShare.findUnique({
+    const record = await this.prisma.sessionShare.findUnique({
       where: { id: shareId },
     });
 
@@ -116,6 +116,6 @@ export class SharesService {
       throw new ForbiddenException("You do not own this share");
     }
 
-    await (this.prisma as any).sessionShare.delete({ where: { id: shareId } });
+    await this.prisma.sessionShare.delete({ where: { id: shareId } });
   }
 }

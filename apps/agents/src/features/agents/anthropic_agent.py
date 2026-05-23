@@ -47,6 +47,7 @@ class AnthropicAgent(BaseAgent):
             }
             if thinking is not None:
                 kwargs["thinking"] = thinking
+                kwargs["temperature"] = 1
                 kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
             response = await client.messages.create(**kwargs)
 
@@ -84,6 +85,7 @@ class AnthropicAgent(BaseAgent):
             }
             if thinking is not None:
                 kwargs["thinking"] = thinking
+                kwargs["temperature"] = 1
                 kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
             async with client.messages.stream(**kwargs) as stream:
                 async for text in stream.text_stream:

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from ...shared.auth import require_api_key
 
 from .providers import (
     ImageGenProvider,
@@ -16,7 +18,7 @@ from .providers import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/tools", tags=["tools"])
+router = APIRouter(prefix="/tools", tags=["tools"], dependencies=[Depends(require_api_key)])
 
 
 class ImageGenRequest(BaseModel):

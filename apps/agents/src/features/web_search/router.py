@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from ...shared.auth import require_api_key
 
 from .citations import Citation, extract_citations
 from .providers import (
@@ -19,7 +22,7 @@ from .providers import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/tools", tags=["tools"])
+router = APIRouter(prefix="/tools", tags=["tools"], dependencies=[Depends(require_api_key)])
 
 CACHE_TTL_SECONDS = 600.0
 CACHE_MAX_ENTRIES = 256
@@ -60,28 +63,32 @@ class _AsyncTTLCache:
         self._ttl = ttl
         self._max_entries = max_entries
         self._store: dict[tuple[str, str, int], tuple[float, list[WebSearchResult], str]] = {}
+        self._lock = asyncio.Lock()
 
-    def get(self, key: tuple[str, str, int]) -> tuple[list[WebSearchResult], str] | None:
-        entry = self._store.get(key)
-        if entry is None:
-            return None
-        expires_at, results, provider_name = entry
-        if expires_at < time.time():
-            self._store.pop(key, None)
-            return None
-        self._store[key] = (expires_at, results, provider_name)
-        return results, provider_name
+    async def get(self, key: tuple[str, str, int]) -> tuple[list[WebSearchResult], str] | None:
+        async with self._lock:
+            entry = self._store.get(key)
+            if entry is None:
+                return None
+            expires_at, results, provider_name = entry
+            if expires_at < time.time():
+                self._store.pop(key, None)
+                return None
+            self._store[key] = (expires_at, results, provider_name)
+            return results, provider_name
 
-    def set(
+    async def set(
         self, key: tuple[str, str, int], results: list[WebSearchResult], provider_name: str
     ) -> None:
-        if len(self._store) >= self._max_entries:
-            oldest_key = next(iter(self._store))
-            self._store.pop(oldest_key, None)
-        self._store[key] = (time.time() + self._ttl, list(results), provider_name)
+        async with self._lock:
+            if len(self._store) >= self._max_entries:
+                oldest_key = next(iter(self._store))
+                self._store.pop(oldest_key, None)
+            self._store[key] = (time.time() + self._ttl, list(results), provider_name)
 
-    def clear(self) -> None:
-        self._store.clear()
+    async def clear(self) -> None:
+        async with self._lock:
+            self._store.clear()
 
 
 _cache = _AsyncTTLCache()
@@ -132,7 +139,7 @@ async def web_search(request: WebSearchRequest) -> WebSearchResponse | JSONRespo
     probe_name = (requested_provider or "auto").lower()
     cache_key = _cache_key(probe_name, query, request.limit)
 
-    cached = _cache.get(cache_key)
+    cached = await _cache.get(cache_key)
     if cached is not None:
         results, provider_name = cached
         citations = extract_citations(results)
@@ -171,7 +178,7 @@ async def web_search(request: WebSearchRequest) -> WebSearchResponse | JSONRespo
             },
         )
 
-    _cache.set(cache_key, results, provider_name)
+    await _cache.set(cache_key, results, provider_name)
     citations = extract_citations(results)
     return WebSearchResponse(
         results=[_to_model(r) for r in results],
@@ -202,5 +209,5 @@ def _citation_to_model(citation: Citation) -> CitationModel:
     )
 
 
-def reset_cache() -> None:
-    _cache.clear()
+async def reset_cache() -> None:
+    await _cache.clear()

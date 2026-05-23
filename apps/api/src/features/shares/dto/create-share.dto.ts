@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
+import { IsBoolean, IsInt, IsNotEmpty, IsObject, IsOptional, Min } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateShareDto {
@@ -20,5 +20,7 @@ export class CreateShareDto {
     required: true,
     description: "Serialized session JSON from the CLI",
   })
-  payload: unknown;
+  @IsObject()
+  @IsNotEmpty()
+  payload: Record<string, unknown>;
 }

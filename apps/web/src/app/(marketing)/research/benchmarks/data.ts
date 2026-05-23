@@ -19,7 +19,7 @@ export interface BenchmarkFaq {
 }
 
 export const ANSWER_CAPSULE =
-  "Consilium publishes its own benchmark numbers measuring multi-AI debate against single-model baselines on factual accuracy, calibration, and code quality. The headline result: multi-model deliberation reduces hallucination rate by 24% over the strongest single model on MMLU and TruthfulQA, while costing 3-4x more per query. Numbers below are reproducible via the consilium benchmark CLI; same prompts, default temperature, three runs averaged.";
+  "Consilium is building a benchmark suite to measure multi-AI debate against single-model baselines on factual accuracy, calibration, and code quality. Benchmark results will be published here once the benchmark CLI ships. The suites below describe our planned methodology.";
 
 export const METHODOLOGY = {
   promptsPerSuite: 200,
@@ -34,68 +34,66 @@ export const METHODOLOGY = {
 export const HEADLINE_BENCHMARKS: HeadlineBenchmarkRow[] = [
   {
     benchmark: "MMLU (factual recall)",
-    bestSingle: "89.4% (Sonnet 4.6)",
-    council: "91.7%",
-    delta: "+2.3pp",
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
   {
     benchmark: "TruthfulQA (factual + calibration)",
-    bestSingle: "71.2% (GPT-5.4)",
-    council: "84.6%",
-    delta: "+13.4pp",
-    highlight: true,
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
   {
     benchmark: "HumanEval (code synthesis pass@1)",
-    bestSingle: "92.7% (Opus 4.7)",
-    council: "96.1%",
-    delta: "+3.4pp",
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
   {
     benchmark: "BBH-hard (reasoning)",
-    bestSingle: "87.3% (Sonnet 4.6)",
-    council: "91.9%",
-    delta: "+4.6pp",
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
   {
     benchmark: "Hallucination rate (open-domain)",
-    bestSingle: "14.2%",
-    council: "10.8%",
-    delta: "-3.4pp (24% reduction)",
-    highlight: true,
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
   {
     benchmark: "Calibration (ECE, lower is better)",
-    bestSingle: "0.087",
-    council: "0.041",
-    delta: "-53% (better calibration)",
+    bestSingle: "Coming soon",
+    council: "Coming soon",
+    delta: "---",
   },
 ];
 
 export const MODE_COMPARISON: ModeComparisonRow[] = [
-  { mode: "Quick", latency: "2.1s", cost: "$0.001", mmlu: "87.4%" },
+  { mode: "Quick", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
   {
     mode: "Council (3 rounds)",
-    latency: "18.6s",
-    cost: "$0.062",
-    mmlu: "91.7%",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
   },
   {
     mode: "Deep (5 rounds, sub-agents)",
-    latency: "47.2s",
-    cost: "$0.211",
-    mmlu: "92.8%",
+    latency: "Coming soon",
+    cost: "Coming soon",
+    mmlu: "Coming soon",
   },
-  { mode: "Red Team", latency: "24.8s", cost: "$0.094", mmlu: "89.9%" },
-  { mode: "Jury", latency: "19.4s", cost: "$0.073", mmlu: "91.1%" },
-  { mode: "Market", latency: "22.7s", cost: "$0.083", mmlu: "90.8%" },
-  { mode: "Blind", latency: "17.9s", cost: "$0.058", mmlu: "91.4%" },
+  { mode: "Red Team", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
+  { mode: "Jury", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
+  { mode: "Market", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
+  { mode: "Blind", latency: "Coming soon", cost: "Coming soon", mmlu: "Coming soon" },
 ];
 
 export const CONVERGENCE_FORMULA =
   "Kendall tau 0.4 + Jaccard 0.35 + concession 0.25";
 
-export const CONVERGENCE_THRESHOLD_HIT_RATE = 0.73;
+export const CONVERGENCE_THRESHOLD_HIT_RATE = 0;
 
 export const BENCH_REPO_URL =
   "https://github.com/skadri1601/consilium-cli/tree/main/bench";
@@ -129,7 +127,7 @@ export const BENCHMARK_FAQS: BenchmarkFaq[] = [
   {
     question: "Can I reproduce these numbers?",
     answer:
-      "Yes. The bench harness is open source at github.com/skadri1601/consilium-cli/tree/main/bench. Run consilium benchmark with the same suite and models, average across 3 runs. Numbers vary plus or minus 0.4pp run-to-run due to model nondeterminism even at low temperature.",
+      "The benchmark CLI is under development. Once it ships, you will be able to run consilium benchmark with the same suite and models to reproduce results.",
   },
   {
     question: "Why is Consilium more accurate than the best single model?",
