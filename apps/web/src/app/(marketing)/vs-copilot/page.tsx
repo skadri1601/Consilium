@@ -21,12 +21,27 @@ const data: CompetitorComparison = {
     tagline:
       "Copilot is the typist. Consilium is the council that reviews the typing.",
     hook: "GitHub Copilot is the dominant inline-autocomplete and chat product. Consilium is built around a different operation: structured multi-provider deliberation for moments when one model is not enough.",
+    answerCapsule:
+      "Consilium is a multi-AI council CLI that runs 3-5 models from 7 providers in parallel debate rounds, with convergence detection, dissent reports, and BYOK billing. GitHub Copilot is the leading inline-autocomplete and chat product, proxied through Microsoft on a flat per-seat subscription. Use Copilot for inline typing and PR summaries; use Consilium when one model's confident answer is not enough.",
     intro: [
       "GitHub Copilot is the most widely deployed AI coding tool on the planet. Inline ghost-text completions, Copilot Chat, agent mode, and Copilot Workspace cover the daily-driver use cases for most developers. The integration with GitHub itself - repos, PRs, issues, Actions - is unique and hard to match.",
       "Copilot is also fundamentally a single-model product per request. You can choose between GPT, Claude, Gemini, or Grok in the model picker, but each request gets one model. Microsoft's proxy controls which models you can route to and at what price. There's no architectural way to ask all of them in parallel and have them argue.",
       "Consilium starts from the parallel-debate premise. Three to five models from different providers (OpenAI, Anthropic, Google, xAI, Groq, Moonshot, OpenRouter) generate independent answers, cross-examine each other with typed challenges, and converge on a synthesized result with mathematical convergence detection.",
       "These are different operations, not interchangeable products. Copilot autocompletes faster than you can think. Consilium runs a multi-model deliberation that catches what one model misses. The right architecture is to use Copilot for inline typing and Consilium for the moments when you want a council - design choices, security review, regulatory writeups, anything where shipping the wrong answer is expensive.",
     ],
+  },
+  stats: [
+    { label: "Providers", value: "7 first-class" },
+    { label: "Deliberation modes", value: "8" },
+    { label: "Total platform tests", value: "1,553" },
+    { label: "Dependency vulnerabilities", value: "0 (pnpm audit clean)" },
+    { label: "Average quick debate", value: "$0.001" },
+    { label: "Chat REPL slash commands", value: "50+" },
+  ],
+  competitorQuote: {
+    text: "GitHub Copilot is the AI editor that helps you write better code, faster. With Copilot Chat, you can have a conversation about your code, and ask follow-up questions to refine the response.",
+    source: "GitHub Copilot docs",
+    href: "https://docs.github.com/en/copilot",
   },
   competitorStrengths: [
     "Best inline autocomplete in the industry - ghost-text completions are a daily-driver experience.",

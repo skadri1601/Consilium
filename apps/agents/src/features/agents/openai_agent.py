@@ -5,6 +5,7 @@ class OpenAIAgent(BaseOpenAICompatAgent):
     """OpenAI GPT agent. Default endpoint (api.openai.com) - no base_url override."""
 
     base_url = None
+    supports_reasoning_effort = True
 
     def __init__(self, model_id: str = "gpt-5.4-mini", api_key: str | None = None):
         super().__init__(

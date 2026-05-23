@@ -20,12 +20,27 @@ const data: CompetitorComparison = {
     tagline:
       "Aider taught the CLI world how AI should edit code. Consilium asks: what if seven models did it together?",
     hook: "Aider is the gold standard for single-model, git-native CLI coding. Consilium is the same idea - except it runs three to five models in parallel and makes them argue.",
+    answerCapsule:
+      "Consilium runs 3-5 models from 7 providers in structured debate rounds, then synthesizes a consensus with mathematical convergence detection. Aider edits code with a single chosen model and auto-commits to git. Use Aider for fast routine commits at lowest cost; use Consilium when you need cross-provider verification, adversarial Red Team review, or auditable architecture decisions with documented dissent.",
     intro: [
       "Aider has earned a deserved reputation. It writes commits with sensible messages, applies edits using a structured diff format, builds a repo map for context, and stays out of your way. The whole-file and udiff edit formats it pioneered are now standard practice across the agentic coding ecosystem - including in Consilium's own toolchain.",
       "Aider's core constraint is its core feature: one model, one voice, one perspective. You pick a model - Sonnet, GPT, DeepSeek, whatever - and that one model handles your request from start to finish. It's fast, cheap, and works well when the model is right.",
       "Consilium is built for the cases when one model is not enough. Ambiguous architecture decisions. Code touching auth or money or compliance. Anything where 'I asked Claude' is a sentence you'll have to defend in a postmortem. Consilium runs a council - three to five models from different providers - that independently propose answers, cross-examine each other with typed challenges, and converge on a synthesized result with mathematical convergence checks.",
       "Aider is faster and cheaper for routine changes. Consilium catches things one model misses. Most teams that use both end up with Aider in their daily commit loop and Consilium reserved for high-stakes review and decision points.",
     ],
+  },
+  stats: [
+    { label: "Providers", value: "7 first-class" },
+    { label: "Deliberation modes", value: "8" },
+    { label: "Models per debate", value: "3–5 parallel" },
+    { label: "ICML 2024 accuracy uplift", value: "+8–15%" },
+    { label: "CLI unit tests", value: "962" },
+    { label: "Convergence threshold", value: ">= 0.85" },
+  ],
+  competitorQuote: {
+    text: "Aider works best with Claude 3.5 Sonnet, DeepSeek Chat V3 and GPT-4o. You will need an API key for whichever LLM you wish to use.",
+    source: "Aider docs (aider.chat)",
+    href: "https://aider.chat/docs/llms.html",
   },
   competitorStrengths: [
     "Excellent edit-format engineering - the udiff format and whole-file replacement work reliably across models.",

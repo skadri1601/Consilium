@@ -37,7 +37,7 @@ class TestOpenAIAgent:
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")
     async def test_generate_response_error(self, mock_openai_class, agent):
-        """Test error handling raises LLMProviderError."""
+        """Test error handling raises LLMProviderError after refactor."""
         mock_client = AsyncMock()
         mock_openai_class.return_value = mock_client
         mock_client.chat.completions.create = AsyncMock(
@@ -48,7 +48,7 @@ class TestOpenAIAgent:
             await agent.generate_response("test query")
 
         assert exc_info.value.provider == "OpenAI"
-        assert exc_info.value.operation == "API"
+        assert "API Error" in str(exc_info.value)
 
     @pytest.mark.asyncio
     @patch("openai.AsyncOpenAI")

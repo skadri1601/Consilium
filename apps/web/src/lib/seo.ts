@@ -6,7 +6,7 @@ export const SITE_URL = (
 export const SITE_NAME = "Consilium";
 export const SITE_TAGLINE = "The AI Council";
 export const SITE_DESCRIPTION =
-  "Consilium is a multi-AI council that debates, critiques, and synthesizes consensus answers. Pit GPT, Claude, Gemini, Llama, and Grok against each other and get the best recommendation.";
+  "Consilium is a multi-AI council CLI and platform that debates, critiques, and synthesizes consensus answers. Pit GPT, Claude, Gemini, Llama, and Grok against each other across 8 deliberation modes — with plan mode, hooks, sub-agents, sandboxed worktrees, voice dictation, image generation, web search grounding, and a scheduler daemon. BYOK with zero markup or use the Groq free tier.";
 export const SITE_TWITTER = "@consiliumai";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og.png`;
 

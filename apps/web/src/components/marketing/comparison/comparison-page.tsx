@@ -24,6 +24,15 @@ export function ComparisonPage({ data }: Props) {
     { name: "Compare", path: "/" },
     { name: `vs ${data.competitor}`, path },
   ]);
+  const speakableSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "h2", "[data-speakable]"],
+    },
+  };
   const articleSchema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -58,6 +67,7 @@ export function ComparisonPage({ data }: Props) {
     <div className="min-h-screen">
       <JsonLd id={`ld-vs-${data.slug}-breadcrumbs`} data={breadcrumbs} />
       <JsonLd id={`ld-vs-${data.slug}-article`} data={articleSchema} />
+      <JsonLd id={`ld-vs-${data.slug}-speakable`} data={speakableSchema} />
 
       <section className="container mx-auto px-4 py-24 md:py-32">
         <div className="max-w-4xl mx-auto text-center">
@@ -68,6 +78,14 @@ export function ComparisonPage({ data }: Props) {
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             {SITE_NAME} vs {data.competitor}
           </h1>
+          {data.hero.answerCapsule && (
+            <p
+              data-speakable
+              className="text-lg md:text-xl text-foreground/90 max-w-3xl mx-auto mb-6 leading-relaxed"
+            >
+              {data.hero.answerCapsule}
+            </p>
+          )}
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-3">
             {data.hero.tagline}
           </p>
@@ -76,6 +94,25 @@ export function ComparisonPage({ data }: Props) {
           </p>
         </div>
       </section>
+
+      {data.stats && data.stats.length > 0 && (
+        <section className="container mx-auto px-4 pb-8">
+          <div className="max-w-4xl mx-auto">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
+              {data.stats.map((stat) => (
+                <div key={stat.label} className="space-y-1">
+                  <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                    {stat.label}
+                  </dt>
+                  <dd className="text-2xl font-semibold text-foreground">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )}
 
       <section className="container mx-auto px-4 pb-12">
         <div className="max-w-3xl mx-auto space-y-5">
@@ -87,13 +124,35 @@ export function ComparisonPage({ data }: Props) {
               {paragraph}
             </p>
           ))}
+          {data.competitorQuote && (
+            <figure className="my-8 border-l-4 border-indigo-500/40 pl-5 py-2">
+              <blockquote className="text-base md:text-lg italic text-foreground/85 leading-relaxed">
+                &ldquo;{data.competitorQuote.text}&rdquo;
+              </blockquote>
+              <figcaption className="mt-2 text-xs text-muted-foreground">
+                &mdash;{" "}
+                {data.competitorQuote.href ? (
+                  <a
+                    href={data.competitorQuote.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    {data.competitorQuote.source}
+                  </a>
+                ) : (
+                  <span>{data.competitorQuote.source}</span>
+                )}
+              </figcaption>
+            </figure>
+          )}
         </div>
       </section>
 
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Side-by-side feature matrix
+            What does the side-by-side feature matrix show?
           </h2>
           <Card>
             <CardContent className="p-0">
@@ -174,7 +233,7 @@ export function ComparisonPage({ data }: Props) {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                Where {data.competitor} wins
+                Where does {data.competitor} win?
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -195,7 +254,7 @@ export function ComparisonPage({ data }: Props) {
           <Card className="border-indigo-500/20 bg-indigo-500/[0.02]">
             <CardHeader>
               <CardTitle className="text-lg text-indigo-400">
-                Where {SITE_NAME} wins
+                Where does {SITE_NAME} win?
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -217,7 +276,7 @@ export function ComparisonPage({ data }: Props) {
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-3">
-            Workflow patterns
+            How does {SITE_NAME} fit alongside {data.competitor}?
           </h2>
           <p className="text-center text-muted-foreground mb-12">
             How {SITE_NAME} fits alongside (or replaces) {data.competitor} in
@@ -243,7 +302,7 @@ export function ComparisonPage({ data }: Props) {
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Common questions
+            What are the most common questions?
           </h2>
           <div className="space-y-8">
             {data.faq.map((entry) => (
@@ -260,7 +319,7 @@ export function ComparisonPage({ data }: Props) {
 
       <section className="container mx-auto px-4 py-24">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Try {SITE_NAME}</h2>
+          <h2 className="text-3xl font-bold mb-4">How do I try {SITE_NAME}?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Free tier includes managed pool access - no API keys required to get
             started. BYOK supported for production usage.

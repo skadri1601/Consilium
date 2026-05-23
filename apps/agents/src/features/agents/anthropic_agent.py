@@ -7,6 +7,7 @@ from .base_agent import (
     ToolExecutor,
     ToolUseResponse,
 )
+from .reasoning_effort import normalize_effort, to_anthropic_budget
 
 
 class AnthropicAgent(BaseAgent):
@@ -24,7 +25,12 @@ class AnthropicAgent(BaseAgent):
         if api_key:
             self.api_key = api_key
 
-    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
+    async def generate_response(
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
+    ) -> Tuple[str, int]:
         if not self._validate_api_key():
             self._raise_no_api_key()
 
@@ -32,21 +38,36 @@ class AnthropicAgent(BaseAgent):
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-            response = await client.messages.create(
-                model=self.model_id,
-                max_tokens=2000,
-                system=system_prompt or self.get_system_prompt(),
-                messages=[{"role": "user", "content": query}]
-            )
+            thinking = to_anthropic_budget(normalize_effort(reasoning_effort))
+            kwargs: dict = {
+                "model": self.model_id,
+                "max_tokens": 2000,
+                "system": system_prompt or self.get_system_prompt(),
+                "messages": [{"role": "user", "content": query}],
+            }
+            if thinking is not None:
+                kwargs["thinking"] = thinking
+                kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
+            response = await client.messages.create(**kwargs)
 
-            content = response.content[0].text if response.content else ""
+            text_chunks = [
+                getattr(block, "text", "")
+                for block in (response.content or [])
+                if getattr(block, "type", None) == "text"
+            ]
+            content = "".join(text_chunks)
             tokens = response.usage.input_tokens + response.usage.output_tokens
             return content, tokens
 
         except Exception as e:
             self._handle_common_errors(e, "API")
 
-    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncIterator[str]:
+    async def stream_response(
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
+    ) -> AsyncIterator[str]:
         if not self._validate_api_key():
             self._raise_no_api_key()
 
@@ -54,12 +75,17 @@ class AnthropicAgent(BaseAgent):
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-            async with client.messages.stream(
-                model=self.model_id,
-                max_tokens=2000,
-                system=system_prompt or self.get_system_prompt(),
-                messages=[{"role": "user", "content": query}]
-            ) as stream:
+            thinking = to_anthropic_budget(normalize_effort(reasoning_effort))
+            kwargs: dict = {
+                "model": self.model_id,
+                "max_tokens": 2000,
+                "system": system_prompt or self.get_system_prompt(),
+                "messages": [{"role": "user", "content": query}],
+            }
+            if thinking is not None:
+                kwargs["thinking"] = thinking
+                kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
+            async with client.messages.stream(**kwargs) as stream:
                 async for text in stream.text_stream:
                     yield text
 

@@ -1,13 +1,11 @@
 import "@testing-library/jest-dom";
 
 // Mock ResizeObserver for Recharts
-class ResizeObserverMock {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-globalThis.ResizeObserver =
-  ResizeObserverMock as unknown as typeof ResizeObserver;
+globalThis.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Mock URL.createObjectURL and URL.revokeObjectURL for file download tests
 globalThis.URL.createObjectURL = vi.fn(() => "blob:test-url");

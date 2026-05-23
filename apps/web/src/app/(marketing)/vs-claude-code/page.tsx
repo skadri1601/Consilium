@@ -20,12 +20,27 @@ const data: CompetitorComparison = {
     tagline:
       "Claude Code is the best way to use Claude. Consilium is the best way to verify Claude with six other models.",
     hook: "Claude Code is Anthropic's official CLI for Claude. Consilium ships an MCP server that plugs into Claude Code so Claude can call a multi-provider council whenever it needs a second opinion.",
+    answerCapsule:
+      "Consilium ships full feature parity with Claude Code on every dimension - plan mode, hooks, sub-agents, sandbox, worktree, voice, image generation, MCP marketplace, and headless JSON or stream-JSON output - while adding multi-AI debate across 7 providers. Claude Code locks you into Anthropic billing; Consilium is BYOK with zero markup plus a Groq free-tier fallback.",
     intro: [
       "Claude Code is the official Anthropic CLI for Claude. It's deeply integrated with the Claude family - Sonnet, Opus, Haiku - and ships well-engineered primitives: hooks, slash commands, MCP support, status line customization, sub-agents, and tight integration with Anthropic's API. If your team has standardized on Claude, it's the right tool for daily work.",
       "Claude Code's design constraint is its core value: it's Claude-only. There's no architectural way to ask GPT-5.5 or Gemini 3.1 Pro for a second opinion in the same session. You get exactly the model Anthropic ships, with exactly Anthropic's tradeoffs.",
       "Consilium is provider-agnostic from the bottom up. A single debate can include Claude alongside GPT-5.5, Gemini 3.1 Pro, Grok-4, Kimi K2, and any model on OpenRouter. The point isn't to replace Claude - it's to put Claude in a council where the other six providers cross-examine its reasoning.",
       "If your stack is built on Claude, the right architecture is to keep using Claude Code for daily work and add Consilium's MCP server. Claude Code can then call @consilium when it needs to deliberate across providers, and the council writes its synthesis back into Claude's context.",
     ],
+  },
+  stats: [
+    { label: "Providers", value: "7 first-class" },
+    { label: "Deliberation modes", value: "8" },
+    { label: "CLI unit tests", value: "962" },
+    { label: "Total platform tests", value: "1,553" },
+    { label: "Convergence threshold", value: ">= 0.85" },
+    { label: "Free tier", value: "1,000 debates / month" },
+  ],
+  competitorQuote: {
+    text: "Plan mode lets Claude Code research, read files, and propose an approach without making any changes. You stay in control of when execution begins.",
+    source: "Anthropic Claude Code docs",
+    href: "https://docs.claude.com/en/docs/claude-code",
   },
   competitorStrengths: [
     "First-class Anthropic integration - instant access to Sonnet 4.6, Opus 4.7, Haiku 4.5 with no proxy.",

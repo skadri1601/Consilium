@@ -5,10 +5,54 @@ import {
 import { Test } from "@nestjs/testing";
 import { ClerkWebhooksController } from "./clerk-webhooks.controller";
 import { ClerkWebhooksService } from "./clerk-webhooks.service";
-import { WebhookSecretGuard } from "./guards/webhook-secret.guard";
 import { RateLimitGuard } from "../../shared/guards/rate-limit.guard";
 
-const VALID_SECRET = "stress_test_at_least_sixteen_chars_xyzzy";
+const VALID_SECRET = "whsec_test_secret_at_least_sixteen_chars_xyzzy";
+const VALID_SVIX_ID = "msg_test_id_12345";
+const VALID_SVIX_TIMESTAMP = "1700000000";
+const VALID_SVIX_SIGNATURE = "v1,test_signature_placeholder_value_xyz";
+
+const mockVerify = jest.fn();
+
+jest.mock("svix", () => ({
+  Webhook: jest.fn().mockImplementation(() => ({
+    verify: (...args: unknown[]) => mockVerify(...args),
+  })),
+}));
+
+function buildUserEvent(
+  type: "user.created" | "user.updated" | "user.deleted",
+  clerkId: string,
+  email = "a@b.c",
+): unknown {
+  return {
+    type,
+    data: {
+      id: clerkId,
+      email_addresses: [{ id: "e1", email_address: email }],
+      primary_email_address_id: "e1",
+      first_name: null,
+      last_name: null,
+      image_url: null,
+    },
+  };
+}
+
+function buildSvixHeaders(
+  overrides: Record<string, string | undefined> = {},
+): Record<string, string> {
+  const base: Record<string, string | undefined> = {
+    "svix-id": VALID_SVIX_ID,
+    "svix-timestamp": VALID_SVIX_TIMESTAMP,
+    "svix-signature": VALID_SVIX_SIGNATURE,
+    ...overrides,
+  };
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(base)) {
+    if (typeof v === "string") out[k] = v;
+  }
+  return out;
+}
 
 describe("ClerkWebhooksController integration + stress", () => {
   let app: NestFastifyApplication;
@@ -35,14 +79,11 @@ describe("ClerkWebhooksController integration + stress", () => {
   };
 
   beforeAll(async () => {
-    process.env.INTERNAL_WEBHOOK_SECRET = VALID_SECRET;
+    process.env.CLERK_WEBHOOK_SECRET = VALID_SECRET;
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ClerkWebhooksController],
-      providers: [
-        { provide: ClerkWebhooksService, useValue: mockService },
-        WebhookSecretGuard,
-      ],
+      providers: [{ provide: ClerkWebhooksService, useValue: mockService }],
     })
       .overrideGuard(RateLimitGuard)
       .useValue({ canActivate: () => true })
@@ -57,7 +98,7 @@ describe("ClerkWebhooksController integration + stress", () => {
   });
 
   afterAll(async () => {
-    delete process.env.INTERNAL_WEBHOOK_SECRET;
+    delete process.env.CLERK_WEBHOOK_SECRET;
     await app.close();
   });
 
@@ -66,12 +107,15 @@ describe("ClerkWebhooksController integration + stress", () => {
     updateUserCalls = 0;
     deleteUserCalls = 0;
     lastCreatePayload = undefined;
+    mockVerify.mockReset();
+    mockVerify.mockImplementation((body: string) => JSON.parse(body));
   });
 
   async function inject(opts: {
     path?: string;
     headers?: Record<string, string>;
     payload?: unknown;
+    rawPayload?: string;
   }): Promise<{ statusCode: number; body: unknown }> {
     const res = await app
       .getHttpAdapter()
@@ -80,7 +124,12 @@ describe("ClerkWebhooksController integration + stress", () => {
         method: "POST",
         url: opts.path ?? "/api/v1/webhooks/clerk",
         headers: { "content-type": "application/json", ...opts.headers },
-        payload: opts.payload ? JSON.stringify(opts.payload) : undefined,
+        payload:
+          opts.rawPayload !== undefined
+            ? opts.rawPayload
+            : opts.payload
+              ? JSON.stringify(opts.payload)
+              : undefined,
       });
     let body: unknown;
     try {
@@ -92,16 +141,10 @@ describe("ClerkWebhooksController integration + stress", () => {
   }
 
   describe("path & mounting", () => {
-    // SKIPPED: This test was written against an internal-webhook controller
-    // spec (x-webhook-secret + simple {action,clerkId,email} payload) that
-    // doesn't match the production ClerkWebhooksController, which uses Svix
-    // signatures (svix-id/svix-timestamp/svix-signature) and Clerk's
-    // user.created/user.updated event envelope. Re-enable only after the
-    // controller adopts the internal-webhook auth scheme this test asserts.
-    it.skip("the canonical path /api/v1/webhooks/clerk responds 200 with valid secret", async () => {
+    it("the canonical path /api/v1/webhooks/clerk responds 200 with valid signature", async () => {
       const res = await inject({
-        headers: { "x-webhook-secret": VALID_SECRET },
-        payload: { action: "create", clerkId: "u_canonical", email: "a@b.c" },
+        headers: buildSvixHeaders(),
+        payload: buildUserEvent("user.created", "u_canonical"),
       });
       expect(res.statusCode).toBe(200);
       expect(createUserCalls).toBe(1);
@@ -110,8 +153,8 @@ describe("ClerkWebhooksController integration + stress", () => {
     it("the previously-broken doubled path /api/v1/api/v1/webhooks/clerk is now 404", async () => {
       const res = await inject({
         path: "/api/v1/api/v1/webhooks/clerk",
-        headers: { "x-webhook-secret": VALID_SECRET },
-        payload: { action: "create", clerkId: "u_doubled", email: "a@b.c" },
+        headers: buildSvixHeaders(),
+        payload: buildUserEvent("user.created", "u_doubled"),
       });
       expect(res.statusCode).toBe(404);
       expect(createUserCalls).toBe(0);
@@ -120,33 +163,24 @@ describe("ClerkWebhooksController integration + stress", () => {
 
   describe("auth bypass attempts (these MUST all fail with 401)", () => {
     const attacks: Array<[string, Record<string, string>]> = [
-      ["no header", {}],
-      ["empty header", { "x-webhook-secret": "" }],
-      ["wrong header", { "x-webhook-secret": "wrong-secret-value-here" }],
-      ["one char off", { "x-webhook-secret": VALID_SECRET.slice(0, -1) + "X" }],
-      ["shorter prefix", { "x-webhook-secret": VALID_SECRET.slice(0, 10) }],
-      ["longer suffix", { "x-webhook-secret": VALID_SECRET + "extra" }],
+      ["no headers", {}],
+      ["missing svix-id", buildSvixHeaders({ "svix-id": undefined })],
       [
-        "all-X same length",
-        { "x-webhook-secret": "X".repeat(VALID_SECRET.length) },
+        "missing svix-timestamp",
+        buildSvixHeaders({ "svix-timestamp": undefined }),
       ],
       [
-        "case variation (case-sensitive secret)",
-        { "x-webhook-secret": VALID_SECRET.toUpperCase() },
+        "missing svix-signature",
+        buildSvixHeaders({ "svix-signature": undefined }),
       ],
-      ["leading whitespace", { "x-webhook-secret": " " + VALID_SECRET }],
-      ["trailing whitespace", { "x-webhook-secret": VALID_SECRET + " " }],
-      ["control char injected", { "x-webhook-secret": VALID_SECRET + "\x00" }],
+      ["empty svix-id", buildSvixHeaders({ "svix-id": "" })],
+      ["empty svix-signature", buildSvixHeaders({ "svix-signature": "" })],
     ];
 
     test.each(attacks)("rejects: %s", async (_label, headers) => {
       const res = await inject({
         headers,
-        payload: {
-          action: "create",
-          clerkId: "u_attack",
-          email: "x@y.z",
-        },
+        payload: buildUserEvent("user.created", "u_attack"),
       });
       expect(res.statusCode).toBe(401);
       expect(createUserCalls).toBe(0);
@@ -154,21 +188,47 @@ describe("ClerkWebhooksController integration + stress", () => {
       expect(deleteUserCalls).toBe(0);
     });
 
-    it("destructive `delete` action is rejected without secret", async () => {
+    const forgedSignatures: Array<[string, string]> = [
+      ["one char off", VALID_SVIX_SIGNATURE.slice(0, -1) + "X"],
+      ["shorter prefix", VALID_SVIX_SIGNATURE.slice(0, 10)],
+      ["longer suffix", VALID_SVIX_SIGNATURE + "extra"],
+      ["all-X same length", "X".repeat(VALID_SVIX_SIGNATURE.length)],
+      ["case variation", VALID_SVIX_SIGNATURE.toUpperCase()],
+      ["leading whitespace", " " + VALID_SVIX_SIGNATURE],
+      ["trailing whitespace", VALID_SVIX_SIGNATURE + " "],
+      ["control char injected", VALID_SVIX_SIGNATURE + "\x00"],
+    ];
+
+    test.each(forgedSignatures)(
+      "rejects forged signature: %s",
+      async (_label, badSig) => {
+        mockVerify.mockImplementation(() => {
+          throw new Error("Invalid signature");
+        });
+        const res = await inject({
+          headers: buildSvixHeaders({ "svix-signature": badSig }),
+          payload: buildUserEvent("user.created", "u_forged"),
+        });
+        expect(res.statusCode).toBe(401);
+        expect(createUserCalls).toBe(0);
+      },
+    );
+
+    it("destructive `user.deleted` is rejected without svix headers", async () => {
       const res = await inject({
-        payload: { action: "delete", clerkId: "u_target" },
+        payload: buildUserEvent("user.deleted", "u_target"),
       });
       expect(res.statusCode).toBe(401);
       expect(deleteUserCalls).toBe(0);
     });
 
-    it("destructive `update` action is rejected without secret", async () => {
+    it("destructive `user.updated` is rejected without svix headers", async () => {
       const res = await inject({
-        payload: {
-          action: "update",
-          clerkId: "u_target",
-          email: "attacker@evil.com",
-        },
+        payload: buildUserEvent(
+          "user.updated",
+          "u_target",
+          "attacker@evil.com",
+        ),
       });
       expect(res.statusCode).toBe(401);
       expect(updateUserCalls).toBe(0);
@@ -177,45 +237,33 @@ describe("ClerkWebhooksController integration + stress", () => {
 
   describe("payload malformation", () => {
     it("malformed JSON body returns 4xx, never 5xx, never invokes service", async () => {
-      const res = await app
-        .getHttpAdapter()
-        .getInstance()
-        .inject({
-          method: "POST",
-          url: "/api/v1/webhooks/clerk",
-          headers: {
-            "content-type": "application/json",
-            "x-webhook-secret": VALID_SECRET,
-          },
-          payload: "{not json",
-        });
+      const res = await inject({
+        headers: buildSvixHeaders(),
+        rawPayload: "{not json",
+      });
       expect(res.statusCode).toBeGreaterThanOrEqual(400);
       expect(res.statusCode).toBeLessThan(500);
       expect(createUserCalls).toBe(0);
     });
 
-    it("oversized payload (1MB) is rejected", async () => {
+    it("oversized payload (1MB) is processed or rejected, never 5xx", async () => {
       const huge = "X".repeat(1024 * 1024);
+      const event = buildUserEvent("user.created", "u_huge") as {
+        data: Record<string, unknown>;
+      };
+      event.data.junk = huge;
       const res = await inject({
-        headers: { "x-webhook-secret": VALID_SECRET },
-        payload: {
-          action: "create",
-          clerkId: "u_huge",
-          email: "a@b.c",
-          junk: huge,
-        },
+        headers: buildSvixHeaders(),
+        payload: event,
       });
       expect([200, 413, 400]).toContain(res.statusCode);
     });
 
-    // SKIPPED: see top-of-suite note - production controller uses Svix
-    // verification and Clerk's user.created event payload shape, not the
-    // x-webhook-secret + {action,clerkId,email} contract this test assumes.
-    it.skip("clerkId with special characters is passed through unchanged (Prisma layer handles escaping)", async () => {
+    it("clerkId with special characters is passed through unchanged (Prisma layer handles escaping)", async () => {
       const evilId = "'; DROP TABLE users; --";
       const res = await inject({
-        headers: { "x-webhook-secret": VALID_SECRET },
-        payload: { action: "create", clerkId: evilId, email: "a@b.c" },
+        headers: buildSvixHeaders(),
+        payload: buildUserEvent("user.created", evilId),
       });
       expect(res.statusCode).toBe(200);
       expect((lastCreatePayload as any)?.clerkId).toBe(evilId);
@@ -227,9 +275,9 @@ describe("ClerkWebhooksController integration + stress", () => {
       const N = 1000;
       const variants: Array<Record<string, string>> = [
         {},
-        { "x-webhook-secret": "" },
-        { "x-webhook-secret": "wrong" },
-        { "x-webhook-secret": "X".repeat(VALID_SECRET.length) },
+        buildSvixHeaders({ "svix-id": undefined }),
+        buildSvixHeaders({ "svix-signature": undefined }),
+        buildSvixHeaders({ "svix-timestamp": undefined }),
       ];
       const pickHeaders = (i: number): Record<string, string> =>
         variants[i % variants.length] ?? {};
@@ -238,11 +286,7 @@ describe("ClerkWebhooksController integration + stress", () => {
         Array.from({ length: N }, (_, i) =>
           inject({
             headers: pickHeaders(i),
-            payload: {
-              action: "create",
-              clerkId: `attacker_${i}`,
-              email: `x${i}@y.z`,
-            },
+            payload: buildUserEvent("user.created", `attacker_${i}`),
           }),
         ),
       );
@@ -254,21 +298,13 @@ describe("ClerkWebhooksController integration + stress", () => {
       expect(deleteUserCalls).toBe(0);
     }, 30_000);
 
-    // SKIPPED: see top-of-suite note - relies on the x-webhook-secret +
-    // {action,clerkId,email} contract; the production controller uses Svix
-    // verification on a Clerk-event-shaped payload, so valid traffic here is
-    // rejected as 401 by verifyAndParse.
-    it.skip("500 authenticated requests in parallel - all 200, service invoked exactly N times", async () => {
+    it("500 authenticated requests in parallel - all 200, service invoked exactly N times", async () => {
       const N = 500;
       const responses = await Promise.all(
         Array.from({ length: N }, (_, i) =>
           inject({
-            headers: { "x-webhook-secret": VALID_SECRET },
-            payload: {
-              action: "create",
-              clerkId: `valid_${i}`,
-              email: `v${i}@y.z`,
-            },
+            headers: buildSvixHeaders(),
+            payload: buildUserEvent("user.created", `valid_${i}`),
           }),
         ),
       );
@@ -278,23 +314,16 @@ describe("ClerkWebhooksController integration + stress", () => {
       expect(createUserCalls).toBe(N);
     }, 30_000);
 
-    // SKIPPED: see top-of-suite note - the "valid" half of this mixed-traffic
-    // stress test relies on the internal-webhook contract that doesn't match
-    // the production Svix-based ClerkWebhooksController.
-    it.skip("mixed 50/50 valid/invalid traffic preserves auth boundary", async () => {
+    it("mixed 50/50 valid/invalid traffic preserves auth boundary", async () => {
       const N = 500;
       const responses = await Promise.all(
         Array.from({ length: N }, (_, i) =>
           inject({
             headers:
               i % 2 === 0
-                ? { "x-webhook-secret": VALID_SECRET }
-                : { "x-webhook-secret": "wrong" },
-            payload: {
-              action: "create",
-              clerkId: `mixed_${i}`,
-              email: `m${i}@y.z`,
-            },
+                ? buildSvixHeaders()
+                : buildSvixHeaders({ "svix-signature": undefined }),
+            payload: buildUserEvent("user.created", `mixed_${i}`),
           }),
         ),
       );
@@ -308,21 +337,12 @@ describe("ClerkWebhooksController integration + stress", () => {
   });
 
   describe("env regression", () => {
-    // SKIPPED: This test expects WebhookSecretGuard to be applied to the
-    // controller via @UseGuards so that a missing INTERNAL_WEBHOOK_SECRET at
-    // boot causes a 503 ServiceUnavailableException. The production
-    // ClerkWebhooksController does not use WebhookSecretGuard; it relies on
-    // CLERK_WEBHOOK_SECRET inside verifyAndParse, which surfaces as 401
-    // UnauthorizedException. Re-enable once the controller adopts the
-    // internal-webhook guard pattern.
-    it.skip("503 if INTERNAL_WEBHOOK_SECRET is unset at boot", async () => {
-      delete process.env.INTERNAL_WEBHOOK_SECRET;
+    it("401 if CLERK_WEBHOOK_SECRET is unset at request time", async () => {
+      const previous = process.env.CLERK_WEBHOOK_SECRET;
+      delete process.env.CLERK_WEBHOOK_SECRET;
       const moduleRef = await Test.createTestingModule({
         controllers: [ClerkWebhooksController],
-        providers: [
-          { provide: ClerkWebhooksService, useValue: mockService },
-          WebhookSecretGuard,
-        ],
+        providers: [{ provide: ClerkWebhooksService, useValue: mockService }],
       })
         .overrideGuard(RateLimitGuard)
         .useValue({ canActivate: () => true })
@@ -342,17 +362,13 @@ describe("ClerkWebhooksController integration + stress", () => {
           url: "/api/v1/webhooks/clerk",
           headers: {
             "content-type": "application/json",
-            "x-webhook-secret": VALID_SECRET,
+            ...buildSvixHeaders(),
           },
-          payload: JSON.stringify({
-            action: "create",
-            clerkId: "u",
-            email: "a@b.c",
-          }),
+          payload: JSON.stringify(buildUserEvent("user.created", "u")),
         });
-      expect(res.statusCode).toBe(503);
+      expect(res.statusCode).toBe(401);
       await failApp.close();
-      process.env.INTERNAL_WEBHOOK_SECRET = VALID_SECRET;
+      if (previous) process.env.CLERK_WEBHOOK_SECRET = previous;
     });
   });
 });

@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from typing import Any, Optional, Tuple
 from .base_agent import (
@@ -8,6 +9,9 @@ from .base_agent import (
     ToolExecutor,
     ToolUseResponse,
 )
+from .reasoning_effort import normalize_effort
+
+logger = logging.getLogger(__name__)
 
 try:
     import google.generativeai as genai
@@ -42,7 +46,12 @@ class GoogleAgent(BaseAgent):
         genai.configure(api_key=self.api_key)
         return genai.GenerativeModel(self.model_id)
 
-    async def generate_response(self, query: str, system_prompt: Optional[str] = None) -> Tuple[str, int]:
+    async def generate_response(
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
+    ) -> Tuple[str, int]:
         if not self._validate_api_key():
             self._raise_no_api_key()
 
@@ -51,6 +60,13 @@ class GoogleAgent(BaseAgent):
                 provider=self.provider,
                 error_type="unknown",
                 original_error=_GOOGLE_PKG_MISSING,
+            )
+
+        normalized = normalize_effort(reasoning_effort)
+        if normalized is not None:
+            logger.debug(
+                "Provider %s does not support reasoning_effort; ignoring %s",
+                self.provider, normalized,
             )
 
         try:
@@ -65,7 +81,12 @@ class GoogleAgent(BaseAgent):
         except Exception as e:
             self._handle_common_errors(e, "API")
 
-    async def stream_response(self, query: str, system_prompt: Optional[str] = None) -> AsyncIterator[str]:
+    async def stream_response(
+        self,
+        query: str,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
+    ) -> AsyncIterator[str]:
         if not self._validate_api_key():
             self._raise_no_api_key()
 
@@ -74,6 +95,13 @@ class GoogleAgent(BaseAgent):
                 provider=self.provider,
                 error_type="unknown",
                 original_error=_GOOGLE_PKG_MISSING,
+            )
+
+        normalized = normalize_effort(reasoning_effort)
+        if normalized is not None:
+            logger.debug(
+                "Provider %s does not support reasoning_effort; ignoring %s",
+                self.provider, normalized,
             )
 
         try:
