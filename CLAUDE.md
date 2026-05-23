@@ -116,21 +116,6 @@ Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
 | publish-pypi.yml | Tag/manual                        | Publish Python SDK to PyPI                     |
 | publish.yml      | Tag/manual                        | Coordinated multi-package publish              |
 
-## Local Gates (pre-commit / pre-push)
-
-Husky hooks in `.husky/` enforce these before code reaches GitHub. They replace the `dependency-audit` and `secrets-scan` jobs that used to live in `security.yml`.
-
-**Pre-commit (`.husky/pre-commit`)**
-
-- `gitleaks protect --staged` - blocks accidental secret commits. Install: `brew install gitleaks`. Backed by GitHub native Push Protection as a server-side fallback.
-
-**Pre-push (`.husky/pre-push`)**
-
-- `pnpm lint && pnpm type-check` - fast feedback before CI re-runs the same checks.
-- `pnpm audit --audit-level=critical` - catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
-
-Hooks install automatically via `"prepare": "husky"` in package.json. To bypass (NOT recommended): `git commit --no-verify` / `git push --no-verify`.
-
 ## Common Commands
 
 The monorepo is **pnpm + Turborepo** (`pnpm-workspace.yaml` globs `apps/*` and `packages/*`). `apps/agents/` is Python (Poetry); everything else is TypeScript. Repo root requires Node ≥ 20 and pnpm ≥ 9 (see `package.json` engines).
@@ -259,7 +244,3 @@ For every non-trivial task, the main agent MUST:
 - For tasks touching > 3 files or making architectural changes, write a plan to `docs/superpowers/plans/YYYY-MM-DD-<slug>.md` **before** editing code.
 - For design decisions (new system, schema change, API contract), write a spec to `docs/superpowers/specs/YYYY-MM-DD-<slug>.md`.
 - Examples already in those dirs - follow that format. Skip for one-file fixes.
-
-## Trust the local gates
-
-The husky hooks below already run lint, typecheck, format, audit, and gitleaks. **Don't re-run them in shell to "verify"** unless you suspect a hook failed silently - CI will re-validate at the PR boundary anyway. This saves tokens and time.
