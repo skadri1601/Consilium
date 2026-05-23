@@ -2,9 +2,6 @@
 
 set -e
 
-echo "→ pnpm format:check"
-pnpm format:check
-
 echo "→ pnpm lint"
 pnpm lint
 

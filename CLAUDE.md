@@ -126,7 +126,7 @@ Husky hooks in `.husky/` enforce these before code reaches GitHub. They replace 
 
 **Pre-push (`.husky/pre-push`)**
 
-- `pnpm format:check && pnpm lint && pnpm type-check` - fast feedback before CI re-runs the same checks.
+- `pnpm lint && pnpm type-check` - fast feedback before CI re-runs the same checks.
 - `pnpm audit --audit-level=critical` - catches CVEs in JS deps. Dependabot (`.github/dependabot.yml`) handles continuous updates.
 
 Hooks install automatically via `"prepare": "husky"` in package.json. To bypass (NOT recommended): `git commit --no-verify` / `git push --no-verify`.
@@ -144,7 +144,6 @@ pnpm build                      # turbo build (all packages)
 pnpm lint                       # turbo lint
 pnpm type-check                 # turbo type-check
 pnpm test                       # turbo test (root-level test target across packages)
-pnpm format / pnpm format:check # prettier
 pnpm clean                      # turbo clean + rm node_modules
 ./run.sh                        # boots web :3000, api :4000, agents :8000 together
 ```

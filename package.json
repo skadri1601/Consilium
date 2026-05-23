@@ -16,8 +16,6 @@
     "test:integration": "turbo test:integration",
     "test:e2e": "turbo test:e2e",
     "test:coverage": "turbo test:coverage",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "pnpm --filter @consilium/database db:migrate",
     "db:generate": "pnpm --filter @consilium/database db:generate",
     "db:push": "pnpm --filter @consilium/database db:push",
@@ -31,7 +29,6 @@
     "@types/node": "^25.9.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
-    "prettier": "^3.8.3",
     "prisma": "^7.8.0",
     "turbo": "^2.9.14",
     "typescript": "^6.0.3"
@@ -43,11 +40,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "prettier --write",
       "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
     ]
   },
   "pnpm": {
