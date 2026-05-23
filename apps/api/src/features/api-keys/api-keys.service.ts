@@ -3,7 +3,7 @@ import { PrismaService } from "../../shared/database/prisma.service";
 import { EncryptionService } from "../../shared/services/encryption.service";
 import { UpdateApiKeysDto } from "./dto/update-api-keys.dto";
 import { TestApiKeyDto, ApiKeyProvider } from "./dto/test-api-key.dto";
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient } from "@clerk/backend";
 
 @Injectable()
 export class ApiKeysService {
@@ -214,7 +214,8 @@ export class ApiKeysService {
     } catch (error) {
       return {
         valid: false,
-        message: error.message || "Failed to validate API key",
+        message:
+          error instanceof Error ? error.message : "Failed to validate API key",
       };
     }
   }
@@ -238,7 +239,7 @@ export class ApiKeysService {
     } catch (error) {
       return {
         valid: false,
-        message: `Failed to validate: ${error.message}`,
+        message: `Failed to validate: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }

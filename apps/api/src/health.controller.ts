@@ -48,7 +48,7 @@ export class HealthController extends HealthIndicator {
         } catch (error) {
           return this.getStatus("database", false, {
             status: "down",
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
           });
         }
       },
@@ -77,7 +77,7 @@ export class HealthController extends HealthIndicator {
       return {
         status: "not_ready",
         timestamp: new Date().toISOString(),
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         checks: {
           database: false,
         },

@@ -109,8 +109,14 @@ export function UsageChart() {
               tick={{ fontSize: 12 }}
             />
             <Tooltip
-              labelFormatter={(value) => new Date(value).toLocaleDateString()}
-              formatter={(value: number) => value.toLocaleString()}
+              labelFormatter={(value) =>
+                new Date(value as string | number | Date).toLocaleDateString()
+              }
+              formatter={(value) => {
+                const numeric =
+                  typeof value === "number" ? value : Number(value ?? 0);
+                return numeric.toLocaleString();
+              }}
             />
             <Legend />
             <Line

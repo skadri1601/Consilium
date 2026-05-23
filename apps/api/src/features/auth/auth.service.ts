@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient, verifyToken } from "@clerk/backend";
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,9 @@ export class AuthService {
         return null;
       }
 
-      const session = await this.clerk.verifyToken(token);
+      const session = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
       return session;
     } catch (error) {
       this.logger.warn(

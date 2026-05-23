@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "declaration": false
+    "declaration": false,
+    "ignoreDeprecations": "6.0",
+    "types": ["jest", "node"]
   }
 }

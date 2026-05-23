@@ -126,14 +126,17 @@ export function VoteVisualization({ votes, winnerId }: VoteVisualizationProps) {
                     borderRadius: "8px",
                     fontSize: "12px",
                   }}
-                  formatter={(
-                    value: number,
-                    _name: string,
-                    props: { payload?: { confidence: number } },
-                  ) => [
-                    `${value} pts (${Math.round((props.payload?.confidence ?? 0) * 100)}% confidence)`,
-                    "Borda Score",
-                  ]}
+                  formatter={(value, _name, props) => {
+                    const numeric =
+                      typeof value === "number" ? value : Number(value ?? 0);
+                    const confidence =
+                      (props as { payload?: { confidence?: number } })?.payload
+                        ?.confidence ?? 0;
+                    return [
+                      `${numeric} pts (${Math.round(confidence * 100)}% confidence)`,
+                      "Borda Score",
+                    ];
+                  }}
                 />
                 <Bar
                   dataKey="score"
