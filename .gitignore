@@ -115,12 +115,9 @@ apps/web/public/install.sh
 tmp/
 temp/
 
-# Graphify (generated knowledge graph outputs)
-graphify-out/
-.graphify_*
-
-# Obsidian
-Consilium/
+# Graphify (knowledge graph) + Obsidian vault — tracked so Claude Code can use them
+# as codebase knowledge. Keep .obsidian/ ignored: it's machine-specific config and
+# Obsidian plugins can stash secrets in .obsidian/plugins/*/data.json.
 .obsidian/
 
 # Documentation (ignore all markdown except key project files)
@@ -135,6 +132,9 @@ Consilium/
 !docs/**/*.md
 # Claude Code config markdown (skills, agents, commands) — re-included despite *.md above.
 !.claude/**/*.md
+# Knowledge sources for Claude Code — re-include markdown in the graphify graph + Obsidian vault.
+!graphify-out/**/*.md
+!Consilium/**/*.md
 
 # Temporary test files
 test_*.js
