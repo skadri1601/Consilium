@@ -49,10 +49,20 @@ env/
 # IDE
 .idea/
 .vscode/
-.claude/
 *.swp
 *.swo
 *~
+
+# Claude Code: track shared config (settings.json, skills, agents, commands, hooks),
+# but keep personal and secret files local.
+.claude/settings.local.json
+.claude/.credentials.json
+.claude/projects/
+.claude/todos/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/history.jsonl
+CLAUDE.local.md
 
 # OS
 .DS_Store
@@ -123,6 +133,8 @@ Consilium/
 !SKILLS.md
 !CONTRIBUTING.md
 !docs/**/*.md
+# Claude Code config markdown (skills, agents, commands) — re-included despite *.md above.
+!.claude/**/*.md
 
 # Temporary test files
 test_*.js
