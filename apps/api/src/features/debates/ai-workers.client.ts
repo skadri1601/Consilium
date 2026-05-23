@@ -97,10 +97,9 @@ export class AiWorkersClient {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.error(
-        `Error calling AI workers: ${error.message}`,
-        error.stack,
-      );
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error calling AI workers: ${message}`, stack);
       throw new HttpException(
         "Failed to connect to AI workers service",
         HttpStatus.SERVICE_UNAVAILABLE,
@@ -140,7 +139,8 @@ export class AiWorkersClient {
 
       return response.ok;
     } catch (error) {
-      this.logger.warn(`AI workers health check failed: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`AI workers health check failed: ${message}`);
       return false;
     }
   }

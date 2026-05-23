@@ -18,15 +18,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install Poetry
-        uses: snok/install-poetry@v1
+        uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
         with:
           version: latest
 
@@ -37,18 +37,23 @@ jobs:
         continue-on-error: true
 
       - name: Run bandit
+        id: bandit
         run: |
           pip install bandit
-          bandit -r apps/agents/src -f json -o bandit-report.json
-        continue-on-error: true
+          bandit -r apps/agents/src -f json -o bandit-report.json || true
+          FINDINGS=$(python -c "import json,sys; d=json.load(open('bandit-report.json')); print(len(d.get('results',[])))" 2>/dev/null || echo 0)
+          echo "findings=${FINDINGS}" >> "$GITHUB_OUTPUT"
+          echo "Bandit findings: ${FINDINGS}"
 
       - name: Upload bandit report
-        uses: actions/upload-artifact@v4
-        if: always()
+        if: steps.bandit.outputs.findings != '0'
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bandit-report
           path: bandit-report.json
-          retention-days: 3
+          retention-days: 1
+          if-no-files-found: ignore
 
   codeql:
     name: CodeQL Analysis
@@ -63,7 +68,7 @@ jobs:
       matrix:
         language: [javascript-typescript, python]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

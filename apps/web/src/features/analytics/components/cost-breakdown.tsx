@@ -101,7 +101,9 @@ export function CostBreakdown() {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => {
+              label={(props) => {
+                const name = (props as { name?: string }).name ?? "";
+                const percent = (props as { percent?: number }).percent ?? 0;
                 const percentage = (percent * 100).toFixed(1);
                 const displayName = name
                   .replace("gpt-", "GPT-")
@@ -121,10 +123,13 @@ export function CostBreakdown() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+              formatter={(value) => {
+                const numeric =
+                  typeof value === "number" ? value : Number(value ?? 0);
+                return [`$${numeric.toFixed(4)}`, "Cost"];
+              }}
               labelFormatter={(label) =>
-                label
-                  .toString()
+                String(label ?? "")
                   .replace("gpt-", "GPT-")
                   .replace("claude-", "Claude ")
                   .replace("gemini-", "Gemini ")

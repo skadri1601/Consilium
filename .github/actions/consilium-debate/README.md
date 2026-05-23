@@ -27,7 +27,7 @@ Use `id: debate` on the step to read `outputs.synthesis` and `outputs.debate-id`
 | `api-url`      | no       | hosted API      | Override the API origin (e.g., self-hosted Consilium).                          |
 | `api-key`      | no       |                 | Consilium CLI token (`consilium_…`). Required when calling the hosted API.      |
 | `cli-version`  | no       | `latest`        | Pin the `@myconsilium/cli` version published to npm.                            |
-| `node-version` | no       | `20`            | Node version installed by `actions/setup-node`.                                 |
+| `node-version` | no       | `22`            | Node version installed by `actions/setup-node`.                                 |
 
 ## Outputs
 

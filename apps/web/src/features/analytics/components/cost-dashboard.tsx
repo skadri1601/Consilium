@@ -394,10 +394,13 @@ export function CostDashboard({
                         </Pie>
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [
-                            formatCurrency(value),
-                            "Cost",
-                          ]}
+                          formatter={(value) => {
+                            const numeric =
+                              typeof value === "number"
+                                ? value
+                                : Number(value ?? 0);
+                            return [formatCurrency(numeric), "Cost"];
+                          }}
                         />
                         <Legend
                           formatter={(value) => (
@@ -433,10 +436,13 @@ export function CostDashboard({
                         />
                         <Tooltip
                           contentStyle={tooltipStyle}
-                          formatter={(value: number) => [
-                            formatCurrency(value),
-                            "Total Cost",
-                          ]}
+                          formatter={(value) => {
+                            const numeric =
+                              typeof value === "number"
+                                ? value
+                                : Number(value ?? 0);
+                            return [formatCurrency(numeric), "Total Cost"];
+                          }}
                           labelFormatter={(label) => `Round ${label}`}
                         />
                         <Line
@@ -495,13 +501,18 @@ export function CostDashboard({
                           />
                           <Tooltip
                             contentStyle={tooltipStyle}
-                            formatter={(value: number, name: string) => {
+                            formatter={(value, name) => {
+                              const numeric =
+                                typeof value === "number"
+                                  ? value
+                                  : Number(value ?? 0);
+                              const key = String(name ?? "");
                               const model = data.modelCosts.find(
-                                (m) => m.modelId === name,
+                                (m) => m.modelId === key,
                               );
                               return [
-                                formatCurrency(value),
-                                model?.modelName || name,
+                                formatCurrency(numeric),
+                                model?.modelName || key,
                               ];
                             }}
                           />

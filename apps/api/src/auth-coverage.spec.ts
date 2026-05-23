@@ -18,6 +18,11 @@ const PUBLIC_CONTROLLER_PATHS = new Set([
   "waitlist",
   "webhooks/clerk",
   "api/v1/webhooks/clerk", // pre-fix path; left in case the rebase order matters
+  // Sentry and SonarQube webhooks are intentionally public: each controller
+  // verifies its caller via its own HMAC signature header
+  // (sentry-hook-signature / x-sonar-webhook-hmac-sha256), not via Clerk auth.
+  "webhooks/sentry",
+  "webhooks/sonarqube",
 ]);
 
 const PUBLIC_METHOD_NAMES = new Set<string>([

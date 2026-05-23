@@ -5,6 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { PrismaClient } from "@consilium/database";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 @Injectable()
 export class PrismaService
@@ -12,6 +13,14 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+
+  constructor() {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is not set");
+    }
+    super({ adapter: new PrismaPg({ connectionString }) });
+  }
 
   async onModuleInit() {
     try {
@@ -24,7 +33,6 @@ export class PrismaService
       this.logger.warn(
         "Application will continue, but database operations may fail",
       );
-      // Don't throw - allow app to start even if DB is unavailable
     }
   }
 

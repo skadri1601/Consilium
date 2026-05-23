@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../shared/database/prisma.service";
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient } from "@clerk/backend";
 import * as crypto from "crypto";
 
 const CLI_TOKEN_PREFIX = "consilium_";

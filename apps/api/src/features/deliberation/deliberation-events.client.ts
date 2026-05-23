@@ -82,9 +82,11 @@ export class DeliberationEventsClient {
       if (error instanceof HttpException) {
         throw error;
       }
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Error calling deliberation workers: ${error.message}`,
-        error.stack,
+        `Error calling deliberation workers: ${message}`,
+        stack,
       );
       throw new HttpException(
         "Failed to connect to deliberation workers service",

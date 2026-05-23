@@ -1,5 +1,6 @@
-import { createClerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient } from "@clerk/backend";
 import { PrismaClient } from "@consilium/database";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 interface BackfillStats {
   total: number;
@@ -144,8 +145,16 @@ async function main(): Promise<void> {
   const limitSuffix = options.limit ? `, limit=${options.limit}` : "";
   console.log(`Backfill starting (dry-run=${options.dryRun}${limitSuffix})…`);
 
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    console.error("DATABASE_URL is required");
+    process.exit(1);
+  }
+
   const clerk = createClerkClient({ secretKey });
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString }),
+  });
 
   let stats: BackfillStats;
   try {

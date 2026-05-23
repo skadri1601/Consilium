@@ -1,8 +1,6 @@
 import eslint from "@eslint/js";
 import tseslintPlugin from "@typescript-eslint/eslint-plugin";
 import tseslintParser from "@typescript-eslint/parser";
-import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 
 export default [
@@ -65,6 +63,4 @@ export default [
       ],
     },
   },
-  eslintConfigPrettier,
-  eslintPluginPrettier,
 ];
