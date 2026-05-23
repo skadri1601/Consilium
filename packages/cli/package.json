@@ -41,16 +41,12 @@
   "author": "Saad Kadri <saad@myconsilium.xyz>",
   "license": "UNLICENSED",
   "dependencies": {
-    "ansi-escapes": "^7.3.0",
     "chalk": "^5.6.2",
-    "cli-spinners": "^3.4.0",
     "commander": "^14.0.3",
-    "dotenv": "^17.4.2",
     "eventsource": "^4.1.0",
     "log-update": "^8.0.0",
     "open": "^11.0.0",
     "ora": "^9.4.0",
-    "string-width": "^8.2.1",
     "wrap-ansi": "^10.0.0",
     "zod": "^4.4.3"
   },
