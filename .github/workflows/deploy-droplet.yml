@@ -1,0 +1,48 @@
+name: Deploy Droplet
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "apps/agents/**"
+      - "packages/database/**"
+      - "packages/shared/**"
+      - "docker-compose.droplet.yml"
+      - "Caddyfile"
+
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-droplet
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Deploy to droplet
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda7f968735a17 # v1.2.2
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: root
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          command_timeout: 12m
+          script: |
+            set -euo pipefail
+            cd /opt/consilium
+
+            git remote set-url origin "https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/skadri1601/Consilium.git"
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "=== Building and restarting services ==="
+            docker compose -f docker-compose.droplet.yml build --no-cache
+            docker compose -f docker-compose.droplet.yml up -d
+
+            echo "=== Waiting for health checks ==="
+            sleep 15
+            docker compose -f docker-compose.droplet.yml ps
+            echo ""
+            echo "Deployed commit: $(git log --oneline -1)"
