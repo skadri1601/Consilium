@@ -847,7 +847,7 @@ async function main(): Promise<void> {
     .option("--mode <mode>", "Debate mode (default: council)")
     .option(
       "--post-comment",
-      "Post the synthesis back as a comment on the issue (placeholder, requires SSE wiring)",
+      "Post the debate synthesis back as a comment on the Linear issue",
     )
     .option("-m, --models <models...>", "Models to use")
     .option("--team <key>", "Linear team key (default: MYC)")

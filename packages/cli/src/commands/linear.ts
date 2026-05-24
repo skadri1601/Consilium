@@ -424,6 +424,13 @@ export async function linearDebateCommand(
     ticket: issue.identifier,
   };
 
+  let capturedSynthesis = "";
+  if (postComment) {
+    debateOptions.onSynthesis = (synthesis: string) => {
+      capturedSynthesis = synthesis;
+    };
+  }
+
   try {
     await debateFn(topic, debateOptions);
   } catch (err) {
@@ -432,11 +439,23 @@ export async function linearDebateCommand(
   }
 
   if (postComment) {
-    console.log(
-      st.dim(
-        "  --post-comment: synthesis posting requires a captured synthesis. Wire SSE capture in to enable this.",
-      ),
-    );
+    if (!capturedSynthesis.trim()) {
+      console.log(
+        st.warning(
+          "  --post-comment: no synthesis was produced; skipping comment.",
+        ),
+      );
+      return;
+    }
+    const body = `**Consilium debate synthesis** (mode: ${debateOptions.mode})\n\n${capturedSynthesis}`;
+    try {
+      await client.addComment(issue.id, body);
+      console.log(
+        st.success(`  Posted synthesis as a comment on ${issue.identifier}.`),
+      );
+    } catch (err) {
+      handleClientError(err, "post comment");
+    }
   }
 }
 

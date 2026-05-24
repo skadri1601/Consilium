@@ -458,6 +458,68 @@ describe("linearDebateCommand", () => {
     const opts = debateStub.mock.calls[0]![1] as { mode?: string };
     expect(opts.mode).toBe("council");
   });
+
+  it("posts the synthesis as a comment when --post-comment is set", async () => {
+    const client = makeClient();
+    client.getIssue.mockResolvedValue({
+      id: "node-99",
+      identifier: "MYC-99",
+      title: "Cache layer",
+      state: "Todo",
+      assignee: null,
+      description: "Add caching.",
+      priority: 0,
+      labels: [],
+      comments: [],
+    });
+    client.addComment.mockResolvedValue(undefined);
+
+    const debateStub = vi
+      .fn()
+      .mockImplementation(
+        async (
+          _topic: string,
+          opts: { onSynthesis?: (s: string) => void | Promise<void> },
+        ) => {
+          await opts.onSynthesis?.("The consensus is to use Redis.");
+        },
+      );
+
+    await linearDebateCommand(
+      "MYC-99",
+      { postComment: true },
+      { client: client as unknown as LinearClient, debate: debateStub },
+    );
+
+    expect(client.addComment).toHaveBeenCalledTimes(1);
+    const [issueId, body] = client.addComment.mock.calls[0]!;
+    expect(issueId).toBe("node-99");
+    expect(body).toContain("The consensus is to use Redis.");
+  });
+
+  it("does not post a comment when --post-comment is absent", async () => {
+    const client = makeClient();
+    client.getIssue.mockResolvedValue({
+      id: "node-1",
+      identifier: "MYC-1",
+      title: "X",
+      state: "Todo",
+      assignee: null,
+      description: "",
+      priority: 0,
+      labels: [],
+      comments: [],
+    });
+    const debateStub = vi.fn().mockResolvedValue(undefined);
+
+    await linearDebateCommand(
+      "MYC-1",
+      {},
+      { client: client as unknown as LinearClient, debate: debateStub },
+    );
+
+    expect(client.addComment).not.toHaveBeenCalled();
+  });
 });
 
 describe("Linear API key handling", () => {
