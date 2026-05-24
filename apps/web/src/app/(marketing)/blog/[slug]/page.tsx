@@ -953,7 +953,7 @@ function WhyDeliberationBeatsOrchestrationPost() {
         The deliberation graph lives in{" "}
         <code>apps/agents/src/features/deliberation/deliberation_graph.py</code>{" "}
         and the judge in <code>apps/agents/src/core/judge.py</code>. It&apos;s a
-        LangGraph state machine - round transitions are explicit nodes, the
+        Python async state machine - round transitions are explicit nodes, the
         round-2 challenge generation is its own prompt, and the rebuttal
         classifications (concede / refute / qualify / redirect) come back as
         typed structured output. The whole thing is auditable: every challenge,

@@ -59,7 +59,7 @@ const sections = [
         icon: Cpu,
         title: "AI Providers & Models",
         description:
-          "5 providers, 15 models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI - with judge priority and fallback system.",
+          "7 providers, 15+ models, complete pricing. Anthropic, OpenAI, Google, Groq (free), xAI, Moonshot, OpenRouter - with judge priority and fallback system.",
         href: "/docs/providers",
       },
     ],

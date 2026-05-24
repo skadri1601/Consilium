@@ -1,12 +1,13 @@
 ---
-description: Architecture mapping and codebase understanding
+description: Architecture understanding — use subagents for exploration
 globs: ["**"]
 ---
 
-- Before starting large tasks, check the graphify knowledge graph at `graphify-out/` for codebase structure:
-  - `graphify-out/GRAPH_REPORT.md` — 3,295 nodes, 5,286 edges, 477 communities mapping the entire codebase
-  - `graphify-out/obsidian/` — Obsidian vault with community hubs for navigating architecture
-  - Key communities: Deliberation Engine, Agent Factory, Blind Evaluation, SDK Client, Web API Routes, Debate Routing
-- Use `/graphify` to regenerate the graph after major structural changes
-- When exploring unfamiliar code areas, check the relevant community hub first to understand relationships
-- The graph maps: file dependencies, function calls, type references, module boundaries, and inferred relationships
+HARD RULES:
+
+- **Use 6-10 parallel subagents** for any task touching multiple areas of the codebase (per Multi-Agent Task Protocol in AGENTS.md). 2-3 is NOT acceptable.
+- When exploring unfamiliar code areas, use `Explore` subagents — don't manually read dozens of files in the main context.
+- The codebase uses: Next.js 16 (web), NestJS 11 (API), FastAPI with custom async state machine (agents). NOT LangGraph.
+- Python uses `uv` (not poetry). TypeScript uses `pnpm` + Turborepo.
+- 7 LLM providers: Anthropic, OpenAI, Google, Groq, xAI, Moonshot, OpenRouter.
+- 8 deliberation modes: quick, council, deep, blind, redteam, jury, market, auto.

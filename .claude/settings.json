@@ -21,6 +21,17 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-multi-agent.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
@@ -48,10 +59,10 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm clean:*)",
       "Bash(pnpm db:*)",
-      "Bash(poetry run ruff:*)",
-      "Bash(poetry run pytest:*)",
-      "Bash(poetry run uvicorn:*)",
-      "Bash(poetry install:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run uvicorn:*)",
+      "Bash(uv sync:*)",
       "Bash(npx tsc:*)",
       "Bash(npx vitest:*)",
       "Bash(npx prisma:*)",

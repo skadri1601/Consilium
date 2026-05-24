@@ -169,3 +169,4 @@ apps/agents/tests/
 # Sentry Config File
 .env.sentry-build-plugin
 *.dll.node
+.vercel

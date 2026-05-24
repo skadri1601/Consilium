@@ -108,12 +108,12 @@ if [[ "$HAS_PYTHON" == true && -d "$ROOT_DIR/apps/agents" ]]; then
   fi
 
   if [[ -f "$ROOT_DIR/apps/agents/pyproject.toml" ]]; then
-    if command -v poetry &>/dev/null; then
+    if command -v uv &>/dev/null; then
       echo -e "  ${GREEN}[agents]${NC}  FastAPI on http://localhost:8000"
-      cd "$ROOT_DIR/apps/agents" && poetry run uvicorn src.main:app --reload --port 8000 &
+      cd "$ROOT_DIR/apps/agents" && uv run uvicorn src.main:app --reload --port 8000 &
       PIDS+=($!)
     else
-      echo -e "  ${YELLOW}[agents]${NC}  Skipped (poetry not installed)"
+      echo -e "  ${YELLOW}[agents]${NC}  Skipped (uv not installed)"
     fi
   fi
 else

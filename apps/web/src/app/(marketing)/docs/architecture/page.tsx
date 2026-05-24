@@ -26,7 +26,7 @@ export const metadata: Metadata = buildMetadata({
 const services = [
   {
     name: "Web App",
-    stack: "Next.js 15, React 19, Tailwind, shadcn/ui, Clerk, Zustand",
+    stack: "Next.js 16, React 19, Tailwind, shadcn/ui, Clerk, Zustand",
     port: "3000",
     purpose: "Frontend, marketing, dashboard, debate UI",
   },
@@ -38,7 +38,7 @@ const services = [
   },
   {
     name: "Agents",
-    stack: "FastAPI, LangGraph, 5 LLM providers",
+    stack: "FastAPI, 7 LLM providers",
     port: "8000",
     purpose: "Deliberation engine, benchmarks, templates",
   },
@@ -199,7 +199,7 @@ export default function ArchitecturePage() {
                 <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                   <code className="text-muted-foreground">{`┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT LAYER                             │
-│  Web App (Next.js 15)  │  CLI (Commander.js)  │  SDKs (Py/TS)  │
+│  Web App (Next.js 16)  │  CLI (Commander.js)  │  SDKs (Py/TS)  │
 └──────────────┬─────────────────┬──────────────────┬─────────────┘
                │                 │                  │
                ▼                 ▼                  ▼
@@ -217,7 +217,7 @@ export default function ArchitecturePage() {
                ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                  AGENT LAYER (Port 8000)                         │
-│  FastAPI / LangGraph                                             │
+│  FastAPI / Python                                                │
 │  ├── Deliberation Graph (state machine)                          │
 │  │   ├── Phase Handlers (propose, challenge, rebut, evaluate...) │
 │  │   ├── Voting Engine (Condorcet, Borda, Ranked Pairs, Copeland)│
@@ -307,7 +307,7 @@ export default function ArchitecturePage() {
                   },
                   {
                     step: "4",
-                    desc: "FastAPI runs LangGraph state machine through phases (PROPOSAL → ... → OUTPUT)",
+                    desc: "FastAPI runs deliberation state machine through phases (PROPOSAL → ... → OUTPUT)",
                   },
                   {
                     step: "5",

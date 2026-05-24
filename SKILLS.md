@@ -47,7 +47,7 @@ If a skill exists for the situation, invoke it **before** writing other text. On
 | Type-check just web        | `pnpm --filter @consilium/web type-check`                             |
 | Type-check just api        | `pnpm --filter @consilium/api type-check`                             |
 | Lint changed files only    | `pnpm lint` (turbo caches per-package)                                |
-| Run agents tests           | `cd apps/agents && poetry run pytest tests/deliberation/ -x`          |
+| Run agents tests           | `cd apps/agents && uv run pytest tests/deliberation/ -x`          |
 | 137 deliberation tests     | `cd apps/agents && python -m pytest tests/deliberation/ --noconftest` |
 | Generate Prisma client     | `pnpm db:generate`                                                    |
 | Sync `.env.local` → `.env` | `pnpm env:sync`                                                       |

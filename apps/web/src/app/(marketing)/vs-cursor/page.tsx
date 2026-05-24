@@ -197,7 +197,7 @@ const data: CompetitorComparison = {
         "Consilium has a free tier with a managed pool of open models (Groq + OpenRouter), so you can start without keys. BYOK means you pay your provider directly with no markup. Cursor charges a flat subscription that includes their proxy. The economics depend on usage - heavy users with their own keys often spend less on Consilium because there's no proxy margin.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-23",
 };
 
 export const metadata: Metadata = buildMetadata({

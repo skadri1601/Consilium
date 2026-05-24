@@ -202,7 +202,7 @@ const data: CompetitorComparison = {
         "Cline runs one model per session, so cost scales with one provider. Consilium runs three to five, so per-debate cost is higher. Use Quick mode (2 models, 1 round) for routine checks, and reserve Council/Deep for the hard stuff. The free tier (Groq + OpenRouter pool) keeps onboarding free.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-23",
 };
 
 export const metadata: Metadata = buildMetadata({

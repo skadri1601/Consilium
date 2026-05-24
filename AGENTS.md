@@ -153,7 +153,7 @@ apps/agents/src/
 | Redis          | 6379 | (started with postgres above)                                                | (same)                              |
 | NestJS API     | 4000 | `pnpm --filter @consilium/api dev`                                           | `curl http://localhost:4000/health` |
 | Next.js Web    | 3000 | `pnpm --filter @consilium/web dev`                                           | `curl http://localhost:3000`        |
-| FastAPI Agents | 8000 | `poetry run uvicorn src.main:app --reload --port 8000` (from `apps/agents/`) | `curl http://localhost:8000/health` |
+| FastAPI Agents | 8000 | `uv run uvicorn src.main:app --reload --port 8000` (from `apps/agents/`)  | `curl http://localhost:8000/health` |
 
 ### Startup sequence
 
@@ -164,27 +164,27 @@ apps/agents/src/
 5. Build shared types: `pnpm --filter @consilium/shared build` (required before API compiles)
 6. Start API: `pnpm --filter @consilium/api dev`
 7. Start Web: `pnpm --filter @consilium/web dev`
-8. Start Agents: `cd apps/agents && poetry run uvicorn src.main:app --reload --port 8000`
+8. Start Agents: `cd apps/agents && uv run uvicorn src.main:app --reload --port 8000`
 
 ### Gotchas
 
-- The NestJS API requires `@swc/cli` and `@swc/core` as dev dependencies. Without them, `nest start --watch` fails immediately. They should already be in `apps/api/package.json`.
+- The NestJS API requires `@swc/core` as a dev dependency. Without it, `nest start --watch` fails immediately. It should already be in `apps/api/package.json`.
 - `@consilium/shared` must be built (`pnpm --filter @consilium/shared build`) before the API can compile - it imports from `@consilium/shared/dist/`.
 - The API global prefix is `api/v1` but health endpoints are excluded from it - health is at `/health`, not `/api/v1/health`.
 - Swagger docs: API at `http://localhost:4000/api/docs`, Agents at `http://localhost:8000/docs`.
 - Web returns HTTP 500 without a valid `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`. The dev server still runs and compiles correctly.
 - Agents report "degraded" health without LLM API keys - this is expected, not an error.
-- Poetry must be on PATH: `export PATH="$HOME/.local/bin:$PATH"`.
+- uv must be on PATH (install via `curl -LsSf https://astral.sh/uv/install.sh | sh` or `pip install uv`).
 - Both `.env` and `.env.local` at repo root are needed. The NestJS API reads `.env`/`.env.local` via `@nestjs/config`. The FastAPI agents' pydantic settings reads from `.env.local`. Next.js reads `.env.local`. Copy `.env.example` to both `.env` and `.env.local`.
-- When starting FastAPI agents, source the env file first so `os.getenv()` calls in health checks work: `set -a && source /workspace/.env.local && set +a && poetry run uvicorn ...`.
+- When starting FastAPI agents, source the env file first so `os.getenv()` calls in health checks work: `set -a && source /workspace/.env.local && set +a && uv run uvicorn ...`.
 - Do not quote values in `.env.local` - Next.js and pydantic-settings read the quotes literally.
 
 ### Lint / Test / Build
 
-- **TS lint**: `pnpm lint` (0 errors, 32 warnings - all pre-existing)
-- **Python lint**: `cd apps/agents && poetry run ruff check src/`
-- **API tests**: `pnpm --filter @consilium/api test` (Jest - 70/79 pass; 9 failures need real Clerk/Resend keys)
-- **Web tests**: `pnpm --filter @consilium/web test -- --run` (Vitest - 117/118 pass; 1 failure is pre-existing Clerk import in test env)
-- **Agent tests**: `cd apps/agents && poetry run pytest tests/` (61/72 pass - pre-existing mock/assertion issues)
+- **TS lint**: `pnpm lint` (0 errors, 12 warnings - all pre-existing)
+- **Python lint**: `cd apps/agents && uv run ruff check src/`
+- **API tests**: `pnpm --filter @consilium/api test` (Jest - 76 pass)
+- **Web tests**: `pnpm --filter @consilium/web test -- --run` (Vitest - 118 pass)
+- **Agent tests**: `cd apps/agents && uv run pytest tests/` (pre-existing mock/assertion issues expected without LLM keys)
 - **Type check**: `pnpm type-check`
 - **Build all**: `pnpm build`

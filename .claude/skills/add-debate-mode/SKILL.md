@@ -21,7 +21,7 @@ Add the prompt template(s) for the new phases, following the existing `registry.
 ## 3. Test — `apps/agents/tests/deliberation/`
 Add a mode test. Run it with:
 ```
-cd apps/agents && poetry run pytest tests/deliberation/ -x
+cd apps/agents && uv run pytest tests/deliberation/ -x
 ```
 
 ## 4. TS enum — `packages/shared/src/debates/debate-mode.ts`

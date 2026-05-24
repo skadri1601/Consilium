@@ -198,7 +198,7 @@ const data: CompetitorComparison = {
         "Per request - yes, because three to five models cost more than one. But the modes are tuned: Quick mode runs two models in one round and is comparable in cost. Use Quick for routine, Council for design, Deep for the genuinely hard problems. The free tier (Groq + OpenRouter pool fallback) keeps casual usage near zero.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-23",
 };
 
 export const metadata: Metadata = buildMetadata({

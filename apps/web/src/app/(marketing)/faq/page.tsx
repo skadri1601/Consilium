@@ -28,7 +28,7 @@ const generalFaqs = [
     id: "difference",
     question: "How is this different from ChatGPT or Claude?",
     answer:
-      "Single models give you one perspective. Consilium orchestrates structured debate between multiple models - Claude, GPT-4o, Gemini, Grok, Llama - making them cross-examine each other before synthesizing. Research shows multi-agent deliberation improves factual accuracy by 8-15% over single-model responses (ICML 2024).",
+      "Single models give you one perspective. Consilium orchestrates structured debate between multiple models - Claude, GPT-5, Gemini, Grok, Llama - making them cross-examine each other before synthesizing. Research shows multi-agent deliberation improves factual accuracy by 8-15% over single-model responses (ICML 2024).",
   },
   {
     id: "modes",
@@ -127,7 +127,7 @@ const costFaqs = [
     id: "typical-cost",
     question: "How much does a typical deliberation cost?",
     answer:
-      "Quick mode with GPT-4o-mini: ~$0.001. Council mode with 3 premium models over 3 rounds: ~$0.05-0.15. Deep mode with 5 models over 5 rounds: ~$0.20-0.50. Free with Groq models (Llama 3.1 8B, 3.3 70B, Llama 4 Scout). Consilium adds zero markup to provider costs.",
+      "Quick mode with GPT-5.4 Nano: ~$0.001. Council mode with 3 premium models over 3 rounds: ~$0.05-0.15. Deep mode with 5 models over 5 rounds: ~$0.20-0.50. Free with Groq models (Llama 3.3 70B, Llama 4 Scout, Compound). Consilium adds zero markup to provider costs.",
   },
   {
     id: "estimate-costs",

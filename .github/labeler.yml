@@ -43,7 +43,7 @@ dependencies:
           - "pnpm-lock.yaml"
           - "**/package.json"
           - "apps/agents/pyproject.toml"
-          - "apps/agents/poetry.lock"
+          - "apps/agents/uv.lock"
 
 documentation:
   - changed-files:

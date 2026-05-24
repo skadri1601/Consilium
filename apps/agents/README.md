@@ -7,35 +7,34 @@ Multi-agent LLM orchestration workers for the Consilium AI Council platform.
 This service orchestrates debates between multiple AI models using LangGraph. It handles:
 - Multi-agent debate workflows
 - Real-time streaming responses via SSE
-- Integration with 7 LLM providers: OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), and OpenRouter
+- Integration with 8 LLM providers: OpenAI, Anthropic, Google, Groq, xAI, Moonshot (Kimi), OpenRouter, and Mock
 - BYOK-first with platform free-tier fallback (CONSILIUM_FREE_TIER_GROQ_KEY / CONSILIUM_FREE_TIER_OPENROUTER_KEY)
 - Consensus generation (Golden Prompt synthesis)
 
 ## Tech Stack
 
 - **Framework**: FastAPI + Uvicorn
-- **Orchestration**: LangGraph
-- **LLM Integration**: LangChain
+- **Orchestration**: Custom async state machine (deliberation_graph.py)
+- **LLM Integration**: Direct provider SDKs (openai, anthropic, google-generativeai)
 - **Database**: PostgreSQL (via asyncpg)
 - **Cache**: Redis
-- **Observability**: Langfuse, Sentry, OpenTelemetry
+- **Observability**: Sentry, OpenTelemetry
 
 ## Development
 
 ```bash
 # Install dependencies
-poetry install
+uv sync
 
 # Run locally
-poetry run uvicorn src.main:app --reload --port 8000
+uv run uvicorn src.main:app --reload --port 8000
 
 # Run tests
-poetry run pytest
+uv run pytest
 
-# Lint and format
-poetry run ruff check .
-poetry run black .
-poetry run mypy .
+# Lint
+uv run ruff check .
+uv run mypy .
 ```
 
 ## Environment Variables
@@ -81,8 +80,10 @@ docker run -p 8000:8000 --env-file .env consilium-agents
 
 ## API Endpoints
 
-- `POST /api/v1/debates` - Create a new debate
-- `GET /api/v1/debates/{id}/stream` - Stream debate results (SSE)
+- `POST /api/v1/debates/start` - Start a new debate
+- `GET /api/v1/debates/{debate_id}` - Get debate status
+- `GET /api/v1/debates/{debate_id}/stream` - Stream debate results (SSE)
+- `GET /api/v1/debates/{debate_id}/events` - Get debate events
 - `GET /health` - Health check
 
 ## Architecture
@@ -92,7 +93,7 @@ docker run -p 8000:8000 --env-file .env consilium-agents
 │           FastAPI Service               │
 ├─────────────────────────────────────────┤
 │  ┌─────────────────────────────────┐   │
-│  │      LangGraph Workflow          │   │
+│  │     Deliberation Graph            │   │
 │  │  ┌────────┐  ┌────────┐         │   │
 │  │  │ Agent  │  │ Agent  │  ...    │   │
 │  │  │  GPT   │  │Claude  │         │   │

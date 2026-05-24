@@ -197,7 +197,7 @@ const data: CompetitorComparison = {
         "Because 'strongest on benchmarks' is not the same as 'right for this specific question.' Consilium debates surface the exact cases where Claude is overconfident - and they're not rare. Multi-provider deliberation is also a useful hedge against any one provider's rate-limits, outages, or content-policy quirks.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-23",
 };
 
 export const metadata: Metadata = buildMetadata({

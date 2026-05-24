@@ -198,7 +198,7 @@ const data: CompetitorComparison = {
         "Copilot is per-seat at a flat rate. Consilium is BYOK - you pay your providers directly, no markup, with a free-tier pool (Groq + OpenRouter) for casual usage. Heavy users with their own keys often spend less than per-seat Copilot; light users can stay on the free pool.",
     },
   ],
-  lastUpdated: "2026-04-30",
+  lastUpdated: "2026-05-23",
 };
 
 export const metadata: Metadata = buildMetadata({

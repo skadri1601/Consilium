@@ -146,7 +146,7 @@ export default function HowItWorksPage() {
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Consilium&apos;s deliberation engine is built on a
-                LangGraph-based state machine. Each deliberation progresses
+                Python async state machine. Each deliberation progresses
                 through a defined sequence of phases, with the state object
                 accumulating results at each step. The state machine enforces
                 the debate protocol: no model can skip a phase, and convergence

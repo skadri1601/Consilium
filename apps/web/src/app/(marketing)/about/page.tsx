@@ -94,7 +94,7 @@ const differentiators = [
 
 const stats = [
   { value: "8", label: "Deliberation Modes" },
-  { value: "5", label: "LLM Providers" },
+  { value: "7", label: "LLM Providers" },
   { value: "15", label: "Models Supported" },
   { value: "6", label: "Vertical Templates" },
   { value: "4", label: "Voting Algorithms" },
@@ -244,13 +244,13 @@ export default function AboutPage() {
               xAI (Grok 4.20, Grok 4.1 Fast), Moonshot (Kimi K2.6), Groq for
               cost-effective inference (Llama 3.x, GPT-OSS, Compound), and
               OpenRouter for free-tier fallback. Models debate through a
-              LangGraph state machine with typed challenges, categorized
+              deliberation state machine with typed challenges, categorized
               rebuttals, confidence-weighted voting, and mathematical
               convergence detection.
             </p>
 
             <p>
-              The architecture is a three-tier system: Next.js 15 frontend,
+              The architecture is a three-tier system: Next.js 16 frontend,
               NestJS 11 API with BullMQ job processing, and a FastAPI debate
               engine that orchestrates the deliberation state machine. Every
               phase is recorded for full auditability - which models agreed, who
@@ -264,11 +264,11 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">Architecture</h2>
           <p className="text-muted-foreground text-center mb-8">
-            Three-tier system with a LangGraph deliberation state machine.
+            Three-tier system with a FastAPI deliberation state machine.
           </p>
           <div className="rounded-lg border bg-muted/50 p-6 overflow-x-auto">
             <pre className="text-sm text-muted-foreground leading-relaxed">
-              <code>{`Web (Next.js 15) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
+              <code>{`Web (Next.js 16) → API (NestJS 11/Fastify) → Agents (FastAPI/Python)
                                                       ↓
                                              Debate Orchestrator
                                              ├── Round 1: Independent Analysis
