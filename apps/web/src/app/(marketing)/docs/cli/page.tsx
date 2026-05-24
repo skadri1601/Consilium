@@ -328,15 +328,15 @@ export default function CliReferencePage() {
             <CardContent className="space-y-4">
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                 <code className="text-emerald-400">
-                  npm install -g @myconsilium/cli
+                  curl -fsSL https://install.myconsilium.xyz | sh
                 </code>
               </pre>
               <p className="text-sm text-muted-foreground">
-                Or with your preferred package manager:
+                Or install directly with your package manager:
               </p>
               <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
                 <code className="text-muted-foreground block">
-                  yarn global add @myconsilium/cli
+                  npm install -g @myconsilium/cli
                 </code>
                 <code className="text-muted-foreground block">
                   pnpm add -g @myconsilium/cli

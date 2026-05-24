@@ -968,6 +968,39 @@ function WhyDeliberationBeatsOrchestrationPost() {
         just &quot;the writer agent produced this.&quot;
       </p>
 
+      <h2 className="text-2xl font-bold mt-12 mb-6">
+        What does Consilium do in 60 seconds?
+      </h2>
+
+      <p className="text-lg leading-relaxed text-muted-foreground">
+        You ask one question. Consilium dispatches it to multiple LLMs from
+        different providers (Anthropic, OpenAI, Google, Groq, xAI, Moonshot,
+        OpenRouter). The models argue across rounds using typed challenges and
+        categorized rebuttals. A judge model synthesizes the strongest arguments
+        into a single consensus answer with a convergence score, per-model
+        confidence, and a preserved minority dissent. Total time: 15 seconds
+        (Quick) to 90 seconds (Deep).
+      </p>
+
+      <dl className="grid grid-cols-2 gap-4 md:grid-cols-4 mt-6">
+        <div className="space-y-1">
+          <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">Providers</dt>
+          <dd className="text-2xl font-semibold">7</dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">Deliberation modes</dt>
+          <dd className="text-2xl font-semibold">8</dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">Convergence threshold</dt>
+          <dd className="text-2xl font-semibold">&gt;= 0.85</dd>
+        </div>
+        <div className="space-y-1">
+          <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">Quick debate cost</dt>
+          <dd className="text-2xl font-semibold">$0.001</dd>
+        </div>
+      </dl>
+
       <PostCTA />
     </>
   );
@@ -1203,7 +1236,7 @@ function GettingStartedSdkPost() {
       </h2>
 
       <div className="bg-neutral-900 rounded-lg p-4 font-mono text-sm overflow-x-auto mt-4">
-        <pre className="text-muted-foreground">{`npm install -g @myconsilium/cli
+        <pre className="text-muted-foreground">{`curl -fsSL https://install.myconsilium.xyz | sh
 
 consilium debate "What causes inflation?" --mode council
 consilium debate "Review this architecture" --mode redteam --file diagram.png

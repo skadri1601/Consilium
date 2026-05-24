@@ -73,8 +73,8 @@ const howToCliData = howToSchema({
   tools: ["Node.js >= 20", "An LLM API key"],
   steps: [
     {
-      name: "Install the CLI from npm",
-      text: "Run `npm install -g @myconsilium/cli` (or the yarn/pnpm equivalent). Requires Node.js 20 or newer.",
+      name: "Install the CLI",
+      text: "Run `curl -fsSL https://install.myconsilium.xyz | sh` — auto-detects your package manager. Or `npm install -g @myconsilium/cli` directly.",
     },
     {
       name: "Authenticate the CLI",
@@ -439,15 +439,15 @@ export default function GettingStartedPage() {
                 <CardContent className="space-y-3">
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto">
                     <code className="text-emerald-400">
-                      npm install -g @myconsilium/cli
+                      curl -fsSL https://install.myconsilium.xyz | sh
                     </code>
                   </pre>
                   <p className="text-sm text-muted-foreground">
-                    Or with yarn/pnpm:
+                    Or install directly with your package manager:
                   </p>
                   <pre className="rounded-lg bg-neutral-900 p-4 text-sm overflow-x-auto space-y-1">
                     <code className="text-muted-foreground block">
-                      yarn global add @myconsilium/cli
+                      npm install -g @myconsilium/cli
                     </code>
                     <code className="text-muted-foreground block">
                       pnpm add -g @myconsilium/cli

@@ -161,7 +161,7 @@ const cliFaqs = [
     id: "cli-install",
     question: "How do I install the CLI?",
     answer:
-      "npm install -g @myconsilium/cli, then `consilium login` to authenticate via browser, or `consilium setup-token --name ci` for a 365-day CI token. Shell completions via `consilium completions bash|zsh|fish`. Man page bundled in the npm package.",
+      "`curl -fsSL https://install.myconsilium.xyz | sh` (or `npm install -g @myconsilium/cli`), then `consilium login` to authenticate via browser, or `consilium setup-token --name ci` for a 365-day CI token. Shell completions via `consilium completions bash|zsh|fish`.",
   },
   {
     id: "cli-slash-commands",

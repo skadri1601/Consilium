@@ -277,8 +277,8 @@ const papers = [
   },
 ];
 
-const installSnippet = String.raw`# 1. Install the CLI globally
-npm install -g @myconsilium/cli
+const installSnippet = String.raw`# 1. Install the CLI (one-liner)
+curl -fsSL https://install.myconsilium.xyz | sh
 
 # 2. Sign in (or run on the free tier with no key)
 consilium login
@@ -431,90 +431,6 @@ export default function LandingPage() {
               View Demo
               <ExternalLink className="ml-2 h-4 w-4" />
             </Link>
-          </div>
-        </div>
-        <div className="container mx-auto mt-12 max-w-5xl">
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 md:p-8">
-            <h2
-              className="text-lg font-semibold mb-4 text-foreground"
-              id="sixty-second-tour"
-            >
-              What does Consilium do in 60 seconds?
-            </h2>
-            <p
-              data-speakable
-              className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6"
-            >
-              You ask one question. Consilium dispatches it to multiple LLMs
-              from different providers (Anthropic, OpenAI, Google, Groq, xAI,
-              Moonshot, OpenRouter). The models argue across rounds using typed
-              challenges and categorized rebuttals. A judge model synthesizes
-              the strongest arguments into a single consensus answer with a
-              convergence score, per-model confidence, and a preserved minority
-              dissent. Total time: 15 seconds (Quick) to 90 seconds (Deep).
-            </p>
-            <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Providers
-                </dt>
-                <dd className="text-2xl font-semibold">7</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Deliberation modes
-                </dt>
-                <dd className="text-2xl font-semibold">8</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  CLI unit tests
-                </dt>
-                <dd className="text-2xl font-semibold">962</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Platform tests
-                </dt>
-                <dd className="text-2xl font-semibold">1,553</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Convergence threshold
-                </dt>
-                <dd className="text-2xl font-semibold">&gt;= 0.85</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Free tier debates
-                </dt>
-                <dd className="text-2xl font-semibold">1,000/mo</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Quick debate cost
-                </dt>
-                <dd className="text-2xl font-semibold">$0.001</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                  Deep debate cost
-                </dt>
-                <dd className="text-2xl font-semibold">$0.50</dd>
-              </div>
-            </dl>
-            <figure className="mt-6 border-l-4 border-indigo-500/40 pl-4 py-2">
-              <blockquote className="text-sm md:text-base italic text-foreground/80 leading-relaxed">
-                &ldquo;Debating with more persuasive LLMs leads to more truthful
-                answers, even when one debater argues for the wrong answer.
-                Multi-agent debate significantly improves factual accuracy and
-                mathematical reasoning across benchmarks.&rdquo;
-              </blockquote>
-              <figcaption className="mt-2 text-xs text-muted-foreground">
-                &mdash; Khan et al. and Du et al., ICML 2024 (cited research
-                shows 8-15% accuracy uplift over single-model prompting)
-              </figcaption>
-            </figure>
           </div>
         </div>
       </section>
