@@ -9,7 +9,7 @@ COPY apps ./apps
 RUN pnpm install --frozen-lockfile
 RUN pnpm db:generate
 RUN pnpm --filter @consilium/shared build
-RUN cd packages/database && npx tsc --outDir dist --declaration && \
+RUN cd packages/database && npx tsc && \
     node -e "const p=require('./package.json');p.main='./dist/index.js';p.types='./dist/index.d.ts';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2))"
 RUN pnpm --filter @consilium/api build
 RUN mkdir -p /app/node_modules/@consilium && \
