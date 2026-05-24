@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
-const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const key = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 
 export function PostHogProvider({
