@@ -197,7 +197,7 @@
     "vscode:prepublish": "npm run build"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.0.1",
     "@types/vscode": "^1.120.0",
     "@vscode/vsce": "^3.9.1",
     "esbuild": "^0.28.0",
