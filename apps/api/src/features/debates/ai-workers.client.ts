@@ -28,12 +28,23 @@ export interface DebateStartResponse {
 export class AiWorkersClient {
   private readonly logger = new Logger(AiWorkersClient.name);
   private readonly baseUrl: string;
+  private readonly consiliumApiKey: string;
 
   constructor(private configService: ConfigService) {
     this.baseUrl =
       this.configService.get<string>("AI_WORKERS_URL") ||
       process.env.AI_WORKERS_URL ||
       "http://localhost:8000";
+    this.consiliumApiKey =
+      this.configService.get<string>("CONSILIUM_API_KEY") ||
+      process.env.CONSILIUM_API_KEY ||
+      "";
+  }
+
+  getAuthHeaders(): Record<string, string> {
+    return this.consiliumApiKey
+      ? { Authorization: `Bearer ${this.consiliumApiKey}` }
+      : {};
   }
 
   /**
@@ -55,6 +66,7 @@ export class AiWorkersClient {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...this.getAuthHeaders(),
         },
         body: JSON.stringify({
           debate_id: request.debateId,
