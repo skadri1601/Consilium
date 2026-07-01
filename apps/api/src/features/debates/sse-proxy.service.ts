@@ -45,7 +45,10 @@ export class SseProxyService {
 
       fetch(streamUrl, {
         method: "GET",
-        headers: { Accept: "text/event-stream" },
+        headers: {
+          Accept: "text/event-stream",
+          ...this.aiWorkersClient.getAuthHeaders(),
+        },
         signal: controller.signal,
       })
         .then(async (response) => {
