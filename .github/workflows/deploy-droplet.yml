@@ -37,8 +37,14 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            echo "=== Building and restarting services ==="
+            echo "=== Building services ==="
             docker compose -f docker-compose.droplet.yml build --no-cache
+
+            echo "=== Syncing database schema (prisma db push) ==="
+            docker compose -f docker-compose.droplet.yml run --rm -T --no-deps --entrypoint sh api \
+              -c 'cd /app/packages/database && npx prisma db push --skip-generate'
+
+            echo "=== Starting services ==="
             docker compose -f docker-compose.droplet.yml up -d
 
             echo "=== Waiting for health checks ==="

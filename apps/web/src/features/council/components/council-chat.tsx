@@ -784,7 +784,22 @@ export function CouncilChat() {
                             : "bg-muted",
                         )}
                       >
-                        {message.content}
+                        <div>{message.content}</div>
+                        <time
+                          dateTime={new Date(message.timestamp).toISOString()}
+                          className={cn(
+                            "mt-1 block text-[10px] tabular-nums opacity-70",
+                            message.role === "user"
+                              ? "text-right text-primary-foreground/70"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {new Date(message.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </time>
                       </div>
                     </div>
                   ))}
