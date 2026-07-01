@@ -8,6 +8,7 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
+import { SentryLogger } from "./shared/logging/sentry.logger";
 import * as Sentry from "@sentry/node";
 
 const truthyEnv = (v: string | undefined) =>
@@ -39,6 +40,8 @@ async function bootstrap() {
     }),
     { rawBody: true },
   );
+
+  app.useLogger(new SentryLogger());
 
   app.setGlobalPrefix("api/v1", {
     exclude: ["health", "health/ready", "health/live", "health/info"],
