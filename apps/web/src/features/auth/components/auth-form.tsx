@@ -12,10 +12,10 @@ export function AuthForm({ mode }: AuthFormProps) {
   const Component = mode === "sign-in" ? SignIn : SignUp;
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6">
       <Link
         href="/"
-        className="absolute left-6 top-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to home
