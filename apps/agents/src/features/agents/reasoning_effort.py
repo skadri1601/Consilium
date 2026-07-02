@@ -43,3 +43,38 @@ def to_openai_effort(effort: Optional[EffortLevel]) -> Optional[str]:
 
 def to_xai_effort(effort: Optional[EffortLevel]) -> Optional[str]:
     return to_openai_effort(effort)
+
+
+_ADAPTIVE_THINKING_TAGS: tuple[str, ...] = (
+    "opus-4-6",
+    "opus-4-7",
+    "opus-4-8",
+    "sonnet-4-6",
+    "sonnet-5",
+    "fable-5",
+    "mythos-5",
+)
+
+
+def supports_adaptive_thinking(model_id: str) -> bool:
+    return any(tag in model_id for tag in _ADAPTIVE_THINKING_TAGS)
+
+
+def apply_anthropic_thinking(
+    kwargs: dict, model_id: str, reasoning_effort: Optional[str]
+) -> None:
+    effort = normalize_effort(reasoning_effort)
+    if effort is None:
+        return
+    if supports_adaptive_thinking(model_id):
+        if effort != "low":
+            kwargs["thinking"] = {"type": "adaptive"}
+            kwargs["max_tokens"] = max(kwargs.get("max_tokens", 2000), 8000)
+        return
+    budget = to_anthropic_budget(effort)
+    if budget is not None:
+        kwargs["thinking"] = budget
+        kwargs["temperature"] = 1
+        kwargs["max_tokens"] = max(
+            kwargs.get("max_tokens", 2000), budget["budget_tokens"] + 1024
+        )

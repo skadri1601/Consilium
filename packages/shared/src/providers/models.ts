@@ -63,18 +63,25 @@ export const MODELS: ModelDefinition[] = [
     pricing: { inputPerMillion: 3.0, outputPerMillion: 15.0 },
   },
   {
-    id: "claude-opus-4-6",
-    name: "Claude Opus 4.6",
-    provider: "anthropic",
-    free: false,
-    pricing: { inputPerMillion: 5.0, outputPerMillion: 25.0 },
-  },
-  {
     id: "claude-opus-4-7",
     name: "Claude Opus 4.7",
     provider: "anthropic",
     free: false,
     pricing: { inputPerMillion: 5.0, outputPerMillion: 25.0 },
+  },
+  {
+    id: "claude-opus-4-8",
+    name: "Claude Opus 4.8",
+    provider: "anthropic",
+    free: false,
+    pricing: { inputPerMillion: 5.0, outputPerMillion: 25.0 },
+  },
+  {
+    id: "claude-sonnet-5",
+    name: "Claude Sonnet 5",
+    provider: "anthropic",
+    free: false,
+    pricing: { inputPerMillion: 3.0, outputPerMillion: 15.0 },
   },
 
   {
@@ -166,6 +173,13 @@ export const MODELS: ModelDefinition[] = [
   {
     id: "grok-4.20",
     name: "Grok 4.20",
+    provider: "xai",
+    free: false,
+    pricing: { inputPerMillion: 3.0, outputPerMillion: 15.0 },
+  },
+  {
+    id: "grok-4.3",
+    name: "Grok 4.3",
     provider: "xai",
     free: false,
     pricing: { inputPerMillion: 3.0, outputPerMillion: 15.0 },
