@@ -8,6 +8,8 @@ export function TestModeClerkProvider({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
       afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/council"
       signUpFallbackRedirectUrl="/council"
       appearance={{

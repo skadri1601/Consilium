@@ -1,6 +1,8 @@
 "use client";
 
 import { SignIn, SignUp } from "@clerk/nextjs";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
@@ -10,7 +12,14 @@ export function AuthForm({ mode }: AuthFormProps) {
   const Component = mode === "sign-in" ? SignIn : SignUp;
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="relative flex min-h-screen items-center justify-center">
+      <Link
+        href="/"
+        className="absolute left-6 top-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to home
+      </Link>
       <Component
         appearance={{
           elements: {
