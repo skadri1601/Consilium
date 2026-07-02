@@ -7,7 +7,7 @@ from .base_agent import (
     ToolExecutor,
     ToolUseResponse,
 )
-from .reasoning_effort import normalize_effort, to_anthropic_budget
+from .reasoning_effort import apply_anthropic_thinking
 
 
 class AnthropicAgent(BaseAgent):
@@ -38,17 +38,13 @@ class AnthropicAgent(BaseAgent):
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-            thinking = to_anthropic_budget(normalize_effort(reasoning_effort))
             kwargs: dict = {
                 "model": self.model_id,
                 "max_tokens": 2000,
                 "system": system_prompt or self.get_system_prompt(),
                 "messages": [{"role": "user", "content": query}],
             }
-            if thinking is not None:
-                kwargs["thinking"] = thinking
-                kwargs["temperature"] = 1
-                kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
+            apply_anthropic_thinking(kwargs, self.model_id, reasoning_effort)
             response = await client.messages.create(**kwargs)
 
             text_chunks = [
@@ -76,17 +72,13 @@ class AnthropicAgent(BaseAgent):
             import anthropic
 
             client = anthropic.AsyncAnthropic(api_key=self.api_key)
-            thinking = to_anthropic_budget(normalize_effort(reasoning_effort))
             kwargs: dict = {
                 "model": self.model_id,
                 "max_tokens": 2000,
                 "system": system_prompt or self.get_system_prompt(),
                 "messages": [{"role": "user", "content": query}],
             }
-            if thinking is not None:
-                kwargs["thinking"] = thinking
-                kwargs["temperature"] = 1
-                kwargs["max_tokens"] = max(kwargs["max_tokens"], thinking["budget_tokens"] + 1024)
+            apply_anthropic_thinking(kwargs, self.model_id, reasoning_effort)
             async with client.messages.stream(**kwargs) as stream:
                 async for text in stream.text_stream:
                     yield text

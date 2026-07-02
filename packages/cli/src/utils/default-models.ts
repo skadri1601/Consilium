@@ -44,10 +44,18 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
     notes: "platform default since 2026-04-23",
   },
   {
-    id: "claude-opus-4-6",
+    id: "claude-opus-4-8",
     provider: "anthropic",
     tier: "deep",
     status: "current",
+    notes: "current flagship",
+  },
+  {
+    id: "claude-sonnet-5",
+    provider: "anthropic",
+    tier: "balanced",
+    status: "current",
+    notes: "near-Opus agentic performance",
   },
   {
     id: "claude-sonnet-4-6",
@@ -119,7 +127,14 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
     provider: "xai",
     tier: "deep",
     status: "current",
-    notes: "Grok 4.20 flagship (multi-agent reasoning)",
+    notes: "four-agent reasoning",
+  },
+  {
+    id: "grok-4.3",
+    provider: "xai",
+    tier: "deep",
+    status: "current",
+    notes: "current flagship (video, doc generation)",
   },
   {
     id: "grok-4-1-fast-reasoning",

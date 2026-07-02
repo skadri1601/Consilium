@@ -49,7 +49,8 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   "gpt-5.4-nano": "openai",
   // Anthropic (Claude 4.x family)
   "claude-opus-4-7": "anthropic",
-  "claude-opus-4-6": "anthropic",
+  "claude-opus-4-8": "anthropic",
+  "claude-sonnet-5": "anthropic",
   "claude-sonnet-4-6": "anthropic",
   "claude-haiku-4-5-20251001": "anthropic",
   // Google (Gemini 3.x family)
@@ -65,6 +66,7 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   "groq/compound-mini": "groq",
   // xAI (Grok 4.x family)
   "grok-4-20": "xai",
+  "grok-4.3": "xai",
   "grok-4-1-fast-reasoning": "xai",
   "grok-4-1-fast-non-reasoning": "xai",
   "grok-code-fast-1": "xai",
