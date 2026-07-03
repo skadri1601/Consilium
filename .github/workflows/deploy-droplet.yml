@@ -42,7 +42,7 @@ jobs:
 
             echo "=== Syncing database schema (prisma db push) ==="
             docker compose -f docker-compose.droplet.yml run --rm -T --no-deps --entrypoint sh api \
-              -c 'cd /app/packages/database && npx prisma db push --skip-generate'
+              -c 'cd /app/packages/database && npx prisma db push'
 
             echo "=== Starting services ==="
             docker compose -f docker-compose.droplet.yml up -d
