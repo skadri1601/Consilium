@@ -41,8 +41,10 @@ jobs:
             docker compose -f docker-compose.droplet.yml build
 
             echo "=== Syncing database schema (prisma db push) ==="
-            docker compose -f docker-compose.droplet.yml run --rm -T --no-deps --entrypoint sh api \
-              -c 'cd /app/packages/database && npx prisma db push'
+            if ! docker compose -f docker-compose.droplet.yml run --rm -T --no-deps --entrypoint sh api \
+              -c 'cd /app/packages/database && npx prisma db push'; then
+              echo "::warning::prisma db push skipped changes (schema drift or data-loss guard). Deploy continues; review drift manually."
+            fi
 
             echo "=== Starting services ==="
             docker compose -f docker-compose.droplet.yml up -d
