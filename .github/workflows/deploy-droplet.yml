@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Deploy to droplet
-        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda7f968735a17 # v1.2.2
+        uses: appleboy/ssh-action@2ead5e36573f08b82fbfce1504f1a4b05a647c6f # v1.2.2
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: root
