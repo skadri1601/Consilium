@@ -91,6 +91,7 @@ describe("ClerkWebhooksController integration + stress", () => {
 
     app = moduleRef.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
+      { rawBody: true },
     );
     app.setGlobalPrefix("api/v1");
     await app.init();
@@ -157,6 +158,40 @@ describe("ClerkWebhooksController integration + stress", () => {
         payload: buildUserEvent("user.created", "u_doubled"),
       });
       expect(res.statusCode).toBe(404);
+      expect(createUserCalls).toBe(0);
+    });
+  });
+
+  describe("raw body signature verification", () => {
+    it("verifies the exact raw request body, not a re-serialized copy", async () => {
+      const capturedBodies: string[] = [];
+      mockVerify.mockImplementation((body: string) => {
+        capturedBodies.push(body);
+        return JSON.parse(body);
+      });
+
+      const rawPayload =
+        '{"type":"user.created",  "data":{"id":"u_raw_body",  "email_addresses":[{"id":"e1","email_address":"a@b.c"}],"primary_email_address_id":"e1","first_name":null,"last_name":null,"image_url":null}}';
+
+      const res = await inject({
+        headers: buildSvixHeaders(),
+        rawPayload,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(capturedBodies).toHaveLength(1);
+      expect(capturedBodies[0]).toBe(rawPayload);
+      expect(capturedBodies[0]).not.toBe(JSON.stringify(JSON.parse(rawPayload)));
+      expect(createUserCalls).toBe(1);
+    });
+
+    it("rejects a request with an empty body (never invokes the service)", async () => {
+      const res = await inject({
+        headers: buildSvixHeaders(),
+        rawPayload: "",
+      });
+      expect(res.statusCode).toBeGreaterThanOrEqual(400);
+      expect(res.statusCode).toBeLessThan(500);
       expect(createUserCalls).toBe(0);
     });
   });
@@ -349,6 +384,7 @@ describe("ClerkWebhooksController integration + stress", () => {
         .compile();
       const failApp = moduleRef.createNestApplication<NestFastifyApplication>(
         new FastifyAdapter(),
+        { rawBody: true },
       );
       failApp.setGlobalPrefix("api/v1");
       await failApp.init();

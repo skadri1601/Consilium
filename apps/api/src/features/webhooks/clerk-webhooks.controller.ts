@@ -7,6 +7,7 @@ import {
   UseGuards,
   Logger,
   Req,
+  RawBodyRequest,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Webhook } from "svix";
@@ -53,7 +54,7 @@ export class ClerkWebhooksController {
     @Headers("svix-id") svixId: string,
     @Headers("svix-timestamp") svixTimestamp: string,
     @Headers("svix-signature") svixSignature: string,
-    @Req() req: FastifyRequest,
+    @Req() req: RawBodyRequest<FastifyRequest>,
   ) {
     const event = this.verifyAndParse(
       req,
@@ -104,7 +105,7 @@ export class ClerkWebhooksController {
   }
 
   private verifyAndParse(
-    req: FastifyRequest,
+    req: RawBodyRequest<FastifyRequest>,
     svixId: string,
     svixTimestamp: string,
     svixSignature: string,
@@ -120,11 +121,15 @@ export class ClerkWebhooksController {
       throw new UnauthorizedException("Missing Svix headers");
     }
 
+    const rawBody = req.rawBody;
+    if (!rawBody || rawBody.length === 0) {
+      throw new UnauthorizedException("Missing request body");
+    }
+
     const wh = new Webhook(secret);
-    const body = JSON.stringify(req.body);
 
     try {
-      return wh.verify(body, {
+      return wh.verify(rawBody.toString("utf8"), {
         "svix-id": svixId,
         "svix-timestamp": svixTimestamp,
         "svix-signature": svixSignature,
