@@ -23,7 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/shared/components/ui/dialog";
-import { DebateCardSkeleton } from "@/components/council/debate-card-skeleton";
+import { DebateCardSkeleton } from "@/components/shared/skeletons";
 import {
   Search,
   MoreVertical,
@@ -238,8 +238,8 @@ export function DebateHistory() {
           prev.map((d) => (d.id === id ? { ...d, topic: newTopic } : d)),
         );
       }
-    } catch {
-      // silent fail
+    } catch (error) {
+      console.error("Failed to rename debate", id, error);
     }
   }, []);
 
@@ -249,8 +249,8 @@ export function DebateHistory() {
       if (response.ok) {
         setDebates((prev) => prev.filter((d) => d.id !== id));
       }
-    } catch {
-      // silent fail
+    } catch (error) {
+      console.error("Failed to delete debate", id, error);
     }
   }, []);
 
@@ -270,8 +270,8 @@ export function DebateHistory() {
           ),
         );
       }
-    } catch {
-      // silent fail
+    } catch (error) {
+      console.error("Failed to archive debate", id, error);
     }
   }, []);
 

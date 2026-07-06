@@ -151,9 +151,9 @@ export async function redteamCommand(
   }
 
   const models = options.models || [
-    "gpt-4o-mini",
+    "gpt-5.4-mini",
     "claude-haiku-4-5-20251001",
-    "gemini-2.0-flash",
+    "gemini-3-flash-preview",
   ];
   let assessment: { id: string };
   try {
