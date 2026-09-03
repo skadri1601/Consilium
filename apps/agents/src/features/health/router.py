@@ -5,6 +5,11 @@ import time
 import asyncio
 from typing import Dict, Any
 
+from ..free_tier.resolver import (
+    FREE_TIER_ENV_VARS,
+    TIER_EQUIVALENT_FREE_MODELS,
+)
+
 router = APIRouter(tags=["health"])
 
 
@@ -18,6 +23,29 @@ def check_api_keys() -> Dict[str, bool]:
         "xai": bool(os.getenv("XAI_API_KEY")),
         "moonshot": bool(os.getenv("MOONSHOT_API_KEY")),
         "openrouter": bool(os.getenv("OPENROUTER_API_KEY")),
+    }
+
+
+def check_free_tier_pool() -> Dict[str, bool]:
+    """Check which free-tier pool providers are funded."""
+    return {
+        provider: bool(os.getenv(env_var))
+        for provider, env_var in FREE_TIER_ENV_VARS.items()
+    }
+
+
+def get_free_tier_status() -> Dict[str, Any]:
+    """Describe the platform free-tier pool used when a request has no BYOK."""
+    pool = check_free_tier_pool()
+    funded_providers = [provider for provider, funded in pool.items() if funded]
+    return {
+        "configured": bool(funded_providers),
+        "providers": pool,
+        "env_vars": FREE_TIER_ENV_VARS,
+        "models": {
+            provider: TIER_EQUIVALENT_FREE_MODELS.get(provider, {})
+            for provider in funded_providers
+        },
     }
 
 
@@ -122,16 +150,29 @@ def get_available_models() -> list:
 async def health_check() -> Dict[str, Any]:
     """Comprehensive health check endpoint."""
     api_keys = check_api_keys()
+    free_tier = get_free_tier_status()
     has_any_key = any(api_keys.values())
-    
+    can_serve_requests = has_any_key or free_tier["configured"]
+
+    warnings = []
+    if not can_serve_requests:
+        warnings.append(
+            "No API keys and no free-tier pool configured - agents will not function"
+        )
+    elif not has_any_key:
+        warnings.append(
+            "No provider API keys configured - serving BYOK-less requests from the free-tier pool"
+        )
+
     return {
-        "status": "healthy" if has_any_key else "degraded",
+        "status": "healthy" if can_serve_requests else "degraded",
         "service": "consilium-agents",
         "version": "0.1.0",
         "timestamp": datetime.utcnow().isoformat(),
         "providers": api_keys,
+        "free_tier": free_tier,
         "available_models": get_available_models(),
-        "warnings": [] if has_any_key else ["No API keys configured - agents will not function"],
+        "warnings": warnings,
     }
 
 
@@ -139,13 +180,16 @@ async def health_check() -> Dict[str, Any]:
 async def readiness_check() -> Dict[str, Any]:
     """Readiness check for Kubernetes/container orchestration."""
     api_keys = check_api_keys()
+    free_tier_pool = check_free_tier_pool()
     has_any_key = any(api_keys.values())
-    
+    has_free_tier_pool = any(free_tier_pool.values())
+
     return {
-        "status": "ready" if has_any_key else "not_ready",
+        "status": "ready" if has_any_key or has_free_tier_pool else "not_ready",
         "timestamp": datetime.utcnow().isoformat(),
         "checks": {
             "api_keys": has_any_key,
+            "free_tier_pool": has_free_tier_pool,
         }
     }
 
@@ -164,6 +208,7 @@ async def providers_status() -> Dict[str, Any]:
     """Get detailed status of AI providers."""
     return {
         "providers": check_api_keys(),
+        "free_tier": get_free_tier_status(),
         "models": get_available_models(),
         "timestamp": datetime.utcnow().isoformat(),
     }
