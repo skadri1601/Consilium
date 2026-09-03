@@ -242,8 +242,8 @@ const models = [
   },
   {
     provider: "OpenRouter",
-    model: "Qwen3 Coder (free)",
-    id: "qwen/qwen3-coder:free",
+    model: "North Mini Code (free)",
+    id: "cohere/north-mini-code:free",
     input: "$0.00",
     output: "$0.00",
     free: true,
@@ -260,8 +260,8 @@ const models = [
   },
   {
     provider: "OpenRouter",
-    model: "Ling 2.6 1T (free)",
-    id: "inclusionai/ling-2.6-1t:free",
+    model: "Ling 3.0 Flash (free)",
+    id: "inclusionai/ling-3.0-flash-fin:free",
     input: "$0.00",
     output: "$0.00",
     free: true,

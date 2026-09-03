@@ -206,11 +206,11 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
     notes: "free tier (Gemma 4 31B)",
   },
   {
-    id: "qwen/qwen3-coder:free",
+    id: "cohere/north-mini-code:free",
     provider: "openrouter",
     tier: "balanced",
     status: "current",
-    notes: "free tier (Qwen3 Coder)",
+    notes: "free tier (North Mini Code)",
   },
   {
     id: "nvidia/nemotron-3-super-120b-a12b:free",
@@ -220,11 +220,11 @@ export const MODEL_CATALOG: readonly CatalogEntry[] = [
     notes: "free tier (Nemotron 3 Super 120B)",
   },
   {
-    id: "inclusionai/ling-2.6-1t:free",
+    id: "inclusionai/ling-3.0-flash-fin:free",
     provider: "openrouter",
     tier: "deep",
     status: "current",
-    notes: "free tier (Ling 2.6 1T)",
+    notes: "free tier (Ling 3.0 Flash)",
   },
 ];
 

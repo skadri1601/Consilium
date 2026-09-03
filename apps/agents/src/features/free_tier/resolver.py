@@ -57,7 +57,7 @@ TIER_EQUIVALENT_FREE_MODELS: dict[str, dict[str, str]] = {
     },
     "openrouter": {
         "fast": "google/gemma-4-26b-a4b-it:free",
-        "balanced": "qwen/qwen3-coder:free",
+        "balanced": "google/gemma-4-31b-it:free",
         "deep": "nvidia/nemotron-3-super-120b-a12b:free",
     },
 }
