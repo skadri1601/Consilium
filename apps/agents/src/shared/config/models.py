@@ -206,8 +206,8 @@ AVAILABLE_MODELS = {
             "output_cost": 0.0,
         },
         {
-            "id": "qwen/qwen3-coder:free",
-            "name": "Qwen3 Coder (OpenRouter free tier)",
+            "id": "cohere/north-mini-code:free",
+            "name": "North Mini Code (OpenRouter free tier)",
             "input_cost": 0.0,
             "output_cost": 0.0,
         },
@@ -218,8 +218,8 @@ AVAILABLE_MODELS = {
             "output_cost": 0.0,
         },
         {
-            "id": "inclusionai/ling-2.6-1t:free",
-            "name": "Ling 2.6 1T (OpenRouter free tier)",
+            "id": "inclusionai/ling-3.0-flash-fin:free",
+            "name": "Ling 3.0 Flash (OpenRouter free tier)",
             "input_cost": 0.0,
             "output_cost": 0.0,
         },
@@ -291,11 +291,11 @@ MODEL_ALIASES = {
     "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
     # OpenRouter - older free-tier IDs forwarded to current free models
     # (verified Apr 25 2026: original IDs no longer in OpenRouter free roster)
-    "meta-llama/llama-3.3-70b-instruct:free": "qwen/qwen3-coder:free",
+    "meta-llama/llama-3.3-70b-instruct:free": "google/gemma-4-31b-it:free",
     "google/gemma-2-9b-it:free": "google/gemma-4-26b-a4b-it:free",
     "mistralai/mistral-7b-instruct:free": "google/gemma-4-26b-a4b-it:free",
     "nvidia/nemotron-4-340b-instruct:free": "nvidia/nemotron-3-super-120b-a12b:free",
-    "qwen/qwen-2.5-72b-instruct:free": "qwen/qwen3-coder:free",
+    "qwen/qwen-2.5-72b-instruct:free": "google/gemma-4-31b-it:free",
 }
 
 

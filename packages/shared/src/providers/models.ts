@@ -222,8 +222,8 @@ export const MODELS: ModelDefinition[] = [
     pricing: { inputPerMillion: 0, outputPerMillion: 0 },
   },
   {
-    id: "qwen/qwen3-coder:free",
-    name: "Qwen3 Coder (OpenRouter free)",
+    id: "cohere/north-mini-code:free",
+    name: "North Mini Code (OpenRouter free)",
     provider: "openrouter",
     free: true,
     pricing: { inputPerMillion: 0, outputPerMillion: 0 },
@@ -236,8 +236,8 @@ export const MODELS: ModelDefinition[] = [
     pricing: { inputPerMillion: 0, outputPerMillion: 0 },
   },
   {
-    id: "inclusionai/ling-2.6-1t:free",
-    name: "Ling 2.6 1T (OpenRouter free)",
+    id: "inclusionai/ling-3.0-flash-fin:free",
+    name: "Ling 3.0 Flash (OpenRouter free)",
     provider: "openrouter",
     free: true,
     pricing: { inputPerMillion: 0, outputPerMillion: 0 },

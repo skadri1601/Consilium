@@ -189,7 +189,7 @@ Consilium supports 7 LLM providers as of April 2026. Bring your own key for any 
 | **Groq**       | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `groq/compound`, `groq/compound-mini`                             |
 | **xAI**        | `grok-4-20`, `grok-4-1-fast-reasoning`, `grok-4-1-fast-non-reasoning`, `grok-code-fast-1`                                                                         |
 | **Moonshot**   | `kimi-k2.6`, `kimi-k2.5`, `kimi-k2-thinking`, `kimi-k2-thinking-turbo`, `kimi-k2-turbo-preview`                                                                   |
-| **OpenRouter** | `google/gemma-4-26b-a4b-it:free`, `google/gemma-4-31b-it:free`, `qwen/qwen3-coder:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `inclusionai/ling-2.6-1t:free` |
+| **OpenRouter** | `google/gemma-4-26b-a4b-it:free`, `google/gemma-4-31b-it:free`, `cohere/north-mini-code:free`, `nvidia/nemotron-3-super-120b-a12b:free`, `inclusionai/ling-3.0-flash-fin:free` |
 
 Run `consilium models` for the live catalog with pricing and tier badges. Legacy IDs (e.g. `gpt-4o`, `claude-3-5-sonnet-latest`, `gemini-2.0-flash`) are forwarded to current replacements via aliases - but you should migrate your scripts.
 

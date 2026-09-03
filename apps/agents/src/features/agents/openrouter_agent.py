@@ -7,9 +7,9 @@ class OpenRouterAgent(BaseOpenAICompatAgent):
     """OpenRouter agent - unified OpenAI-compatible gateway to 300+ models.
 
     Endpoint: https://openrouter.ai/api/v1
-    Free tier roster (verified Apr 25, 2026): qwen/qwen3-coder:free,
+    Free tier roster (verified Sep 2, 2026): cohere/north-mini-code:free,
     google/gemma-4-26b-a4b-it:free, google/gemma-4-31b-it:free,
-    nvidia/nemotron-3-super-120b-a12b:free, inclusionai/ling-2.6-1t:free.
+    nvidia/nemotron-3-super-120b-a12b:free, inclusionai/ling-3.0-flash-fin:free.
     Model IDs are namespaced as '<provider>/<model>'.
     """
 
@@ -17,7 +17,7 @@ class OpenRouterAgent(BaseOpenAICompatAgent):
 
     def __init__(
         self,
-        model_id: str = "qwen/qwen3-coder:free",
+        model_id: str = "google/gemma-4-31b-it:free",
         api_key: str | None = None,
     ):
         super().__init__(

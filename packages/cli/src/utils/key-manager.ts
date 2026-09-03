@@ -79,9 +79,9 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   // OpenRouter free models (also reachable via platform free-tier pool)
   "google/gemma-4-26b-a4b-it:free": "openrouter",
   "google/gemma-4-31b-it:free": "openrouter",
-  "qwen/qwen3-coder:free": "openrouter",
+  "cohere/north-mini-code:free": "openrouter",
   "nvidia/nemotron-3-super-120b-a12b:free": "openrouter",
-  "inclusionai/ling-2.6-1t:free": "openrouter",
+  "inclusionai/ling-3.0-flash-fin:free": "openrouter",
 };
 
 const JUDGE_PRIORITY: Provider[] = [
