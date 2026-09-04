@@ -130,6 +130,8 @@ export interface DebateCommandOptions {
   imagePromptFrom?: string;
   /** Image size, e.g. 1024x1024. */
   imageSize?: string;
+  /** Invoked with the final synthesis text once the debate completes. */
+  onSynthesis?: (synthesis: string) => void | Promise<void>;
 }
 
 const VALID_IMAGE_SIZES: ReadonlySet<ImageSize> = new Set<ImageSize>([
@@ -1148,6 +1150,10 @@ export async function debateCommand(
       process.stderr.write(lines.join("\n") + "\n");
       process.exit(2);
     }
+  }
+
+  if (options.onSynthesis && synthesis) {
+    await options.onSynthesis(synthesis);
   }
 
   if (options.plan && !headless) {
