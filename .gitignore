@@ -159,6 +159,9 @@ packages/python-sdk/tests/__pycache__/
 !apps/agents/tests/**/*.py
 apps/agents/tests/**/__pycache__/
 
+# uv lockfile is environment-generated and not tracked in this monorepo
+apps/agents/uv.lock
+
 # Legacy duplicate markdown files (cleaned up - now in /docs structure)
 /files/agents-README.md
 /files/backend-README.md
